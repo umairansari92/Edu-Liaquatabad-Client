@@ -1,9 +1,34 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import { Toaster } from 'react-hot-toast';
 import AppRoutes from './routes/AppRoutes.jsx';
+import apiClient from './services/apiClient.js';
+import { setCredentials, setSessionChecked } from './store/slices/authSlice.js';
 
 function App() {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const initializeSession = async () => {
+      try {
+        // Attempt silent refresh token exchange via HttpOnly cookie
+        const res = await apiClient.post('/auth/refresh-token');
+        if (res?.data?.success && res?.data?.data) {
+          const { user, accessToken } = res.data.data;
+          dispatch(setCredentials({ user, accessToken }));
+        } else {
+          dispatch(setSessionChecked(true));
+        }
+      } catch {
+        // No active session or cookie expired
+        dispatch(setSessionChecked(true));
+      }
+    };
+
+    initializeSession();
+  }, [dispatch]);
+
   return (
     <BrowserRouter>
       <AppRoutes />
