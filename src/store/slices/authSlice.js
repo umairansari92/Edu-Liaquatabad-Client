@@ -26,6 +26,11 @@ const authSlice = createSlice({
       state.accessToken = action.payload;
       state.isAuthenticated = Boolean(action.payload && state.user);
     },
+    updateUserProfile: (state, action) => {
+      if (state.user) {
+        state.user = { ...state.user, ...action.payload };
+      }
+    },
     setSessionChecked: (state, action) => {
       state.sessionChecked = action.payload;
       state.isLoading = false;
@@ -51,6 +56,7 @@ const authSlice = createSlice({
 export const {
   setCredentials,
   setAccessToken,
+  updateUserProfile,
   setSessionChecked,
   setLoading,
   setError,
