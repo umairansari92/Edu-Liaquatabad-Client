@@ -1,18 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../../store/slices/authSlice.js';
-import { Bell, User, LogOut, School, ShieldCheck } from 'lucide-react';
+import { Bell, User, LogOut, School, ShieldCheck, Loader2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import apiClient from '../../services/apiClient.js';
+import toast from 'react-hot-toast';
 
 export const Navbar = () => {
   const { user, isAuthenticated } = useSelector((state) => state.auth);
   const { unreadCount } = useSelector((state) => state.notifications);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [loggingOut, setLoggingOut] = useState(false);
 
-  const handleLogout = () => {
-    dispatch(logout());
-    navigate('/login');
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      // Call backend to clear the HttpOnly refresh cookie
+      await apiClient.post('/auth/logout');
+    } catch {
+      // Even if backend fails, clear local state
+    } finally {
+      dispatch(logout());
+      toast.success('Signed out successfully.');
+      navigate('/login');
+      setLoggingOut(false);
+    }
   };
 
   return (
@@ -40,6 +53,7 @@ export const Navbar = () => {
               <button
                 className="relative p-2 text-slate-300 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
                 title="Notifications"
+                aria-label="View notifications"
               >
                 <Bell className="w-5 h-5" />
                 {unreadCount > 0 && (
@@ -51,17 +65,23 @@ export const Navbar = () => {
               <div className="flex items-center space-x-3 pl-3 border-l border-slate-800">
                 <div className="text-right hidden sm:block">
                   <p className="text-sm font-semibold text-white leading-tight">{user.fullName}</p>
-                  <p className="text-xs text-emerald-400 font-medium">{user.role}</p>
+                  <p className="text-xs text-emerald-400 font-medium">{user.designation || user.role}</p>
                 </div>
                 <div className="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-200">
                   <User className="w-5 h-5" />
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="p-2 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-slate-800 transition-colors"
-                  title="Logout"
+                  disabled={loggingOut}
+                  className="p-2 text-slate-400 hover:text-rose-400 rounded-lg hover:bg-slate-800 transition-colors disabled:opacity-50"
+                  title="Sign Out"
+                  aria-label="Sign out"
                 >
-                  <LogOut className="w-5 h-5" />
+                  {loggingOut ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <LogOut className="w-5 h-5" />
+                  )}
                 </button>
               </div>
             </>
