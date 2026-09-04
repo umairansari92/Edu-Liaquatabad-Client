@@ -69,12 +69,32 @@ const rollNumberField = z
   .max(20, 'Roll number is too long')
   .regex(/^[A-Za-z0-9\-\/]+$/, 'Roll number may only contain letters, numbers, hyphens, or slashes');
 
+export const loginIdentifierField = z
+  .string()
+  .trim()
+  .min(1, 'Email or GR Number is required')
+  .max(254, 'Identifier is too long')
+  .refine((val) => !SCRIPT_INJECTION_REGEX.test(val), {
+    message: 'Disallowed characters detected.',
+  });
+
+export const grNumberField = z
+  .string()
+  .trim()
+  .min(1, 'GR Number is required')
+  .max(30, 'GR Number is too long')
+  .regex(/^[A-Za-z0-9\-\/]+$/, 'GR Number may only contain letters, numbers, hyphens, or slashes')
+  .refine((val) => !SCRIPT_INJECTION_REGEX.test(val), { message: 'Disallowed characters.' });
+
 // ─── Auth Schemas (mirrors server-side validation exactly) ────────────────────
 
 /** Login form schema */
 export const loginSchema = z.object({
-  email: emailField,
+  email: loginIdentifierField,
   password: z.string().min(1, 'Password is required').max(128, 'Password is too long'),
+  captchaAnswer: z.union([z.string(), z.number()]).optional(),
+  captchaChallengeToken: z.string().optional(),
+  _gotcha: z.string().optional(),
 });
 
 /** Send OTP form schema */
@@ -90,28 +110,42 @@ export const verifyOtpSchema = z.object({
   purpose: z.enum(['REGISTRATION', 'PASSWORD_RESET', 'MFA_LOGIN', 'SENSITIVE_ACTION']),
 });
 
-/** Student registration schema */
-export const registerStudentSchema = z.object({
-  fullName: nameField('Full Name'),
-  email: emailField,
-  password: passwordField,
-  fatherOrGuardianName: nameField('Father/Guardian Name'),
-  guardianContactNumber: phoneField,
-  rollNumber: rollNumberField,
-  className: safeString(50, 1, 'Class is required'),
-  sectionName: safeString(10, 1, 'Section is required'),
-  otpCode: otpField,
-});
+/** Student registration schema: Simple account creation with GR Number */
+export const studentRegistrationSchema = z
+  .object({
+    fullName: nameField('Student Name'),
+    fatherOrGuardianName: nameField('Father / Guardian Name'),
+    schoolId: z.string().trim().min(1, 'Please select your School'),
+    grNumber: grNumberField,
+    password: passwordField,
+    confirmPassword: z.string().min(1, 'Please re-type your account password'),
+    _gotcha: z.string().optional(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Passwords do not match.',
+    path: ['confirmPassword'],
+  });
 
-/** Teacher registration schema */
-export const registerTeacherSchema = z.object({
+export const studentFormSchema = studentRegistrationSchema;
+export const registerStudentSchema = studentRegistrationSchema;
+
+/** Teacher registration initial form schema (pre-OTP validation) */
+export const teacherFormSchema = z.object({
   fullName: nameField('Full Name'),
   email: emailField,
   password: passwordField,
   phoneNumber: phoneField,
   designation: safeString(100, 2, 'Designation is required'),
   qualification: safeString(100, 2, 'Qualification is required'),
+  schoolId: z.string().optional(),
+});
+
+/** Teacher registration full schema (with OTP) */
+export const registerTeacherSchema = teacherFormSchema.extend({
   otpCode: otpField,
+  captchaAnswer: z.string().optional(),
+  captchaChallengeToken: z.string().optional(),
+  _gotcha: z.string().optional(),
 });
 
 /** Password reset request (forgot password step 1) */

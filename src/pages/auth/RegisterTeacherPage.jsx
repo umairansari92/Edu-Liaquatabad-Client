@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { School, UserCheck, Phone, Mail, Lock, CheckCircle, AlertCircle, ShieldCheck } from 'lucide-react';
 import apiClient from '../../services/apiClient.js';
 import OtpVerificationModal from '../../components/common/OtpVerificationModal.jsx';
-import { registerTeacherSchema } from '../../validations/authSchemas.js';
+import { teacherFormSchema } from '../../validations/authSchemas.js';
 
 export const RegisterTeacherPage = () => {
   const [submitted, setSubmitted] = useState(false);
@@ -13,14 +13,29 @@ export const RegisterTeacherPage = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [pendingFormData, setPendingFormData] = useState(null);
   const [showOtpModal, setShowOtpModal] = useState(false);
+  const [schools, setSchools] = useState([]);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(registerTeacherSchema),
+    resolver: zodResolver(teacherFormSchema),
   });
+
+  useEffect(() => {
+    const fetchSchools = async () => {
+      try {
+        const res = await apiClient.get('/public/schools');
+        if (res.data?.success && Array.isArray(res.data?.data)) {
+          setSchools(res.data.data);
+        }
+      } catch {
+        // Quiet fallback if offline or seeding
+      }
+    };
+    fetchSchools();
+  }, []);
 
   const onInitiateSubmit = async (data) => {
     setLoading(true);
@@ -41,27 +56,20 @@ export const RegisterTeacherPage = () => {
   };
 
   const handleOtpVerified = async (otpCode) => {
+    // Step 2: Finalize faculty registration with verified OTP
+    await apiClient.post('/auth/register-teacher', {
+      ...pendingFormData,
+      otpCode,
+    });
     setShowOtpModal(false);
-    setLoading(true);
-    try {
-      // Step 2: Finalize faculty registration with verified OTP
-      await apiClient.post('/auth/register-teacher', {
-        ...pendingFormData,
-        otpCode,
-      });
-      setSubmitted(true);
-    } catch (err) {
-      setErrorMessage(err.response?.data?.message || 'Registration failed. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    setSubmitted(true);
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans selection:bg-emerald-500 selection:text-white">
+    <div className="min-h-screen bg-slate-950 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans selection:bg-teal-500 selection:text-white">
       <div className="sm:mx-auto sm:w-full sm:max-w-xl text-center">
-        <Link to="/" className="inline-flex items-center justify-center space-x-3 mb-4">
-          <div className="w-10 h-10 rounded-xl bg-teal-600 flex items-center justify-center shadow-lg shadow-teal-900/30">
+        <Link to="/" className="inline-flex items-center justify-center space-x-3 mb-4 group">
+          <div className="w-11 h-11 rounded-2xl bg-teal-600 flex items-center justify-center shadow-lg shadow-teal-900/30 group-hover:bg-teal-500 transition-colors">
             <School className="w-6 h-6 text-white" />
           </div>
         </Link>
@@ -99,6 +107,15 @@ export const RegisterTeacherPage = () => {
                   <span>{errorMessage}</span>
                 </div>
               )}
+
+              {/* Honeypot field */}
+              <input
+                type="text"
+                {...register('_gotcha')}
+                tabIndex="-1"
+                autoComplete="off"
+                className="hidden"
+              />
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
@@ -172,16 +189,33 @@ export const RegisterTeacherPage = () => {
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
-                    Highest Qualification
+                    Assigned Municipal School
                   </label>
-                  <input
-                    {...register('qualification')}
-                    type="text"
-                    placeholder="e.g. M.Sc Physics / B.Ed"
+                  <select
+                    {...register('schoolId')}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
-                  />
-                  {errors.qualification && <p className="mt-1 text-xs text-rose-400">{errors.qualification.message}</p>}
+                  >
+                    <option value="">Select Municipal School (Optional)</option>
+                    {schools.map((school) => (
+                      <option key={school._id} value={school._id}>
+                        {school.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                  Highest Qualification
+                </label>
+                <input
+                  {...register('qualification')}
+                  type="text"
+                  placeholder="e.g. M.Sc Physics / B.Ed"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+                />
+                {errors.qualification && <p className="mt-1 text-xs text-rose-400">{errors.qualification.message}</p>}
               </div>
 
               <div className="pt-2">

@@ -3,6 +3,8 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from '../pages/auth/LoginPage.jsx';
 import RegisterStudentPage from '../pages/auth/RegisterStudentPage.jsx';
 import RegisterTeacherPage from '../pages/auth/RegisterTeacherPage.jsx';
+import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage.jsx';
+import ResetPasswordPage from '../pages/auth/ResetPasswordPage.jsx';
 import DashboardRouter from '../pages/dashboard/DashboardRouter.jsx';
 import ProtectedRoute from './ProtectedRoute.jsx';
 
@@ -19,6 +21,8 @@ export const AppRoutes = () => {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register-student" element={<RegisterStudentPage />} />
       <Route path="/register-teacher" element={<RegisterTeacherPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
 
       {/* Protected Core Dashboard Route */}
       <Route element={<ProtectedRoute />}>

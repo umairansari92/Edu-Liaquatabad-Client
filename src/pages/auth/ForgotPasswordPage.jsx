@@ -1,44 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   School,
-  Lock,
   Mail,
   AlertCircle,
   ArrowRight,
+  ArrowLeft,
+  KeyRound,
   RefreshCw,
   Calculator,
-  Clock,
   ShieldCheck,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { setCredentials, setError } from '../../store/slices/authSlice.js';
 import apiClient from '../../services/apiClient.js';
-import { loginSchema } from '../../validations/authSchemas.js';
+import { passwordResetRequestSchema } from '../../validations/authSchemas.js';
 
-export const LoginPage = () => {
+export const ForgotPasswordPage = () => {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [captcha, setCaptcha] = useState(null);
   const [captchaLoading, setCaptchaLoading] = useState(false);
-  const [lockoutTimer, setLockoutTimer] = useState(null);
 
-  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(passwordResetRequestSchema),
   });
 
-  // Fetch Math CAPTCHA
   const fetchCaptcha = async () => {
     setCaptchaLoading(true);
     try {
@@ -47,7 +41,7 @@ export const LoginPage = () => {
         setCaptcha(res.data.data);
       }
     } catch {
-      // Fallback
+      // Quiet fallback
     } finally {
       setCaptchaLoading(false);
     }
@@ -63,7 +57,6 @@ export const LoginPage = () => {
     try {
       const payload = {
         email: data.email,
-        password: data.password,
         _gotcha: data._gotcha || '',
       };
 
@@ -72,19 +65,12 @@ export const LoginPage = () => {
         payload.captchaChallengeToken = captcha.challengeToken;
       }
 
-      const response = await apiClient.post('/auth/login', payload);
-
-      if (response.data?.success && response.data?.data) {
-        const { user, accessToken } = response.data.data;
-        dispatch(setCredentials({ user, accessToken }));
-        toast.success(`Welcome back, ${user.fullName}!`);
-        navigate('/dashboard');
-      }
+      await apiClient.post('/auth/forgot-password', payload);
+      toast.success('Security reset code dispatched to your email.');
+      navigate(`/reset-password?email=${encodeURIComponent(data.email)}`);
     } catch (err) {
-      const msg = err.response?.data?.message || 'Authentication failed. Please verify credentials.';
+      const msg = err.response?.data?.message || 'Failed to dispatch password recovery code. Please verify the email address.';
       setErrorMessage(msg);
-      dispatch(setError(msg));
-      // Refresh CAPTCHA on failed attempt
       fetchCaptcha();
     } finally {
       setLoading(false);
@@ -99,8 +85,9 @@ export const LoginPage = () => {
             <School className="w-6 h-6 text-white" />
           </div>
         </Link>
-        <h2 className="text-2xl sm:text-3xl font-display font-bold text-white tracking-tight">
-          Official Portal Sign In
+        <h2 className="text-2xl sm:text-3xl font-display font-bold text-white tracking-tight flex items-center justify-center gap-2">
+          <KeyRound className="w-6 h-6 text-emerald-400" />
+          Password Recovery
         </h2>
         <p className="mt-1.5 text-xs text-slate-400">
           Education Department Liaquatabad Town Centre (DMC)
@@ -109,6 +96,10 @@ export const LoginPage = () => {
 
       <div className="mt-7 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
         <div className="bg-slate-900/90 backdrop-blur-xl py-8 px-6 sm:px-10 shadow-2xl rounded-2xl border border-slate-800">
+          <p className="text-xs text-slate-300 mb-5 leading-relaxed">
+            Enter your official registered email address. We will dispatch a 6-digit cryptographic security code to authorize your password reset.
+          </p>
+
           {errorMessage && (
             <div className="mb-5 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs flex items-start gap-2.5">
               <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
@@ -117,7 +108,7 @@ export const LoginPage = () => {
           )}
 
           <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-            {/* Honeypot field (hidden from legitimate users) */}
+            {/* Honeypot field */}
             <input
               type="text"
               {...register('_gotcha')}
@@ -128,48 +119,21 @@ export const LoginPage = () => {
 
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-                Official Email or Student GR Number
+                Official Registered Email
               </label>
               <div className="relative rounded-lg shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
                   <Mail className="w-4 h-4" />
                 </div>
                 <input
-                  type="text"
+                  type="email"
                   {...register('email')}
-                  placeholder="Official email or GR Number (e.g. 1045)"
+                  placeholder="name@liaquatabad-schools.gov.pk"
                   className="block w-full pl-9 pr-3 py-2.5 bg-slate-950/80 border border-slate-800 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-xs"
                 />
               </div>
               {errors.email && (
                 <p className="mt-1 text-xs text-rose-400">{errors.email.message}</p>
-              )}
-            </div>
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
-                  Secure Password
-                </label>
-                <Link
-                  to="/forgot-password"
-                  className="text-[11px] text-emerald-400 hover:text-emerald-300 transition-colors"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-              <div className="relative rounded-lg shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
-                  <Lock className="w-4 h-4" />
-                </div>
-                <input
-                  type="password"
-                  {...register('password')}
-                  placeholder="••••••••••••"
-                  className="block w-full pl-9 pr-3 py-2.5 bg-slate-950/80 border border-slate-800 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-xs"
-                />
-              </div>
-              {errors.password && (
-                <p className="mt-1 text-xs text-rose-400">{errors.password.message}</p>
               )}
             </div>
 
@@ -211,36 +175,31 @@ export const LoginPage = () => {
                 disabled={loading}
                 className="w-full flex justify-center items-center gap-2 py-2.5 px-4 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 shadow-lg shadow-emerald-950/50 transition-all disabled:opacity-50"
               >
-                {loading ? 'Authenticating...' : 'Sign In to Official Portal'}
+                {loading ? 'Dispatching Reset Code...' : 'Dispatch Verification Code'}
                 {!loading && <ArrowRight className="w-4 h-4" />}
               </button>
             </div>
           </form>
 
-          <div className="mt-6 border-t border-slate-800/80 pt-5 text-center text-xs text-slate-400 space-y-2">
-            <p>
-              Student Self-Registration?{' '}
-              <Link to="/register-student" className="text-emerald-400 hover:text-emerald-300 font-medium">
-                Register Student Account
-              </Link>
-            </p>
-            <p>
-              Faculty Registration?{' '}
-              <Link to="/register-teacher" className="text-emerald-400 hover:text-emerald-300 font-medium">
-                Register Faculty Account
-              </Link>
-            </p>
+          <div className="mt-6 border-t border-slate-800/80 pt-5 text-center text-xs text-slate-400">
+            <Link
+              to="/login"
+              className="inline-flex items-center gap-1.5 text-emerald-400 hover:text-emerald-300 font-medium transition-colors"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              Return to Official Sign In
+            </Link>
           </div>
         </div>
 
         {/* Security badge footer */}
         <div className="mt-4 flex items-center justify-center gap-2 text-[11px] text-slate-500">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-          <span>Protected by Triple-Lock Rate Limiting & 256-bit Encryption</span>
+          <span>Encrypted Password Recovery Protected by DMC Security</span>
         </div>
       </div>
     </div>
   );
 };
 
-export default LoginPage;
+export default ForgotPasswordPage;

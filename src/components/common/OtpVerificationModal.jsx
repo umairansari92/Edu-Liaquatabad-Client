@@ -64,15 +64,11 @@ export const OtpVerificationModal = ({ isOpen, onClose, email, onVerified, purpo
     setLoading(true);
     setErrorMessage('');
     try {
-      await apiClient.post('/auth/verify-otp', {
-        email,
-        otpCode: code,
-        purpose,
-      });
-
-      onVerified(code);
+      if (onVerified) {
+        await onVerified(code);
+      }
     } catch (err) {
-      setErrorMessage(err.response?.data?.message || 'Invalid or expired verification code.');
+      setErrorMessage(err.response?.data?.message || err.message || 'Verification failed. Please check the code and try again.');
     } finally {
       setLoading(false);
     }
