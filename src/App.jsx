@@ -3,6 +3,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { Toaster } from 'react-hot-toast';
 import AppRoutes from './routes/AppRoutes.jsx';
+import AppFooter from './components/layout/AppFooter.jsx';
 import apiClient from './services/apiClient.js';
 import { setCredentials, setSessionChecked } from './store/slices/authSlice.js';
 
@@ -31,7 +32,12 @@ function App() {
 
   return (
     <BrowserRouter>
-      <AppRoutes />
+      <div className="min-h-screen flex flex-col bg-slate-950">
+        <div className="flex-1">
+          <AppRoutes />
+        </div>
+        <AppFooter />
+      </div>
       <Toaster
         position="top-right"
         toastOptions={{
@@ -57,3 +63,4 @@ function App() {
 }
 
 export default App;
+
