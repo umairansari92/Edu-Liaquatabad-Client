@@ -15,7 +15,7 @@ export const OtpVerificationModal = ({ isOpen, onClose, email, onVerified, purpo
     let interval;
     if (isOpen && timer > 0) {
       interval = setInterval(() => {
-        setTimer((prev) => prev - 1);
+        setTimer((previousTimerSeconds) => previousTimerSeconds - 1);
       }, 1000);
     } else if (timer === 0) {
       setCanResend(true);
@@ -25,28 +25,28 @@ export const OtpVerificationModal = ({ isOpen, onClose, email, onVerified, purpo
 
   if (!isOpen) return null;
 
-  const handleChange = (index, value) => {
-    if (!/^\d*$/.test(value)) return;
+  const handleChange = (digitIndex, characterValue) => {
+    if (!/^\d*$/.test(characterValue)) return;
 
     const newOtp = [...otp];
-    newOtp[index] = value.slice(-1);
+    newOtp[digitIndex] = characterValue.slice(-1);
     setOtp(newOtp);
 
     // Auto-focus next box
-    if (value && index < 5) {
-      inputRefs.current[index + 1]?.focus();
+    if (characterValue && digitIndex < 5) {
+      inputRefs.current[digitIndex + 1]?.focus();
     }
   };
 
-  const handleKeyDown = (index, e) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
+  const handleKeyDown = (digitIndex, keyboardEvent) => {
+    if (keyboardEvent.key === 'Backspace' && !otp[digitIndex] && digitIndex > 0) {
+      inputRefs.current[digitIndex - 1]?.focus();
     }
   };
 
-  const handlePaste = (e) => {
-    e.preventDefault();
-    const pastedData = e.clipboardData.getData('text').trim();
+  const handlePaste = (clipboardEvent) => {
+    clipboardEvent.preventDefault();
+    const pastedData = clipboardEvent.clipboardData.getData('text').trim();
     if (/^\d{6}$/.test(pastedData)) {
       const digits = pastedData.split('');
       setOtp(digits);
@@ -67,8 +67,8 @@ export const OtpVerificationModal = ({ isOpen, onClose, email, onVerified, purpo
       if (onVerified) {
         await onVerified(code);
       }
-    } catch (err) {
-      setErrorMessage(err.response?.data?.message || err.message || 'Verification failed. Please check the code and try again.');
+    } catch (verificationError) {
+      setErrorMessage(verificationError.response?.data?.message || verificationError.message || 'Verification failed. Please check the code and try again.');
     } finally {
       setLoading(false);
     }
@@ -85,8 +85,8 @@ export const OtpVerificationModal = ({ isOpen, onClose, email, onVerified, purpo
       setTimer(60);
       setCanResend(false);
       setOtp(['', '', '', '', '', '']);
-    } catch (err) {
-      setErrorMessage(err.response?.data?.message || 'Failed to resend code.');
+    } catch (resendError) {
+      setErrorMessage(resendError.response?.data?.message || 'Failed to resend code.');
     } finally {
       setResending(false);
     }
@@ -125,13 +125,13 @@ export const OtpVerificationModal = ({ isOpen, onClose, email, onVerified, purpo
           {otp.map((digit, index) => (
             <input
               key={index}
-              ref={(el) => (inputRefs.current[index] = el)}
+              ref={(inputElement) => (inputRefs.current[index] = inputElement)}
               type="text"
               inputMode="numeric"
               maxLength={1}
               value={digit}
-              onChange={(e) => handleChange(index, e.target.value)}
-              onKeyDown={(e) => handleKeyDown(index, e)}
+              onChange={(changeEvent) => handleChange(index, changeEvent.target.value)}
+              onKeyDown={(keyboardEvent) => handleKeyDown(index, keyboardEvent)}
               className="w-11 h-13 text-center text-xl font-bold bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-xl text-white outline-none transition-all"
             />
           ))}

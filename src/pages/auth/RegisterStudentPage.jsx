@@ -25,9 +25,9 @@ export const RegisterStudentPage = () => {
   useEffect(() => {
     const fetchSchools = async () => {
       try {
-        const res = await apiClient.get('/public/schools');
-        if (res.data?.success && Array.isArray(res.data?.data)) {
-          setSchools(res.data.data);
+        const schoolsResponse = await apiClient.get('/public/schools');
+        if (schoolsResponse.data?.success && Array.isArray(schoolsResponse.data?.data)) {
+          setSchools(schoolsResponse.data.data);
         }
       } catch {
         // Fallback default if schools not yet seeded
@@ -36,31 +36,31 @@ export const RegisterStudentPage = () => {
     fetchSchools();
   }, []);
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (registrationFormData) => {
     setLoading(true);
     setErrorMessage('');
     try {
       const payload = {
-        fullName: data.fullName,
-        fatherOrGuardianName: data.fatherOrGuardianName,
-        schoolId: data.schoolId,
-        grNumber: data.grNumber,
-        password: data.password,
-        confirmPassword: data.confirmPassword,
-        _gotcha: data._gotcha || '',
+        fullName: registrationFormData.fullName,
+        fatherOrGuardianName: registrationFormData.fatherOrGuardianName,
+        schoolId: registrationFormData.schoolId,
+        grNumber: registrationFormData.grNumber,
+        password: registrationFormData.password,
+        confirmPassword: registrationFormData.confirmPassword,
+        _gotcha: registrationFormData._gotcha || '',
       };
 
-      const res = await apiClient.post('/auth/register-student', payload);
-      if (res.data?.success) {
-        setRegisteredGr(data.grNumber);
+      const registrationResponse = await apiClient.post('/auth/register-student', payload);
+      if (registrationResponse.data?.success) {
+        setRegisteredGr(registrationFormData.grNumber);
         setSubmitted(true);
         toast.success('Student registration submitted successfully!');
       }
-    } catch (err) {
-      const msg =
-        err.response?.data?.message ||
+    } catch (registrationError) {
+      const errorNotificationMessage =
+        registrationError.response?.data?.message ||
         'Registration failed. Please verify your GR Number and School selection.';
-      setErrorMessage(msg);
+      setErrorMessage(errorNotificationMessage);
     } finally {
       setLoading(false);
     }

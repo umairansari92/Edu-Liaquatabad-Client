@@ -48,7 +48,7 @@ const HmAddStudentModal = ({ isOpen, onClose, schoolId, classes = [], onSuccess 
   useEffect(() => {
     if (isOpen && schoolId) {
       apiClient.get(`/students/next-gr/${schoolId}`)
-        .then((r) => setNextGrPreview(r.data?.data?.suggestedGrNumber))
+        .then((previewResponse) => setNextGrPreview(previewResponse.data?.data?.suggestedGrNumber))
         .catch(() => setNextGrPreview(null));
     }
   }, [isOpen, schoolId]);
@@ -62,10 +62,10 @@ const HmAddStudentModal = ({ isOpen, onClose, schoolId, classes = [], onSuccess 
     const debounce = setTimeout(async () => {
       setGrCheckState('checking');
       try {
-        const res = await apiClient.get('/students/check-gr', {
+        const checkResponse = await apiClient.get('/students/check-gr', {
           params: { schoolId, grNumber: manualGrNumber },
         });
-        setGrCheckState(res.data?.data?.available ? 'available' : 'taken');
+        setGrCheckState(checkResponse.data?.data?.available ? 'available' : 'taken');
       } catch {
         setGrCheckState(null);
       }
@@ -73,20 +73,20 @@ const HmAddStudentModal = ({ isOpen, onClose, schoolId, classes = [], onSuccess 
     return () => clearTimeout(debounce);
   }, [manualGrNumber, admissionType, schoolId]);
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (enrollmentFormData) => {
     if (admissionType === 'EXISTING_ENTRY' && grCheckState === 'taken') {
       toast.error('This GR number is already assigned. Please use a different one.');
       return;
     }
     setSubmitting(true);
     try {
-      const res = await apiClient.post('/students/enroll', data);
-      setEnrolledStudent(res.data?.data);
+      const enrollmentResponse = await apiClient.post('/students/enroll', enrollmentFormData);
+      setEnrolledStudent(enrollmentResponse.data?.data);
       setStep(3);
       toast.success('Student enrolled successfully!');
       onSuccess?.();
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Enrollment failed. Please try again.');
+    } catch (enrollmentError) {
+      toast.error(enrollmentError.response?.data?.message || 'Enrollment failed. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -110,7 +110,7 @@ const HmAddStudentModal = ({ isOpen, onClose, schoolId, classes = [], onSuccess 
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="hm-modal-overlay"
-        onClick={(e) => e.target === e.currentTarget && handleClose()}
+        onClick={(clickEvent) => clickEvent.target === clickEvent.currentTarget && handleClose()}
       >
         <motion.div
           initial={{ opacity: 0, y: 40, scale: 0.95 }}
@@ -268,8 +268,8 @@ const HmAddStudentModal = ({ isOpen, onClose, schoolId, classes = [], onSuccess 
                   <label className="hm-label">Class <span className="req">*</span></label>
                   <select {...register('classId')} className="hm-input">
                     <option value="">Select Class</option>
-                    {classes.map((cls) => (
-                      <option key={cls._id} value={cls._id}>{cls.name}</option>
+                    {classes.map((classItem) => (
+                      <option key={classItem._id} value={classItem._id}>{classItem.name}</option>
                     ))}
                   </select>
                   {errors.classId && <p className="hm-field-error">{errors.classId.message}</p>}
@@ -279,9 +279,9 @@ const HmAddStudentModal = ({ isOpen, onClose, schoolId, classes = [], onSuccess 
                   <select {...register('sectionId')} className="hm-input">
                     <option value="">Select Section</option>
                     {classes
-                      .find((c) => c._id === selectedClassId)
-                      ?.sections?.map((sec) => (
-                        <option key={sec._id} value={sec._id}>{sec.name}</option>
+                      .find((classCandidate) => classCandidate._id === selectedClassId)
+                      ?.sections?.map((sectionItem) => (
+                        <option key={sectionItem._id} value={sectionItem._id}>{sectionItem.name}</option>
                       ))}
                   </select>
                   {errors.sectionId && <p className="hm-field-error">{errors.sectionId.message}</p>}

@@ -12,20 +12,20 @@ const apiClient = axios.create({
 
 // Request Interceptor: Attach Access Token
 apiClient.interceptors.request.use(
-  (config) => {
-    const state = store.getState();
-    const token = state.auth.accessToken;
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+  (requestConfig) => {
+    const applicationState = store.getState();
+    const activeAccessToken = applicationState.auth.accessToken;
+    if (activeAccessToken) {
+      requestConfig.headers.Authorization = `Bearer ${activeAccessToken}`;
     }
-    return config;
+    return requestConfig;
   },
   (error) => Promise.reject(error)
 );
 
 // Response Interceptor: Auto Refresh on 401 via BFF
 apiClient.interceptors.response.use(
-  (response) => response,
+  (successfulResponse) => successfulResponse,
   async (error) => {
     const originalRequest = error.config;
 

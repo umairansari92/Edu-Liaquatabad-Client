@@ -26,9 +26,9 @@ export const RegisterTeacherPage = () => {
   useEffect(() => {
     const fetchSchools = async () => {
       try {
-        const res = await apiClient.get('/public/schools');
-        if (res.data?.success && Array.isArray(res.data?.data)) {
-          setSchools(res.data.data);
+        const schoolsResponse = await apiClient.get('/public/schools');
+        if (schoolsResponse.data?.success && Array.isArray(schoolsResponse.data?.data)) {
+          setSchools(schoolsResponse.data.data);
         }
       } catch {
         // Quiet fallback if offline or seeding
@@ -37,19 +37,19 @@ export const RegisterTeacherPage = () => {
     fetchSchools();
   }, []);
 
-  const onInitiateSubmit = async (data) => {
+  const onInitiateSubmit = async (teacherFormData) => {
     setLoading(true);
     setErrorMessage('');
     try {
       // Step 1: Send OTP to teacher email
       await apiClient.post('/auth/send-otp', {
-        email: data.email,
+        email: teacherFormData.email,
         purpose: 'REGISTRATION',
       });
-      setPendingFormData(data);
+      setPendingFormData(teacherFormData);
       setShowOtpModal(true);
-    } catch (err) {
-      setErrorMessage(err.response?.data?.message || 'Failed to dispatch verification code. Please check your email.');
+    } catch (dispatchError) {
+      setErrorMessage(dispatchError.response?.data?.message || 'Failed to dispatch verification code. Please check your email.');
     } finally {
       setLoading(false);
     }

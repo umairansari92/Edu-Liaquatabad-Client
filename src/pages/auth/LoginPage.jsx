@@ -42,9 +42,9 @@ export const LoginPage = () => {
   const fetchCaptcha = async () => {
     setCaptchaLoading(true);
     try {
-      const res = await apiClient.get('/auth/captcha');
-      if (res.data?.success && res.data?.data) {
-        setCaptcha(res.data.data);
+      const captchaResponse = await apiClient.get('/auth/captcha');
+      if (captchaResponse.data?.success && captchaResponse.data?.data) {
+        setCaptcha(captchaResponse.data.data);
       }
     } catch {
       // Fallback
@@ -57,18 +57,18 @@ export const LoginPage = () => {
     fetchCaptcha();
   }, []);
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (loginFormData) => {
     setLoading(true);
     setErrorMessage('');
     try {
       const payload = {
-        email: data.email,
-        password: data.password,
-        _gotcha: data._gotcha || '',
+        email: loginFormData.email,
+        password: loginFormData.password,
+        _gotcha: loginFormData._gotcha || '',
       };
 
       if (captcha) {
-        payload.captchaAnswer = data.captchaAnswer || '';
+        payload.captchaAnswer = loginFormData.captchaAnswer || '';
         payload.captchaChallengeToken = captcha.challengeToken;
       }
 
@@ -80,10 +80,10 @@ export const LoginPage = () => {
         toast.success(`Welcome back, ${user.fullName}!`);
         navigate('/dashboard');
       }
-    } catch (err) {
-      const msg = err.response?.data?.message || 'Authentication failed. Please verify credentials.';
-      setErrorMessage(msg);
-      dispatch(setError(msg));
+    } catch (loginError) {
+      const errorNotificationMessage = loginError.response?.data?.message || 'Authentication failed. Please verify credentials.';
+      setErrorMessage(errorNotificationMessage);
+      dispatch(setError(errorNotificationMessage));
       // Refresh CAPTCHA on failed attempt
       fetchCaptcha();
     } finally {

@@ -36,9 +36,9 @@ export const ForgotPasswordPage = () => {
   const fetchCaptcha = async () => {
     setCaptchaLoading(true);
     try {
-      const res = await apiClient.get('/auth/captcha');
-      if (res.data?.success && res.data?.data) {
-        setCaptcha(res.data.data);
+      const captchaResponse = await apiClient.get('/auth/captcha');
+      if (captchaResponse.data?.success && captchaResponse.data?.data) {
+        setCaptcha(captchaResponse.data.data);
       }
     } catch {
       // Quiet fallback
@@ -51,26 +51,26 @@ export const ForgotPasswordPage = () => {
     fetchCaptcha();
   }, []);
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (recoveryFormData) => {
     setLoading(true);
     setErrorMessage('');
     try {
       const payload = {
-        email: data.email,
-        _gotcha: data._gotcha || '',
+        email: recoveryFormData.email,
+        _gotcha: recoveryFormData._gotcha || '',
       };
 
       if (captcha) {
-        payload.captchaAnswer = data.captchaAnswer || '';
+        payload.captchaAnswer = recoveryFormData.captchaAnswer || '';
         payload.captchaChallengeToken = captcha.challengeToken;
       }
 
       await apiClient.post('/auth/forgot-password', payload);
       toast.success('Security reset code dispatched to your email.');
-      navigate(`/reset-password?email=${encodeURIComponent(data.email)}`);
-    } catch (err) {
-      const msg = err.response?.data?.message || 'Failed to dispatch password recovery code. Please verify the email address.';
-      setErrorMessage(msg);
+      navigate(`/reset-password?email=${encodeURIComponent(recoveryFormData.email)}`);
+    } catch (dispatchError) {
+      const errorNotificationMessage = dispatchError.response?.data?.message || 'Failed to dispatch password recovery code. Please verify the email address.';
+      setErrorMessage(errorNotificationMessage);
       fetchCaptcha();
     } finally {
       setLoading(false);

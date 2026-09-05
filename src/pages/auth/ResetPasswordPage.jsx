@@ -37,24 +37,24 @@ export const ResetPasswordPage = () => {
     },
   });
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (resetPasswordFormData) => {
     setLoading(true);
     setErrorMessage('');
     try {
       const payload = {
-        email: data.email,
-        otpCode: data.otpCode,
-        newPassword: data.newPassword,
-        confirmPassword: data.confirmPassword,
-        _gotcha: data._gotcha || '',
+        email: resetPasswordFormData.email,
+        otpCode: resetPasswordFormData.otpCode,
+        newPassword: resetPasswordFormData.newPassword,
+        confirmPassword: resetPasswordFormData.confirmPassword,
+        _gotcha: resetPasswordFormData._gotcha || '',
       };
 
       await apiClient.post('/auth/reset-password', payload);
       toast.success('Password reset successfully!');
       setSuccess(true);
-    } catch (err) {
+    } catch (resetPasswordError) {
       setErrorMessage(
-        err.response?.data?.message || 'Password reset failed. Please verify your OTP code and try again.'
+        resetPasswordError.response?.data?.message || 'Password reset failed. Please verify your OTP code and try again.'
       );
     } finally {
       setLoading(false);
