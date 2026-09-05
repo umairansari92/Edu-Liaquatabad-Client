@@ -90,7 +90,7 @@ export const RegisterTeacherPage = () => {
               </div>
               <h3 className="text-xl font-bold text-white mb-2">Faculty Application Received!</h3>
               <p className="text-sm text-slate-300 mb-6 leading-relaxed">
-                Your email has been verified via 6-digit OTP. Your faculty profile is now awaiting Head Master (HM) & DDO verification.
+                Your email has been verified via 6-digit OTP. Your faculty profile is now awaiting Head Master (HM) &amp; Admin verification.
               </p>
               <Link
                 to="/login"
