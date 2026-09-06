@@ -1,0 +1,1987 @@
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useSelector } from 'react-redux';
+import {
+  Crown,
+  ShieldCheck,
+  Building2,
+  Users,
+  GraduationCap,
+  ShieldAlert,
+  Clock,
+  RefreshCw,
+  Plus,
+  UserCheck,
+  UserX,
+  AlertTriangle,
+  Search,
+  Filter,
+  CheckCircle2,
+  XCircle,
+  Key,
+  Server,
+  Lock,
+  Unlock,
+  ChevronRight,
+  Sparkles,
+  ExternalLink,
+  Activity,
+  Terminal,
+  Zap,
+  Radio,
+  TrendingUp,
+  BarChart3,
+  Globe,
+  MapPin,
+  Mail,
+  Phone,
+  Check,
+  Copy,
+  Layers,
+  School as SchoolIcon,
+  Shield,
+  FileSpreadsheet,
+} from 'lucide-react';
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  CartesianGrid,
+} from 'recharts';
+import toast from 'react-hot-toast';
+import apiClient from '../../services/apiClient.js';
+import PageContainer from '../../components/layout/PageContainer.jsx';
+
+export const RootAdminDashboard = () => {
+  const { user: authenticatedUser } = useSelector((state) => state.auth);
+
+  // Active command center tab
+  const [activeTab, setActiveTab] = useState('schools'); // schools | users | analytics | governance | approvals | operations | audit
+
+  // Overview & Telemetry State
+  const [overviewData, setOverviewData] = useState(null);
+  const [isOverviewLoading, setIsOverviewLoading] = useState(true);
+
+  // Analytics & Visual Metrics State
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [isAnalyticsLoading, setIsAnalyticsLoading] = useState(false);
+
+  // Municipal Schools Directory State
+  const [schoolsList, setSchoolsList] = useState([]);
+  const [isSchoolsLoading, setIsSchoolsLoading] = useState(false);
+  const [schoolSearchQuery, setSchoolSearchQuery] = useState('');
+  const [schoolTypeFilter, setSchoolTypeFilter] = useState('');
+  const [schoolGenderFilter, setSchoolGenderFilter] = useState('');
+
+  // Global Personnel & User Directory State
+  const [usersList, setUsersList] = useState([]);
+  const [isUsersLoading, setIsUsersLoading] = useState(false);
+  const [userSearchQuery, setUserSearchQuery] = useState('');
+  const [userRoleFilter, setUserRoleFilter] = useState('');
+  const [userStatusFilter, setUserStatusFilter] = useState('');
+  const [usersTotalCount, setUsersTotalCount] = useState(0);
+
+  // Super Admins Roster State
+  const [superAdminsList, setSuperAdminsList] = useState([]);
+  const [isSuperAdminsLoading, setIsSuperAdminsLoading] = useState(false);
+
+  // Pending Approvals State
+  const [pendingUsersList, setPendingUsersList] = useState([]);
+  const [isPendingUsersLoading, setIsPendingUsersLoading] = useState(false);
+
+  // Audit Logs State
+  const [auditLogsList, setAuditLogsList] = useState([]);
+  const [isAuditLogsLoading, setIsAuditLogsLoading] = useState(false);
+  const [auditSearchQuery, setAuditSearchQuery] = useState('');
+  const [auditResultFilter, setAuditResultFilter] = useState('');
+
+  // Register Municipal School Modal State
+  const [isRegisterSchoolModalOpen, setIsRegisterSchoolModalOpen] = useState(false);
+  const [registerSchoolFormData, setRegisterSchoolFormData] = useState({
+    name: '',
+    schoolCode: '',
+    emisCode: '',
+    schoolType: 'SECONDARY',
+    genderType: 'BOYS',
+    address: '',
+    contactPhone: '',
+    contactEmail: '',
+  });
+  const [isRegisteringSchoolSubmitting, setIsRegisteringSchoolSubmitting] = useState(false);
+
+  // Provision Super Admin Modal State
+  const [isProvisionModalOpen, setIsProvisionModalOpen] = useState(false);
+  const [provisionFormData, setProvisionFormData] = useState({
+    fullName: '',
+    email: '',
+    password: '',
+    designation: 'Town Chairman',
+    scope: 'ADMINISTRATIVE',
+  });
+  const [isProvisioningSubmitting, setIsProvisioningSubmitting] = useState(false);
+
+  // Disable Super Admin Modal State
+  const [isDisableModalOpen, setIsDisableModalOpen] = useState(false);
+  const [selectedSuperAdminToDisable, setSelectedSuperAdminToDisable] = useState(null);
+  const [disableReasonText, setDisableReasonText] = useState('');
+  const [isDisablingSubmitting, setIsDisablingSubmitting] = useState(false);
+
+  // Emergency Broadcast Modal State
+  const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState(false);
+  const [broadcastFormData, setBroadcastFormData] = useState({
+    title: '',
+    message: '',
+    severity: 'INFO',
+  });
+  const [isBroadcastSubmitting, setIsBroadcastSubmitting] = useState(false);
+
+  // General Processing Indicator
+  const [actionProcessingUserId, setActionProcessingUserId] = useState(null);
+  const [isFlushingLockouts, setIsFlushingLockouts] = useState(false);
+
+  // ─── Data Fetching Handlers ──────────────────────────────────────────────────
+
+  // Fetch Platform Overview Metrics
+  const fetchPlatformOverview = useCallback(async () => {
+    setIsOverviewLoading(true);
+    try {
+      const response = await apiClient.get('/admin/super-admins/overview');
+      if (response.data?.success && response.data?.data) {
+        setOverviewData(response.data.data.overview);
+      }
+    } catch (overviewFetchError) {
+      console.error('Failed to load platform overview:', overviewFetchError);
+    } finally {
+      setIsOverviewLoading(false);
+    }
+  }, []);
+
+  // Fetch 2026 SaaS Analytics & Visual Telemetry
+  const fetchPlatformAnalytics = useCallback(async () => {
+    setIsAnalyticsLoading(true);
+    try {
+      const response = await apiClient.get('/admin/super-admins/analytics');
+      if (response.data?.success && response.data?.data) {
+        setAnalyticsData(response.data.data.analytics);
+      }
+    } catch (analyticsFetchError) {
+      console.error('Failed to load platform analytics:', analyticsFetchError);
+    } finally {
+      setIsAnalyticsLoading(false);
+    }
+  }, []);
+
+  // Fetch Municipal Schools Directory
+  const fetchMunicipalSchools = useCallback(async () => {
+    setIsSchoolsLoading(true);
+    try {
+      const queryParameters = new URLSearchParams();
+      if (schoolSearchQuery) queryParameters.append('search', schoolSearchQuery);
+      if (schoolTypeFilter) queryParameters.append('schoolType', schoolTypeFilter);
+      if (schoolGenderFilter) queryParameters.append('genderType', schoolGenderFilter);
+
+      const response = await apiClient.get(`/schools?${queryParameters.toString()}`);
+      if (response.data?.success && response.data?.data) {
+        setSchoolsList(response.data.data.schools || []);
+      }
+    } catch (schoolsFetchError) {
+      console.error('Failed to load municipal schools:', schoolsFetchError);
+    } finally {
+      setIsSchoolsLoading(false);
+    }
+  }, [schoolSearchQuery, schoolTypeFilter, schoolGenderFilter]);
+
+  // Fetch Global Users Directory (8 Roles)
+  const fetchGlobalUsers = useCallback(async () => {
+    setIsUsersLoading(true);
+    try {
+      const queryParameters = new URLSearchParams();
+      if (userSearchQuery) queryParameters.append('search', userSearchQuery);
+      if (userRoleFilter) queryParameters.append('role', userRoleFilter);
+      if (userStatusFilter) queryParameters.append('status', userStatusFilter);
+
+      const response = await apiClient.get(`/users?${queryParameters.toString()}`);
+      if (response.data?.success && response.data?.data) {
+        setUsersList(response.data.data.users || []);
+        setUsersTotalCount(response.data.data.total || 0);
+      }
+    } catch (usersFetchError) {
+      console.error('Failed to load users directory:', usersFetchError);
+    } finally {
+      setIsUsersLoading(false);
+    }
+  }, [userSearchQuery, userRoleFilter, userStatusFilter]);
+
+  // Fetch Super Admins List
+  const fetchSuperAdmins = useCallback(async () => {
+    setIsSuperAdminsLoading(true);
+    try {
+      const response = await apiClient.get('/admin/super-admins');
+      if (response.data?.success && response.data?.data) {
+        setSuperAdminsList(response.data.data.superAdmins || []);
+      }
+    } catch (superAdminFetchError) {
+      console.error('Failed to load Super Admins list:', superAdminFetchError);
+    } finally {
+      setIsSuperAdminsLoading(false);
+    }
+  }, []);
+
+  // Fetch Pending Approvals
+  const fetchPendingUsers = useCallback(async () => {
+    setIsPendingUsersLoading(true);
+    try {
+      const response = await apiClient.get('/admin/super-admins/pending-users');
+      if (response.data?.success && response.data?.data) {
+        setPendingUsersList(response.data.data.pendingUsers || []);
+      }
+    } catch (pendingFetchError) {
+      console.error('Failed to load pending users:', pendingFetchError);
+    } finally {
+      setIsPendingUsersLoading(false);
+    }
+  }, []);
+
+  // Fetch Immutable Audit Trail
+  const fetchAuditLogs = useCallback(async () => {
+    setIsAuditLogsLoading(true);
+    try {
+      const queryParameters = new URLSearchParams();
+      if (auditSearchQuery) queryParameters.append('action', auditSearchQuery);
+      if (auditResultFilter) queryParameters.append('result', auditResultFilter);
+
+      const response = await apiClient.get(`/admin/super-admins/audit-logs?${queryParameters.toString()}`);
+      if (response.data?.success && response.data?.data) {
+        setAuditLogsList(response.data.data.auditLogs || []);
+      }
+    } catch (auditFetchError) {
+      console.error('Failed to load audit logs:', auditFetchError);
+    } finally {
+      setIsAuditLogsLoading(false);
+    }
+  }, [auditSearchQuery, auditResultFilter]);
+
+  // Synchronize All Telemetry
+  const synchronizeAllTelemetry = useCallback(() => {
+    fetchPlatformOverview();
+    fetchPlatformAnalytics();
+    fetchMunicipalSchools();
+    fetchGlobalUsers();
+    fetchSuperAdmins();
+    fetchPendingUsers();
+    fetchAuditLogs();
+    toast.success('Platform telemetry synchronized in real time.');
+  }, [
+    fetchPlatformOverview,
+    fetchPlatformAnalytics,
+    fetchMunicipalSchools,
+    fetchGlobalUsers,
+    fetchSuperAdmins,
+    fetchPendingUsers,
+    fetchAuditLogs,
+  ]);
+
+  // Initial Load
+  useEffect(() => {
+    fetchPlatformOverview();
+    fetchPlatformAnalytics();
+    fetchMunicipalSchools();
+  }, [fetchPlatformOverview, fetchPlatformAnalytics, fetchMunicipalSchools]);
+
+  // Lazy tab loader
+  useEffect(() => {
+    if (activeTab === 'schools') fetchMunicipalSchools();
+    if (activeTab === 'users') fetchGlobalUsers();
+    if (activeTab === 'governance') fetchSuperAdmins();
+    if (activeTab === 'approvals') fetchPendingUsers();
+    if (activeTab === 'audit') fetchAuditLogs();
+    if (activeTab === 'analytics') fetchPlatformAnalytics();
+  }, [activeTab, fetchMunicipalSchools, fetchGlobalUsers, fetchSuperAdmins, fetchPendingUsers, fetchAuditLogs, fetchPlatformAnalytics]);
+
+  // ─── Actions & Mutation Handlers ───────────────────────────────────────────
+
+  // Register Municipal School
+  const handleRegisterSchoolSubmit = async (eventObject) => {
+    eventObject.preventDefault();
+    setIsRegisteringSchoolSubmitting(true);
+    try {
+      const payload = {
+        name: registerSchoolFormData.name.trim(),
+        schoolCode: registerSchoolFormData.schoolCode ? registerSchoolFormData.schoolCode.toUpperCase().trim() : undefined,
+        emisCode: registerSchoolFormData.emisCode.trim() || undefined,
+        schoolType: registerSchoolFormData.schoolType,
+        genderType: registerSchoolFormData.genderType,
+        address: registerSchoolFormData.address.trim(),
+        contactPhone: registerSchoolFormData.contactPhone.trim(),
+        contactEmail: registerSchoolFormData.contactEmail.trim(),
+        status: 'ACTIVE',
+      };
+
+      const response = await apiClient.post('/schools', payload);
+      if (response.data?.success) {
+        toast.success(`Municipal school "${registerSchoolFormData.name}" registered successfully!`);
+        setIsRegisterSchoolModalOpen(false);
+        setRegisterSchoolFormData({
+          name: '',
+          schoolCode: '',
+          emisCode: '',
+          schoolType: 'SECONDARY',
+          genderType: 'BOYS',
+          address: '',
+          contactPhone: '',
+          contactEmail: '',
+        });
+        fetchMunicipalSchools();
+        fetchPlatformOverview();
+      }
+    } catch (registrationError) {
+      const errorResponse = registrationError.response?.data?.message || 'Failed to register municipal school.';
+      toast.error(errorResponse);
+    } finally {
+      setIsRegisteringSchoolSubmitting(false);
+    }
+  };
+
+  // Provision Super Admin Account
+  const handleProvisionSuperAdminSubmit = async (eventObject) => {
+    eventObject.preventDefault();
+    setIsProvisioningSubmitting(true);
+    try {
+      const response = await apiClient.post('/admin/super-admins', {
+        fullName: provisionFormData.fullName.trim(),
+        email: provisionFormData.email.trim(),
+        password: provisionFormData.password,
+        designation: provisionFormData.designation.trim(),
+        scope: provisionFormData.scope,
+      });
+
+      if (response.data?.success) {
+        toast.success(`Super Admin "${provisionFormData.fullName}" provisioned successfully.`);
+        setIsProvisionModalOpen(false);
+        setProvisionFormData({
+          fullName: '',
+          email: '',
+          password: '',
+          designation: 'Town Chairman',
+          scope: 'ADMINISTRATIVE',
+        });
+        fetchSuperAdmins();
+        fetchPlatformOverview();
+      }
+    } catch (provisioningError) {
+      const errorResponse = provisioningError.response?.data?.message || 'Failed to provision Super Admin account.';
+      toast.error(errorResponse);
+    } finally {
+      setIsProvisioningSubmitting(false);
+    }
+  };
+
+  // Disable Super Admin Account
+  const handleDisableSuperAdminSubmit = async (eventObject) => {
+    eventObject.preventDefault();
+    if (!selectedSuperAdminToDisable) return;
+
+    if (!disableReasonText || disableReasonText.trim().length < 5) {
+      toast.error('A mandatory justification reason (minimum 5 characters) is required.');
+      return;
+    }
+
+    setIsDisablingSubmitting(true);
+    try {
+      const response = await apiClient.patch(
+        `/admin/super-admins/${selectedSuperAdminToDisable._id}/disable`,
+        { reason: disableReasonText.trim() }
+      );
+
+      if (response.data?.success) {
+        toast.success(`Super Admin "${selectedSuperAdminToDisable.fullName}" disabled. Active sessions revoked.`);
+        setIsDisableModalOpen(false);
+        setSelectedSuperAdminToDisable(null);
+        setDisableReasonText('');
+        fetchSuperAdmins();
+        fetchPlatformOverview();
+      }
+    } catch (disableError) {
+      const errorResponse = disableError.response?.data?.message || 'Failed to disable Super Admin account.';
+      toast.error(errorResponse);
+    } finally {
+      setIsDisablingSubmitting(false);
+    }
+  };
+
+  // Flush Security Lockouts
+  const handleFlushLockouts = async () => {
+    setIsFlushingLockouts(true);
+    try {
+      const response = await apiClient.post('/admin/super-admins/flush-lockouts');
+      if (response.data?.success) {
+        toast.success(response.data.message || 'Security lockouts flushed successfully.');
+        fetchPlatformOverview();
+      }
+    } catch (flushError) {
+      toast.error(flushError.response?.data?.message || 'Failed to flush security lockouts.');
+    } finally {
+      setIsFlushingLockouts(false);
+    }
+  };
+
+  // Broadcast Emergency Announcement
+  const handleBroadcastSubmit = async (eventObject) => {
+    eventObject.preventDefault();
+    setIsBroadcastSubmitting(true);
+    try {
+      const response = await apiClient.post('/admin/super-admins/broadcast', broadcastFormData);
+      if (response.data?.success) {
+        toast.success('Emergency broadcast announced across platform instances.');
+        setIsBroadcastModalOpen(false);
+        setBroadcastFormData({ title: '', message: '', severity: 'INFO' });
+        fetchAuditLogs();
+      }
+    } catch (broadcastError) {
+      toast.error(broadcastError.response?.data?.message || 'Failed to publish emergency broadcast.');
+    } finally {
+      setIsBroadcastSubmitting(false);
+    }
+  };
+
+  // Approve / Reject User Lifecycle Transition
+  const handleProcessUserLifecycle = async (targetUserId, newLifecycleStatus, defaultReason) => {
+    setActionProcessingUserId(targetUserId);
+    try {
+      const response = await apiClient.patch(`/users/${targetUserId}/lifecycle`, {
+        status: newLifecycleStatus,
+        reason: defaultReason,
+      });
+
+      if (response.data?.success) {
+        toast.success(`User status transitioned to ${newLifecycleStatus}.`);
+        fetchPendingUsers();
+        fetchGlobalUsers();
+        fetchPlatformOverview();
+      }
+    } catch (lifecycleError) {
+      toast.error(lifecycleError.response?.data?.message || 'Status transition failed.');
+    } finally {
+      setActionProcessingUserId(null);
+    }
+  };
+
+  return (
+    <PageContainer>
+      <div className="space-y-6 pb-12">
+        {/* ─── 1. SUPREME GOVERNANCE HEADER & HUD ─── */}
+        <div className="relative overflow-hidden rounded-2xl border border-amber-500/20 bg-gradient-to-br from-slate-900 via-slate-900/90 to-amber-950/20 p-6 shadow-2xl backdrop-blur-xl">
+          <div className="absolute right-0 top-0 -mt-8 -mr-8 h-64 w-64 rounded-full bg-amber-500/10 blur-3xl pointer-events-none" />
+          <div className="absolute left-1/3 bottom-0 -mb-8 h-48 w-48 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
+
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2 rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-amber-400">
+                  <Crown className="h-3.5 w-3.5" />
+                  <span>Level 100 • Platform Supreme Authority</span>
+                </div>
+                <div className="flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
+                  <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+                  <span>Live 2026 SaaS Command Center</span>
+                </div>
+              </div>
+
+              <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+                District Supreme Governance Command Center
+              </h1>
+              <p className="max-w-3xl text-sm leading-relaxed text-slate-300">
+                Education Department Liaquatabad Town Centre (DMC) • Master telemetry, municipal schools infrastructure, 8-tier identity hierarchy, and immutable civic audit.
+              </p>
+            </div>
+
+            {/* Quick Actions Bar */}
+            <div className="flex flex-wrap items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => setIsRegisterSchoolModalOpen(true)}
+                className="flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-950/40 transition hover:brightness-110 active:scale-95 cursor-pointer"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Register Municipal School</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsProvisionModalOpen(true)}
+                className="flex items-center gap-2 rounded-xl border border-amber-500/40 bg-gradient-to-r from-amber-600 to-amber-700 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-amber-950/40 transition hover:brightness-110 active:scale-95 cursor-pointer"
+              >
+                <Crown className="h-4 w-4" />
+                <span>Provision Super Admin</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={synchronizeAllTelemetry}
+                className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-800/80 px-4 py-2.5 text-sm font-medium text-slate-200 transition hover:bg-slate-700 hover:text-white active:scale-95 cursor-pointer"
+                title="Synchronize Live Telemetry"
+              >
+                <RefreshCw className={`h-4 w-4 ${isOverviewLoading ? 'animate-spin' : ''}`} />
+                <span>Sync</span>
+              </button>
+            </div>
+          </div>
+
+          {/* ─── LIVE INFRASTRUCTURE VITALS HUD BAR ─── */}
+          <div className="mt-6 grid grid-cols-2 gap-3 border-t border-slate-800/80 pt-5 text-xs sm:grid-cols-4 lg:grid-cols-5">
+            <div className="flex items-center gap-2 text-slate-300">
+              <Server className="h-4 w-4 text-emerald-400 shrink-0" />
+              <div>
+                <p className="text-[10px] uppercase font-semibold text-slate-400">Database Shard</p>
+                <p className="font-medium text-emerald-400">Atlas Cluster • Connected</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 text-slate-300">
+              <ShieldCheck className="h-4 w-4 text-cyan-400 shrink-0" />
+              <div>
+                <p className="text-[10px] uppercase font-semibold text-slate-400">Security Architecture</p>
+                <p className="font-medium text-cyan-400">Triple-Lock v7.0 Active</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 text-slate-300">
+              <Globe className="h-4 w-4 text-amber-400 shrink-0" />
+              <div>
+                <p className="text-[10px] uppercase font-semibold text-slate-400">Administrative Scope</p>
+                <p className="font-medium text-amber-300">GLOBAL (Level 100)</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 text-slate-300">
+              <MapPin className="h-4 w-4 text-purple-400 shrink-0" />
+              <div>
+                <p className="text-[10px] uppercase font-semibold text-slate-400">Jurisdiction</p>
+                <p className="font-medium text-purple-300">Liaquatabad Town Centre</p>
+              </div>
+            </div>
+
+            <div className="col-span-2 sm:col-span-4 lg:col-span-1 flex items-center justify-between lg:justify-end gap-2">
+              <button
+                type="button"
+                onClick={handleFlushLockouts}
+                disabled={isFlushingLockouts}
+                className="flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-950/30 px-3 py-1.5 text-xs font-medium text-red-300 transition hover:bg-red-900/40 active:scale-95 cursor-pointer disabled:opacity-50"
+              >
+                <Unlock className="h-3.5 w-3.5 text-red-400" />
+                <span>{isFlushingLockouts ? 'Flushing...' : 'Flush Lockouts'}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsBroadcastModalOpen(true)}
+                className="flex items-center gap-1.5 rounded-lg border border-blue-500/30 bg-blue-950/30 px-3 py-1.5 text-xs font-medium text-blue-300 transition hover:bg-blue-900/40 active:scale-95 cursor-pointer"
+              >
+                <Radio className="h-3.5 w-3.5 text-blue-400" />
+                <span>Broadcast</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* ─── 2. EXECUTIVE KPI PULSE CARDS ─── */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Municipal Schools Card */}
+          <div
+            onClick={() => setActiveTab('schools')}
+            className="group relative cursor-pointer overflow-hidden rounded-xl border border-slate-800 bg-slate-900/70 p-5 shadow-lg backdrop-blur-md transition hover:-translate-y-0.5 hover:border-emerald-500/50 hover:bg-slate-900/90"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Municipal Schools</span>
+              <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2 text-emerald-400 group-hover:scale-110 transition">
+                <SchoolIcon className="h-5 w-5" />
+              </div>
+            </div>
+            <div className="mt-3 flex items-baseline gap-2">
+              <span className="text-3xl font-black text-white">
+                {isOverviewLoading ? '...' : (overviewData?.activeSchools ?? schoolsList.length)}
+              </span>
+              <span className="text-xs font-medium text-emerald-400">Institutional Entities</span>
+            </div>
+            <div className="mt-3 flex items-center justify-between border-t border-slate-800/80 pt-2.5 text-xs text-slate-400">
+              <span>Liaquatabad Town Centre</span>
+              <span className="flex items-center text-emerald-400 font-semibold group-hover:underline">
+                Manage Directory <ChevronRight className="h-3.5 w-3.5" />
+              </span>
+            </div>
+          </div>
+
+          {/* Platform Personnel Card */}
+          <div
+            onClick={() => setActiveTab('users')}
+            className="group relative cursor-pointer overflow-hidden rounded-xl border border-slate-800 bg-slate-900/70 p-5 shadow-lg backdrop-blur-md transition hover:-translate-y-0.5 hover:border-blue-500/50 hover:bg-slate-900/90"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Platform Users</span>
+              <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-2 text-blue-400 group-hover:scale-110 transition">
+                <Users className="h-5 w-5" />
+              </div>
+            </div>
+            <div className="mt-3 flex items-baseline gap-2">
+              <span className="text-3xl font-black text-white">
+                {isOverviewLoading ? '...' : (overviewData?.totalUsers ?? usersTotalCount)}
+              </span>
+              <span className="text-xs font-medium text-blue-400">8 Authority Tiers</span>
+            </div>
+            <div className="mt-3 flex items-center justify-between border-t border-slate-800/80 pt-2.5 text-xs text-slate-400">
+              <span>
+                {overviewData?.roleDistribution?.superAdmins || 1} Super Admins • {overviewData?.roleDistribution?.teachers || 0} Faculty
+              </span>
+              <span className="flex items-center text-blue-400 font-semibold group-hover:underline">
+                Directory <ChevronRight className="h-3.5 w-3.5" />
+              </span>
+            </div>
+          </div>
+
+          {/* Pending Approvals Card */}
+          <div
+            onClick={() => setActiveTab('approvals')}
+            className="group relative cursor-pointer overflow-hidden rounded-xl border border-slate-800 bg-slate-900/70 p-5 shadow-lg backdrop-blur-md transition hover:-translate-y-0.5 hover:border-amber-500/50 hover:bg-slate-900/90"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Pending Approvals</span>
+              <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-2 text-amber-400 group-hover:scale-110 transition">
+                <Clock className="h-5 w-5" />
+              </div>
+            </div>
+            <div className="mt-3 flex items-baseline gap-2">
+              <span className="text-3xl font-black text-white">
+                {isOverviewLoading ? '...' : (overviewData?.pendingApprovals ?? pendingUsersList.length)}
+              </span>
+              <span className="text-xs font-medium text-amber-400">Awaiting Clearance</span>
+            </div>
+            <div className="mt-3 flex items-center justify-between border-t border-slate-800/80 pt-2.5 text-xs text-slate-400">
+              <span>Verification Queue</span>
+              <span className="flex items-center text-amber-400 font-semibold group-hover:underline">
+                Review Roster <ChevronRight className="h-3.5 w-3.5" />
+              </span>
+            </div>
+          </div>
+
+          {/* Immutable Audit Records Card */}
+          <div
+            onClick={() => setActiveTab('audit')}
+            className="group relative cursor-pointer overflow-hidden rounded-xl border border-slate-800 bg-slate-900/70 p-5 shadow-lg backdrop-blur-md transition hover:-translate-y-0.5 hover:border-purple-500/50 hover:bg-slate-900/90"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Immutable Audits</span>
+              <div className="rounded-lg border border-purple-500/30 bg-purple-500/10 p-2 text-purple-400 group-hover:scale-110 transition">
+                <ShieldCheck className="h-5 w-5" />
+              </div>
+            </div>
+            <div className="mt-3 flex items-baseline gap-2">
+              <span className="text-3xl font-black text-white">
+                {isOverviewLoading ? '...' : (overviewData?.totalAuditEvents ?? auditLogsList.length)}
+              </span>
+              <span className="text-xs font-medium text-purple-400">Append-Only Ledger</span>
+            </div>
+            <div className="mt-3 flex items-center justify-between border-t border-slate-800/80 pt-2.5 text-xs text-slate-400">
+              <span>Cryptographic Diff Chain</span>
+              <span className="flex items-center text-purple-400 font-semibold group-hover:underline">
+                Audit Stream <ChevronRight className="h-3.5 w-3.5" />
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* ─── 3. INTERACTIVE 2026 SAAS TELEMETRY & ANALYTICS SECTION ─── */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          {/* Municipal Attendance Telemetry (AreaChart) */}
+          <div className="lg:col-span-2 rounded-xl border border-slate-800 bg-slate-900/80 p-5 shadow-xl backdrop-blur-md">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-800 pb-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-emerald-400" />
+                  <h3 className="font-bold text-white">Weekly District Attendance Trajectory</h3>
+                </div>
+                <p className="text-xs text-slate-400">Cross-institutional daily attendance comparison (Monday – Saturday)</p>
+              </div>
+              <div className="flex items-center gap-3 text-xs">
+                <span className="flex items-center gap-1 text-emerald-400 font-medium">
+                  <span className="h-2 w-2 rounded-full bg-emerald-400" /> District Avg: 91.8%
+                </span>
+                <span className="flex items-center gap-1 text-blue-400 font-medium">
+                  <span className="h-2 w-2 rounded-full bg-blue-400" /> Boys
+                </span>
+                <span className="flex items-center gap-1 text-pink-400 font-medium">
+                  <span className="h-2 w-2 rounded-full bg-pink-400" /> Girls
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-4 h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={analyticsData?.weeklyAttendanceTrends || [
+                    { day: 'Mon', boysRate: 92.4, girlsRate: 94.8, overallRate: 93.4 },
+                    { day: 'Tue', boysRate: 93.1, girlsRate: 95.2, overallRate: 94.1 },
+                    { day: 'Wed', boysRate: 91.8, girlsRate: 94.1, overallRate: 92.8 },
+                    { day: 'Thu', boysRate: 90.5, girlsRate: 93.2, overallRate: 91.5 },
+                    { day: 'Fri', boysRate: 88.2, girlsRate: 91.0, overallRate: 89.2 },
+                    { day: 'Sat', boysRate: 85.9, girlsRate: 88.4, overallRate: 86.7 },
+                  ]}
+                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                >
+                  <defs>
+                    <linearGradient id="overallGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
+                    </linearGradient>
+                    <linearGradient id="girlsGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#ec4899" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#ec4899" stopOpacity={0.0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                  <XAxis dataKey="day" stroke="#64748b" tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                  <YAxis domain={[80, 100]} stroke="#64748b" tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#0f172a',
+                      borderColor: '#334155',
+                      borderRadius: '0.75rem',
+                      color: '#fff',
+                      fontSize: '12px',
+                    }}
+                  />
+                  <Area type="monotone" dataKey="overallRate" name="Overall Rate (%)" stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#overallGrad)" />
+                  <Area type="monotone" dataKey="girlsRate" name="Girls Schools (%)" stroke="#ec4899" strokeWidth={2} fillOpacity={1} fill="url(#girlsGrad)" />
+                  <Area type="monotone" dataKey="boysRate" name="Boys Schools (%)" stroke="#3b82f6" strokeWidth={1.5} fill="none" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* 8-Tier RBAC Authority Pyramid (BarChart) */}
+          <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-5 shadow-xl backdrop-blur-md flex flex-col justify-between">
+            <div className="border-b border-slate-800 pb-4">
+              <div className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4 text-amber-400" />
+                <h3 className="font-bold text-white">RBAC Authority Pyramid</h3>
+              </div>
+              <p className="text-xs text-slate-400">Personnel distribution across 8 authority tiers</p>
+            </div>
+
+            <div className="mt-3 h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={analyticsData?.authorityPyramid || [
+                    { label: 'Root', count: 1, fill: '#ef4444' },
+                    { label: 'Super', count: 1, fill: '#f59e0b' },
+                    { label: 'Admin', count: 2, fill: '#10b981' },
+                    { label: 'Superv', count: 4, fill: '#06b6d4' },
+                    { label: 'HM', count: 12, fill: '#3b82f6' },
+                    { label: 'Teacher', count: 48, fill: '#8b5cf6' },
+                  ]}
+                  layout="vertical"
+                  margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" horizontal={false} />
+                  <XAxis type="number" stroke="#64748b" tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                  <YAxis type="category" dataKey="label" stroke="#64748b" tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#0f172a',
+                      borderColor: '#334155',
+                      borderRadius: '0.75rem',
+                      color: '#fff',
+                      fontSize: '12px',
+                    }}
+                  />
+                  <Bar dataKey="count" radius={[0, 6, 6, 0]}>
+                    {(analyticsData?.authorityPyramid || []).map((entry, entryIndex) => (
+                      <Cell key={`bar-cell-${entryIndex}`} fill={entry.fill || '#3b82f6'} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+
+        {/* ─── 4. CENTRAL PLATFORM COMMAND TABS ─── */}
+        <div className="flex flex-wrap items-center gap-2 border-b border-slate-800 pb-3">
+          <button
+            type="button"
+            onClick={() => setActiveTab('schools')}
+            className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition cursor-pointer ${
+              activeTab === 'schools'
+                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-lg'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+            }`}
+          >
+            <SchoolIcon className="h-4 w-4" />
+            <span>Municipal Schools</span>
+            <span className="rounded-full bg-emerald-950/80 px-2 py-0.5 text-xs text-emerald-300 font-mono">
+              {schoolsList.length}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('users')}
+            className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition cursor-pointer ${
+              activeTab === 'users'
+                ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40 shadow-lg'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+            }`}
+          >
+            <Users className="h-4 w-4" />
+            <span>Personnel Directory</span>
+            <span className="rounded-full bg-blue-950/80 px-2 py-0.5 text-xs text-blue-300 font-mono">
+              {usersTotalCount || usersList.length}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('governance')}
+            className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition cursor-pointer ${
+              activeTab === 'governance'
+                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40 shadow-lg'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+            }`}
+          >
+            <Crown className="h-4 w-4" />
+            <span>Super Admin Governance</span>
+            <span className="rounded-full bg-amber-950/80 px-2 py-0.5 text-xs text-amber-300 font-mono">
+              {superAdminsList.length}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('approvals')}
+            className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition cursor-pointer ${
+              activeTab === 'approvals'
+                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-lg'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+            }`}
+          >
+            <UserCheck className="h-4 w-4" />
+            <span>Clearance & Approvals</span>
+            {pendingUsersList.length > 0 && (
+              <span className="rounded-full bg-amber-500/30 px-2 py-0.5 text-xs text-amber-300 font-bold animate-pulse">
+                {pendingUsersList.length}
+              </span>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('operations')}
+            className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition cursor-pointer ${
+              activeTab === 'operations'
+                ? 'bg-purple-500/20 text-purple-400 border border-purple-500/40 shadow-lg'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+            }`}
+          >
+            <Zap className="h-4 w-4" />
+            <span>Command Ops & Emergency</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('audit')}
+            className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition cursor-pointer ${
+              activeTab === 'audit'
+                ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-lg'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+            }`}
+          >
+            <Terminal className="h-4 w-4" />
+            <span>Audit Stream</span>
+          </button>
+        </div>
+
+        {/* ─── TAB 1: MUNICIPAL SCHOOLS MATRIX ─── */}
+        {activeTab === 'schools' && (
+          <div className="space-y-4">
+            {/* Filter & Search Bar */}
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between rounded-xl border border-slate-800 bg-slate-900/60 p-4 backdrop-blur-md">
+              <div className="flex flex-1 items-center gap-3">
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={schoolSearchQuery}
+                    onChange={(eventObject) => setSchoolSearchQuery(eventObject.target.value)}
+                    placeholder="Search by school name, MMHA code, EMIS, or area..."
+                    className="w-full rounded-lg border border-slate-700 bg-slate-800/90 py-2 pl-9 pr-4 text-xs text-slate-200 placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+                  />
+                </div>
+
+                <select
+                  value={schoolTypeFilter}
+                  onChange={(eventObject) => setSchoolTypeFilter(eventObject.target.value)}
+                  className="rounded-lg border border-slate-700 bg-slate-800/90 px-3 py-2 text-xs text-slate-200 focus:border-emerald-500 focus:outline-none"
+                >
+                  <option value="">All Categories</option>
+                  <option value="SECONDARY">Secondary</option>
+                  <option value="PRIMARY">Primary</option>
+                  <option value="ELEMENTARY">Elementary</option>
+                  <option value="HIGHER_SECONDARY">Higher Secondary</option>
+                </select>
+
+                <select
+                  value={schoolGenderFilter}
+                  onChange={(eventObject) => setSchoolGenderFilter(eventObject.target.value)}
+                  className="rounded-lg border border-slate-700 bg-slate-800/90 px-3 py-2 text-xs text-slate-200 focus:border-emerald-500 focus:outline-none"
+                >
+                  <option value="">All Orientations</option>
+                  <option value="BOYS">Boys</option>
+                  <option value="GIRLS">Girls</option>
+                  <option value="CO_EDUCATION">Co-Education</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsRegisterSchoolModalOpen(true)}
+                  className="flex items-center gap-1.5 rounded-lg border border-emerald-500/40 bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white shadow hover:bg-emerald-500 transition cursor-pointer"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  <span>Register School</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Schools Grid */}
+            {isSchoolsLoading ? (
+              <div className="flex flex-col items-center justify-center rounded-xl border border-slate-800 bg-slate-900/40 p-12 text-slate-400">
+                <RefreshCw className="h-8 w-8 animate-spin text-emerald-400" />
+                <p className="mt-3 text-sm">Querying municipal school infrastructure...</p>
+              </div>
+            ) : schoolsList.length === 0 ? (
+              <div className="flex flex-col items-center justify-center rounded-xl border border-slate-800 border-dashed bg-slate-900/40 p-12 text-center">
+                <SchoolIcon className="h-12 w-12 text-slate-500 mb-3" />
+                <h3 className="text-base font-bold text-white">No Municipal Schools Registered Yet</h3>
+                <p className="mt-1 max-w-md text-xs text-slate-400">
+                  As Root Administrator, you can register the first municipal school directly or use the quick action button above.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setIsRegisterSchoolModalOpen(true)}
+                  className="mt-4 flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow hover:bg-emerald-500 transition cursor-pointer"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span>Register Municipal School</span>
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                {schoolsList.map((schoolRecord) => (
+                  <div
+                    key={schoolRecord._id}
+                    className="flex flex-col justify-between rounded-xl border border-slate-800 bg-slate-900/80 p-5 shadow-lg backdrop-blur-sm transition hover:border-slate-700 hover:bg-slate-900"
+                  >
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            {schoolRecord.schoolCode && (
+                              <span className="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-xs font-mono font-bold text-emerald-400">
+                                {schoolRecord.schoolCode}
+                              </span>
+                            )}
+                            <span className="rounded-md border border-slate-700 bg-slate-800 px-2 py-0.5 text-[11px] font-medium text-slate-300">
+                              EMIS: {schoolRecord.emisCode || 'Unassigned'}
+                            </span>
+                          </div>
+                          <h4 className="mt-2 text-sm font-bold text-white leading-snug">{schoolRecord.name}</h4>
+                        </div>
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                            schoolRecord.status === 'ACTIVE'
+                              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                              : 'bg-red-500/20 text-red-400 border border-red-500/40'
+                          }`}
+                        >
+                          {schoolRecord.status}
+                        </span>
+                      </div>
+
+                      <div className="space-y-1.5 text-xs text-slate-300 border-t border-slate-800/80 pt-3">
+                        <div className="flex items-center gap-2 text-slate-400">
+                          <MapPin className="h-3.5 w-3.5 text-slate-500 shrink-0" />
+                          <span className="truncate">{schoolRecord.address}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-slate-300">
+                          <span className="text-slate-400">Category:</span>
+                          <span className="font-medium text-amber-300">{schoolRecord.schoolType} • {schoolRecord.genderType}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-slate-300">
+                          <span className="text-slate-400">Head Master:</span>
+                          <span className="font-medium text-slate-200">{schoolRecord.headMaster || 'Not Appointed'}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-slate-300">
+                          <span className="text-slate-400">Active Faculty:</span>
+                          <span className="font-semibold text-emerald-400">{schoolRecord.facultyCount || 0} Certified</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 flex items-center justify-between border-t border-slate-800/80 pt-3 text-xs">
+                      <span className="text-[11px] text-slate-500 font-mono">
+                        Sequence: {schoolRecord.lastGlobalSequence || 0}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        {schoolRecord.contactPhone && (
+                          <a
+                            href={`tel:${schoolRecord.contactPhone}`}
+                            className="flex items-center gap-1 text-slate-400 hover:text-slate-200 transition"
+                            title={schoolRecord.contactPhone}
+                          >
+                            <Phone className="h-3.5 w-3.5" />
+                          </a>
+                        )}
+                        {schoolRecord.contactEmail && (
+                          <a
+                            href={`mailto:${schoolRecord.contactEmail}`}
+                            className="flex items-center gap-1 text-slate-400 hover:text-slate-200 transition"
+                            title={schoolRecord.contactEmail}
+                          >
+                            <Mail className="h-3.5 w-3.5" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ─── TAB 2: GLOBAL PERSONNEL & IDENTITY DIRECTORY (8 ROLES) ─── */}
+        {activeTab === 'users' && (
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between rounded-xl border border-slate-800 bg-slate-900/60 p-4 backdrop-blur-md">
+              <div className="flex flex-1 items-center gap-3">
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={userSearchQuery}
+                    onChange={(eventObject) => setUserSearchQuery(eventObject.target.value)}
+                    placeholder="Search by full name, email address, or designation..."
+                    className="w-full rounded-lg border border-slate-700 bg-slate-800/90 py-2 pl-9 pr-4 text-xs text-slate-200 placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
+
+                <select
+                  value={userRoleFilter}
+                  onChange={(eventObject) => setUserRoleFilter(eventObject.target.value)}
+                  className="rounded-lg border border-slate-700 bg-slate-800/90 px-3 py-2 text-xs text-slate-200 focus:border-blue-500 focus:outline-none"
+                >
+                  <option value="">All 8 Roles</option>
+                  <option value="ROOT_ADMIN">Root Admin (100)</option>
+                  <option value="SUPER_ADMIN">Super Admin (90)</option>
+                  <option value="ADMIN">Admin / DDO (80)</option>
+                  <option value="SUPERVISOR">Supervisor (60)</option>
+                  <option value="HM">Head Master (50)</option>
+                  <option value="TEACHER">Teacher (30)</option>
+                  <option value="STUDENT">Student (10)</option>
+                  <option value="PARENT">Parent (10)</option>
+                </select>
+
+                <select
+                  value={userStatusFilter}
+                  onChange={(eventObject) => setUserStatusFilter(eventObject.target.value)}
+                  className="rounded-lg border border-slate-700 bg-slate-800/90 px-3 py-2 text-xs text-slate-200 focus:border-blue-500 focus:outline-none"
+                >
+                  <option value="">All Statuses</option>
+                  <option value="ACTIVE">Active</option>
+                  <option value="PENDING_APPROVAL">Pending Approval</option>
+                  <option value="SUSPENDED">Suspended</option>
+                  <option value="RETIRED">Retired</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={fetchGlobalUsers}
+                  className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-medium text-slate-300 hover:bg-slate-700 transition cursor-pointer"
+                >
+                  <RefreshCw className={`h-3.5 w-3.5 ${isUsersLoading ? 'animate-spin' : ''}`} />
+                  <span>Refresh</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Users Table */}
+            <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900/80 shadow-xl backdrop-blur-md">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-slate-300">
+                  <thead className="border-b border-slate-800 bg-slate-950/60 text-[11px] uppercase font-bold text-slate-400 tracking-wider">
+                    <tr>
+                      <th className="px-5 py-3.5">User Identity</th>
+                      <th className="px-4 py-3.5">Civil Designation</th>
+                      <th className="px-4 py-3.5">System Role</th>
+                      <th className="px-4 py-3.5">Assigned Institution</th>
+                      <th className="px-4 py-3.5">Status</th>
+                      <th className="px-4 py-3.5 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60">
+                    {isUsersLoading ? (
+                      <tr>
+                        <td colSpan="6" className="py-12 text-center text-slate-400">
+                          <RefreshCw className="mx-auto h-6 w-6 animate-spin text-blue-400" />
+                          <p className="mt-2 text-xs">Querying personnel registry...</p>
+                        </td>
+                      </tr>
+                    ) : usersList.length === 0 ? (
+                      <tr>
+                        <td colSpan="6" className="py-12 text-center text-slate-400">
+                          <Users className="mx-auto h-8 w-8 text-slate-600 mb-2" />
+                          <p className="text-sm font-semibold text-slate-300">No personnel records found</p>
+                          <p className="text-xs text-slate-500 mt-1">Adjust your filters or register new users.</p>
+                        </td>
+                      </tr>
+                    ) : (
+                      usersList.map((userRecord) => (
+                        <tr key={userRecord._id} className="transition hover:bg-slate-800/40">
+                          <td className="px-5 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-700 bg-slate-800 text-xs font-bold text-slate-200">
+                                {userRecord.fullName.charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <p className="font-bold text-white">{userRecord.fullName}</p>
+                                <p className="text-[11px] text-slate-400 font-mono">{userRecord.email}</p>
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="px-4 py-4 text-slate-200 font-medium">
+                            {userRecord.designation || 'Civic Official'}
+                          </td>
+
+                          <td className="px-4 py-4">
+                            <span
+                              className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-mono font-bold ${
+                                userRecord.role === 'ROOT_ADMIN'
+                                  ? 'bg-red-500/20 text-red-400 border border-red-500/40'
+                                  : userRecord.role === 'SUPER_ADMIN'
+                                  ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
+                                  : userRecord.role === 'ADMIN'
+                                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                                  : userRecord.role === 'HM'
+                                  ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40'
+                                  : 'bg-slate-800 text-slate-300 border border-slate-700'
+                              }`}
+                            >
+                              {userRecord.role}
+                            </span>
+                          </td>
+
+                          <td className="px-4 py-4 text-slate-300">
+                            {userRecord.schoolId?.name ? (
+                              <span className="truncate max-w-xs block" title={userRecord.schoolId.name}>
+                                {userRecord.schoolId.name}
+                              </span>
+                            ) : (
+                              <span className="text-slate-500 italic">District Level / Global</span>
+                            )}
+                          </td>
+
+                          <td className="px-4 py-4">
+                            <span
+                              className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                                userRecord.status === 'ACTIVE'
+                                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                                  : userRecord.status === 'PENDING_APPROVAL'
+                                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                                  : 'bg-red-500/20 text-red-400 border border-red-500/40'
+                              }`}
+                            >
+                              {userRecord.status}
+                            </span>
+                          </td>
+
+                          <td className="px-4 py-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              {userRecord.status === 'PENDING_APPROVAL' && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleProcessUserLifecycle(userRecord._id, 'ACTIVE', 'Direct Root Admin verification')}
+                                  disabled={actionProcessingUserId === userRecord._id}
+                                  className="rounded-lg border border-emerald-500/40 bg-emerald-950/40 px-2.5 py-1 text-xs font-semibold text-emerald-400 hover:bg-emerald-900/50 transition cursor-pointer"
+                                >
+                                  Approve
+                                </button>
+                              )}
+                              {userRecord.status === 'ACTIVE' && userRecord.role !== 'ROOT_ADMIN' && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleProcessUserLifecycle(userRecord._id, 'SUSPENDED', 'Administrative suspension by Root Admin')}
+                                  disabled={actionProcessingUserId === userRecord._id}
+                                  className="rounded-lg border border-red-500/30 bg-red-950/30 px-2.5 py-1 text-xs font-semibold text-red-300 hover:bg-red-900/40 transition cursor-pointer"
+                                >
+                                  Suspend
+                                </button>
+                              )}
+                              {userRecord.status === 'SUSPENDED' && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleProcessUserLifecycle(userRecord._id, 'ACTIVE', 'Reinstatement by Root Admin')}
+                                  disabled={actionProcessingUserId === userRecord._id}
+                                  className="rounded-lg border border-emerald-500/40 bg-emerald-950/40 px-2.5 py-1 text-xs font-semibold text-emerald-400 hover:bg-emerald-900/50 transition cursor-pointer"
+                                >
+                                  Reactivate
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ─── TAB 3: SUPER ADMIN GOVERNANCE ─── */}
+        {activeTab === 'governance' && (
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl border border-slate-800 bg-slate-900/60 p-5 backdrop-blur-md">
+              <div>
+                <h3 className="text-base font-bold text-white">Super Administrator Accounts (Level 90)</h3>
+                <p className="text-xs text-slate-400">
+                  Super Admins govern operational workflows, faculty onboarding, circulars, and municipal schools across Liaquatabad Town.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsProvisionModalOpen(true)}
+                className="flex items-center gap-2 rounded-xl border border-amber-500/40 bg-gradient-to-r from-amber-600 to-amber-700 px-4 py-2 text-xs font-semibold text-white shadow-lg transition hover:brightness-110 cursor-pointer"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Provision New Super Admin</span>
+              </button>
+            </div>
+
+            <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900/80 shadow-xl backdrop-blur-md">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-slate-300">
+                  <thead className="border-b border-slate-800 bg-slate-950/60 text-[11px] uppercase font-bold text-slate-400 tracking-wider">
+                    <tr>
+                      <th className="px-5 py-3.5">Administrator Name</th>
+                      <th className="px-4 py-3.5">Civil Designation</th>
+                      <th className="px-4 py-3.5">System Role</th>
+                      <th className="px-4 py-3.5">Scope</th>
+                      <th className="px-4 py-3.5">Status</th>
+                      <th className="px-4 py-3.5">Created Date</th>
+                      <th className="px-4 py-3.5 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60">
+                    {isSuperAdminsLoading ? (
+                      <tr>
+                        <td colSpan="7" className="py-12 text-center text-slate-400">
+                          <RefreshCw className="mx-auto h-6 w-6 animate-spin text-amber-400" />
+                          <p className="mt-2 text-xs">Querying Super Admin roster...</p>
+                        </td>
+                      </tr>
+                    ) : superAdminsList.length === 0 ? (
+                      <tr>
+                        <td colSpan="7" className="py-12 text-center text-slate-400">
+                          <Crown className="mx-auto h-8 w-8 text-slate-600 mb-2" />
+                          <p className="text-sm font-semibold text-slate-300">No Super Admin Accounts Provisioned</p>
+                        </td>
+                      </tr>
+                    ) : (
+                      superAdminsList.map((adminRecord) => (
+                        <tr key={adminRecord._id} className="transition hover:bg-slate-800/40">
+                          <td className="px-5 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10 text-xs font-bold text-amber-400">
+                                {adminRecord.fullName.charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <p className="font-bold text-white">{adminRecord.fullName}</p>
+                                <p className="text-[11px] text-slate-400 font-mono">{adminRecord.email}</p>
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="px-4 py-4 font-medium text-slate-200">
+                            {adminRecord.designation || 'Town Chairman'}
+                          </td>
+
+                          <td className="px-4 py-4">
+                            <span className="rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-[11px] font-mono font-bold text-amber-400">
+                              SUPER_ADMIN (90)
+                            </span>
+                          </td>
+
+                          <td className="px-4 py-4">
+                            <span className="rounded-md border border-cyan-500/30 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-mono font-bold text-cyan-400">
+                              {adminRecord.scope || 'ADMINISTRATIVE'}
+                            </span>
+                          </td>
+
+                          <td className="px-4 py-4">
+                            <span
+                              className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                                adminRecord.status === 'ACTIVE'
+                                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                                  : 'bg-red-500/20 text-red-400 border border-red-500/40'
+                              }`}
+                            >
+                              {adminRecord.status}
+                            </span>
+                          </td>
+
+                          <td className="px-4 py-4 text-slate-400 font-mono text-[11px]">
+                            {new Date(adminRecord.createdAt).toLocaleDateString()}
+                          </td>
+
+                          <td className="px-4 py-4 text-right">
+                            {adminRecord.status === 'ACTIVE' ? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedSuperAdminToDisable(adminRecord);
+                                  setIsDisableModalOpen(true);
+                                }}
+                                className="rounded-lg border border-red-500/30 bg-red-950/40 px-3 py-1 text-xs font-semibold text-red-300 hover:bg-red-900/50 transition cursor-pointer"
+                              >
+                                Disable Account
+                              </button>
+                            ) : (
+                              <span className="text-slate-500 italic text-xs">Disabled</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ─── TAB 4: CLEARANCE & APPROVALS ROSTER ─── */}
+        {activeTab === 'approvals' && (
+          <div className="space-y-4">
+            <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-5 backdrop-blur-md">
+              <h3 className="text-base font-bold text-white">Personnel Clearance & Approval Queue</h3>
+              <p className="text-xs text-slate-400">
+                Staff and faculty awaiting civil verification and system activation.
+              </p>
+            </div>
+
+            {isPendingUsersLoading ? (
+              <div className="flex flex-col items-center justify-center rounded-xl border border-slate-800 bg-slate-900/40 p-12 text-slate-400">
+                <RefreshCw className="h-6 w-6 animate-spin text-amber-400" />
+                <p className="mt-2 text-xs">Querying pending approval roster...</p>
+              </div>
+            ) : pendingUsersList.length === 0 ? (
+              <div className="flex flex-col items-center justify-center rounded-xl border border-slate-800 bg-slate-900/40 p-12 text-center">
+                <CheckCircle2 className="h-12 w-12 text-emerald-400 mb-3" />
+                <h4 className="text-base font-bold text-white">Clearance Roster Up To Date</h4>
+                <p className="mt-1 text-xs text-slate-400">There are no pending registrations requiring review at this time.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {pendingUsersList.map((pendingUser) => (
+                  <div
+                    key={pendingUser._id}
+                    className="flex flex-col justify-between rounded-xl border border-slate-800 bg-slate-900/80 p-5 shadow-lg backdrop-blur-sm"
+                  >
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <h4 className="font-bold text-white text-base">{pendingUser.fullName}</h4>
+                          <p className="text-xs text-slate-400 font-mono">{pendingUser.email}</p>
+                        </div>
+                        <span className="rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-xs font-mono font-bold text-amber-400">
+                          {pendingUser.role}
+                        </span>
+                      </div>
+
+                      <div className="space-y-1 text-xs text-slate-300 border-t border-slate-800/80 pt-3">
+                        <p><span className="text-slate-400">Proposed Title:</span> {pendingUser.designation || 'Teacher / Staff'}</p>
+                        <p><span className="text-slate-400">Target School:</span> {pendingUser.schoolId?.name || 'District Assignment'}</p>
+                        <p><span className="text-slate-400">Registered:</span> {new Date(pendingUser.createdAt).toLocaleString()}</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 flex items-center justify-end gap-2 border-t border-slate-800/80 pt-3">
+                      <button
+                        type="button"
+                        onClick={() => handleProcessUserLifecycle(pendingUser._id, 'INACTIVE', 'Registration rejected by Root Admin')}
+                        disabled={actionProcessingUserId === pendingUser._id}
+                        className="rounded-lg border border-red-500/30 bg-red-950/30 px-3 py-1.5 text-xs font-semibold text-red-300 hover:bg-red-900/40 transition cursor-pointer"
+                      >
+                        Reject
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleProcessUserLifecycle(pendingUser._id, 'ACTIVE', 'Approved directly by Root Administrator')}
+                        disabled={actionProcessingUserId === pendingUser._id}
+                        className="rounded-lg border border-emerald-500/40 bg-emerald-600 px-4 py-1.5 text-xs font-semibold text-white hover:bg-emerald-500 transition shadow cursor-pointer"
+                      >
+                        Approve & Activate
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ─── TAB 5: COMMAND OPS & EMERGENCY ─── */}
+        {activeTab === 'operations' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Break Glass Architecture */}
+            <div className="rounded-xl border border-amber-500/30 bg-slate-900/80 p-6 shadow-xl backdrop-blur-md space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-2 text-amber-400">
+                  <Key className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-white text-base">Break-Glass Emergency Protocol</h3>
+                  <p className="text-xs text-slate-400">Disaster recovery for lost Super Admin access</p>
+                </div>
+              </div>
+
+              <p className="text-xs text-slate-300 leading-relaxed">
+                ROOT_ADMIN holds Level 100 supreme technical governance authority. In disaster scenarios where Super Admins are locked out or compromised, execute the emergency CLI command on the server host:
+              </p>
+
+              <div className="rounded-lg bg-slate-950 p-3 text-xs font-mono text-amber-300 border border-slate-800">
+                node scripts/breakGlassRecovery.js &lt;email&gt; &lt;new_password&gt;
+              </div>
+
+              <div className="flex items-center gap-2 text-xs text-slate-400">
+                <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                <span>Triple-Lock v7.0 Cryptographic Integrity Active</span>
+              </div>
+            </div>
+
+            {/* Security Lockout Flush Console */}
+            <div className="rounded-xl border border-red-500/30 bg-slate-900/80 p-6 shadow-xl backdrop-blur-md space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-2 text-red-400">
+                  <Unlock className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-white text-base">Platform Lockout Operations</h3>
+                  <p className="text-xs text-slate-400">Unblock brute-force trapped IPs and accounts</p>
+                </div>
+              </div>
+
+              <p className="text-xs text-slate-300 leading-relaxed">
+                The Triple-Lock rate limiter automatically strikes and locks out IPs with abnormal request patterns. Root Admins can purge all active locks with zero downtime.
+              </p>
+
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={handleFlushLockouts}
+                  disabled={isFlushingLockouts}
+                  className="flex items-center gap-2 rounded-xl border border-red-500/40 bg-red-600 px-4 py-2.5 text-xs font-semibold text-white shadow-lg hover:bg-red-500 transition cursor-pointer"
+                >
+                  <Unlock className="h-4 w-4" />
+                  <span>{isFlushingLockouts ? 'Flushing Lockout Store...' : 'Flush All Security Lockouts'}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ─── TAB 6: IMMUTABLE AUDIT STREAM ─── */}
+        {activeTab === 'audit' && (
+          <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between rounded-xl border border-slate-800 bg-slate-900/60 p-4 backdrop-blur-md">
+              <div className="flex flex-1 items-center gap-3">
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <input
+                    type="text"
+                    value={auditSearchQuery}
+                    onChange={(eventObject) => setAuditSearchQuery(eventObject.target.value)}
+                    placeholder="Search audit action (e.g. BREAK_GLASS, CREATED)..."
+                    className="w-full rounded-lg border border-slate-700 bg-slate-800/90 py-2 pl-9 pr-4 text-xs text-slate-200 placeholder-slate-500 focus:border-purple-500 focus:outline-none"
+                  />
+                </div>
+
+                <select
+                  value={auditResultFilter}
+                  onChange={(eventObject) => setAuditResultFilter(eventObject.target.value)}
+                  className="rounded-lg border border-slate-700 bg-slate-800/90 px-3 py-2 text-xs text-slate-200 focus:border-purple-500 focus:outline-none"
+                >
+                  <option value="">All Results</option>
+                  <option value="SUCCESS">Success</option>
+                  <option value="FAILURE">Failure</option>
+                </select>
+              </div>
+
+              <button
+                type="button"
+                onClick={fetchAuditLogs}
+                className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-medium text-slate-300 hover:bg-slate-700 transition cursor-pointer"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${isAuditLogsLoading ? 'animate-spin' : ''}`} />
+                <span>Refresh Stream</span>
+              </button>
+            </div>
+
+            <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-950 p-4 font-mono text-xs shadow-2xl">
+              <div className="space-y-2">
+                {isAuditLogsLoading ? (
+                  <div className="py-8 text-center text-slate-400">
+                    <RefreshCw className="mx-auto h-5 w-5 animate-spin text-purple-400" />
+                    <p className="mt-2 text-xs">Streaming audit ledger records...</p>
+                  </div>
+                ) : auditLogsList.length === 0 ? (
+                  <div className="py-8 text-center text-slate-500">
+                    <p>No matching audit records in current view.</p>
+                  </div>
+                ) : (
+                  auditLogsList.map((auditRecord) => (
+                    <div
+                      key={auditRecord._id}
+                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-900 pb-2 text-slate-300 transition hover:bg-slate-900/60 p-2 rounded"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-[10px] text-slate-500">
+                          {new Date(auditRecord.createdAt).toLocaleTimeString()}
+                        </span>
+                        <span
+                          className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
+                            auditRecord.result === 'SUCCESS' ? 'bg-emerald-950 text-emerald-400' : 'bg-red-950 text-red-400'
+                          }`}
+                        >
+                          {auditRecord.result}
+                        </span>
+                        <span className="font-bold text-amber-400">{auditRecord.action}</span>
+                        <span className="text-slate-400 truncate max-w-xs">
+                          by {auditRecord.actorRole} ({auditRecord.actorName || 'System'})
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-slate-500">
+                        Target: {auditRecord.targetName || auditRecord.targetModel || 'Global'} • {auditRecord.ipAddress || 'Internal'}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ─── MODAL: REGISTER MUNICIPAL SCHOOL ─── */}
+        {isRegisterSchoolModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md">
+            <div className="relative w-full max-w-xl rounded-2xl border border-emerald-500/40 bg-slate-900 p-6 shadow-2xl space-y-5">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2 text-emerald-400">
+                    <SchoolIcon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-extrabold text-white">Register Municipal School</h3>
+                    <p className="text-xs text-slate-400">Add a new educational entity to Liaquatabad Town Centre</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsRegisterSchoolModalOpen(false)}
+                  className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer"
+                >
+                  <XCircle className="h-5 w-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleRegisterSchoolSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300">Official School Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={registerSchoolFormData.name}
+                    onChange={(eventObject) => setRegisterSchoolFormData({ ...registerSchoolFormData, name: eventObject.target.value })}
+                    placeholder="e.g. Molana Muhammad Hussain Azad Govt. Boys Secondary School"
+                    className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300">School Code (Prefix) *</label>
+                    <input
+                      type="text"
+                      value={registerSchoolFormData.schoolCode}
+                      onChange={(eventObject) => setRegisterSchoolFormData({ ...registerSchoolFormData, schoolCode: eventObject.target.value.toUpperCase() })}
+                      placeholder="e.g. MMHA, GGSS"
+                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white uppercase font-mono placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+                    />
+                    <p className="mt-1 text-[10px] text-slate-500">Prefix for student IDs (2-10 chars)</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300">EMIS Code</label>
+                    <input
+                      type="text"
+                      value={registerSchoolFormData.emisCode}
+                      onChange={(eventObject) => setRegisterSchoolFormData({ ...registerSchoolFormData, emisCode: eventObject.target.value })}
+                      placeholder="e.g. 408090123"
+                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300">School Category *</label>
+                    <select
+                      value={registerSchoolFormData.schoolType}
+                      onChange={(eventObject) => setRegisterSchoolFormData({ ...registerSchoolFormData, schoolType: eventObject.target.value })}
+                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none"
+                    >
+                      <option value="SECONDARY">Secondary (Class 6–10)</option>
+                      <option value="PRIMARY">Primary (Class 1–5)</option>
+                      <option value="ELEMENTARY">Elementary (Class 1–8)</option>
+                      <option value="HIGHER_SECONDARY">Higher Secondary (Class 6–12)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300">Gender Orientation *</label>
+                    <select
+                      value={registerSchoolFormData.genderType}
+                      onChange={(eventObject) => setRegisterSchoolFormData({ ...registerSchoolFormData, genderType: eventObject.target.value })}
+                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none"
+                    >
+                      <option value="BOYS">Boys</option>
+                      <option value="GIRLS">Girls</option>
+                      <option value="CO_EDUCATION">Co-Education</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300">Institutional Address *</label>
+                  <input
+                    type="text"
+                    required
+                    value={registerSchoolFormData.address}
+                    onChange={(eventObject) => setRegisterSchoolFormData({ ...registerSchoolFormData, address: eventObject.target.value })}
+                    placeholder="e.g. Near Super Market, Liaquatabad No. 4, Karachi"
+                    className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300">Official Phone</label>
+                    <input
+                      type="text"
+                      value={registerSchoolFormData.contactPhone}
+                      onChange={(eventObject) => setRegisterSchoolFormData({ ...registerSchoolFormData, contactPhone: eventObject.target.value })}
+                      placeholder="e.g. 021-34981234"
+                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300">Official Email</label>
+                    <input
+                      type="email"
+                      value={registerSchoolFormData.contactEmail}
+                      onChange={(eventObject) => setRegisterSchoolFormData({ ...registerSchoolFormData, contactEmail: eventObject.target.value })}
+                      placeholder="e.g. mmha.boys@liaquatabad.gov.pk"
+                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-3 border-t border-slate-800 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsRegisterSchoolModalOpen(false)}
+                    className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-xs font-medium text-slate-300 hover:bg-slate-700 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isRegisteringSchoolSubmitting}
+                    className="flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2 text-xs font-semibold text-white hover:bg-emerald-500 transition shadow cursor-pointer disabled:opacity-50"
+                  >
+                    {isRegisteringSchoolSubmitting ? 'Registering...' : 'Confirm Registration'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* ─── MODAL: PROVISION SUPER ADMIN ─── */}
+        {isProvisionModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md">
+            <div className="relative w-full max-w-lg rounded-2xl border border-amber-500/40 bg-slate-900 p-6 shadow-2xl space-y-5">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-2 text-amber-400">
+                    <Crown className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-extrabold text-white">Provision Super Administrator</h3>
+                    <p className="text-xs text-slate-400">Assign Level 90 Operational Governance Authority</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsProvisionModalOpen(false)}
+                  className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer"
+                >
+                  <XCircle className="h-5 w-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleProvisionSuperAdminSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300">Full Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={provisionFormData.fullName}
+                    onChange={(eventObject) => setProvisionFormData({ ...provisionFormData, fullName: eventObject.target.value })}
+                    placeholder="e.g. Syed Farooq Ahmed"
+                    className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300">Government / Official Email *</label>
+                  <input
+                    type="email"
+                    required
+                    value={provisionFormData.email}
+                    onChange={(eventObject) => setProvisionFormData({ ...provisionFormData, email: eventObject.target.value })}
+                    placeholder="e.g. farooq.ahmed@liaquatabad.gov.pk"
+                    className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300">Secure Initial Password *</label>
+                  <input
+                    type="password"
+                    required
+                    minLength={8}
+                    value={provisionFormData.password}
+                    onChange={(eventObject) => setProvisionFormData({ ...provisionFormData, password: eventObject.target.value })}
+                    placeholder="Minimum 8 characters"
+                    className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300">Civil Designation</label>
+                    <input
+                      type="text"
+                      value={provisionFormData.designation}
+                      onChange={(eventObject) => setProvisionFormData({ ...provisionFormData, designation: eventObject.target.value })}
+                      placeholder="e.g. Town Chairman"
+                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300">Operational Scope *</label>
+                    <select
+                      value={provisionFormData.scope}
+                      onChange={(eventObject) => setProvisionFormData({ ...provisionFormData, scope: eventObject.target.value })}
+                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white focus:border-amber-500 focus:outline-none"
+                    >
+                      <option value="ADMINISTRATIVE">ADMINISTRATIVE (Town Jurisdiction)</option>
+                      <option value="GLOBAL">GLOBAL (Cross-District Authority)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-3 border-t border-slate-800 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsProvisionModalOpen(false)}
+                    className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-xs font-medium text-slate-300 hover:bg-slate-700 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isProvisioningSubmitting}
+                    className="flex items-center gap-2 rounded-lg bg-amber-600 px-5 py-2 text-xs font-semibold text-white hover:bg-amber-500 transition shadow cursor-pointer disabled:opacity-50"
+                  >
+                    {isProvisioningSubmitting ? 'Provisioning...' : 'Provision Super Admin'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* ─── MODAL: DISABLE SUPER ADMIN ─── */}
+        {isDisableModalOpen && selectedSuperAdminToDisable && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md">
+            <div className="relative w-full max-w-md rounded-2xl border border-red-500/40 bg-slate-900 p-6 shadow-2xl space-y-5">
+              <div className="flex items-center gap-3 border-b border-slate-800 pb-4">
+                <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-2 text-red-400">
+                  <AlertTriangle className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white">Disable Super Administrator</h3>
+                  <p className="text-xs text-slate-400">Revokes all active sessions immediately</p>
+                </div>
+              </div>
+
+              <p className="text-xs text-slate-300 leading-relaxed">
+                You are disabling <strong className="text-white">{selectedSuperAdminToDisable.fullName}</strong> ({selectedSuperAdminToDisable.email}). All active JWT tokens will be revoked via tokenVersion increment.
+              </p>
+
+              <form onSubmit={handleDisableSuperAdminSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300">Mandatory Justification Reason *</label>
+                  <textarea
+                    required
+                    rows={3}
+                    value={disableReasonText}
+                    onChange={(eventObject) => setDisableReasonText(eventObject.target.value)}
+                    placeholder="Enter explicit administrative or disciplinary reason..."
+                    className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 p-2.5 text-xs text-white placeholder-slate-500 focus:border-red-500 focus:outline-none"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-3 border-t border-slate-800 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsDisableModalOpen(false)}
+                    className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-xs font-medium text-slate-300 hover:bg-slate-700 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isDisablingSubmitting}
+                    className="rounded-lg bg-red-600 px-5 py-2 text-xs font-semibold text-white hover:bg-red-500 transition shadow cursor-pointer disabled:opacity-50"
+                  >
+                    {isDisablingSubmitting ? 'Disabling...' : 'Confirm Disable'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* ─── MODAL: EMERGENCY BROADCAST ─── */}
+        {isBroadcastModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md">
+            <div className="relative w-full max-w-lg rounded-2xl border border-blue-500/40 bg-slate-900 p-6 shadow-2xl space-y-5">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-2 text-blue-400">
+                    <Radio className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-extrabold text-white">Issue District Broadcast</h3>
+                    <p className="text-xs text-slate-400">Publish high-priority alert across all platform dashboards</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsBroadcastModalOpen(false)}
+                  className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer"
+                >
+                  <XCircle className="h-5 w-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleBroadcastSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300">Broadcast Headline *</label>
+                  <input
+                    type="text"
+                    required
+                    value={broadcastFormData.title}
+                    onChange={(eventObject) => setBroadcastFormData({ ...broadcastFormData, title: eventObject.target.value })}
+                    placeholder="e.g. Extreme Weather Advisory: School Timings Adjusted"
+                    className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300">Severity Tier *</label>
+                  <select
+                    value={broadcastFormData.severity}
+                    onChange={(eventObject) => setBroadcastFormData({ ...broadcastFormData, severity: eventObject.target.value })}
+                    className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white focus:border-blue-500 focus:outline-none"
+                  >
+                    <option value="INFO">Informational (Blue)</option>
+                    <option value="WARNING">Administrative Warning (Amber)</option>
+                    <option value="CRITICAL">Emergency / Critical Alert (Red)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300">Official Directive Content *</label>
+                  <textarea
+                    required
+                    rows={4}
+                    value={broadcastFormData.message}
+                    onChange={(eventObject) => setBroadcastFormData({ ...broadcastFormData, message: eventObject.target.value })}
+                    placeholder="Detailed instruction or municipal circular text..."
+                    className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 p-2.5 text-xs text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-3 border-t border-slate-800 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsBroadcastModalOpen(false)}
+                    className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-xs font-medium text-slate-300 hover:bg-slate-700 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isBroadcastSubmitting}
+                    className="flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2 text-xs font-semibold text-white hover:bg-blue-500 transition shadow cursor-pointer disabled:opacity-50"
+                  >
+                    {isBroadcastSubmitting ? 'Publishing...' : 'Dispatch Broadcast'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+      </div>
+    </PageContainer>
+  );
+};
+
+export default RootAdminDashboard;

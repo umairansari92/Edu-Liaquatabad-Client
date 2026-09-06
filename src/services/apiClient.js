@@ -28,8 +28,12 @@ apiClient.interceptors.response.use(
   (successfulResponse) => successfulResponse,
   async (error) => {
     const originalRequest = error.config;
+    const requestUrlString = originalRequest?.url || '';
+    const isAuthEndpoint = requestUrlString.includes('/auth/refresh-token') ||
+                           requestUrlString.includes('/auth/login') ||
+                           requestUrlString.includes('/auth/logout');
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest?._retry && !isAuthEndpoint) {
       originalRequest._retry = true;
       try {
         const refreshResponse = await axios.post(

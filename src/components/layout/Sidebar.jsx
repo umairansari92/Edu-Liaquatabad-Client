@@ -30,8 +30,8 @@ export const Sidebar = () => {
     { label: 'Circulars & Docs', path: '/documents', icon: FileText },
   ];
 
-  // Super Admin additional item
-  if (user.role === 'SUPER_ADMIN') {
+  // Super Admin & Root Admin additional items
+  if (['ROOT_ADMIN', 'SUPER_ADMIN'].includes(user.role)) {
     navigationItems.push({ label: 'Platform & Audit', path: '/audit-logs', icon: ShieldAlert });
   }
 

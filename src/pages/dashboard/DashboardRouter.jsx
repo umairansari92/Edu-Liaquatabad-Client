@@ -1,5 +1,6 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
+import RootAdminDashboard from './RootAdminDashboard.jsx';
 import PageContainer from '../../components/layout/PageContainer.jsx';
 import {
   School,
@@ -18,6 +19,11 @@ export const DashboardRouter = () => {
   const { user } = useSelector((state) => state.auth);
 
   if (!user) return null;
+
+  // Supreme Governance & High Operational Admin Dashboard
+  if (user.role === 'ROOT_ADMIN' || user.role === 'SUPER_ADMIN') {
+    return <RootAdminDashboard />;
+  }
 
   return (
     <PageContainer

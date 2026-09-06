@@ -1,7 +1,6 @@
 import React from 'react';
 import Navbar from './Navbar.jsx';
 import Sidebar from './Sidebar.jsx';
-import AppFooter from './AppFooter.jsx';
 import { useSelector } from 'react-redux';
 
 export const PageContainer = ({ children, title, subtitle, actions }) => {
@@ -25,7 +24,6 @@ export const PageContainer = ({ children, title, subtitle, actions }) => {
           {children}
         </main>
       </div>
-      <AppFooter />
     </div>
   );
 };

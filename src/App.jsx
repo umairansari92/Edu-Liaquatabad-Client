@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { Toaster } from 'react-hot-toast';
@@ -9,14 +9,20 @@ import { setCredentials, setSessionChecked } from './store/slices/authSlice.js';
 
 function App() {
   const dispatch = useDispatch();
+  const sessionInitializedReference = useRef(false);
 
   useEffect(() => {
+    if (sessionInitializedReference.current) {
+      return;
+    }
+    sessionInitializedReference.current = true;
+
     const initializeSession = async () => {
       try {
         // Attempt silent refresh token exchange via HttpOnly cookie
-        const res = await apiClient.post('/auth/refresh-token');
-        if (res?.data?.success && res?.data?.data) {
-          const { user, accessToken } = res.data.data;
+        const refreshResponse = await apiClient.post('/auth/refresh-token');
+        if (refreshResponse?.data?.success && refreshResponse?.data?.data) {
+          const { user, accessToken } = refreshResponse.data.data;
           dispatch(setCredentials({ user, accessToken }));
         } else {
           dispatch(setSessionChecked(true));
