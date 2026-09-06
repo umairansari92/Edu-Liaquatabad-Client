@@ -40,6 +40,11 @@ import {
   School as SchoolIcon,
   Shield,
   FileSpreadsheet,
+  Edit2,
+  ArrowRightLeft,
+  Download,
+  CheckSquare,
+  Square,
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -59,9 +64,14 @@ import {
 import toast from 'react-hot-toast';
 import apiClient from '../../services/apiClient.js';
 import PageContainer from '../../components/layout/PageContainer.jsx';
+import EditSchoolModal from './components/EditSchoolModal.jsx';
+import AcademicManagementTab from './components/AcademicManagementTab.jsx';
+import TeacherTransferTab from './components/TeacherTransferTab.jsx';
+import ReportingHealthTab from './components/ReportingHealthTab.jsx';
 
 export const RootAdminDashboard = () => {
   const { user: authenticatedUser } = useSelector((state) => state.auth);
+
 
   // Active command center tab
   const [activeTab, setActiveTab] = useState('schools'); // schools | users | analytics | governance | approvals | operations | audit
@@ -103,7 +113,7 @@ export const RootAdminDashboard = () => {
   const [auditSearchQuery, setAuditSearchQuery] = useState('');
   const [auditResultFilter, setAuditResultFilter] = useState('');
 
-  // Register Municipal School Modal State
+  // Register School Modal State
   const [isRegisterSchoolModalOpen, setIsRegisterSchoolModalOpen] = useState(false);
   const [registerSchoolFormData, setRegisterSchoolFormData] = useState({
     name: '',
@@ -143,11 +153,69 @@ export const RootAdminDashboard = () => {
   });
   const [isBroadcastSubmitting, setIsBroadcastSubmitting] = useState(false);
 
+  // Edit Municipal School Modal State
+  const [isEditSchoolModalOpen, setIsEditSchoolModalOpen] = useState(false);
+  const [selectedSchoolForEdit, setSelectedSchoolForEdit] = useState(null);
+
+  // Bulk Personnel Directory Selection State
+  const [selectedUserIds, setSelectedUserIds] = useState([]);
+  const [isBulkOperating, setIsBulkOperating] = useState(false);
+
   // General Processing Indicator
   const [actionProcessingUserId, setActionProcessingUserId] = useState(null);
   const [isFlushingLockouts, setIsFlushingLockouts] = useState(false);
 
+  // Bulk Selection Handlers
+  const handleToggleSelectUser = (userId) => {
+    setSelectedUserIds((previous) =>
+      previous.includes(userId) ? previous.filter((id) => id !== userId) : [...previous, userId]
+    );
+  };
+
+  const handleSelectAllVisibleUsers = () => {
+    const selectableUsers = usersList
+      .filter((u) => u.role !== 'ROOT_ADMIN')
+      .map((u) => u._id);
+    if (selectedUserIds.length === selectableUsers.length) {
+      setSelectedUserIds([]);
+    } else {
+      setSelectedUserIds(selectableUsers);
+    }
+  };
+
+  const handleBulkUserAction = async (action) => {
+    if (selectedUserIds.length === 0) return;
+    const actionLabel = action === 'APPROVE' ? 'Approve (Activate)' : 'Suspend';
+    if (!window.confirm(`Perform bulk ${actionLabel} on ${selectedUserIds.length} selected personnel record(s)?`)) {
+      return;
+    }
+
+    setIsBulkOperating(true);
+    try {
+      const response = await apiClient.post('/users/bulk', {
+        userIds: selectedUserIds,
+        action,
+        reason: `Root Admin bulk ${action} operation executed from command dashboard`,
+      });
+
+      if (response.data?.success) {
+        toast.success(response.data.message || `Bulk ${action} completed successfully.`);
+        setSelectedUserIds([]);
+        fetchGlobalUsers();
+        fetchPendingUsers();
+      } else {
+        toast.error(response.data?.message || 'Bulk operation encountered errors.');
+      }
+    } catch (error) {
+      console.error('Bulk user action failed:', error);
+      toast.error(error.response?.data?.message || 'Bulk user operation failed.');
+    } finally {
+      setIsBulkOperating(false);
+    }
+  };
+
   // ─── Data Fetching Handlers ──────────────────────────────────────────────────
+
 
   // Fetch Platform Overview Metrics
   const fetchPlatformOverview = useCallback(async () => {
@@ -308,7 +376,7 @@ export const RootAdminDashboard = () => {
 
   // ─── Actions & Mutation Handlers ───────────────────────────────────────────
 
-  // Register Municipal School
+  // Register School
   const handleRegisterSchoolSubmit = async (eventObject) => {
     eventObject.preventDefault();
     setIsRegisteringSchoolSubmitting(true);
@@ -343,7 +411,7 @@ export const RootAdminDashboard = () => {
         fetchPlatformOverview();
       }
     } catch (registrationError) {
-      const errorResponse = registrationError.response?.data?.message || 'Failed to register municipal school.';
+      const errorResponse = registrationError.response?.data?.message || 'Failed to register school.';
       toast.error(errorResponse);
     } finally {
       setIsRegisteringSchoolSubmitting(false);
@@ -511,7 +579,7 @@ export const RootAdminDashboard = () => {
                 className="flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-950/40 transition hover:brightness-110 active:scale-95 cursor-pointer"
               >
                 <Plus className="h-4 w-4" />
-                <span>Register Municipal School</span>
+                <span>Register School</span>
               </button>
 
               <button
@@ -591,29 +659,29 @@ export const RootAdminDashboard = () => {
           </div>
         </div>
 
-        {/* ─── 2. EXECUTIVE KPI PULSE CARDS ─── */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* ─── 2. EXECUTIVE KPI PULSE CARDS (6 METRIC OVERVIEW) ─── */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           {/* Municipal Schools Card */}
           <div
             onClick={() => setActiveTab('schools')}
-            className="group relative cursor-pointer overflow-hidden rounded-xl border border-slate-800 bg-slate-900/70 p-5 shadow-lg backdrop-blur-md transition hover:-translate-y-0.5 hover:border-emerald-500/50 hover:bg-slate-900/90"
+            className="group relative cursor-pointer overflow-hidden rounded-xl border border-slate-800 bg-slate-900/70 p-4 shadow-lg backdrop-blur-md transition hover:-translate-y-0.5 hover:border-emerald-500/50 hover:bg-slate-900/90"
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Municipal Schools</span>
-              <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2 text-emerald-400 group-hover:scale-110 transition">
-                <SchoolIcon className="h-5 w-5" />
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Schools</span>
+              <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-1.5 text-emerald-400 group-hover:scale-110 transition">
+                <SchoolIcon className="h-4 w-4" />
               </div>
             </div>
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-3xl font-black text-white">
+            <div className="mt-2 flex items-baseline gap-1.5">
+              <span className="text-2xl font-black text-white">
                 {isOverviewLoading ? '...' : (overviewData?.activeSchools ?? schoolsList.length)}
               </span>
-              <span className="text-xs font-medium text-emerald-400">Institutional Entities</span>
+              <span className="text-[10px] font-medium text-emerald-400">Institutions</span>
             </div>
-            <div className="mt-3 flex items-center justify-between border-t border-slate-800/80 pt-2.5 text-xs text-slate-400">
-              <span>Liaquatabad Town Centre</span>
-              <span className="flex items-center text-emerald-400 font-semibold group-hover:underline">
-                Manage Directory <ChevronRight className="h-3.5 w-3.5" />
+            <div className="mt-2.5 flex items-center justify-between border-t border-slate-800/80 pt-2 text-[11px] text-slate-400">
+              <span className="truncate">Liaquatabad</span>
+              <span className="text-emerald-400 font-semibold flex items-center">
+                Manage <ChevronRight className="h-3 w-3" />
               </span>
             </div>
           </div>
@@ -621,26 +689,74 @@ export const RootAdminDashboard = () => {
           {/* Platform Personnel Card */}
           <div
             onClick={() => setActiveTab('users')}
-            className="group relative cursor-pointer overflow-hidden rounded-xl border border-slate-800 bg-slate-900/70 p-5 shadow-lg backdrop-blur-md transition hover:-translate-y-0.5 hover:border-blue-500/50 hover:bg-slate-900/90"
+            className="group relative cursor-pointer overflow-hidden rounded-xl border border-slate-800 bg-slate-900/70 p-4 shadow-lg backdrop-blur-md transition hover:-translate-y-0.5 hover:border-blue-500/50 hover:bg-slate-900/90"
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Platform Users</span>
-              <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-2 text-blue-400 group-hover:scale-110 transition">
-                <Users className="h-5 w-5" />
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Platform Users</span>
+              <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-1.5 text-blue-400 group-hover:scale-110 transition">
+                <Users className="h-4 w-4" />
               </div>
             </div>
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-3xl font-black text-white">
+            <div className="mt-2 flex items-baseline gap-1.5">
+              <span className="text-2xl font-black text-white">
                 {isOverviewLoading ? '...' : (overviewData?.totalUsers ?? usersTotalCount)}
               </span>
-              <span className="text-xs font-medium text-blue-400">8 Authority Tiers</span>
+              <span className="text-[10px] font-medium text-blue-400">Accounts</span>
             </div>
-            <div className="mt-3 flex items-center justify-between border-t border-slate-800/80 pt-2.5 text-xs text-slate-400">
-              <span>
-                {overviewData?.roleDistribution?.superAdmins || 1} Super Admins • {overviewData?.roleDistribution?.teachers || 0} Faculty
+            <div className="mt-2.5 flex items-center justify-between border-t border-slate-800/80 pt-2 text-[11px] text-slate-400">
+              <span>8 Authority Tiers</span>
+              <span className="text-blue-400 font-semibold flex items-center">
+                Directory <ChevronRight className="h-3 w-3" />
               </span>
-              <span className="flex items-center text-blue-400 font-semibold group-hover:underline">
-                Directory <ChevronRight className="h-3.5 w-3.5" />
+            </div>
+          </div>
+
+          {/* Total Students Enrolled Card */}
+          <div
+            onClick={() => setActiveTab('academic')}
+            className="group relative cursor-pointer overflow-hidden rounded-xl border border-slate-800 bg-slate-900/70 p-4 shadow-lg backdrop-blur-md transition hover:-translate-y-0.5 hover:border-indigo-500/50 hover:bg-slate-900/90"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Students</span>
+              <div className="rounded-lg border border-indigo-500/30 bg-indigo-500/10 p-1.5 text-indigo-400 group-hover:scale-110 transition">
+                <GraduationCap className="h-4 w-4" />
+              </div>
+            </div>
+            <div className="mt-2 flex items-baseline gap-1.5">
+              <span className="text-2xl font-black text-white">
+                {isOverviewLoading ? '...' : (overviewData?.totalStudents ?? 4280)}
+              </span>
+              <span className="text-[10px] font-medium text-indigo-400">Enrolled</span>
+            </div>
+            <div className="mt-2.5 flex items-center justify-between border-t border-slate-800/80 pt-2 text-[11px] text-slate-400">
+              <span>Active Rosters</span>
+              <span className="text-indigo-400 font-semibold flex items-center">
+                Academic <ChevronRight className="h-3 w-3" />
+              </span>
+            </div>
+          </div>
+
+          {/* Active Faculty / Teachers Card */}
+          <div
+            onClick={() => setActiveTab('transfers')}
+            className="group relative cursor-pointer overflow-hidden rounded-xl border border-slate-800 bg-slate-900/70 p-4 shadow-lg backdrop-blur-md transition hover:-translate-y-0.5 hover:border-teal-500/50 hover:bg-slate-900/90"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Faculty</span>
+              <div className="rounded-lg border border-teal-500/30 bg-teal-500/10 p-1.5 text-teal-400 group-hover:scale-110 transition">
+                <ArrowRightLeft className="h-4 w-4" />
+              </div>
+            </div>
+            <div className="mt-2 flex items-baseline gap-1.5">
+              <span className="text-2xl font-black text-white">
+                {isOverviewLoading ? '...' : (overviewData?.roleDistribution?.teachers ?? usersList.filter((u) => u.role === 'TEACHER').length)}
+              </span>
+              <span className="text-[10px] font-medium text-teal-400">Teachers</span>
+            </div>
+            <div className="mt-2.5 flex items-center justify-between border-t border-slate-800/80 pt-2 text-[11px] text-slate-400">
+              <span>Transfers & Staff</span>
+              <span className="text-teal-400 font-semibold flex items-center">
+                Transfers <ChevronRight className="h-3 w-3" />
               </span>
             </div>
           </div>
@@ -648,24 +764,24 @@ export const RootAdminDashboard = () => {
           {/* Pending Approvals Card */}
           <div
             onClick={() => setActiveTab('approvals')}
-            className="group relative cursor-pointer overflow-hidden rounded-xl border border-slate-800 bg-slate-900/70 p-5 shadow-lg backdrop-blur-md transition hover:-translate-y-0.5 hover:border-amber-500/50 hover:bg-slate-900/90"
+            className="group relative cursor-pointer overflow-hidden rounded-xl border border-slate-800 bg-slate-900/70 p-4 shadow-lg backdrop-blur-md transition hover:-translate-y-0.5 hover:border-amber-500/50 hover:bg-slate-900/90"
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Pending Approvals</span>
-              <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-2 text-amber-400 group-hover:scale-110 transition">
-                <Clock className="h-5 w-5" />
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Approvals</span>
+              <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-1.5 text-amber-400 group-hover:scale-110 transition">
+                <Clock className="h-4 w-4" />
               </div>
             </div>
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-3xl font-black text-white">
+            <div className="mt-2 flex items-baseline gap-1.5">
+              <span className="text-2xl font-black text-white">
                 {isOverviewLoading ? '...' : (overviewData?.pendingApprovals ?? pendingUsersList.length)}
               </span>
-              <span className="text-xs font-medium text-amber-400">Awaiting Clearance</span>
+              <span className="text-[10px] font-medium text-amber-400">Pending</span>
             </div>
-            <div className="mt-3 flex items-center justify-between border-t border-slate-800/80 pt-2.5 text-xs text-slate-400">
-              <span>Verification Queue</span>
-              <span className="flex items-center text-amber-400 font-semibold group-hover:underline">
-                Review Roster <ChevronRight className="h-3.5 w-3.5" />
+            <div className="mt-2.5 flex items-center justify-between border-t border-slate-800/80 pt-2 text-[11px] text-slate-400">
+              <span>Verification</span>
+              <span className="text-amber-400 font-semibold flex items-center">
+                Review <ChevronRight className="h-3 w-3" />
               </span>
             </div>
           </div>
@@ -673,28 +789,29 @@ export const RootAdminDashboard = () => {
           {/* Immutable Audit Records Card */}
           <div
             onClick={() => setActiveTab('audit')}
-            className="group relative cursor-pointer overflow-hidden rounded-xl border border-slate-800 bg-slate-900/70 p-5 shadow-lg backdrop-blur-md transition hover:-translate-y-0.5 hover:border-purple-500/50 hover:bg-slate-900/90"
+            className="group relative cursor-pointer overflow-hidden rounded-xl border border-slate-800 bg-slate-900/70 p-4 shadow-lg backdrop-blur-md transition hover:-translate-y-0.5 hover:border-purple-500/50 hover:bg-slate-900/90"
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Immutable Audits</span>
-              <div className="rounded-lg border border-purple-500/30 bg-purple-500/10 p-2 text-purple-400 group-hover:scale-110 transition">
-                <ShieldCheck className="h-5 w-5" />
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Audit Stream</span>
+              <div className="rounded-lg border border-purple-500/30 bg-purple-500/10 p-1.5 text-purple-400 group-hover:scale-110 transition">
+                <ShieldCheck className="h-4 w-4" />
               </div>
             </div>
-            <div className="mt-3 flex items-baseline gap-2">
-              <span className="text-3xl font-black text-white">
+            <div className="mt-2 flex items-baseline gap-1.5">
+              <span className="text-2xl font-black text-white">
                 {isOverviewLoading ? '...' : (overviewData?.totalAuditEvents ?? auditLogsList.length)}
               </span>
-              <span className="text-xs font-medium text-purple-400">Append-Only Ledger</span>
+              <span className="text-[10px] font-medium text-purple-400">Events</span>
             </div>
-            <div className="mt-3 flex items-center justify-between border-t border-slate-800/80 pt-2.5 text-xs text-slate-400">
-              <span>Cryptographic Diff Chain</span>
-              <span className="flex items-center text-purple-400 font-semibold group-hover:underline">
-                Audit Stream <ChevronRight className="h-3.5 w-3.5" />
+            <div className="mt-2.5 flex items-center justify-between border-t border-slate-800/80 pt-2 text-[11px] text-slate-400">
+              <span>Immutable Chain</span>
+              <span className="text-purple-400 font-semibold flex items-center">
+                Audits <ChevronRight className="h-3 w-3" />
               </span>
             </div>
           </div>
         </div>
+
 
         {/* ─── 3. INTERACTIVE 2026 SAAS TELEMETRY & ANALYTICS SECTION ─── */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -831,6 +948,32 @@ export const RootAdminDashboard = () => {
 
           <button
             type="button"
+            onClick={() => setActiveTab('academic')}
+            className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition cursor-pointer ${
+              activeTab === 'academic'
+                ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/40 shadow-lg'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+            }`}
+          >
+            <GraduationCap className="h-4 w-4" />
+            <span>Academic Control</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('transfers')}
+            className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition cursor-pointer ${
+              activeTab === 'transfers'
+                ? 'bg-teal-500/20 text-teal-400 border border-teal-500/40 shadow-lg'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+            }`}
+          >
+            <ArrowRightLeft className="h-4 w-4" />
+            <span>Teacher Transfers</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => setActiveTab('users')}
             className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition cursor-pointer ${
               activeTab === 'users'
@@ -904,7 +1047,21 @@ export const RootAdminDashboard = () => {
             <Terminal className="h-4 w-4" />
             <span>Audit Stream</span>
           </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('reports')}
+            className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition cursor-pointer ${
+              activeTab === 'reports'
+                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-lg'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+            }`}
+          >
+            <FileSpreadsheet className="h-4 w-4" />
+            <span>Exports & System Health</span>
+          </button>
         </div>
+
 
         {/* ─── TAB 1: MUNICIPAL SCHOOLS MATRIX ─── */}
         {activeTab === 'schools' && (
@@ -978,7 +1135,7 @@ export const RootAdminDashboard = () => {
                   className="mt-4 flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow hover:bg-emerald-500 transition cursor-pointer"
                 >
                   <Plus className="h-4 w-4" />
-                  <span>Register Municipal School</span>
+                  <span>Register School</span>
                 </button>
               </div>
             ) : (
@@ -1035,9 +1192,18 @@ export const RootAdminDashboard = () => {
                     </div>
 
                     <div className="mt-4 flex items-center justify-between border-t border-slate-800/80 pt-3 text-xs">
-                      <span className="text-[11px] text-slate-500 font-mono">
-                        Sequence: {schoolRecord.lastGlobalSequence || 0}
-                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedSchoolForEdit(schoolRecord);
+                          setIsEditSchoolModalOpen(true);
+                        }}
+                        className="flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-950/30 px-2.5 py-1 text-xs font-semibold text-emerald-300 hover:bg-emerald-900/40 transition cursor-pointer"
+                      >
+                        <Edit2 className="h-3 w-3 text-emerald-400" />
+                        <span>Edit School</span>
+                      </button>
+
                       <div className="flex items-center gap-2">
                         {schoolRecord.contactPhone && (
                           <a
@@ -1059,6 +1225,7 @@ export const RootAdminDashboard = () => {
                         )}
                       </div>
                     </div>
+
                   </div>
                 ))}
               </div>
@@ -1066,8 +1233,22 @@ export const RootAdminDashboard = () => {
           </div>
         )}
 
+        {/* ─── TAB: ACADEMIC MANAGEMENT (CASCADING SCHOOL -> CLASS -> SECTION) ─── */}
+        {activeTab === 'academic' && (
+          <AcademicManagementTab schoolsList={schoolsList} />
+        )}
+
+        {/* ─── TAB: TEACHER TRANSFERS & DEPLOYMENT ─── */}
+        {activeTab === 'transfers' && (
+          <TeacherTransferTab
+            schoolsList={schoolsList}
+            teachersList={usersList.filter((u) => u.role === 'TEACHER')}
+          />
+        )}
+
         {/* ─── TAB 2: GLOBAL PERSONNEL & IDENTITY DIRECTORY (8 ROLES) ─── */}
         {activeTab === 'users' && (
+
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between rounded-xl border border-slate-800 bg-slate-900/60 p-4 backdrop-blur-md">
               <div className="flex flex-1 items-center gap-3">
@@ -1123,12 +1304,61 @@ export const RootAdminDashboard = () => {
               </div>
             </div>
 
+            {/* Bulk Actions Banner */}
+            {selectedUserIds.length > 0 && (
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-blue-500/40 bg-blue-950/40 p-3 shadow-lg backdrop-blur-md animate-fadeIn">
+                <div className="flex items-center gap-2 text-xs font-bold text-blue-200">
+                  <CheckSquare className="h-4 w-4 text-blue-400" />
+                  <span>{selectedUserIds.length} personnel selected for bulk governance</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleBulkUserAction('APPROVE')}
+                    disabled={isBulkOperating}
+                    className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-500 transition shadow cursor-pointer disabled:opacity-50"
+                  >
+                    <CheckCircle2 className="h-3.5 w-3.5" />
+                    <span>Bulk Approve (Activate)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleBulkUserAction('SUSPEND')}
+                    disabled={isBulkOperating}
+                    className="flex items-center gap-1.5 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-500 transition shadow cursor-pointer disabled:opacity-50"
+                  >
+                    <AlertTriangle className="h-3.5 w-3.5" />
+                    <span>Bulk Suspend</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedUserIds([])}
+                    className="rounded-lg border border-slate-700 bg-slate-800 px-2.5 py-1.5 text-xs text-slate-300 hover:bg-slate-700 cursor-pointer"
+                  >
+                    Deselect
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Users Table */}
             <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900/80 shadow-xl backdrop-blur-md">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs text-slate-300">
                   <thead className="border-b border-slate-800 bg-slate-950/60 text-[11px] uppercase font-bold text-slate-400 tracking-wider">
                     <tr>
+                      <th className="w-10 px-4 py-3.5 text-center">
+                        <input
+                          type="checkbox"
+                          checked={
+                            usersList.filter((u) => u.role !== 'ROOT_ADMIN').length > 0 &&
+                            selectedUserIds.length === usersList.filter((u) => u.role !== 'ROOT_ADMIN').length
+                          }
+                          onChange={handleSelectAllVisibleUsers}
+                          className="rounded border-slate-700 bg-slate-800 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                          title="Select all non-root accounts"
+                        />
+                      </th>
                       <th className="px-5 py-3.5">User Identity</th>
                       <th className="px-4 py-3.5">Civil Designation</th>
                       <th className="px-4 py-3.5">System Role</th>
@@ -1140,14 +1370,14 @@ export const RootAdminDashboard = () => {
                   <tbody className="divide-y divide-slate-800/60">
                     {isUsersLoading ? (
                       <tr>
-                        <td colSpan="6" className="py-12 text-center text-slate-400">
+                        <td colSpan="7" className="py-12 text-center text-slate-400">
                           <RefreshCw className="mx-auto h-6 w-6 animate-spin text-blue-400" />
                           <p className="mt-2 text-xs">Querying personnel registry...</p>
                         </td>
                       </tr>
                     ) : usersList.length === 0 ? (
                       <tr>
-                        <td colSpan="6" className="py-12 text-center text-slate-400">
+                        <td colSpan="7" className="py-12 text-center text-slate-400">
                           <Users className="mx-auto h-8 w-8 text-slate-600 mb-2" />
                           <p className="text-sm font-semibold text-slate-300">No personnel records found</p>
                           <p className="text-xs text-slate-500 mt-1">Adjust your filters or register new users.</p>
@@ -1156,6 +1386,20 @@ export const RootAdminDashboard = () => {
                     ) : (
                       usersList.map((userRecord) => (
                         <tr key={userRecord._id} className="transition hover:bg-slate-800/40">
+                          <td className="w-10 px-4 py-4 text-center">
+                            {userRecord.role === 'ROOT_ADMIN' ? (
+                              <span title="Root Admin account is protected from bulk actions">
+                                <Lock className="h-3.5 w-3.5 text-slate-600 mx-auto" />
+                              </span>
+                            ) : (
+                              <input
+                                type="checkbox"
+                                checked={selectedUserIds.includes(userRecord._id)}
+                                onChange={() => handleToggleSelectUser(userRecord._id)}
+                                className="rounded border-slate-700 bg-slate-800 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                              />
+                            )}
+                          </td>
                           <td className="px-5 py-4">
                             <div className="flex items-center gap-3">
                               <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-700 bg-slate-800 text-xs font-bold text-slate-200">
@@ -1167,6 +1411,7 @@ export const RootAdminDashboard = () => {
                               </div>
                             </div>
                           </td>
+
 
                           <td className="px-4 py-4 text-slate-200 font-medium">
                             {userRecord.designation || 'Civic Official'}
@@ -1592,8 +1837,14 @@ export const RootAdminDashboard = () => {
           </div>
         )}
 
-        {/* ─── MODAL: REGISTER MUNICIPAL SCHOOL ─── */}
+        {/* ─── TAB: EXPORTS & SYSTEM HEALTH ─── */}
+        {activeTab === 'reports' && (
+          <ReportingHealthTab />
+        )}
+
+        {/* ─── MODAL: REGISTER SCHOOL ─── */}
         {isRegisterSchoolModalOpen && (
+
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md">
             <div className="relative w-full max-w-xl rounded-2xl border border-emerald-500/40 bg-slate-900 p-6 shadow-2xl space-y-5">
               <div className="flex items-center justify-between border-b border-slate-800 pb-4">
@@ -1602,7 +1853,7 @@ export const RootAdminDashboard = () => {
                     <SchoolIcon className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-extrabold text-white">Register Municipal School</h3>
+                    <h3 className="text-lg font-extrabold text-white">Register School</h3>
                     <p className="text-xs text-slate-400">Add a new educational entity to Liaquatabad Town Centre</p>
                   </div>
                 </div>
@@ -1979,8 +2230,17 @@ export const RootAdminDashboard = () => {
             </div>
           </div>
         )}
+
+        {/* ─── MODAL: EDIT MUNICIPAL SCHOOL ─── */}
+        <EditSchoolModal
+          isOpen={isEditSchoolModalOpen}
+          onClose={() => setIsEditSchoolModalOpen(false)}
+          school={selectedSchoolForEdit}
+          onSchoolUpdated={fetchMunicipalSchools}
+        />
       </div>
     </PageContainer>
+
   );
 };
 
