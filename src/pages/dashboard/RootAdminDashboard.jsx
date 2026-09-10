@@ -68,6 +68,7 @@ import EditSchoolModal from './components/EditSchoolModal.jsx';
 import AcademicManagementTab from './components/AcademicManagementTab.jsx';
 import TeacherTransferTab from './components/TeacherTransferTab.jsx';
 import ReportingHealthTab from './components/ReportingHealthTab.jsx';
+import UserAuthorityModal from '../../components/common/UserAuthorityModal.jsx';
 
 export const RootAdminDashboard = () => {
   const { user: authenticatedUser } = useSelector((state) => state.auth);
@@ -156,6 +157,10 @@ export const RootAdminDashboard = () => {
   // Edit Municipal School Modal State
   const [isEditSchoolModalOpen, setIsEditSchoolModalOpen] = useState(false);
   const [selectedSchoolForEdit, setSelectedSchoolForEdit] = useState(null);
+
+  // Authority & Designation Management Modal State
+  const [isAuthorityModalOpen, setIsAuthorityModalOpen] = useState(false);
+  const [selectedUserForAuthority, setSelectedUserForAuthority] = useState(null);
 
   // Bulk Personnel Directory Selection State
   const [selectedUserIds, setSelectedUserIds] = useState([]);
@@ -1491,6 +1496,18 @@ export const RootAdminDashboard = () => {
                                   Reactivate
                                 </button>
                               )}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedUserForAuthority(userRecord);
+                                  setIsAuthorityModalOpen(true);
+                                }}
+                                className="rounded-lg border border-cyan-500/40 bg-cyan-950/40 px-2.5 py-1 text-xs font-semibold text-cyan-400 hover:bg-cyan-900/50 transition cursor-pointer flex items-center gap-1"
+                                title="Manage Civil Designation & Technical System Authority"
+                              >
+                                <Shield className="w-3 h-3" />
+                                <span>Authority</span>
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -2237,6 +2254,22 @@ export const RootAdminDashboard = () => {
           onClose={() => setIsEditSchoolModalOpen(false)}
           school={selectedSchoolForEdit}
           onSchoolUpdated={fetchMunicipalSchools}
+        />
+
+        {/* ─── MODAL: USER AUTHORITY & DESIGNATION MANAGEMENT ─── */}
+        <UserAuthorityModal
+          isOpen={isAuthorityModalOpen}
+          onClose={() => {
+            setIsAuthorityModalOpen(false);
+            setSelectedUserForAuthority(null);
+          }}
+          targetUser={selectedUserForAuthority}
+          currentUser={authenticatedUser}
+          onAuthorityUpdated={(updatedUser) => {
+            fetchGlobalUsers();
+            fetchSuperAdmins();
+            fetchPlatformOverview();
+          }}
         />
       </div>
     </PageContainer>

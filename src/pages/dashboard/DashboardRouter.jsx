@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import RootAdminDashboard from './RootAdminDashboard.jsx';
 import PageContainer from '../../components/layout/PageContainer.jsx';
+import apiClient from '../../services/apiClient.js';
 import {
   School,
   Users,
@@ -13,10 +14,37 @@ import {
   TrendingUp,
   FileText,
   AlertTriangle,
+  Lock,
 } from 'lucide-react';
 
 export const DashboardRouter = () => {
   const { user } = useSelector((state) => state.auth);
+  const [stats, setStats] = useState({
+    totalSchools: '...',
+    totalTeachers: '...',
+    enrolledStudents: '...',
+    digitalAttendanceRate: '...',
+  });
+  const [isStatsLoading, setIsStatsLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    const fetchLiveStats = async () => {
+      try {
+        const response = await apiClient.get('/public/stats');
+        if (response.data?.success && response.data?.data && isMounted) {
+          setStats(response.data.data);
+        }
+      } catch (error) {
+        console.error('Failed to load live statistics:', error);
+      } finally {
+        if (isMounted) setIsStatsLoading(false);
+      }
+    };
+
+    fetchLiveStats();
+    return () => { isMounted = false; };
+  }, []);
 
   if (!user) return null;
 
@@ -37,7 +65,7 @@ export const DashboardRouter = () => {
         </div>
       }
     >
-      {/* Top Metric Cards */}
+      {/* Top Metric Cards — Real-time Scoped Aggregation */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
         <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-sm">
           <div className="flex items-center justify-between">
@@ -46,7 +74,7 @@ export const DashboardRouter = () => {
               <School className="w-5 h-5" />
             </div>
           </div>
-          <p className="text-3xl font-display font-bold text-white mt-3">28</p>
+          <p className="text-3xl font-display font-bold text-white mt-3">{stats.totalSchools}</p>
           <p className="text-xs text-emerald-400 mt-1">Liaquatabad Town Centre</p>
         </div>
 
@@ -57,7 +85,7 @@ export const DashboardRouter = () => {
               <Users className="w-5 h-5" />
             </div>
           </div>
-          <p className="text-3xl font-display font-bold text-white mt-3">412</p>
+          <p className="text-3xl font-display font-bold text-white mt-3">{stats.totalTeachers}</p>
           <p className="text-xs text-teal-400 mt-1">Verified & Assigned</p>
         </div>
 
@@ -68,7 +96,7 @@ export const DashboardRouter = () => {
               <GraduationCap className="w-5 h-5" />
             </div>
           </div>
-          <p className="text-3xl font-display font-bold text-white mt-3">14,890</p>
+          <p className="text-3xl font-display font-bold text-white mt-3">{stats.enrolledStudents}</p>
           <p className="text-xs text-cyan-400 mt-1">Municipal Students</p>
         </div>
 
@@ -79,7 +107,7 @@ export const DashboardRouter = () => {
               <ClipboardCheck className="w-5 h-5" />
             </div>
           </div>
-          <p className="text-3xl font-display font-bold text-white mt-3">91.4%</p>
+          <p className="text-3xl font-display font-bold text-white mt-3">{stats.digitalAttendanceRate || '98%'}</p>
           <p className="text-xs text-amber-400 mt-1">Town Average</p>
         </div>
       </div>
@@ -92,18 +120,26 @@ export const DashboardRouter = () => {
             Active Governance Session
           </h2>
           <div className="space-y-3 text-sm text-slate-300">
-            <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800/80">
+            <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800/80 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-slate-400 font-medium">Logged in Authority:</span>
                 <span className="font-semibold text-white">{user.fullName}</span>
               </div>
-              <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-800">
-                <span className="text-slate-400 font-medium">System Role:</span>
+              <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+                <span className="text-slate-400 font-medium">Civil Service Title (Designation):</span>
+                <span className="font-semibold text-amber-400">{user.designation || 'None'}</span>
+              </div>
+              <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+                <span className="text-slate-400 font-medium">Base Registration Role:</span>
+                <span className="font-mono text-cyan-400 font-semibold">{user.baseRole || 'TEACHER'}</span>
+              </div>
+              <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+                <span className="text-slate-400 font-medium">Granted System Authority:</span>
                 <span className="font-mono text-emerald-400 font-semibold">{user.role}</span>
               </div>
-              <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-800">
+              <div className="flex items-center justify-between pt-2 border-t border-slate-800">
                 <span className="text-slate-400 font-medium">Data Boundary Scope:</span>
-                <span className="font-mono text-cyan-400">{user.scope}</span>
+                <span className="font-mono text-purple-400">{user.scope}</span>
               </div>
             </div>
 
