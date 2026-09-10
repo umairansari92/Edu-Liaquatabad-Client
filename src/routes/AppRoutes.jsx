@@ -6,6 +6,13 @@ import RegisterTeacherPage from '../pages/auth/RegisterTeacherPage.jsx';
 import ForgotPasswordPage from '../pages/auth/ForgotPasswordPage.jsx';
 import ResetPasswordPage from '../pages/auth/ResetPasswordPage.jsx';
 import DashboardRouter from '../pages/dashboard/DashboardRouter.jsx';
+import SchoolsPage from '../pages/schools/SchoolsPage.jsx';
+import UsersPage from '../pages/users/UsersPage.jsx';
+import TransfersPage from '../pages/transfers/TransfersPage.jsx';
+import AttendancePage from '../pages/attendance/AttendancePage.jsx';
+import ExamsPage from '../pages/exams/ExamsPage.jsx';
+import DocumentsPage from '../pages/documents/DocumentsPage.jsx';
+import AuditLogsPage from '../pages/audit/AuditLogsPage.jsx';
 import ProtectedRoute from './ProtectedRoute.jsx';
 
 /**
@@ -24,16 +31,16 @@ export const AppRoutes = () => {
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-      {/* Protected Core Dashboard Route */}
+      {/* Protected Core Dashboard & Dedicated Module Routes */}
       <Route element={<ProtectedRoute />}>
         <Route path="/dashboard" element={<DashboardRouter />} />
-        <Route path="/schools" element={<DashboardRouter />} />
-        <Route path="/users" element={<DashboardRouter />} />
-        <Route path="/attendance" element={<DashboardRouter />} />
-        <Route path="/exams" element={<DashboardRouter />} />
-        <Route path="/transfers" element={<DashboardRouter />} />
-        <Route path="/documents" element={<DashboardRouter />} />
-        <Route path="/audit-logs" element={<DashboardRouter />} />
+        <Route path="/schools" element={<SchoolsPage />} />
+        <Route path="/users" element={<UsersPage />} />
+        <Route path="/attendance" element={<AttendancePage />} />
+        <Route path="/exams" element={<ExamsPage />} />
+        <Route path="/transfers" element={<TransfersPage />} />
+        <Route path="/documents" element={<DocumentsPage />} />
+        <Route path="/audit-logs" element={<AuditLogsPage />} />
       </Route>
 
       {/* Fallback to Login */}

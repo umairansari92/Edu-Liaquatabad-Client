@@ -65,7 +65,9 @@ export const Navbar = () => {
               <div className="flex items-center space-x-3 pl-3 border-l border-slate-800">
                 <div className="text-right hidden sm:block">
                   <p className="text-sm font-semibold text-white leading-tight">{user.fullName}</p>
-                  <p className="text-xs text-emerald-400 font-medium">{user.designation || user.role}</p>
+                  <p className="text-xs text-emerald-400 font-medium">
+                    {user.designation ? user.designation.replace(/\s*\(Break-Glass Recovery\)/i, '') : user.role}
+                  </p>
                 </div>
                 <div className="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-200">
                   <User className="w-5 h-5" />

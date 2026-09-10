@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Crown,
   ShieldCheck,
@@ -74,8 +75,32 @@ export const RootAdminDashboard = () => {
   const { user: authenticatedUser } = useSelector((state) => state.auth);
 
 
-  // Active command center tab
-  const [activeTab, setActiveTab] = useState('schools'); // schools | users | analytics | governance | approvals | operations | audit
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Active command center tab (synchronized with sidebar routes)
+  const [activeTab, setActiveTab] = useState(() => {
+    const p = window.location.pathname;
+    if (p === '/schools') return 'schools';
+    if (p === '/users') return 'users';
+    if (p === '/transfers') return 'transfers';
+    if (p === '/audit-logs') return 'audit';
+    if (p === '/attendance' || p === '/exams') return 'academic';
+    if (p === '/documents') return 'reports';
+    return 'schools';
+  });
+
+  // Sync tab when sidebar link is clicked
+  useEffect(() => {
+    const p = location.pathname;
+    if (p === '/schools') setActiveTab('schools');
+    else if (p === '/users') setActiveTab('users');
+    else if (p === '/transfers') setActiveTab('transfers');
+    else if (p === '/audit-logs') setActiveTab('audit');
+    else if (p === '/attendance' || p === '/exams') setActiveTab('academic');
+    else if (p === '/documents') setActiveTab('reports');
+    else if (p === '/dashboard') setActiveTab('schools');
+  }, [location.pathname]);
 
   // Overview & Telemetry State
   const [overviewData, setOverviewData] = useState(null);
@@ -128,16 +153,17 @@ export const RootAdminDashboard = () => {
   });
   const [isRegisteringSchoolSubmitting, setIsRegisteringSchoolSubmitting] = useState(false);
 
-  // Provision Super Admin Modal State
-  const [isProvisionModalOpen, setIsProvisionModalOpen] = useState(false);
-  const [provisionFormData, setProvisionFormData] = useState({
-    fullName: '',
-    email: '',
-    password: '',
-    designation: 'Town Chairman',
-    scope: 'ADMINISTRATIVE',
+  // Authorize Super Admin Modal State (Existing User Grant Workflow)
+  const [isAuthorizeModalOpen, setIsAuthorizeModalOpen] = useState(false);
+  const [authorizeFormData, setAuthorizeFormData] = useState({
+    userId: '',
+    authority: 'SUPER_ADMIN',
+    scope: 'GLOBAL',
+    reason: '',
   });
-  const [isProvisioningSubmitting, setIsProvisioningSubmitting] = useState(false);
+  const [authorizeUserSearch, setAuthorizeUserSearch] = useState('');
+  const [isAuthorizingSubmitting, setIsAuthorizingSubmitting] = useState(false);
+
 
   // Disable Super Admin Modal State
   const [isDisableModalOpen, setIsDisableModalOpen] = useState(false);
@@ -168,7 +194,10 @@ export const RootAdminDashboard = () => {
 
   // General Processing Indicator
   const [actionProcessingUserId, setActionProcessingUserId] = useState(null);
-  const [isFlushingLockouts, setIsFlushingLockouts] = useState(false);
+  const [isFlushLockoutModalOpen, setIsFlushLockoutModalOpen] = useState(false);
+  const [flushLockoutReason, setFlushLockoutReason] = useState('');
+  const [flushLockoutConfirmed, setFlushLockoutConfirmed] = useState(false);
+  const [isFlushingLockoutsSubmitting, setIsFlushingLockoutsSubmitting] = useState(false);
 
   // Bulk Selection Handlers
   const handleToggleSelectUser = (userId) => {
@@ -423,39 +452,48 @@ export const RootAdminDashboard = () => {
     }
   };
 
-  // Provision Super Admin Account
-  const handleProvisionSuperAdminSubmit = async (eventObject) => {
+  // Authorize Super Admin on Existing Personnel Account
+  const handleAuthorizeSuperAdminSubmit = async (eventObject) => {
     eventObject.preventDefault();
-    setIsProvisioningSubmitting(true);
+    if (!authorizeFormData.userId) {
+      toast.error('Please select an existing personnel account to authorize.');
+      return;
+    }
+    if (!authorizeFormData.reason || authorizeFormData.reason.trim().length < 5) {
+      toast.error('A mandatory justification reason (minimum 5 characters) is required.');
+      return;
+    }
+    setIsAuthorizingSubmitting(true);
     try {
-      const response = await apiClient.post('/admin/super-admins', {
-        fullName: provisionFormData.fullName.trim(),
-        email: provisionFormData.email.trim(),
-        password: provisionFormData.password,
-        designation: provisionFormData.designation.trim(),
-        scope: provisionFormData.scope,
+      const response = await apiClient.post(`/admin/users/${authorizeFormData.userId}/authority`, {
+        authority: 'SUPER_ADMIN',
+        reason: authorizeFormData.reason.trim(),
+        scope: authorizeFormData.scope || 'GLOBAL',
       });
 
       if (response.data?.success) {
-        toast.success(`Super Admin "${provisionFormData.fullName}" provisioned successfully.`);
-        setIsProvisionModalOpen(false);
-        setProvisionFormData({
-          fullName: '',
-          email: '',
-          password: '',
-          designation: 'Town Chairman',
-          scope: 'ADMINISTRATIVE',
+        toast.success(response.data?.message || 'Super Admin authority granted successfully.');
+        setIsAuthorizeModalOpen(false);
+        setAuthorizeFormData({
+          userId: '',
+          authority: 'SUPER_ADMIN',
+          scope: 'GLOBAL',
+          reason: '',
         });
+        setAuthorizeUserSearch('');
         fetchSuperAdmins();
         fetchPlatformOverview();
+        fetchGlobalUsers();
+        fetchPendingUsers();
       }
-    } catch (provisioningError) {
-      const errorResponse = provisioningError.response?.data?.message || 'Failed to provision Super Admin account.';
+    } catch (authError) {
+      const errorResponse = authError.response?.data?.message || 'Failed to grant Super Admin authority.';
       toast.error(errorResponse);
     } finally {
-      setIsProvisioningSubmitting(false);
+      setIsAuthorizingSubmitting(false);
     }
   };
+
 
   // Disable Super Admin Account
   const handleDisableSuperAdminSubmit = async (eventObject) => {
@@ -490,19 +528,36 @@ export const RootAdminDashboard = () => {
     }
   };
 
-  // Flush Security Lockouts
-  const handleFlushLockouts = async () => {
-    setIsFlushingLockouts(true);
+  // Flush Security Lockouts (Hardened with mandatory justification reason & confirmation)
+  const handleFlushLockoutsSubmit = async (eventObject) => {
+    eventObject.preventDefault();
+    if (!flushLockoutReason || flushLockoutReason.trim().length < 5) {
+      toast.error('A mandatory justification reason (minimum 5 characters) is required.');
+      return;
+    }
+    if (!flushLockoutConfirmed) {
+      toast.error('Explicit confirmation is required before flushing lockouts.');
+      return;
+    }
+
+    setIsFlushingLockoutsSubmitting(true);
     try {
-      const response = await apiClient.post('/admin/super-admins/flush-lockouts');
+      const response = await apiClient.post('/admin/super-admins/flush-lockouts', {
+        reason: flushLockoutReason.trim(),
+        confirmed: true,
+      });
       if (response.data?.success) {
         toast.success(response.data.message || 'Security lockouts flushed successfully.');
+        setIsFlushLockoutModalOpen(false);
+        setFlushLockoutReason('');
+        setFlushLockoutConfirmed(false);
         fetchPlatformOverview();
+        fetchAuditLogs();
       }
     } catch (flushError) {
       toast.error(flushError.response?.data?.message || 'Failed to flush security lockouts.');
     } finally {
-      setIsFlushingLockouts(false);
+      setIsFlushingLockoutsSubmitting(false);
     }
   };
 
@@ -560,19 +615,26 @@ export const RootAdminDashboard = () => {
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2 rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-amber-400">
                   <Crown className="h-3.5 w-3.5" />
-                  <span>Level 100 • Platform Supreme Authority</span>
+                  <span>Root Administration • Platform-wide Authority</span>
                 </div>
-                <div className="flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-400">
-                  <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
-                  <span>Live 2026 SaaS Command Center</span>
-                </div>
+                {authenticatedUser?.fullName && (
+                  <div className="flex items-center gap-1.5 text-xs text-slate-400 border-l border-slate-700/60 pl-3">
+                    <span>Officer:</span>
+                    <span className="font-semibold text-slate-200">{authenticatedUser.fullName}</span>
+                    {authenticatedUser.designation && (
+                      <span className="rounded-md bg-slate-800 px-1.5 py-0.5 text-[11px] font-medium text-amber-300">
+                        {authenticatedUser.designation.replace(/\s*\(Break-Glass Recovery\)/i, '')}
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
 
               <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-                District Supreme Governance Command Center
+                Liaquatabad Town Education Command Center
               </h1>
               <p className="max-w-3xl text-sm leading-relaxed text-slate-300">
-                Education Department Liaquatabad Town Centre (DMC) • Master telemetry, municipal schools infrastructure, 8-tier identity hierarchy, and immutable civic audit.
+                Education Department Liaquatabad Town Centre (DMC) — Municipal schools, authority management, and civic audit.
               </p>
             </div>
 
@@ -589,11 +651,15 @@ export const RootAdminDashboard = () => {
 
               <button
                 type="button"
-                onClick={() => setIsProvisionModalOpen(true)}
+                onClick={() => {
+                  setAuthorizeFormData({ userId: '', authority: 'SUPER_ADMIN', scope: 'GLOBAL', reason: '' });
+                  setAuthorizeUserSearch('');
+                  setIsAuthorizeModalOpen(true);
+                }}
                 className="flex items-center gap-2 rounded-xl border border-amber-500/40 bg-gradient-to-r from-amber-600 to-amber-700 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-amber-950/40 transition hover:brightness-110 active:scale-95 cursor-pointer"
               >
-                <Crown className="h-4 w-4" />
-                <span>Provision Super Admin</span>
+                <ShieldCheck className="h-4 w-4" />
+                <span>Authorize Super Admin</span>
               </button>
 
               <button
@@ -609,7 +675,7 @@ export const RootAdminDashboard = () => {
           </div>
 
           {/* ─── LIVE INFRASTRUCTURE VITALS HUD BAR ─── */}
-          <div className="mt-6 grid grid-cols-2 gap-3 border-t border-slate-800/80 pt-5 text-xs sm:grid-cols-4 lg:grid-cols-5">
+          <div className="mt-6 grid grid-cols-2 gap-3 border-t border-slate-800/80 pt-5 text-xs sm:grid-cols-4 lg:grid-cols-4">
             <div className="flex items-center gap-2 text-slate-300">
               <Server className="h-4 w-4 text-emerald-400 shrink-0" />
               <div>
@@ -630,7 +696,7 @@ export const RootAdminDashboard = () => {
               <Globe className="h-4 w-4 text-amber-400 shrink-0" />
               <div>
                 <p className="text-[10px] uppercase font-semibold text-slate-400">Administrative Scope</p>
-                <p className="font-medium text-amber-300">GLOBAL (Level 100)</p>
+                <p className="font-medium text-amber-300">Platform-wide (Root Authority)</p>
               </div>
             </div>
 
@@ -641,28 +707,83 @@ export const RootAdminDashboard = () => {
                 <p className="font-medium text-purple-300">Liaquatabad Town Centre</p>
               </div>
             </div>
-
-            <div className="col-span-2 sm:col-span-4 lg:col-span-1 flex items-center justify-between lg:justify-end gap-2">
-              <button
-                type="button"
-                onClick={handleFlushLockouts}
-                disabled={isFlushingLockouts}
-                className="flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-950/30 px-3 py-1.5 text-xs font-medium text-red-300 transition hover:bg-red-900/40 active:scale-95 cursor-pointer disabled:opacity-50"
-              >
-                <Unlock className="h-3.5 w-3.5 text-red-400" />
-                <span>{isFlushingLockouts ? 'Flushing...' : 'Flush Lockouts'}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsBroadcastModalOpen(true)}
-                className="flex items-center gap-1.5 rounded-lg border border-blue-500/30 bg-blue-950/30 px-3 py-1.5 text-xs font-medium text-blue-300 transition hover:bg-blue-900/40 active:scale-95 cursor-pointer"
-              >
-                <Radio className="h-3.5 w-3.5 text-blue-400" />
-                <span>Broadcast</span>
-              </button>
-            </div>
           </div>
         </div>
+
+        {/* ─── ATTENTION REQUIRED COMMAND BANNER (DYNAMIC CIVIC RADAR) ─── */}
+        {(() => {
+          const pendingCount = overviewData?.pendingApprovals ?? pendingUsersList.length;
+          const lockoutCount = overviewData?.activeSecurityLockouts ?? 0;
+          const schoolCount = overviewData?.activeSchools ?? schoolsList.length;
+          const hasAttentionItems = pendingCount > 0 || lockoutCount > 0 || schoolCount === 0;
+
+          return (
+            <div
+              className={`rounded-xl border p-4 backdrop-blur-md transition shadow-md ${
+                hasAttentionItems
+                  ? 'border-amber-500/30 bg-amber-950/20'
+                  : 'border-emerald-500/30 bg-emerald-950/20'
+              }`}
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`rounded-lg p-2 shrink-0 ${
+                      hasAttentionItems ? 'bg-amber-500/20 text-amber-400' : 'bg-emerald-500/20 text-emerald-400'
+                    }`}
+                  >
+                    {hasAttentionItems ? <AlertTriangle className="h-5 w-5" /> : <CheckCircle2 className="h-5 w-5" />}
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-white">
+                      {hasAttentionItems ? 'Operational Attention Required' : 'All Municipal Systems Operational'}
+                    </h4>
+                    <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-300">
+                      {pendingCount > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab('approvals')}
+                          className="flex items-center gap-1 text-amber-300 hover:underline cursor-pointer font-medium"
+                        >
+                          <span>⚠ {pendingCount} user registration{pendingCount > 1 ? 's' : ''} awaiting approval</span>
+                          <ChevronRight className="h-3 w-3" />
+                        </button>
+                      )}
+                      {schoolCount === 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setIsRegisterSchoolModalOpen(true)}
+                          className="flex items-center gap-1 text-teal-300 hover:underline cursor-pointer font-medium"
+                        >
+                          <span>ℹ 0 municipal schools registered — begin by registering first school</span>
+                          <ChevronRight className="h-3 w-3" />
+                        </button>
+                      )}
+                      {lockoutCount > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setActiveTab('operations')}
+                          className="flex items-center gap-1 text-red-400 hover:underline cursor-pointer font-medium"
+                        >
+                          <span>⚠ {lockoutCount} active security lockout{lockoutCount > 1 ? 's' : ''}</span>
+                          <ChevronRight className="h-3 w-3" />
+                        </button>
+                      )}
+                      {!hasAttentionItems && (
+                        <span className="text-emerald-400">Zero security alerts, no pending approvals, municipal database synced.</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-right text-[11px] text-slate-400 shrink-0">
+                  <span>Synced: {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
 
         {/* ─── 2. EXECUTIVE KPI PULSE CARDS (6 METRIC OVERVIEW) ─── */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
@@ -709,7 +830,7 @@ export const RootAdminDashboard = () => {
               <span className="text-[10px] font-medium text-blue-400">Accounts</span>
             </div>
             <div className="mt-2.5 flex items-center justify-between border-t border-slate-800/80 pt-2 text-[11px] text-slate-400">
-              <span>8 Authority Tiers</span>
+              <span>Active Accounts</span>
               <span className="text-blue-400 font-semibold flex items-center">
                 Directory <ChevronRight className="h-3 w-3" />
               </span>
@@ -729,12 +850,12 @@ export const RootAdminDashboard = () => {
             </div>
             <div className="mt-2 flex items-baseline gap-1.5">
               <span className="text-2xl font-black text-white">
-                {isOverviewLoading ? '...' : (overviewData?.totalStudents ?? 4280)}
+                {isOverviewLoading ? '...' : (overviewData?.totalStudents != null ? overviewData.totalStudents.toLocaleString() : (overviewData?.roleDistribution?.students ?? '—'))}
               </span>
               <span className="text-[10px] font-medium text-indigo-400">Enrolled</span>
             </div>
             <div className="mt-2.5 flex items-center justify-between border-t border-slate-800/80 pt-2 text-[11px] text-slate-400">
-              <span>Active Rosters</span>
+              <span>Enrolled (from DB)</span>
               <span className="text-indigo-400 font-semibold flex items-center">
                 Academic <ChevronRight className="h-3 w-3" />
               </span>
@@ -759,7 +880,7 @@ export const RootAdminDashboard = () => {
               <span className="text-[10px] font-medium text-teal-400">Teachers</span>
             </div>
             <div className="mt-2.5 flex items-center justify-between border-t border-slate-800/80 pt-2 text-[11px] text-slate-400">
-              <span>Transfers & Staff</span>
+              <span>Registered Teachers</span>
               <span className="text-teal-400 font-semibold flex items-center">
                 Transfers <ChevronRight className="h-3 w-3" />
               </span>
@@ -809,7 +930,7 @@ export const RootAdminDashboard = () => {
               <span className="text-[10px] font-medium text-purple-400">Events</span>
             </div>
             <div className="mt-2.5 flex items-center justify-between border-t border-slate-800/80 pt-2 text-[11px] text-slate-400">
-              <span>Immutable Chain</span>
+              <span>Logged Events</span>
               <span className="text-purple-400 font-semibold flex items-center">
                 Audits <ChevronRight className="h-3 w-3" />
               </span>
@@ -817,22 +938,36 @@ export const RootAdminDashboard = () => {
           </div>
         </div>
 
+        {/* Data Freshness & Sync Row */}
+        <div className="flex flex-wrap items-center justify-between text-xs text-slate-400 px-1">
+          <span>Platform Data Freshness: {overviewData?.systemHealth?.timestamp ? new Date(overviewData.systemHealth.timestamp).toLocaleString() : 'Connected to live database'}</span>
+          <button
+            type="button"
+            onClick={synchronizeAllTelemetry}
+            className="flex items-center gap-1.5 text-blue-400 hover:text-blue-300 transition cursor-pointer font-medium"
+          >
+            <RefreshCw className={`h-3 w-3 ${isOverviewLoading ? 'animate-spin' : ''}`} />
+            <span>Sync Fresh Telemetry</span>
+          </button>
+        </div>
 
-        {/* ─── 3. INTERACTIVE 2026 SAAS TELEMETRY & ANALYTICS SECTION ─── */}
+
+
+        {/* ─── 3. INTERACTIVE TELEMETRY & ANALYTICS SECTION ─── */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Municipal Attendance Telemetry (AreaChart) */}
-          <div className="lg:col-span-2 rounded-xl border border-slate-800 bg-slate-900/80 p-5 shadow-xl backdrop-blur-md">
+          <div className="lg:col-span-2 rounded-xl border border-slate-800 bg-slate-900/80 p-5 shadow-xl backdrop-blur-md flex flex-col justify-between">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-800 pb-4">
               <div>
                 <div className="flex items-center gap-2">
                   <TrendingUp className="h-4 w-4 text-emerald-400" />
-                  <h3 className="font-bold text-white">Weekly District Attendance Trajectory</h3>
+                  <h3 className="font-bold text-white">Town-wide Attendance Overview</h3>
                 </div>
-                <p className="text-xs text-slate-400">Cross-institutional daily attendance comparison (Monday – Saturday)</p>
+                <p className="text-xs text-slate-400">Daily attendance rate across registered municipal schools</p>
               </div>
               <div className="flex items-center gap-3 text-xs">
                 <span className="flex items-center gap-1 text-emerald-400 font-medium">
-                  <span className="h-2 w-2 rounded-full bg-emerald-400" /> District Avg: 91.8%
+                  <span className="h-2 w-2 rounded-full bg-emerald-400" /> {analyticsData?.infrastructureVitals?.averageAttendance ? `Town Avg: ${analyticsData.infrastructureVitals.averageAttendance}` : 'Town Avg: —'}
                 </span>
                 <span className="flex items-center gap-1 text-blue-400 font-medium">
                   <span className="h-2 w-2 rounded-full bg-blue-400" /> Boys
@@ -844,91 +979,99 @@ export const RootAdminDashboard = () => {
             </div>
 
             <div className="mt-4 h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart
-                  data={analyticsData?.weeklyAttendanceTrends || [
-                    { day: 'Mon', boysRate: 92.4, girlsRate: 94.8, overallRate: 93.4 },
-                    { day: 'Tue', boysRate: 93.1, girlsRate: 95.2, overallRate: 94.1 },
-                    { day: 'Wed', boysRate: 91.8, girlsRate: 94.1, overallRate: 92.8 },
-                    { day: 'Thu', boysRate: 90.5, girlsRate: 93.2, overallRate: 91.5 },
-                    { day: 'Fri', boysRate: 88.2, girlsRate: 91.0, overallRate: 89.2 },
-                    { day: 'Sat', boysRate: 85.9, girlsRate: 88.4, overallRate: 86.7 },
-                  ]}
-                  margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-                >
-                  <defs>
-                    <linearGradient id="overallGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
-                      <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
-                    </linearGradient>
-                    <linearGradient id="girlsGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#ec4899" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#ec4899" stopOpacity={0.0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                  <XAxis dataKey="day" stroke="#64748b" tick={{ fill: '#94a3b8', fontSize: 11 }} />
-                  <YAxis domain={[80, 100]} stroke="#64748b" tick={{ fill: '#94a3b8', fontSize: 11 }} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#0f172a',
-                      borderColor: '#334155',
-                      borderRadius: '0.75rem',
-                      color: '#fff',
-                      fontSize: '12px',
-                    }}
-                  />
-                  <Area type="monotone" dataKey="overallRate" name="Overall Rate (%)" stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#overallGrad)" />
-                  <Area type="monotone" dataKey="girlsRate" name="Girls Schools (%)" stroke="#ec4899" strokeWidth={2} fillOpacity={1} fill="url(#girlsGrad)" />
-                  <Area type="monotone" dataKey="boysRate" name="Boys Schools (%)" stroke="#3b82f6" strokeWidth={1.5} fill="none" />
-                </AreaChart>
-              </ResponsiveContainer>
+              {analyticsData?.weeklyAttendanceTrends && analyticsData.weeklyAttendanceTrends.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart
+                    data={analyticsData.weeklyAttendanceTrends}
+                    margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                  >
+                    <defs>
+                      <linearGradient id="overallGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
+                        <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
+                      </linearGradient>
+                      <linearGradient id="girlsGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#ec4899" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#ec4899" stopOpacity={0.0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                    <XAxis dataKey="day" stroke="#64748b" tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                    <YAxis domain={[80, 100]} stroke="#64748b" tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#0f172a',
+                        borderColor: '#334155',
+                        borderRadius: '0.75rem',
+                        color: '#fff',
+                        fontSize: '12px',
+                      }}
+                    />
+                    <Area type="monotone" dataKey="overallRate" name="Overall Rate (%)" stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#overallGrad)" />
+                    <Area type="monotone" dataKey="girlsRate" name="Girls Schools (%)" stroke="#ec4899" strokeWidth={2} fillOpacity={1} fill="url(#girlsGrad)" />
+                    <Area type="monotone" dataKey="boysRate" name="Boys Schools (%)" stroke="#3b82f6" strokeWidth={1.5} fill="none" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full text-slate-500 text-xs text-center p-4">
+                  <TrendingUp className="h-8 w-8 text-slate-600 mb-2" />
+                  <p className="font-semibold text-slate-300">No attendance records logged yet</p>
+                  <p className="mt-1 text-slate-500 max-w-sm">Trend data populates in real-time as registered municipal schools submit their daily morning roll calls.</p>
+                </div>
+              )}
+            </div>
+            <div className="mt-2 text-[10px] text-slate-500 font-mono text-right">
+              Source: Municipal Institutional Morning Roll Calls
             </div>
           </div>
 
-          {/* 8-Tier RBAC Authority Pyramid (BarChart) */}
+          {/* Granted Technical Authority Distribution (BarChart) */}
           <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-5 shadow-xl backdrop-blur-md flex flex-col justify-between">
             <div className="border-b border-slate-800 pb-4">
               <div className="flex items-center gap-2">
                 <BarChart3 className="h-4 w-4 text-amber-400" />
-                <h3 className="font-bold text-white">RBAC Authority Pyramid</h3>
+                <h3 className="font-bold text-white">Granted Authority Distribution</h3>
               </div>
-              <p className="text-xs text-slate-400">Personnel distribution across 8 authority tiers</p>
+              <p className="text-xs text-slate-400">Users grouped by current granted technical authority</p>
             </div>
 
             <div className="mt-3 h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={analyticsData?.authorityPyramid || [
-                    { label: 'Root', count: 1, fill: '#ef4444' },
-                    { label: 'Super', count: 1, fill: '#f59e0b' },
-                    { label: 'Admin', count: 2, fill: '#10b981' },
-                    { label: 'Superv', count: 4, fill: '#06b6d4' },
-                    { label: 'HM', count: 12, fill: '#3b82f6' },
-                    { label: 'Teacher', count: 48, fill: '#8b5cf6' },
-                  ]}
-                  layout="vertical"
-                  margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" horizontal={false} />
-                  <XAxis type="number" stroke="#64748b" tick={{ fill: '#94a3b8', fontSize: 10 }} />
-                  <YAxis type="category" dataKey="label" stroke="#64748b" tick={{ fill: '#94a3b8', fontSize: 11 }} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: '#0f172a',
-                      borderColor: '#334155',
-                      borderRadius: '0.75rem',
-                      color: '#fff',
-                      fontSize: '12px',
-                    }}
-                  />
-                  <Bar dataKey="count" radius={[0, 6, 6, 0]}>
-                    {(analyticsData?.authorityPyramid || []).map((entry, entryIndex) => (
-                      <Cell key={`bar-cell-${entryIndex}`} fill={entry.fill || '#3b82f6'} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              {analyticsData?.authorityPyramid && analyticsData.authorityPyramid.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={analyticsData.authorityPyramid}
+                    layout="vertical"
+                    margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" horizontal={false} />
+                    <XAxis type="number" stroke="#64748b" tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                    <YAxis type="category" dataKey="label" stroke="#64748b" tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: '#0f172a',
+                        borderColor: '#334155',
+                        borderRadius: '0.75rem',
+                        color: '#fff',
+                        fontSize: '12px',
+                      }}
+                    />
+                    <Bar dataKey="count" radius={[0, 6, 6, 0]}>
+                      {analyticsData.authorityPyramid.map((entry, entryIndex) => (
+                        <Cell key={`bar-cell-${entryIndex}`} fill={entry.fill || '#3b82f6'} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full text-slate-500 text-xs text-center p-4">
+                  <BarChart3 className="h-8 w-8 text-slate-600 mb-2" />
+                  <p className="font-semibold text-slate-300">No authority records found</p>
+                  <p className="mt-1 text-slate-500">Distribution updates as accounts are provisioned and authorized.</p>
+                </div>
+              )}
+            </div>
+            <div className="mt-2 text-[10px] text-slate-500 font-mono text-right">
+              Civil Designations are tracked separately
             </div>
           </div>
         </div>
@@ -1003,11 +1146,12 @@ export const RootAdminDashboard = () => {
             }`}
           >
             <Crown className="h-4 w-4" />
-            <span>Super Admin Governance</span>
+            <span>Authority & Governance</span>
             <span className="rounded-full bg-amber-950/80 px-2 py-0.5 text-xs text-amber-300 font-mono">
               {superAdminsList.length}
             </span>
           </button>
+
 
           <button
             type="button"
@@ -1525,20 +1669,25 @@ export const RootAdminDashboard = () => {
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl border border-slate-800 bg-slate-900/60 p-5 backdrop-blur-md">
               <div>
-                <h3 className="text-base font-bold text-white">Super Administrator Accounts (Level 90)</h3>
+                <h3 className="text-base font-bold text-white">Authorized Super Administrators (Level 90)</h3>
                 <p className="text-xs text-slate-400">
                   Super Admins govern operational workflows, faculty onboarding, circulars, and municipal schools across Liaquatabad Town.
                 </p>
               </div>
               <button
                 type="button"
-                onClick={() => setIsProvisionModalOpen(true)}
+                onClick={() => {
+                  setAuthorizeFormData({ userId: '', authority: 'SUPER_ADMIN', scope: 'GLOBAL', reason: '' });
+                  setAuthorizeUserSearch('');
+                  setIsAuthorizeModalOpen(true);
+                }}
                 className="flex items-center gap-2 rounded-xl border border-amber-500/40 bg-gradient-to-r from-amber-600 to-amber-700 px-4 py-2 text-xs font-semibold text-white shadow-lg transition hover:brightness-110 cursor-pointer"
               >
-                <Plus className="h-4 w-4" />
-                <span>Provision New Super Admin</span>
+                <ShieldCheck className="h-4 w-4" />
+                <span>Authorize Super Admin</span>
               </button>
             </div>
+
 
             <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900/80 shadow-xl backdrop-blur-md">
               <div className="overflow-x-auto">
@@ -1596,9 +1745,10 @@ export const RootAdminDashboard = () => {
 
                           <td className="px-4 py-4">
                             <span className="rounded-md border border-cyan-500/30 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-mono font-bold text-cyan-400">
-                              {adminRecord.scope || 'ADMINISTRATIVE'}
+                              {adminRecord.scope || 'GLOBAL'}
                             </span>
                           </td>
+
 
                           <td className="px-4 py-4">
                             <span
@@ -1715,63 +1865,109 @@ export const RootAdminDashboard = () => {
 
         {/* ─── TAB 5: COMMAND OPS & EMERGENCY ─── */}
         {activeTab === 'operations' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Break Glass Architecture */}
-            <div className="rounded-xl border border-amber-500/30 bg-slate-900/80 p-6 shadow-xl backdrop-blur-md space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-2 text-amber-400">
-                  <Key className="h-5 w-5" />
+            <div className="rounded-xl border border-amber-500/30 bg-slate-900/80 p-6 shadow-xl backdrop-blur-md space-y-4 flex flex-col justify-between">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-2 text-amber-400">
+                    <Key className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white text-base">Break-Glass Protocol</h3>
+                    <p className="text-xs text-slate-400">Disaster recovery for lost Super Admin access</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-bold text-white text-base">Break-Glass Emergency Protocol</h3>
-                  <p className="text-xs text-slate-400">Disaster recovery for lost Super Admin access</p>
+
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  ROOT_ADMIN holds platform-wide technical governance authority. In disaster scenarios where Super Admins are locked out or compromised, execute the emergency CLI command on the server host:
+                </p>
+
+                <div className="rounded-lg bg-slate-950 p-3 text-xs font-mono text-amber-300 border border-slate-800 break-all">
+                  node scripts/breakGlassRecovery.js &lt;email&gt; &lt;new_password&gt;
                 </div>
               </div>
 
-              <p className="text-xs text-slate-300 leading-relaxed">
-                ROOT_ADMIN holds Level 100 supreme technical governance authority. In disaster scenarios where Super Admins are locked out or compromised, execute the emergency CLI command on the server host:
-              </p>
-
-              <div className="rounded-lg bg-slate-950 p-3 text-xs font-mono text-amber-300 border border-slate-800">
-                node scripts/breakGlassRecovery.js &lt;email&gt; &lt;new_password&gt;
-              </div>
-
-              <div className="flex items-center gap-2 text-xs text-slate-400">
-                <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                <span>Triple-Lock v7.0 Cryptographic Integrity Active</span>
+              <div className="flex items-center gap-2 text-xs text-slate-400 pt-2 border-t border-slate-800">
+                <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                <span>Triple-Lock v7.0 Cryptographic Guard Active</span>
               </div>
             </div>
 
             {/* Security Lockout Flush Console */}
-            <div className="rounded-xl border border-red-500/30 bg-slate-900/80 p-6 shadow-xl backdrop-blur-md space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-2 text-red-400">
-                  <Unlock className="h-5 w-5" />
+            <div className="rounded-xl border border-red-500/30 bg-slate-900/80 p-6 shadow-xl backdrop-blur-md space-y-4 flex flex-col justify-between">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-2 text-red-400">
+                    <Unlock className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white text-base">Platform Lockout Operations</h3>
+                    <p className="text-xs text-slate-400">Unblock brute-force trapped IPs and accounts</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-bold text-white text-base">Platform Lockout Operations</h3>
-                  <p className="text-xs text-slate-400">Unblock brute-force trapped IPs and accounts</p>
+
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  The Triple-Lock rate limiter automatically strikes and locks out IPs with abnormal request patterns. Root Admins can purge all active locks with zero downtime.
+                </p>
+
+                <div className="rounded-lg bg-red-950/20 border border-red-500/20 p-3 text-xs text-red-300">
+                  ⚠ Purging lockouts will immediately restore access to all currently restricted client IP addresses.
                 </div>
               </div>
 
-              <p className="text-xs text-slate-300 leading-relaxed">
-                The Triple-Lock rate limiter automatically strikes and locks out IPs with abnormal request patterns. Root Admins can purge all active locks with zero downtime.
-              </p>
-
-              <div className="pt-2">
+              <div className="pt-2 border-t border-slate-800">
                 <button
                   type="button"
-                  onClick={handleFlushLockouts}
-                  disabled={isFlushingLockouts}
-                  className="flex items-center gap-2 rounded-xl border border-red-500/40 bg-red-600 px-4 py-2.5 text-xs font-semibold text-white shadow-lg hover:bg-red-500 transition cursor-pointer"
+                  onClick={() => {
+                    setFlushLockoutReason('');
+                    setFlushLockoutConfirmed(false);
+                    setIsFlushLockoutModalOpen(true);
+                  }}
+                  className="w-full flex items-center justify-center gap-2 rounded-xl border border-red-500/40 bg-red-600 px-4 py-2.5 text-xs font-semibold text-white shadow-lg hover:bg-red-500 transition cursor-pointer"
                 >
                   <Unlock className="h-4 w-4" />
-                  <span>{isFlushingLockouts ? 'Flushing Lockout Store...' : 'Flush All Security Lockouts'}</span>
+                  <span>Flush Security Lockouts</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Emergency District Broadcast Console */}
+            <div className="rounded-xl border border-blue-500/30 bg-slate-900/80 p-6 shadow-xl backdrop-blur-md space-y-4 flex flex-col justify-between">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-lg border border-blue-500/40 bg-blue-500/10 p-2 text-blue-400">
+                    <Radio className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-white text-base">Civic Emergency Broadcast</h3>
+                    <p className="text-xs text-slate-400">Publish alerts across all platform portals</p>
+                  </div>
+                </div>
+
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  Publish high-priority administrative bulletins, weather advisories, or town-wide alerts. Broadcast banners appear instantly on HM, Teacher, and Student portals.
+                </p>
+
+                <div className="rounded-lg bg-blue-950/20 border border-blue-500/20 p-3 text-xs text-blue-300">
+                  ℹ Broadcasts are logged in the immutable audit ledger with severity level and issuing actor identity.
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setIsBroadcastModalOpen(true)}
+                  className="w-full flex items-center justify-center gap-2 rounded-xl border border-blue-500/40 bg-blue-600 px-4 py-2.5 text-xs font-semibold text-white shadow-lg hover:bg-blue-500 transition cursor-pointer"
+                >
+                  <Radio className="h-4 w-4" />
+                  <span>Issue Emergency Broadcast</span>
                 </button>
               </div>
             </div>
           </div>
         )}
+
 
         {/* ─── TAB 6: IMMUTABLE AUDIT STREAM ─── */}
         {activeTab === 'audit' && (
@@ -2007,112 +2203,192 @@ export const RootAdminDashboard = () => {
           </div>
         )}
 
-        {/* ─── MODAL: PROVISION SUPER ADMIN ─── */}
-        {isProvisionModalOpen && (
+        {/* ─── MODAL: AUTHORIZE SUPER ADMIN (EXISTING USER WORKFLOW) ─── */}
+        {isAuthorizeModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md">
-            <div className="relative w-full max-w-lg rounded-2xl border border-amber-500/40 bg-slate-900 p-6 shadow-2xl space-y-5">
+            <div className="relative w-full max-w-xl rounded-2xl border border-amber-500/40 bg-slate-900 p-6 shadow-2xl space-y-5">
               <div className="flex items-center justify-between border-b border-slate-800 pb-4">
                 <div className="flex items-center gap-2.5">
                   <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-2 text-amber-400">
-                    <Crown className="h-5 w-5" />
+                    <ShieldCheck className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-extrabold text-white">Provision Super Administrator</h3>
-                    <p className="text-xs text-slate-400">Assign Level 90 Operational Governance Authority</p>
+                    <h3 className="text-lg font-extrabold text-white">Authorize Super Administrator</h3>
+                    <p className="text-xs text-slate-400">Grant operational platform authority to an existing personnel account</p>
                   </div>
                 </div>
                 <button
                   type="button"
-                  onClick={() => setIsProvisionModalOpen(false)}
+                  onClick={() => setIsAuthorizeModalOpen(false)}
                   className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer"
                 >
                   <XCircle className="h-5 w-5" />
                 </button>
               </div>
 
-              <form onSubmit={handleProvisionSuperAdminSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300">Full Name *</label>
-                  <input
-                    type="text"
-                    required
-                    value={provisionFormData.fullName}
-                    onChange={(eventObject) => setProvisionFormData({ ...provisionFormData, fullName: eventObject.target.value })}
-                    placeholder="e.g. Syed Farooq Ahmed"
-                    className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
-                  />
-                </div>
+              {/* Informational Callout */}
+              <div className="rounded-lg border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-300/90 leading-relaxed space-y-1">
+                <p className="font-semibold text-amber-300">RBAC Architectural Invariants:</p>
+                <ul className="list-disc pl-4 space-y-0.5 text-slate-300">
+                  <li>Civil Service Designation (<span className="text-amber-300 font-mono">user.designation</span>) remains 100% unchanged.</li>
+                  <li>Base Registration Category (<span className="text-amber-300 font-mono">user.baseRole</span>) remains 100% unchanged.</li>
+                  <li>Active sessions will be revoked immediately via security token version rotation.</li>
+                </ul>
+              </div>
 
+              <form onSubmit={handleAuthorizeSuperAdminSubmit} className="space-y-4">
+                {/* Step 1: Select Existing Personnel */}
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300">Government / Official Email *</label>
-                  <input
-                    type="email"
-                    required
-                    value={provisionFormData.email}
-                    onChange={(eventObject) => setProvisionFormData({ ...provisionFormData, email: eventObject.target.value })}
-                    placeholder="e.g. farooq.ahmed@liaquatabad.gov.pk"
-                    className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300">Secure Initial Password *</label>
-                  <input
-                    type="password"
-                    required
-                    minLength={8}
-                    value={provisionFormData.password}
-                    onChange={(eventObject) => setProvisionFormData({ ...provisionFormData, password: eventObject.target.value })}
-                    placeholder="Minimum 8 characters"
-                    className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300">Civil Designation</label>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1">
+                    Select Existing Personnel Account *
+                  </label>
+                  
+                  {/* Search input for filtering */}
+                  <div className="relative mb-2">
+                    <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
                     <input
                       type="text"
-                      value={provisionFormData.designation}
-                      onChange={(eventObject) => setProvisionFormData({ ...provisionFormData, designation: eventObject.target.value })}
-                      placeholder="e.g. Town Chairman"
-                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+                      value={authorizeUserSearch}
+                      onChange={(e) => setAuthorizeUserSearch(e.target.value)}
+                      placeholder="Filter by name, email, or civil title..."
+                      className="w-full rounded-lg border border-slate-700 bg-slate-800/90 py-1.5 pl-9 pr-3 text-xs text-slate-200 placeholder-slate-500 focus:border-amber-500 focus:outline-none"
                     />
+                  </div>
+
+                  {/* Scrollable User Selector Roster */}
+                  <div className="max-h-40 overflow-y-auto rounded-lg border border-slate-700 bg-slate-950/60 divide-y divide-slate-800/80">
+                    {(() => {
+                      const candidateUsers = usersList.filter((u) => {
+                        if (u.role === 'ROOT_ADMIN' || u.role === 'SUPER_ADMIN') return false;
+                        if (!authorizeUserSearch.trim()) return true;
+                        const q = authorizeUserSearch.toLowerCase();
+                        return (
+                          u.fullName?.toLowerCase().includes(q) ||
+                          u.email?.toLowerCase().includes(q) ||
+                          u.designation?.toLowerCase().includes(q)
+                        );
+                      });
+
+                      if (candidateUsers.length === 0) {
+                        return (
+                          <div className="p-4 text-center text-xs text-slate-500">
+                            No eligible personnel found matching "{authorizeUserSearch}".
+                          </div>
+                        );
+                      }
+
+                      return candidateUsers.map((u) => {
+                        const isSelected = authorizeFormData.userId === u._id;
+                        return (
+                          <div
+                            key={u._id}
+                            onClick={() => setAuthorizeFormData({ ...authorizeFormData, userId: u._id })}
+                            className={`flex items-center justify-between p-2.5 text-xs transition cursor-pointer ${
+                              isSelected
+                                ? 'bg-amber-500/20 border-l-4 border-amber-500'
+                                : 'hover:bg-slate-800/50'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5 truncate">
+                              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-slate-700 bg-slate-800 text-[11px] font-bold text-slate-200">
+                                {u.fullName?.charAt(0).toUpperCase()}
+                              </div>
+                              <div className="truncate">
+                                <p className="font-bold text-white truncate">{u.fullName}</p>
+                                <p className="text-[10px] text-slate-400 font-mono truncate">{u.email}</p>
+                              </div>
+                            </div>
+                            <div className="text-right shrink-0 ml-2">
+                              <span className="text-[10px] text-slate-300 font-medium block">
+                                {u.designation || 'Staff'}
+                              </span>
+                              <span className="text-[9px] font-mono text-amber-400 uppercase">
+                                Current: {u.role}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+                </div>
+
+                {/* Selected User Confirmation Card */}
+                {authorizeFormData.userId && (() => {
+                  const picked = usersList.find((u) => u._id === authorizeFormData.userId);
+                  if (!picked) return null;
+                  return (
+                    <div className="rounded-lg border border-emerald-500/30 bg-emerald-950/20 p-2.5 text-xs flex items-center justify-between">
+                      <div>
+                        <span className="text-emerald-400 font-bold block">Selected Candidate:</span>
+                        <span className="text-white font-medium">{picked.fullName} ({picked.email})</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-slate-400 text-[10px] block">Title: {picked.designation || 'Staff'}</span>
+                        <span className="text-emerald-400 font-mono text-[10px] uppercase">Base: {picked.baseRole || 'TEACHER'}</span>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Authority & Scope Selection */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300">Target Authority</label>
+                    <div className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-bold text-amber-400 font-mono flex items-center gap-2">
+                      <ShieldCheck className="h-3.5 w-3.5" />
+                      <span>SUPER_ADMIN (Level 90)</span>
+                    </div>
                   </div>
 
                   <div>
                     <label className="block text-xs font-semibold text-slate-300">Operational Scope *</label>
                     <select
-                      value={provisionFormData.scope}
-                      onChange={(eventObject) => setProvisionFormData({ ...provisionFormData, scope: eventObject.target.value })}
+                      value={authorizeFormData.scope}
+                      onChange={(e) => setAuthorizeFormData({ ...authorizeFormData, scope: e.target.value })}
                       className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white focus:border-amber-500 focus:outline-none"
                     >
-                      <option value="ADMINISTRATIVE">ADMINISTRATIVE (Town Jurisdiction)</option>
-                      <option value="GLOBAL">GLOBAL (Cross-District Authority)</option>
+                      <option value="GLOBAL">GLOBAL (Platform-wide Authority)</option>
+                      <option value="TOWN">TOWN (Town Administrative Scope)</option>
                     </select>
                   </div>
+                </div>
+
+                {/* Mandatory Justification Reason */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300">Mandatory Justification Reason *</label>
+                  <textarea
+                    required
+                    rows={2}
+                    minLength={5}
+                    value={authorizeFormData.reason}
+                    onChange={(e) => setAuthorizeFormData({ ...authorizeFormData, reason: e.target.value })}
+                    placeholder="Provide explicit operational justification for granting Super Admin authority..."
+                    className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 p-2.5 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+                  />
                 </div>
 
                 <div className="flex items-center justify-end gap-3 border-t border-slate-800 pt-4">
                   <button
                     type="button"
-                    onClick={() => setIsProvisionModalOpen(false)}
+                    onClick={() => setIsAuthorizeModalOpen(false)}
                     className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-xs font-medium text-slate-300 hover:bg-slate-700 cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    disabled={isProvisioningSubmitting}
+                    disabled={isAuthorizingSubmitting || !authorizeFormData.userId}
                     className="flex items-center gap-2 rounded-lg bg-amber-600 px-5 py-2 text-xs font-semibold text-white hover:bg-amber-500 transition shadow cursor-pointer disabled:opacity-50"
                   >
-                    {isProvisioningSubmitting ? 'Provisioning...' : 'Provision Super Admin'}
+                    {isAuthorizingSubmitting ? 'Authorizing...' : 'Grant Super Admin Authority'}
                   </button>
                 </div>
               </form>
             </div>
           </div>
         )}
+
 
         {/* ─── MODAL: DISABLE SUPER ADMIN ─── */}
         {isDisableModalOpen && selectedSuperAdminToDisable && (
@@ -2241,6 +2517,92 @@ export const RootAdminDashboard = () => {
                     className="flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2 text-xs font-semibold text-white hover:bg-blue-500 transition shadow cursor-pointer disabled:opacity-50"
                   >
                     {isBroadcastSubmitting ? 'Publishing...' : 'Dispatch Broadcast'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* ─── MODAL: FLUSH SECURITY LOCKOUTS (HARDENED WITH TYPED REASON & CONFIRMATION) ─── */}
+        {isFlushLockoutModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md">
+            <div className="relative w-full max-w-lg rounded-2xl border border-red-500/40 bg-slate-900 p-6 shadow-2xl space-y-5">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-2 text-red-400">
+                    <Unlock className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-extrabold text-white">Flush Security Lockout Store</h3>
+                    <p className="text-xs text-slate-400">Critical Infrastructure Operation • Administrative Purge</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsFlushLockoutModalOpen(false)}
+                  className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer"
+                >
+                  <XCircle className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="rounded-lg bg-red-950/30 border border-red-500/30 p-3.5 text-xs text-red-300 space-y-1 leading-relaxed">
+                <p className="font-bold flex items-center gap-1.5 text-red-200">
+                  <AlertTriangle className="h-4 w-4 shrink-0" />
+                  High-Impact Security Warning
+                </p>
+                <p>
+                  Purging the security lockout store will immediately clear all active IP bans and reset failed authentication rate-limit strikes. All restricted IP addresses will regain access to platform endpoints immediately.
+                </p>
+              </div>
+
+              <form onSubmit={handleFlushLockoutsSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300">
+                    Mandatory Justification Reason * <span className="text-slate-500 font-normal">(Recorded in immutable audit ledger)</span>
+                  </label>
+                  <textarea
+                    required
+                    rows={3}
+                    value={flushLockoutReason}
+                    onChange={(eventObject) => setFlushLockoutReason(eventObject.target.value)}
+                    placeholder="Enter explicit administrative or operational justification for purging IP lockouts..."
+                    className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 p-2.5 text-xs text-white placeholder-slate-500 focus:border-red-500 focus:outline-none"
+                  />
+                  <span className="text-[10px] text-slate-500">Minimum 5 characters required.</span>
+                </div>
+
+                <div className="rounded-lg border border-slate-800 bg-slate-950/60 p-3">
+                  <label className="flex items-start gap-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      required
+                      checked={flushLockoutConfirmed}
+                      onChange={(eventObject) => setFlushLockoutConfirmed(eventObject.target.checked)}
+                      className="mt-0.5 h-4 w-4 rounded border-slate-700 bg-slate-800 text-red-600 focus:ring-red-500"
+                    />
+                    <span className="text-xs text-slate-300 select-none">
+                      I explicitly confirm and authorize the immediate purge of all security IP lockouts and rate-limiting strike records across the platform.
+                    </span>
+                  </label>
+                </div>
+
+                <div className="flex items-center justify-end gap-3 border-t border-slate-800 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsFlushLockoutModalOpen(false)}
+                    className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-xs font-medium text-slate-300 hover:bg-slate-700 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isFlushingLockoutsSubmitting}
+                    className="flex items-center gap-2 rounded-lg bg-red-600 px-5 py-2 text-xs font-semibold text-white hover:bg-red-500 transition shadow cursor-pointer disabled:opacity-50"
+                  >
+                    <Unlock className="h-4 w-4" />
+                    <span>{isFlushingLockoutsSubmitting ? 'Purging Lockout Records...' : 'Authorize & Flush Lockouts'}</span>
                   </button>
                 </div>
               </form>
