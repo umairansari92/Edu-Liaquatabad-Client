@@ -26,6 +26,8 @@ export const LoginPage = () => {
   const [captchaLoading, setCaptchaLoading] = useState(false);
   // lockoutSeconds: null = no lockout, number = live countdown in seconds
   const [lockoutSeconds, setLockoutSeconds] = useState(null);
+  // captchaCooldown: 0 = ready to refresh, >0 = seconds until next allowed refresh
+  const [captchaCooldown, setCaptchaCooldown] = useState(0);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -39,8 +41,10 @@ export const LoginPage = () => {
     resolver: zodResolver(loginSchema),
   });
 
-  // Fetch Math CAPTCHA
-  const fetchCaptcha = async () => {
+  // Fetch Math CAPTCHA with 5-second refresh cooldown (industry standard anti-spam)
+  const CAPTCHA_REFRESH_COOLDOWN = 5; // seconds
+  const fetchCaptcha = async (triggeredByUser = false) => {
+    if (triggeredByUser && captchaCooldown > 0) return; // ignore spam clicks
     setCaptchaLoading(true);
     try {
       const captchaResponse = await apiClient.get('/auth/captcha');
@@ -48,15 +52,31 @@ export const LoginPage = () => {
         setCaptcha(captchaResponse.data.data);
       }
     } catch {
-      // Fallback
+      // Fallback — server rate limited or offline
     } finally {
       setCaptchaLoading(false);
+      if (triggeredByUser) {
+        setCaptchaCooldown(CAPTCHA_REFRESH_COOLDOWN);
+      }
     }
   };
 
   useEffect(() => {
-    fetchCaptcha();
+    fetchCaptcha(false); // initial load — no cooldown
   }, []);
+
+  // CAPTCHA refresh cooldown ticker — 1 tick/sec until 0
+  useEffect(() => {
+    if (captchaCooldown <= 0) return;
+    const cooldownTicker = setInterval(() => {
+      setCaptchaCooldown((prev) => {
+        if (prev <= 1) { clearInterval(cooldownTicker); return 0; }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(cooldownTicker);
+  }, [captchaCooldown]);
+
 
   // Live countdown ticker — runs every second when lockoutSeconds > 0
   useEffect(() => {
@@ -99,8 +119,12 @@ export const LoginPage = () => {
       };
 
       if (captcha) {
-        payload.captchaAnswer = loginFormData.captchaAnswer || '';
-        payload.captchaChallengeToken = captcha.challengeToken;
+        const trimmedAnswer = String(loginFormData.captchaAnswer || '').trim();
+        if (trimmedAnswer !== '') {
+          payload.captchaAnswer = trimmedAnswer;
+          payload.captchaChallengeToken = captcha.challengeToken;
+        }
+        // If user left captcha blank, don't send token — server will skip CAPTCHA check
       }
 
       const response = await apiClient.post('/auth/login', payload);
@@ -127,8 +151,8 @@ export const LoginPage = () => {
       }
 
       dispatch(setError(errorNotificationMessage));
-      // Refresh CAPTCHA on failed attempt
-      fetchCaptcha();
+      // Refresh CAPTCHA on failed attempt (not user-triggered, no cooldown)
+      fetchCaptcha(false);
     } finally {
       setLoading(false);
     }
@@ -250,12 +274,16 @@ export const LoginPage = () => {
                   </label>
                   <button
                     type="button"
-                    onClick={fetchCaptcha}
-                    disabled={captchaLoading}
-                    className="text-[11px] text-slate-400 hover:text-emerald-400 flex items-center gap-1 transition-colors"
+                    onClick={() => fetchCaptcha(true)}
+                    disabled={captchaLoading || captchaCooldown > 0}
+                    className={`text-[11px] flex items-center gap-1 transition-colors ${
+                      captchaCooldown > 0
+                        ? 'text-slate-600 cursor-not-allowed'
+                        : 'text-slate-400 hover:text-emerald-400'
+                    }`}
                   >
                     <RefreshCw className={`w-3 h-3 ${captchaLoading ? 'animate-spin' : ''}`} />
-                    Refresh
+                    {captchaCooldown > 0 ? `Wait ${captchaCooldown}s` : 'Refresh'}
                   </button>
                 </div>
                 <div className="flex items-center gap-2">
