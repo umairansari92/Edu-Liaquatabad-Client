@@ -24,7 +24,8 @@ export const LoginPage = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [captcha, setCaptcha] = useState(null);
   const [captchaLoading, setCaptchaLoading] = useState(false);
-  const [lockoutTimer, setLockoutTimer] = useState(null);
+  // lockoutSeconds: null = no lockout, number = live countdown in seconds
+  const [lockoutSeconds, setLockoutSeconds] = useState(null);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -57,6 +58,36 @@ export const LoginPage = () => {
     fetchCaptcha();
   }, []);
 
+  // Live countdown ticker — runs every second when lockoutSeconds > 0
+  useEffect(() => {
+    if (lockoutSeconds === null || lockoutSeconds <= 0) {
+      if (lockoutSeconds === 0) {
+        setLockoutSeconds(null);
+        setErrorMessage('');
+      }
+      return;
+    }
+    const ticker = setInterval(() => {
+      setLockoutSeconds((prev) => {
+        if (prev <= 1) {
+          clearInterval(ticker);
+          setErrorMessage('');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(ticker);
+  }, [lockoutSeconds]);
+
+  // Format seconds into MM:SS display
+  const formatCountdown = (totalSeconds) => {
+    if (!totalSeconds || totalSeconds <= 0) return '00:00';
+    const m = Math.floor(totalSeconds / 60);
+    const s = totalSeconds % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  };
+
   const onSubmit = async (loginFormData) => {
     setLoading(true);
     setErrorMessage('');
@@ -81,8 +112,20 @@ export const LoginPage = () => {
         navigate('/dashboard');
       }
     } catch (loginError) {
+      const status = loginError.response?.status;
       const errorNotificationMessage = loginError.response?.data?.message || 'Authentication failed. Please verify credentials.';
-      setErrorMessage(errorNotificationMessage);
+
+      // HTTP 423 = Account Locked — extract minutesRemaining and start countdown
+      if (status === 423) {
+        const minuteMatch = errorNotificationMessage.match(/(\d+)\s*minute/);
+        const minutes = minuteMatch ? parseInt(minuteMatch[1], 10) : 15;
+        setLockoutSeconds(minutes * 60);
+        setErrorMessage(errorNotificationMessage);
+      } else {
+        setLockoutSeconds(null);
+        setErrorMessage(errorNotificationMessage);
+      }
+
       dispatch(setError(errorNotificationMessage));
       // Refresh CAPTCHA on failed attempt
       fetchCaptcha();
@@ -110,9 +153,33 @@ export const LoginPage = () => {
       <div className="mt-7 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
         <div className="bg-slate-900/90 backdrop-blur-xl py-8 px-6 sm:px-10 shadow-2xl rounded-2xl border border-slate-800">
           {errorMessage && (
-            <div className="mb-5 p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs flex items-start gap-2.5">
-              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-              <span>{errorMessage}</span>
+            <div className={`mb-5 p-3.5 rounded-xl text-xs flex flex-col gap-2.5 ${
+              lockoutSeconds
+                ? 'bg-amber-500/10 border border-amber-500/30 text-amber-300'
+                : 'bg-rose-500/10 border border-rose-500/20 text-rose-400'
+            }`}>
+              <div className="flex items-start gap-2.5">
+                {lockoutSeconds ? (
+                  <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-amber-400" />
+                ) : (
+                  <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                )}
+                <span>{lockoutSeconds
+                  ? 'Account temporarily locked due to excessive failed attempts.'
+                  : errorMessage
+                }</span>
+              </div>
+              {lockoutSeconds > 0 && (
+                <div className="flex items-center justify-between pl-6">
+                  <span className="text-amber-400/80">Retry available in:</span>
+                  <div className="flex items-center gap-1.5 bg-amber-500/20 border border-amber-500/30 rounded-lg px-3 py-1.5">
+                    <Clock className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                    <span className="font-mono font-bold text-amber-300 text-sm tracking-widest">
+                      {formatCountdown(lockoutSeconds)}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -208,11 +275,26 @@ export const LoginPage = () => {
             <div className="pt-2">
               <button
                 type="submit"
-                disabled={loading}
-                className="w-full flex justify-center items-center gap-2 py-2.5 px-4 rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 shadow-lg shadow-emerald-950/50 transition-all disabled:opacity-50"
+                disabled={loading || lockoutSeconds > 0}
+                className={`w-full flex justify-center items-center gap-2 py-2.5 px-4 rounded-xl text-xs font-semibold text-white shadow-lg transition-all ${
+                  lockoutSeconds > 0
+                    ? 'bg-slate-700 cursor-not-allowed opacity-60'
+                    : 'bg-emerald-600 hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 shadow-emerald-950/50'
+                }`}
               >
-                {loading ? 'Authenticating...' : 'Sign In to Official Portal'}
-                {!loading && <ArrowRight className="w-4 h-4" />}
+                {lockoutSeconds > 0 ? (
+                  <>
+                    <Clock className="w-4 h-4 animate-pulse" />
+                    Locked — {formatCountdown(lockoutSeconds)}
+                  </>
+                ) : loading ? (
+                  'Authenticating...'
+                ) : (
+                  <>
+                    Sign In to Official Portal
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
               </button>
             </div>
           </form>
