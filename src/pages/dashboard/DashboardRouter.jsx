@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import RootAdminDashboard from './RootAdminDashboard.jsx';
+import TeacherDashboard from './TeacherDashboard.jsx';
 import PageContainer from '../../components/layout/PageContainer.jsx';
 import apiClient from '../../services/apiClient.js';
 import {
@@ -53,6 +54,12 @@ export const DashboardRouter = () => {
     return <RootAdminDashboard />;
   }
 
+  // Teacher Operational Workspace
+  if (user.role === 'TEACHER') {
+    return <TeacherDashboard />;
+  }
+
+  // HM / ADMIN / SUPERVISOR — General scoped dashboard (placeholder until dedicated dashboards are built)
   return (
     <PageContainer
       title={`${user.role.replace(/_/g, ' ')} DASHBOARD`}

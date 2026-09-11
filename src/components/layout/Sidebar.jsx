@@ -20,15 +20,24 @@ export const Sidebar = () => {
 
   if (!user) return null;
 
-  const navigationItems = [
-    { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-    { label: 'Schools & Classes', path: '/schools', icon: Building2 },
-    { label: 'Faculty & Users', path: '/users', icon: Users },
-    { label: 'Attendance', path: '/attendance', icon: ClipboardCheck },
-    { label: 'Exams & Results', path: '/exams', icon: Award },
-    { label: 'Transfers', path: '/transfers', icon: ArrowLeftRight },
-    { label: 'Circulars & Docs', path: '/documents', icon: FileText },
-  ];
+  const isTeacher = user.role === 'TEACHER';
+
+  const navigationItems = isTeacher
+    ? [
+        { label: 'Workspace', path: '/dashboard', icon: LayoutDashboard },
+        { label: 'Attendance', path: '/attendance', icon: ClipboardCheck },
+        { label: 'Exams & Results', path: '/exams', icon: Award },
+        { label: 'Circulars & Docs', path: '/documents', icon: FileText },
+      ]
+    : [
+        { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+        { label: 'Schools & Classes', path: '/schools', icon: Building2 },
+        { label: 'Faculty & Users', path: '/users', icon: Users },
+        { label: 'Attendance', path: '/attendance', icon: ClipboardCheck },
+        { label: 'Exams & Results', path: '/exams', icon: Award },
+        { label: 'Transfers', path: '/transfers', icon: ArrowLeftRight },
+        { label: 'Circulars & Docs', path: '/documents', icon: FileText },
+      ];
 
   // Super Admin & Root Admin additional items
   if (['ROOT_ADMIN', 'SUPER_ADMIN'].includes(user.role)) {

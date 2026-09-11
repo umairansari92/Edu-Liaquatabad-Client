@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import {
   ClipboardCheck,
   Calendar,
@@ -11,12 +12,350 @@ import {
   Clock,
   TrendingUp,
   Filter,
+  AlertTriangle,
+  Loader2,
+  GraduationCap,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import apiClient from '../../services/apiClient.js';
 import PageContainer from '../../components/layout/PageContainer.jsx';
 
+// ─── Teacher Attendance Workspace Component ──────────────────────────────────
+const TeacherAttendanceWorkspace = ({ user }) => {
+  const [sections, setSections] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [activeModalSection, setActiveModalSection] = useState(null);
+  const [roster, setRoster] = useState([]);
+  const [rosterLoading, setRosterLoading] = useState(false);
+  const [rosterError, setRosterError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submissionSuccess, setSubmissionSuccess] = useState(null);
+
+  const fetchTeacherSections = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await apiClient.get('/academic/teacher-summary');
+      if (res.data?.data) {
+        setSections(res.data.data.sections || []);
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to load assigned sections.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchTeacherSections();
+  }, [fetchTeacherSections]);
+
+  const openMarkModal = async (sec) => {
+    setActiveModalSection(sec);
+    setRosterLoading(true);
+    setRosterError(null);
+    setSubmissionSuccess(null);
+    try {
+      const res = await apiClient.get('/attendance/sheet', {
+        params: { sectionId: sec._id, date: selectedDate },
+      });
+      setRoster(res.data?.data?.roster || []);
+    } catch (err) {
+      setRosterError(err.response?.data?.message || 'Failed to load student roster for this section.');
+    } finally {
+      setRosterLoading(false);
+    }
+  };
+
+  const toggleStatus = (studentProfileId) => {
+    setRoster((prev) =>
+      prev.map((r) => {
+        if (String(r.studentProfileId) !== String(studentProfileId)) return r;
+        const cycle = { PRESENT: 'ABSENT', ABSENT: 'LEAVE', LEAVE: 'PRESENT' };
+        return { ...r, currentStatus: cycle[r.currentStatus] || 'PRESENT' };
+      })
+    );
+  };
+
+  const markAll = (status) => {
+    setRoster((prev) => prev.map((r) => ({ ...r, currentStatus: status })));
+  };
+
+  const handleSubmitAttendance = async () => {
+    if (!activeModalSection) return;
+    setSubmitting(true);
+    setRosterError(null);
+    try {
+      const payload = {
+        sectionId: activeModalSection._id,
+        date: selectedDate,
+        records: roster.map((r) => ({
+          studentProfileId: r.studentProfileId,
+          status: r.currentStatus,
+          remarks: r.remarks || '',
+        })),
+      };
+      const res = await apiClient.post('/attendance/submit', payload);
+      setSubmissionSuccess(`Attendance submitted successfully for ${res.data?.data?.totalRecords || roster.length} students.`);
+      fetchTeacherSections();
+    } catch (err) {
+      setRosterError(err.response?.data?.message || 'Failed to submit attendance.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const schoolName = user?.schoolId?.name || 'Assigned Institution';
+
+  return (
+    <PageContainer
+      title="Classroom Attendance Portal"
+      subtitle={`Daily Attendance Register · ${schoolName} · Educator: ${user?.fullName || 'Teacher'}`}
+      actions={
+        <div className="flex items-center gap-2">
+          <input
+            type="date"
+            max={new Date().toISOString().split('T')[0]}
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs text-white focus:border-emerald-500 focus:outline-none"
+          />
+          <button
+            type="button"
+            onClick={fetchTeacherSections}
+            disabled={loading}
+            className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-medium text-slate-200 hover:bg-slate-700 disabled:opacity-50"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh</span>
+          </button>
+        </div>
+      }
+    >
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+          <p className="text-sm">Loading your assigned class sections…</p>
+        </div>
+      ) : error ? (
+        <div className="p-6 rounded-2xl bg-rose-950/30 border border-rose-800/40 text-rose-300 text-sm flex items-center gap-3">
+          <AlertTriangle className="w-6 h-6 flex-shrink-0" />
+          <p>{error}</p>
+        </div>
+      ) : sections.length === 0 ? (
+        <div className="p-10 rounded-2xl bg-slate-900 border border-slate-800 text-center space-y-3">
+          <School className="w-12 h-12 text-slate-600 mx-auto" />
+          <h3 className="text-lg font-bold text-white">No Assigned Sections</h3>
+          <p className="text-sm text-slate-400 max-w-md mx-auto">
+            You are not currently assigned as the Class Teacher for any section in this institution.
+          </p>
+          <div className="mt-4 p-3 rounded-xl bg-amber-950/20 border border-amber-800/30 text-xs text-amber-300 max-w-md mx-auto text-left">
+            <strong>Institutional Policy:</strong> Daily classroom attendance marking is authorized for designated Class Teachers. Subject-teacher assignment models are scheduled in the academic roadmap.
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {sections.map((sec) => {
+              const att = sec.todayAttendance || {};
+              const isSubmitted = att.submitted;
+              return (
+                <div key={String(sec._id)} className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <span className="text-xs font-bold text-emerald-400 uppercase">{sec.class?.name || 'Class'}</span>
+                      <h4 className="text-lg font-bold text-white">Section {sec.name}</h4>
+                      {sec.roomNumber && <p className="text-xs text-slate-500">Room: {sec.roomNumber}</p>}
+                    </div>
+                    <span
+                      className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
+                        isSubmitted
+                          ? 'bg-emerald-950/60 border-emerald-700/50 text-emerald-300'
+                          : 'bg-rose-950/60 border-rose-700/50 text-rose-300'
+                      }`}
+                    >
+                      {isSubmitted ? 'Submitted' : 'Pending'}
+                    </span>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-slate-950 border border-slate-800/60 flex items-center justify-between text-xs text-slate-400">
+                    <span>Enrolled Students:</span>
+                    <span className="font-bold text-white">{sec.studentCount}</span>
+                  </div>
+
+                  {isSubmitted && (
+                    <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                      <div className="p-2 rounded-lg bg-emerald-950/30 border border-emerald-800/30">
+                        <p className="font-bold text-emerald-400">{att.presentCount ?? 0}</p>
+                        <p className="text-[10px] text-slate-500">Present</p>
+                      </div>
+                      <div className="p-2 rounded-lg bg-rose-950/30 border border-rose-800/30">
+                        <p className="font-bold text-rose-400">{att.absentCount ?? 0}</p>
+                        <p className="text-[10px] text-slate-500">Absent</p>
+                      </div>
+                      <div className="p-2 rounded-lg bg-amber-950/30 border border-amber-800/30">
+                        <p className="font-bold text-amber-400">{att.leaveCount ?? 0}</p>
+                        <p className="text-[10px] text-slate-500">Leave</p>
+                      </div>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={() => openMarkModal(sec)}
+                    className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-colors flex items-center justify-center gap-2"
+                  >
+                    <ClipboardCheck className="w-4 h-4" />
+                    {isSubmitted ? 'Review / Update Register' : 'Mark Daily Attendance'}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Attendance Modal */}
+      {activeModalSection && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" onClick={() => setActiveModalSection(null)} />
+          <div className="relative w-full max-w-2xl max-h-[90vh] flex flex-col rounded-2xl bg-slate-950 border border-slate-800 shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
+              <div>
+                <h3 className="text-base font-bold text-white">Daily Attendance Register</h3>
+                <p className="text-xs text-slate-400">
+                  {activeModalSection.class?.name} — Section {activeModalSection.name} · Date: {selectedDate}
+                </p>
+              </div>
+              <button
+                onClick={() => setActiveModalSection(null)}
+                className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white"
+              >
+                <XCircle className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between px-6 py-3 bg-slate-900 border-b border-slate-800 text-xs">
+              <div className="flex gap-3">
+                <span className="text-emerald-400 font-semibold">
+                  ✓ {roster.filter((r) => r.currentStatus === 'PRESENT').length} Present
+                </span>
+                <span className="text-rose-400 font-semibold">
+                  ✗ {roster.filter((r) => r.currentStatus === 'ABSENT').length} Absent
+                </span>
+                <span className="text-amber-400 font-semibold">
+                  ◌ {roster.filter((r) => r.currentStatus === 'LEAVE').length} Leave
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => markAll('PRESENT')}
+                  className="px-2 py-1 rounded bg-emerald-950/80 border border-emerald-700/60 text-emerald-300 text-[11px]"
+                >
+                  All Present
+                </button>
+                <button
+                  type="button"
+                  onClick={() => markAll('ABSENT')}
+                  className="px-2 py-1 rounded bg-rose-950/80 border border-rose-700/60 text-rose-300 text-[11px]"
+                >
+                  All Absent
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 space-y-2">
+              {rosterLoading && (
+                <div className="flex flex-col items-center justify-center py-12 gap-3 text-slate-400">
+                  <Loader2 className="w-7 h-7 animate-spin text-emerald-500" />
+                  <p className="text-xs">Loading verified student roster…</p>
+                </div>
+              )}
+              {!rosterLoading && rosterError && (
+                <div className="p-3 rounded-xl bg-rose-950/40 border border-rose-800/50 text-rose-300 text-xs flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                  {rosterError}
+                </div>
+              )}
+              {!rosterLoading && !rosterError && roster.length === 0 && (
+                <p className="text-center py-8 text-slate-500 text-xs">No active students enrolled in this section.</p>
+              )}
+              {!rosterLoading &&
+                !rosterError &&
+                roster.map((st) => (
+                  <button
+                    key={String(st.studentProfileId)}
+                    type="button"
+                    onClick={() => toggleStatus(st.studentProfileId)}
+                    className="w-full flex items-center justify-between p-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 transition-colors text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-7 h-7 rounded-full bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-300">
+                        {(st.fullName || 'S')[0].toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-white">{st.fullName}</p>
+                        <p className="text-[10px] text-slate-500">GR: {st.grNumber} · ID: {st.globalStudentId}</p>
+                      </div>
+                    </div>
+                    <span
+                      className={`px-2.5 py-1 rounded-full text-xs font-bold border ${
+                        st.currentStatus === 'PRESENT'
+                          ? 'bg-emerald-950 border-emerald-700 text-emerald-300'
+                          : st.currentStatus === 'ABSENT'
+                          ? 'bg-rose-950 border-rose-700 text-rose-300'
+                          : 'bg-amber-950 border-amber-700 text-amber-300'
+                      }`}
+                    >
+                      {st.currentStatus}
+                    </span>
+                  </button>
+                ))}
+            </div>
+
+            <div className="p-4 border-t border-slate-800">
+              {submissionSuccess ? (
+                <div className="p-3 rounded-xl bg-emerald-950/40 border border-emerald-700/50 text-emerald-300 text-xs flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4" /> {submissionSuccess}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setActiveModalSection(null)}
+                    className="px-3 py-1 rounded bg-emerald-600 text-white font-bold text-xs"
+                  >
+                    Close
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleSubmitAttendance}
+                  disabled={submitting || roster.length === 0}
+                  className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs transition-colors flex items-center justify-center gap-2"
+                >
+                  {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                  {submitting ? 'Submitting Register…' : `Confirm & Submit Register (${roster.length} students)`}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </PageContainer>
+  );
+};
+
 export const AttendancePage = () => {
+  const { user } = useSelector((state) => state.auth);
+
+  // If user is TEACHER, show dedicated operational teacher workspace
+  if (user?.role === 'TEACHER') {
+    return <TeacherAttendanceWorkspace user={user} />;
+  }
+
   const [schoolsList, setSchoolsList] = useState([]);
   const [selectedSchoolId, setSelectedSchoolId] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
