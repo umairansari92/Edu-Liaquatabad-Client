@@ -4,6 +4,7 @@ import { useDispatch } from 'react-redux';
 import { Toaster } from 'react-hot-toast';
 import AppRoutes from './routes/AppRoutes.jsx';
 import AppFooter from './components/layout/AppFooter.jsx';
+import ScreenCaptureProtection from './components/common/ScreenCaptureProtection.jsx';
 import apiClient from './services/apiClient.js';
 import { setCredentials, setSessionChecked } from './store/slices/authSlice.js';
 
@@ -38,12 +39,14 @@ function App() {
 
   return (
     <BrowserRouter>
-      <div className="min-h-screen flex flex-col bg-slate-950">
-        <div className="flex-1">
-          <AppRoutes />
+      <ScreenCaptureProtection>
+        <div className="min-h-screen flex flex-col bg-slate-950">
+          <div className="flex-1">
+            <AppRoutes />
+          </div>
+          <AppFooter />
         </div>
-        <AppFooter />
-      </div>
+      </ScreenCaptureProtection>
       <Toaster
         position="top-right"
         toastOptions={{

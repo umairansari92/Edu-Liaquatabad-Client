@@ -43,3 +43,27 @@
   backdrop-filter: blur(12px);
   border: 1px solid rgba(51, 65, 85, 0.8);
 }
+
+/* ── Screen Capture & Print Protection for Non-Privileged Roles ── */
+body.screen-protected {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+  -webkit-touch-callout: none !important;
+}
+
+body.screen-protected img,
+body.screen-protected canvas {
+  pointer-events: none !important;
+  -webkit-user-drag: none !important;
+}
+
+@media print {
+  body.screen-protected,
+  body.screen-protected #root {
+    display: none !important;
+    visibility: hidden !important;
+  }
+}
+
