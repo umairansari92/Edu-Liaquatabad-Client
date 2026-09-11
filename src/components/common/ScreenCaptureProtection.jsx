@@ -75,12 +75,21 @@ export const ScreenCaptureProtection = ({ children }) => {
       }
     };
 
-    // 2. Window Blur & Visibility (Defends against Windows Snipping Tool, screen grabbers & app-switchers)
+    // 2. Window Blur, Mouseleave & Visibility (Defends against Windows Snipping Tool, screen grabbers & app-switchers)
     const handleWindowBlur = () => {
       setIsWindowBlurred(true);
     };
 
     const handleWindowFocus = () => {
+      setIsWindowBlurred(false);
+    };
+
+    const handleMouseLeave = () => {
+      // When Snipping Tool, overlay, or external tool grabs cursor, mouseleave triggers
+      setIsWindowBlurred(true);
+    };
+
+    const handleMouseEnter = () => {
       setIsWindowBlurred(false);
     };
 
@@ -102,6 +111,8 @@ export const ScreenCaptureProtection = ({ children }) => {
     window.addEventListener('keyup', handleKeyUp, true);
     window.addEventListener('blur', handleWindowBlur);
     window.addEventListener('focus', handleWindowFocus);
+    document.documentElement.addEventListener('mouseleave', handleMouseLeave);
+    document.documentElement.addEventListener('mouseenter', handleMouseEnter);
     document.addEventListener('visibilitychange', handleVisibilityChange);
     document.addEventListener('contextmenu', handleContextMenu);
 
@@ -111,6 +122,8 @@ export const ScreenCaptureProtection = ({ children }) => {
       window.removeEventListener('keyup', handleKeyUp, true);
       window.removeEventListener('blur', handleWindowBlur);
       window.removeEventListener('focus', handleWindowFocus);
+      document.documentElement.removeEventListener('mouseleave', handleMouseLeave);
+      document.documentElement.removeEventListener('mouseenter', handleMouseEnter);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       document.removeEventListener('contextmenu', handleContextMenu);
     };
@@ -121,19 +134,24 @@ export const ScreenCaptureProtection = ({ children }) => {
     return <>{children}</>;
   }
 
+  const currentDateString = new Date().toISOString().split('T')[0];
+  const watermarkIdentity = user?.fullName
+    ? `${user.fullName} (${user.role})`
+    : user?.role || 'CIVIL REGISTRY GUEST';
+
   return (
-    <div className="relative min-h-screen">
-      {/* ── Dynamic Anti-Leak Civic Watermark ── */}
+    <div className="relative min-h-screen select-none">
+      {/* ── Dynamic Anti-Leak Forensic Civic Watermark ── */}
       <div
-        className="pointer-events-none fixed inset-0 z-40 overflow-hidden opacity-[0.035] select-none flex flex-wrap gap-24 p-8"
+        className="pointer-events-none fixed inset-0 z-40 overflow-hidden opacity-[0.07] select-none flex flex-wrap gap-x-20 gap-y-16 p-6"
         aria-hidden="true"
       >
-        {Array.from({ length: 18 }).map((_, index) => (
+        {Array.from({ length: 32 }).map((_, index) => (
           <div
             key={index}
-            className="transform -rotate-25 text-xs font-mono font-bold tracking-wider text-slate-400 uppercase"
+            className="transform -rotate-25 text-[11px] font-mono font-bold tracking-widest text-slate-300 uppercase whitespace-nowrap"
           >
-            LIAQUATABAD DMC • {user?.fullName || user?.role || 'CIVIC USER'} • CONFIDENTIAL
+            LIAQUATABAD DMC • {watermarkIdentity} • {currentDateString} • CONFIDENTIAL
           </div>
         ))}
       </div>
