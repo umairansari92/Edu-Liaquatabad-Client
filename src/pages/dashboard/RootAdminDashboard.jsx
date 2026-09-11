@@ -199,6 +199,57 @@ export const RootAdminDashboard = () => {
   const [flushLockoutConfirmed, setFlushLockoutConfirmed] = useState(false);
   const [isFlushingLockoutsSubmitting, setIsFlushingLockoutsSubmitting] = useState(false);
 
+  // Emergency Kill Switch / Outage Control State (ROOT_ADMIN only)
+  const [isKillSwitchModalOpen, setIsKillSwitchModalOpen] = useState(false);
+  const [killSwitchStatus, setKillSwitchStatus] = useState({
+    isSuspended: false,
+    errorMessage: 'Database connection pool exhausted: Connection timed out to primary replica cluster (Error: 0x80040154_DB_CLUSTER_FAIL).',
+  });
+  const [customOutageMessage, setCustomOutageMessage] = useState(
+    'Database connection pool exhausted: Connection timed out to primary replica cluster (Error: 0x80040154_DB_CLUSTER_FAIL).'
+  );
+  const [isKillSwitchToggling, setIsKillSwitchToggling] = useState(false);
+  const [killSwitchConfirmed, setKillSwitchConfirmed] = useState(false);
+
+  const fetchKillSwitchStatus = useCallback(async () => {
+    if (authenticatedUser?.role !== 'ROOT_ADMIN') return;
+    try {
+      const response = await apiClient.get('/system-control/status');
+      if (response.data?.success && response.data?.data) {
+        setKillSwitchStatus(response.data.data);
+        if (response.data.data.errorMessage) {
+          setCustomOutageMessage(response.data.data.errorMessage);
+        }
+      }
+    } catch (err) {
+      console.warn('[KillSwitch] Failed to fetch system status:', err.message);
+    }
+  }, [authenticatedUser?.role]);
+
+  const handleToggleKillSwitch = async (targetState) => {
+    setIsKillSwitchToggling(true);
+    try {
+      const response = await apiClient.post('/system-control/toggle', {
+        isSuspended: targetState,
+        errorMessage: customOutageMessage,
+      });
+      if (response.data?.success && response.data?.data) {
+        setKillSwitchStatus(response.data.data);
+        toast.success(
+          targetState
+            ? '🚨 Outage simulation is now ACTIVE. Non-root users will receive HTTP 503 cluster timeout.'
+            : '✅ System operations restored. All users can access normally.'
+        );
+        setIsKillSwitchModalOpen(false);
+        setKillSwitchConfirmed(false);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to toggle kill switch.');
+    } finally {
+      setIsKillSwitchToggling(false);
+    }
+  };
+
   // Bulk Selection Handlers
   const handleToggleSelectUser = (userId) => {
     setSelectedUserIds((previous) =>
@@ -380,6 +431,7 @@ export const RootAdminDashboard = () => {
     fetchSuperAdmins();
     fetchPendingUsers();
     fetchAuditLogs();
+    fetchKillSwitchStatus();
     toast.success('Platform telemetry synchronized in real time.');
   }, [
     fetchPlatformOverview,
@@ -389,6 +441,7 @@ export const RootAdminDashboard = () => {
     fetchSuperAdmins,
     fetchPendingUsers,
     fetchAuditLogs,
+    fetchKillSwitchStatus,
   ]);
 
   // Initial Load
@@ -396,7 +449,8 @@ export const RootAdminDashboard = () => {
     fetchPlatformOverview();
     fetchPlatformAnalytics();
     fetchMunicipalSchools();
-  }, [fetchPlatformOverview, fetchPlatformAnalytics, fetchMunicipalSchools]);
+    fetchKillSwitchStatus();
+  }, [fetchPlatformOverview, fetchPlatformAnalytics, fetchMunicipalSchools, fetchKillSwitchStatus]);
 
   // Lazy tab loader
   useEffect(() => {
@@ -615,7 +669,11 @@ export const RootAdminDashboard = () => {
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2 rounded-full border border-amber-500/40 bg-amber-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-amber-400">
                   <Crown className="h-3.5 w-3.5" />
-                  <span>Root Administration • Platform-wide Authority</span>
+                  <span>
+                    {authenticatedUser?.role === 'ROOT_ADMIN'
+                      ? 'Root Administration • Platform-wide Authority'
+                      : 'Executive Administration • Town Command'}
+                  </span>
                 </div>
                 {authenticatedUser?.fullName && (
                   <div className="flex items-center gap-1.5 text-xs text-slate-400 border-l border-slate-700/60 pl-3">
@@ -661,6 +719,22 @@ export const RootAdminDashboard = () => {
                 <ShieldCheck className="h-4 w-4" />
                 <span>Authorize Super Admin</span>
               </button>
+
+              {authenticatedUser?.role === 'ROOT_ADMIN' && (
+                <button
+                  type="button"
+                  onClick={() => setIsKillSwitchModalOpen(true)}
+                  className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold shadow-lg transition active:scale-95 cursor-pointer ${
+                    killSwitchStatus.isSuspended
+                      ? 'border-red-500 bg-red-600 text-white animate-pulse shadow-red-950/60'
+                      : 'border-red-900/60 bg-red-950/40 text-red-300 hover:bg-red-900/50 hover:text-white'
+                  }`}
+                  title="Emergency Infrastructure Outage Control"
+                >
+                  <ShieldAlert className="h-4 w-4 text-red-400" />
+                  <span>{killSwitchStatus.isSuspended ? 'Outage Active (503)' : 'Emergency Switch'}</span>
+                </button>
+              )}
 
               <button
                 type="button"
@@ -2633,6 +2707,190 @@ export const RootAdminDashboard = () => {
             fetchPlatformOverview();
           }}
         />
+
+        {/* ─── MODAL: EMERGENCY OUTAGE & INFRASTRUCTURE GATE (ROOT_ADMIN ONLY) ─── */}
+        {isKillSwitchModalOpen && authenticatedUser?.role === 'ROOT_ADMIN' && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
+            <div className="w-full max-w-xl rounded-2xl border border-red-500/30 bg-slate-900 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-slate-800 bg-slate-950/80 px-6 py-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-red-500/30 bg-red-500/10 text-red-400">
+                    <ShieldAlert className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-white flex items-center gap-2">
+                      Emergency Outage Gate
+                      <span className="rounded-md border border-red-500/30 bg-red-500/10 px-1.5 py-0.5 text-[10px] font-mono text-red-400">
+                        ROOT OVERRIDE
+                      </span>
+                    </h3>
+                    <p className="text-xs text-slate-400">
+                      Simulate unexpected cluster failure (HTTP 503) for non-root users.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsKillSwitchModalOpen(false)}
+                  className="rounded-lg p-1 text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer"
+                >
+                  <XCircle className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-5">
+                {/* Live Status Badge */}
+                <div
+                  className={`rounded-xl border p-4 flex items-center justify-between ${
+                    killSwitchStatus.isSuspended
+                      ? 'border-red-500/50 bg-red-950/30 text-red-300'
+                      : 'border-emerald-500/30 bg-emerald-950/20 text-emerald-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="relative flex h-3.5 w-3.5">
+                      {killSwitchStatus.isSuspended && (
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                      )}
+                      <span
+                        className={`relative inline-flex rounded-full h-3.5 w-3.5 ${
+                          killSwitchStatus.isSuspended ? 'bg-red-500' : 'bg-emerald-500'
+                        }`}
+                      ></span>
+                    </span>
+                    <div>
+                      <div className="text-xs font-bold uppercase tracking-wider">
+                        {killSwitchStatus.isSuspended
+                          ? 'Outage Simulation Active (HTTP 503)'
+                          : 'Platform Normal & Operational (200 OK)'}
+                      </div>
+                      <div className="text-[11px] opacity-80 mt-0.5">
+                        {killSwitchStatus.isSuspended
+                          ? 'All teachers, students, super admins, and public visitors receive an unexpected cluster error.'
+                          : 'All municipal services, portals, logins, and API routes are running normally.'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Explanation Card */}
+                <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-3.5 text-xs text-slate-400 space-y-2">
+                  <div className="flex items-center gap-2 text-slate-200 font-semibold">
+                    <Lock className="h-3.5 w-3.5 text-amber-400" />
+                    <span>Stealth Operation Guarantee:</span>
+                  </div>
+                  <p className="leading-relaxed">
+                    Users will <strong>NOT</strong> be told the platform was shut down or suspended. They will see a standard technical error code (e.g. replica failure or connection timeout) so it appears as an unexpected hosting or database crash.
+                  </p>
+                  <p className="text-slate-300 font-medium">
+                    ⚡ Only your <strong>Root Admin</strong> session will continue working normally, and you can restore full platform operations with 1 click anytime.
+                  </p>
+                </div>
+
+                {/* Custom Simulated Error Message Input */}
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-slate-300">
+                    Simulated Technical Error Message (Returned in HTTP 503 Response):
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={customOutageMessage}
+                    onChange={(e) => setCustomOutageMessage(e.target.value)}
+                    className="w-full rounded-lg border border-slate-700 bg-slate-800 p-2.5 text-xs text-white placeholder-slate-500 focus:border-red-500 focus:outline-none"
+                    placeholder="Enter technical database error message..."
+                  />
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    <span className="text-[10px] text-slate-500 mr-1 self-center">Presets:</span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setCustomOutageMessage(
+                          'Database connection pool exhausted: Connection timed out to primary replica cluster (Error: 0x80040154_DB_CLUSTER_FAIL).'
+                        )
+                      }
+                      className="rounded bg-slate-800 border border-slate-700 px-2 py-0.5 text-[10px] text-slate-300 hover:bg-slate-700 cursor-pointer"
+                    >
+                      Replica Cluster Timeout
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setCustomOutageMessage(
+                          '503 Service Unavailable: Liaquatabad Municipal Cloud node unreachable. Gateway timed out.'
+                        )
+                      }
+                      className="rounded bg-slate-800 border border-slate-700 px-2 py-0.5 text-[10px] text-slate-300 hover:bg-slate-700 cursor-pointer"
+                    >
+                      Gateway 503
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setCustomOutageMessage(
+                          'Network Error: ECONNREFUSED 127.0.0.1:27017. Remote host actively refused connection.'
+                        )
+                      }
+                      className="rounded bg-slate-800 border border-slate-700 px-2 py-0.5 text-[10px] text-slate-300 hover:bg-slate-700 cursor-pointer"
+                    >
+                      ECONNREFUSED
+                    </button>
+                  </div>
+                </div>
+
+                {/* Confirmation Checkbox for Activation */}
+                {!killSwitchStatus.isSuspended && (
+                  <div className="rounded-lg border border-red-900/40 bg-red-950/20 p-3">
+                    <label className="flex items-start gap-2.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={killSwitchConfirmed}
+                        onChange={(e) => setKillSwitchConfirmed(e.target.checked)}
+                        className="mt-0.5 h-4 w-4 rounded border-slate-700 bg-slate-800 text-red-600 focus:ring-red-500"
+                      />
+                      <span className="text-xs text-slate-300 select-none">
+                        I confirm that I want to simulate an unexpected infrastructure outage and block all non-root user traffic.
+                      </span>
+                    </label>
+                  </div>
+                )}
+
+                {/* Modal Footer Actions */}
+                <div className="flex items-center justify-end gap-3 border-t border-slate-800 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsKillSwitchModalOpen(false)}
+                    className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-xs font-medium text-slate-300 hover:bg-slate-700 cursor-pointer"
+                  >
+                    Close
+                  </button>
+
+                  {killSwitchStatus.isSuspended ? (
+                    <button
+                      type="button"
+                      disabled={isKillSwitchToggling}
+                      onClick={() => handleToggleKillSwitch(false)}
+                      className="flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2 text-xs font-semibold text-white hover:bg-emerald-500 transition shadow cursor-pointer disabled:opacity-50"
+                    >
+                      <CheckCircle2 className="h-4 w-4" />
+                      <span>{isKillSwitchToggling ? 'Restoring Services...' : 'Restore Normal Operations'}</span>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={!killSwitchConfirmed || isKillSwitchToggling}
+                      onClick={() => handleToggleKillSwitch(true)}
+                      className="flex items-center gap-2 rounded-lg bg-red-600 px-5 py-2 text-xs font-semibold text-white hover:bg-red-500 transition shadow cursor-pointer disabled:opacity-50"
+                    >
+                      <ShieldAlert className="h-4 w-4" />
+                      <span>{isKillSwitchToggling ? 'Triggering Outage...' : 'Simulate Cluster Outage (503)'}</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </PageContainer>
 
