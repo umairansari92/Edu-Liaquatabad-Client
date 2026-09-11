@@ -23,6 +23,7 @@ import {
 import toast from 'react-hot-toast';
 import { useSelector } from 'react-redux';
 import apiClient from '../../services/apiClient.js';
+import PageContainer from '../../components/layout/PageContainer.jsx';
 
 export const StaffProfilePage = () => {
   const { id } = useParams();
@@ -79,34 +80,39 @@ export const StaffProfilePage = () => {
 
   if (loading) {
     return (
-      <div className="p-12 text-center text-slate-400">
-        <Clock className="w-8 h-8 animate-spin mx-auto mb-3 text-teal-400" />
-        <p className="text-xs">Loading official service record dossier...</p>
-      </div>
+      <PageContainer>
+        <div className="p-12 text-center text-slate-400">
+          <Clock className="w-8 h-8 animate-spin mx-auto mb-3 text-teal-400" />
+          <p className="text-xs">Loading official service record dossier...</p>
+        </div>
+      </PageContainer>
     );
   }
 
   if (!profileData) {
     return (
-      <div className="p-8 max-w-lg mx-auto text-center space-y-4">
-        <div className="w-16 h-16 bg-rose-500/10 border border-rose-500/30 rounded-2xl flex items-center justify-center mx-auto text-rose-400">
-          <IdCard className="w-8 h-8" />
+      <PageContainer>
+        <div className="p-8 max-w-lg mx-auto text-center space-y-4">
+          <div className="w-16 h-16 bg-rose-500/10 border border-rose-500/30 rounded-2xl flex items-center justify-center mx-auto text-rose-400">
+            <IdCard className="w-8 h-8" />
+          </div>
+          <h3 className="text-lg font-bold text-white">Staff Record Not Available</h3>
+          <p className="text-xs text-slate-400">
+            The requested profile could not be found or you do not have authorization to view it.
+          </p>
+          <Link to="/directory" className="inline-block text-xs text-teal-400 hover:text-teal-300 font-semibold">
+            &larr; Back to Directory
+          </Link>
         </div>
-        <h3 className="text-lg font-bold text-white">Staff Record Not Available</h3>
-        <p className="text-xs text-slate-400">
-          The requested profile could not be found or you do not have authorization to view it.
-        </p>
-        <Link to="/directory" className="inline-block text-xs text-teal-400 hover:text-teal-300 font-semibold">
-          &larr; Back to Directory
-        </Link>
-      </div>
+      </PageContainer>
     );
   }
 
   const { user, profile, assignments } = profileData;
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
+    <PageContainer title="Staff Service Record" subtitle="Official institutional profile dossier">
+      <div className="max-w-6xl mx-auto space-y-6">
       {/* Back link & Top bar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <Link
@@ -373,6 +379,7 @@ export const StaffProfilePage = () => {
         </div>
       )}
     </div>
+    </PageContainer>
   );
 };
 

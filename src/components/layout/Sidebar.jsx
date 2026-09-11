@@ -28,6 +28,7 @@ export const Sidebar = () => {
   const navigationItems = isTeacher
     ? [
         { label: 'Workspace', path: '/dashboard', icon: LayoutDashboard },
+        { label: 'Institutional Approvals Queue', path: '/approvals', icon: ShieldCheck },
         { label: 'Attendance', path: '/attendance', icon: ClipboardCheck },
         { label: 'Exams & Results', path: '/exams', icon: Award },
         { label: 'My Service Record', path: '/profile', icon: IdCard },
@@ -35,9 +36,9 @@ export const Sidebar = () => {
       ]
     : [
         { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+        { label: 'Institutional Approvals Queue', path: '/approvals', icon: ShieldCheck },
         { label: 'Schools & Classes', path: '/schools', icon: Building2 },
         { label: 'Faculty & Users', path: '/users', icon: Users },
-        { label: 'Pending Approvals', path: '/approvals', icon: ShieldCheck },
         { label: 'Directory & Export', path: '/directory', icon: BookUser },
         { label: 'Attendance', path: '/attendance', icon: ClipboardCheck },
         { label: 'Exams & Results', path: '/exams', icon: Award },
@@ -52,11 +53,12 @@ export const Sidebar = () => {
   }
 
   return (
-    <aside className="w-64 bg-slate-900 border-r border-slate-800 text-slate-300 min-h-[calc(100vh-4rem)] flex flex-col justify-between p-4">
+    <aside className="w-64 bg-slate-900 border-r border-slate-800 text-slate-300 h-[calc(100vh-4rem)] sticky top-16 shrink-0 flex flex-col justify-between p-4 overflow-y-auto z-30 select-none">
       <div className="space-y-1">
         <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
-          Navigation & Modules
+          Navigation &amp; Modules
         </div>
+
         {navigationItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;

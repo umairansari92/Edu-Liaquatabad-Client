@@ -11,7 +11,7 @@ export const PageContainer = ({ children, title, subtitle, actions }) => {
       <Navbar />
       <div className="flex-1 flex">
         {isAuthenticated && <Sidebar />}
-        <main className="flex-1 p-6 sm:p-8 max-w-7xl mx-auto w-full">
+        <main className="flex-1 p-6 sm:p-8 max-w-7xl mx-auto w-full min-w-0">
           {(title || actions) && (
             <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800 pb-5">
               <div>

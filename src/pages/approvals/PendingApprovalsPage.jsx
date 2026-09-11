@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import apiClient from '../../services/apiClient.js';
+import PageContainer from '../../components/layout/PageContainer.jsx';
 
 export const PendingApprovalsPage = () => {
   const [activeTab, setActiveTab] = useState('staff');
@@ -122,7 +123,8 @@ export const PendingApprovalsPage = () => {
   });
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <PageContainer title="Institutional Approvals Queue" subtitle="Official verification workstation for incoming faculty, staff, and student applications">
+    <div className="max-w-7xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -528,6 +530,7 @@ export const PendingApprovalsPage = () => {
         </div>
       )}
     </div>
+    </PageContainer>
   );
 };
 
