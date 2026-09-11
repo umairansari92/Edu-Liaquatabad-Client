@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { School, User, Lock, CheckCircle, AlertCircle, ArrowRight, ShieldCheck, Hash } from 'lucide-react';
+import { School, User, Lock, CheckCircle, AlertCircle, ArrowRight, ShieldCheck, Hash, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 import apiClient from '../../services/apiClient.js';
 import { studentRegistrationSchema } from '../../validations/authSchemas.js';
@@ -11,6 +11,8 @@ export const RegisterStudentPage = () => {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [registeredGr, setRegisteredGr] = useState('');
   const [schools, setSchools] = useState([]);
 
@@ -227,10 +229,19 @@ export const RegisterStudentPage = () => {
                   </div>
                   <input
                     {...register('password')}
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     placeholder="••••••••••••"
-                    className="block w-full pl-9 pr-3 py-2.5 bg-slate-950/80 border border-slate-800 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-xs"
+                    className="block w-full pl-9 pr-10 py-2.5 bg-slate-950/80 border border-slate-800 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-xs"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+                    tabIndex="-1"
+                    title={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
                 {errors.password && <p className="mt-1 text-xs text-rose-400">{errors.password.message}</p>}
               </div>
@@ -246,10 +257,19 @@ export const RegisterStudentPage = () => {
                   </div>
                   <input
                     {...register('confirmPassword')}
-                    type="password"
+                    type={showConfirmPassword ? 'text' : 'password'}
                     placeholder="Re-enter your password"
-                    className="block w-full pl-9 pr-3 py-2.5 bg-slate-950/80 border border-slate-800 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-xs"
+                    className="block w-full pl-9 pr-10 py-2.5 bg-slate-950/80 border border-slate-800 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-xs"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword((prev) => !prev)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+                    tabIndex="-1"
+                    title={showConfirmPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
                 </div>
                 {errors.confirmPassword && (
                   <p className="mt-1 text-xs text-rose-400">{errors.confirmPassword.message}</p>

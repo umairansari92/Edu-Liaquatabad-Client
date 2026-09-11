@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { School, UserCheck, Phone, Mail, Lock, CheckCircle, AlertCircle, ShieldCheck } from 'lucide-react';
+import { School, UserCheck, Phone, Mail, Lock, CheckCircle, AlertCircle, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import apiClient from '../../services/apiClient.js';
 import OtpVerificationModal from '../../components/common/OtpVerificationModal.jsx';
 import { teacherFormSchema } from '../../validations/authSchemas.js';
@@ -11,6 +11,7 @@ export const RegisterTeacherPage = () => {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [pendingFormData, setPendingFormData] = useState(null);
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [schools, setSchools] = useState([]);
@@ -150,12 +151,23 @@ export const RegisterTeacherPage = () => {
                   <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
                     Account Password
                   </label>
-                  <input
-                    {...register('password')}
-                    type="password"
-                    placeholder="••••••••"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
-                  />
+                  <div className="relative">
+                    <input
+                      {...register('password')}
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      className="w-full pl-3.5 pr-10 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+                      tabIndex="-1"
+                      title={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                   {errors.password && <p className="mt-1 text-xs text-rose-400">{errors.password.message}</p>}
                 </div>
 
