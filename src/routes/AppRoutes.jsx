@@ -13,6 +13,9 @@ import AttendancePage from '../pages/attendance/AttendancePage.jsx';
 import ExamsPage from '../pages/exams/ExamsPage.jsx';
 import DocumentsPage from '../pages/documents/DocumentsPage.jsx';
 import AuditLogsPage from '../pages/audit/AuditLogsPage.jsx';
+import DirectoryPage from '../pages/directory/DirectoryPage.jsx';
+import PendingApprovalsPage from '../pages/approvals/PendingApprovalsPage.jsx';
+import StaffProfilePage from '../pages/staff/StaffProfilePage.jsx';
 import ProtectedRoute from './ProtectedRoute.jsx';
 
 /**
@@ -36,10 +39,14 @@ export const AppRoutes = () => {
         <Route path="/dashboard" element={<DashboardRouter />} />
         <Route path="/schools" element={<SchoolsPage />} />
         <Route path="/users" element={<UsersPage />} />
+        <Route path="/approvals" element={<PendingApprovalsPage />} />
+        <Route path="/staff/:id/profile" element={<StaffProfilePage />} />
+        <Route path="/profile" element={<StaffProfilePage />} />
         <Route path="/attendance" element={<AttendancePage />} />
         <Route path="/exams" element={<ExamsPage />} />
         <Route path="/transfers" element={<TransfersPage />} />
         <Route path="/documents" element={<DocumentsPage />} />
+        <Route path="/directory" element={<DirectoryPage />} />
         <Route path="/audit-logs" element={<AuditLogsPage />} />
       </Route>
 

@@ -5,12 +5,15 @@ import {
   LayoutDashboard,
   Building2,
   Users,
+  BookUser,
   GraduationCap,
   ClipboardCheck,
   Award,
   ArrowLeftRight,
   FileText,
   ShieldAlert,
+  ShieldCheck,
+  IdCard,
   Settings,
 } from 'lucide-react';
 
@@ -27,15 +30,19 @@ export const Sidebar = () => {
         { label: 'Workspace', path: '/dashboard', icon: LayoutDashboard },
         { label: 'Attendance', path: '/attendance', icon: ClipboardCheck },
         { label: 'Exams & Results', path: '/exams', icon: Award },
+        { label: 'My Service Record', path: '/profile', icon: IdCard },
         { label: 'Circulars & Docs', path: '/documents', icon: FileText },
       ]
     : [
         { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
         { label: 'Schools & Classes', path: '/schools', icon: Building2 },
         { label: 'Faculty & Users', path: '/users', icon: Users },
+        { label: 'Pending Approvals', path: '/approvals', icon: ShieldCheck },
+        { label: 'Directory & Export', path: '/directory', icon: BookUser },
         { label: 'Attendance', path: '/attendance', icon: ClipboardCheck },
         { label: 'Exams & Results', path: '/exams', icon: Award },
         { label: 'Transfers', path: '/transfers', icon: ArrowLeftRight },
+        { label: 'My Profile', path: '/profile', icon: IdCard },
         { label: 'Circulars & Docs', path: '/documents', icon: FileText },
       ];
 
