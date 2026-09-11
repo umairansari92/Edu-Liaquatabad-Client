@@ -134,57 +134,66 @@ export const cnicField = z
   .trim()
   .regex(/^\d{5}-\d{7}-\d{1}$/, 'CNIC must follow the official format: XXXXX-XXXXXXX-X (e.g., 42101-1234567-1)');
 
+/** Teacher / Staff registration base object schema */
+export const teacherBaseObject = z.object({
+  fullName: nameField('Full Name'),
+  fatherName: safeString(100, 2, "Father's Name is required"),
+  dateOfBirth: z.string().min(1, 'Date of Birth is required'),
+  cnic: cnicField,
+  employeeId: safeString(50, 3, 'Employee Number must be at least 3 characters'),
+  designation: safeString(100, 2, 'Designation is required'),
+  appointmentDate: z.string().min(1, 'Date of Appointment is required'),
+  email: emailField,
+  phoneNumber: phoneField,
+  schoolId: z.string().trim().min(1, 'Please select your School'),
+  qualification: safeString(100, 2, 'Qualification is required'),
+  isTeachingStaff: z.boolean().default(true),
+
+  // Bank Information
+  bankName: safeString(100, 2, 'Bank Name is required'),
+  branchName: safeString(100, 2, 'Branch Name is required'),
+  accountNumber: z.string().trim().min(5, 'Bank Account Number must be at least 5 characters').max(50),
+  accountTitle: safeString(100, 2, 'Account Title is required'),
+
+  // Credentials
+  password: passwordField,
+  confirmPassword: z.string().min(1, 'Please confirm your password'),
+
+  // Teaching Assignments (Teachers only)
+  teachingAssignments: z
+    .array(
+      z.object({
+        classId: z.string().trim().min(1, 'Class is required'),
+        sectionId: z.string().trim().min(1, 'Section is required'),
+        subjectId: z.string().trim().min(1, 'Subject is required'),
+        academicSession: z.string().trim().min(1, 'Session is required'),
+      })
+    )
+    .optional()
+    .default([]),
+});
+
 /** Teacher / Staff registration form schema */
-export const teacherFormSchema = z
-  .object({
-    fullName: nameField('Full Name'),
-    fatherName: safeString(100, 2, "Father's Name is required"),
-    dateOfBirth: z.string().min(1, 'Date of Birth is required'),
-    cnic: cnicField,
-    employeeId: safeString(50, 3, 'Employee Number must be at least 3 characters'),
-    designation: safeString(100, 2, 'Designation is required'),
-    appointmentDate: z.string().min(1, 'Date of Appointment is required'),
-    email: emailField,
-    phoneNumber: phoneField,
-    schoolId: z.string().trim().min(1, 'Please select your School'),
-    qualification: safeString(100, 2, 'Qualification is required'),
-    isTeachingStaff: z.boolean().default(true),
+export const teacherFormSchema = teacherBaseObject.refine(
+  (data) => data.password === data.confirmPassword,
+  {
+    message: 'Passwords do not match.',
+    path: ['confirmPassword'],
+  }
+);
 
-    // Bank Information
-    bankName: safeString(100, 2, 'Bank Name is required'),
-    branchName: safeString(100, 2, 'Branch Name is required'),
-    accountNumber: z.string().trim().min(5, 'Bank Account Number must be at least 5 characters').max(50),
-    accountTitle: safeString(100, 2, 'Account Title is required'),
-
-    // Credentials
-    password: passwordField,
-    confirmPassword: z.string().min(1, 'Please confirm your password'),
-
-    // Teaching Assignments (Teachers only)
-    teachingAssignments: z
-      .array(
-        z.object({
-          classId: z.string().trim().min(1, 'Class is required'),
-          sectionId: z.string().trim().min(1, 'Section is required'),
-          subjectId: z.string().trim().min(1, 'Subject is required'),
-          academicSession: z.string().trim().min(1, 'Session is required'),
-        })
-      )
-      .optional()
-      .default([]),
+/** Teacher registration full schema (with OTP) */
+export const registerTeacherSchema = teacherBaseObject
+  .extend({
+    otpCode: otpField,
+    captchaAnswer: z.string().optional(),
+    captchaChallengeToken: z.string().optional(),
+    _gotcha: z.string().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Passwords do not match.',
     path: ['confirmPassword'],
   });
-
-/** Teacher registration full schema (with OTP) */
-export const registerTeacherSchema = teacherFormSchema.extend({
-  otpCode: otpField,
-  captchaAnswer: z.string().optional(),
-  captchaChallengeToken: z.string().optional(),
-  _gotcha: z.string().optional(),
-});
 
 /** Password reset request (forgot password step 1) */
 export const passwordResetRequestSchema = z.object({
