@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import RootAdminDashboard from './RootAdminDashboard.jsx';
 import TeacherDashboard from './TeacherDashboard.jsx';
+import HmDashboard from './HmDashboard.jsx';
+import StudentDashboard from './StudentDashboard.jsx';
 import PageContainer from '../../components/layout/PageContainer.jsx';
 import apiClient from '../../services/apiClient.js';
 import {
@@ -57,6 +59,16 @@ export const DashboardRouter = () => {
   // Teacher Operational Workspace
   if (user.role === 'TEACHER') {
     return <TeacherDashboard />;
+  }
+
+  // HM: School authority
+  if (user.role === 'HM') {
+    return <HmDashboard />;
+  }
+
+  // STUDENT: Read-only student workspace
+  if (user.role === 'STUDENT') {
+    return <StudentDashboard />;
   }
 
   // HM / ADMIN / SUPERVISOR — General scoped dashboard (placeholder until dedicated dashboards are built)
