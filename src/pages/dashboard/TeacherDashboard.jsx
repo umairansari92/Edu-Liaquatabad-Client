@@ -72,21 +72,33 @@ const AttendanceModal = ({ section, onClose, onSubmitted }) => {
   const submit = async () => {
     setSubmitting(true); setError(null);
     try {
-      const res = await apiClient.post('/attendance/submit', {
+      const submitResponse = await apiClient.post('/attendance/submit', {
         sectionId: section._id,
         date: new Date().toISOString().split('T')[0],
-        records: roster.map((r) => ({ studentProfileId: r.studentProfileId, status: r.currentStatus, remarks: r.remarks || '' })),
+        records: roster.map((rosterRecord) => ({
+          studentProfileId: rosterRecord.studentProfileId,
+          status: rosterRecord.currentStatus,
+          remarks: rosterRecord.remarks || '',
+        })),
       });
-      setSuccessMsg(`Attendance submitted for ${res.data?.data?.totalRecords || roster.length} students.`);
+      setSuccessMsg(`Attendance submitted for ${submitResponse.data?.data?.totalRecords || roster.length} students.`);
       onSubmitted?.();
-    } catch (e) { setError(e.response?.data?.message || 'Submission failed.'); }
-    finally { setSubmitting(false); }
+    } catch (submissionError) {
+      setError(submissionError.response?.data?.message || 'Submission failed.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const chip = (s) => ({ PRESENT: 'bg-emerald-500/20 text-emerald-300 border-emerald-700/40', ABSENT: 'bg-rose-500/20 text-rose-300 border-rose-700/40', LEAVE: 'bg-amber-500/20 text-amber-300 border-amber-700/40' }[s] || '');
-  const present = roster.filter((r) => r.currentStatus === 'PRESENT').length;
-  const absent  = roster.filter((r) => r.currentStatus === 'ABSENT').length;
-  const leave   = roster.filter((r) => r.currentStatus === 'LEAVE').length;
+  const getStatusChipClass = (attendanceStatus) => ({
+    PRESENT: 'bg-emerald-500/20 text-emerald-300 border-emerald-700/40',
+    ABSENT: 'bg-rose-500/20 text-rose-300 border-rose-700/40',
+    LEAVE: 'bg-amber-500/20 text-amber-300 border-amber-700/40',
+  }[attendanceStatus] || '');
+
+  const presentCount = roster.filter((rosterRecord) => rosterRecord.currentStatus === 'PRESENT').length;
+  const absentCount  = roster.filter((rosterRecord) => rosterRecord.currentStatus === 'ABSENT').length;
+  const leaveCount   = roster.filter((rosterRecord) => rosterRecord.currentStatus === 'LEAVE').length;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -102,12 +114,18 @@ const AttendanceModal = ({ section, onClose, onSubmitted }) => {
           </button>
         </div>
         <div className="flex gap-3 px-6 py-3 bg-slate-900/60 border-b border-slate-800 text-sm font-semibold">
-          <span className="text-emerald-400">✓ {present} Present</span>
-          <span className="text-rose-400">✗ {absent} Absent</span>
-          <span className="text-amber-400">◌ {leave} Leave</span>
+          <span className="text-emerald-400">✓ {presentCount} Present</span>
+          <span className="text-rose-400">✗ {absentCount} Absent</span>
+          <span className="text-amber-400">◌ {leaveCount} Leave</span>
           <div className="ml-auto flex gap-2">
-            {['PRESENT','ABSENT','LEAVE'].map((s) => (
-              <button key={s} onClick={() => markAll(s)} className={`px-2.5 py-1 rounded-lg text-xs border transition-colors ${chip(s)}`}>{s[0]+s.slice(1).toLowerCase()}</button>
+            {['PRESENT', 'ABSENT', 'LEAVE'].map((statusOption) => (
+              <button
+                key={statusOption}
+                onClick={() => markAll(statusOption)}
+                className={`px-2.5 py-1 rounded-lg text-xs border transition-colors ${getStatusChipClass(statusOption)}`}
+              >
+                {statusOption[0] + statusOption.slice(1).toLowerCase()}
+              </button>
             ))}
           </div>
         </div>
@@ -125,7 +143,7 @@ const AttendanceModal = ({ section, onClose, onSubmitted }) => {
                 <p className="text-sm font-semibold text-white truncate">{student.fullName}</p>
                 <p className="text-xs text-slate-500">GR: {student.grNumber} · {student.gender}</p>
               </div>
-              <span className={`px-3 py-1 rounded-full text-xs font-bold border ${chip(student.currentStatus)}`}>{student.currentStatus}</span>
+              <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getStatusChipClass(student.currentStatus)}`}>{student.currentStatus}</span>
             </button>
           ))}
         </div>
@@ -197,25 +215,31 @@ const InfoPanel = ({ icon: Icon, iconColor, title, message }) => (
 
 // ─── TeacherDashboard (Main) ──────────────────────────────────────────────────
 const TeacherDashboard = () => {
-  const { user } = useSelector((s) => s.auth);
+  const { user: authenticatedUser } = useSelector((state) => state.auth);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [modal, setModal] = useState(null);
 
-  const fetch = useCallback(async () => {
-    setLoading(true); setError(null);
+  const fetchTeacherWorkspace = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
-      const res = await apiClient.get('/academic/teacher-summary');
-      if (res.data?.data) setSummary(res.data.data);
-    } catch (e) { setError(e.response?.data?.message || 'Could not load workspace. Please refresh.'); }
-    finally { setLoading(false); }
+      const summaryResponse = await apiClient.get('/academic/teacher-summary');
+      if (summaryResponse.data?.data) setSummary(summaryResponse.data.data);
+    } catch (workspaceError) {
+      setError(workspaceError.response?.data?.message || 'Could not load workspace. Please refresh.');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  useEffect(() => { fetch(); }, [fetch, refreshKey]);
+  useEffect(() => {
+    fetchTeacherWorkspace();
+  }, [fetchTeacherWorkspace, refreshKey]);
 
-  const refresh = () => setRefreshKey((k) => k + 1);
+  const refresh = () => setRefreshKey((previousKey) => previousKey + 1);
   const today = new Date();
   const dayName = today.toLocaleDateString('en-PK', { weekday: 'long' });
 
