@@ -16,6 +16,7 @@ import AuditLogsPage from '../pages/audit/AuditLogsPage.jsx';
 import DirectoryPage from '../pages/directory/DirectoryPage.jsx';
 import PendingApprovalsPage from '../pages/approvals/PendingApprovalsPage.jsx';
 import StaffProfilePage from '../pages/staff/StaffProfilePage.jsx';
+import HolidaysGovernancePage from '../pages/holidays/HolidaysGovernancePage.jsx';
 import ProtectedRoute from './ProtectedRoute.jsx';
 
 /**
@@ -43,6 +44,7 @@ export const AppRoutes = () => {
         <Route path="/staff/:id/profile" element={<StaffProfilePage />} />
         <Route path="/profile" element={<StaffProfilePage />} />
         <Route path="/attendance" element={<AttendancePage />} />
+        <Route path="/holidays" element={<HolidaysGovernancePage />} />
         <Route path="/exams" element={<ExamsPage />} />
         <Route path="/transfers" element={<TransfersPage />} />
         <Route path="/documents" element={<DocumentsPage />} />

@@ -15,6 +15,7 @@ import {
   AlertTriangle,
   Loader2,
   GraduationCap,
+  ShieldAlert,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import apiClient from '../../services/apiClient.js';
@@ -32,6 +33,9 @@ const TeacherAttendanceWorkspace = ({ user }) => {
   const [rosterError, setRosterError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [submissionSuccess, setSubmissionSuccess] = useState(null);
+  const [windowStatus, setWindowStatus] = useState(null);
+  const [isLateOverride, setIsLateOverride] = useState(false);
+  const [lateReason, setLateReason] = useState('');
 
   const fetchTeacherSections = useCallback(async () => {
     setLoading(true);
@@ -57,11 +61,14 @@ const TeacherAttendanceWorkspace = ({ user }) => {
     setRosterLoading(true);
     setRosterError(null);
     setSubmissionSuccess(null);
+    setIsLateOverride(false);
+    setLateReason('');
     try {
       const res = await apiClient.get('/attendance/sheet', {
         params: { sectionId: sec._id, date: selectedDate },
       });
       setRoster(res.data?.data?.roster || []);
+      setWindowStatus(res.data?.data?.windowStatus || null);
     } catch (err) {
       setRosterError(err.response?.data?.message || 'Failed to load student roster for this section.');
     } finally {
@@ -85,17 +92,39 @@ const TeacherAttendanceWorkspace = ({ user }) => {
 
   const handleSubmitAttendance = async () => {
     if (!activeModalSection) return;
+
+    if (windowStatus && !windowStatus.allowed && !isLateOverride) {
+      setRosterError(windowStatus.reason || 'Attendance submission window is closed.');
+      return;
+    }
+
+    if (isLateOverride && (!lateReason || lateReason.trim().length < 5)) {
+      setRosterError('A specific justification (minimum 5 characters) is required for emergency late clearance.');
+      return;
+    }
+
     setSubmitting(true);
     setRosterError(null);
     try {
+      const absentStudentProfileIds = roster
+        .filter((r) => r.currentStatus === 'ABSENT')
+        .map((r) => r.studentProfileId);
+      const leaveStudentProfileIds = roster
+        .filter((r) => r.currentStatus === 'LEAVE')
+        .map((r) => r.studentProfileId);
+
       const payload = {
         sectionId: activeModalSection._id,
         date: selectedDate,
+        absentStudentProfileIds,
+        leaveStudentProfileIds,
         records: roster.map((r) => ({
           studentProfileId: r.studentProfileId,
           status: r.currentStatus,
           remarks: r.remarks || '',
         })),
+        isLateOverride: Boolean(isLateOverride),
+        lateReason: isLateOverride ? lateReason.trim() : undefined,
       };
       const res = await apiClient.post('/attendance/submit', payload);
       setSubmissionSuccess(`Attendance submitted successfully for ${res.data?.data?.totalRecords || roster.length} students.`);
@@ -266,7 +295,86 @@ const TeacherAttendanceWorkspace = ({ user }) => {
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-2">
+            <div className="flex-1 overflow-y-auto p-6 space-y-3">
+              {/* Stage 1: School Closure Alert */}
+              {windowStatus?.isClosed && (
+                <div className="p-3.5 rounded-xl bg-rose-950/50 border border-rose-800/60 text-xs text-rose-200 flex items-start gap-2.5">
+                  <XCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-bold text-white">School Closed Today: {windowStatus.closureReason || 'Official Holiday / Off Day'}</p>
+                    <p className="text-[11px] text-rose-300 mt-0.5">
+                      Attendance submissions are suspended while school closure is officially active.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Stage 2: Early Window Alert */}
+              {!windowStatus?.isClosed && !windowStatus?.allowed && windowStatus?.code === 'WINDOW_NOT_OPENED' && (
+                <div className="p-3.5 rounded-xl bg-amber-950/50 border border-amber-800/60 text-xs text-amber-200 flex items-start gap-2.5">
+                  <Clock className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-bold text-white">Attendance Window Not Yet Open</p>
+                    <p className="text-[11px] text-amber-300 mt-0.5">
+                      {windowStatus.reason || `Window opens at ${windowStatus.schedule?.attendanceWindowStart} PKT.`}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Stage 3: Window Closed Gate & HM Late Clearance Form */}
+              {!windowStatus?.isClosed && !windowStatus?.allowed && windowStatus?.code === 'WINDOW_CLOSED' && (
+                windowStatus?.canOverride ? (
+                  <div className="p-4 rounded-xl border border-amber-500/40 bg-amber-950/30 text-xs space-y-3">
+                    <div className="flex items-start gap-2.5">
+                      <ShieldAlert className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
+                      <div>
+                        <h4 className="font-bold text-amber-300 text-sm">Headmaster Same-Day Emergency Late Clearance</h4>
+                        <p className="text-slate-300 mt-0.5 text-[11px]">
+                          Regular cutoff has passed ({windowStatus.schedule?.attendanceWindowEnd} PKT). As Head Master, you are authorized to clear same-day attendance due to verified power or internet disruptions until 23:59 PKT.
+                        </p>
+                      </div>
+                    </div>
+
+                    <label className="flex items-center gap-2 cursor-pointer font-semibold text-white pt-1">
+                      <input
+                        type="checkbox"
+                        checked={isLateOverride}
+                        onChange={(e) => setIsLateOverride(e.target.checked)}
+                        className="rounded border-slate-700 bg-slate-800 text-amber-500 focus:ring-amber-400"
+                      />
+                      <span>Apply Same-Day Emergency Clearance Override</span>
+                    </label>
+
+                    {isLateOverride && (
+                      <div className="space-y-1.5 pt-1">
+                        <label className="block text-[11px] font-semibold text-amber-300">
+                          Mandatory Operational Justification (minimum 5 characters) *
+                        </label>
+                        <textarea
+                          rows="2"
+                          required
+                          value={lateReason}
+                          onChange={(e) => setLateReason(e.target.value)}
+                          placeholder="e.g. Electrical feeder trip & internet outage resolved at 14:45 PKT"
+                          className="w-full rounded-lg border border-amber-500/50 bg-slate-900 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-400 focus:outline-none"
+                        />
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="p-3.5 rounded-xl bg-rose-950/50 border border-rose-800/60 text-xs text-rose-200 flex items-start gap-2.5">
+                    <XCircle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-bold text-white">Attendance Submission Window Closed</p>
+                      <p className="text-[11px] text-rose-300 mt-0.5">
+                        {windowStatus.reason || `Cutoff was at ${windowStatus.schedule?.attendanceWindowEnd} PKT. Contact your Head Master for emergency clearance.`}
+                      </p>
+                    </div>
+                  </div>
+                )
+              )}
+
               {rosterLoading && (
                 <div className="flex flex-col items-center justify-center py-12 gap-3 text-slate-400">
                   <Loader2 className="w-7 h-7 animate-spin text-emerald-500" />
@@ -333,11 +441,29 @@ const TeacherAttendanceWorkspace = ({ user }) => {
                 <button
                   type="button"
                   onClick={handleSubmitAttendance}
-                  disabled={submitting || roster.length === 0}
-                  className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs transition-colors flex items-center justify-center gap-2"
+                  disabled={
+                    submitting ||
+                    roster.length === 0 ||
+                    (windowStatus && !windowStatus.allowed && !isLateOverride)
+                  }
+                  className={`w-full py-2.5 rounded-xl font-bold text-xs transition-colors flex items-center justify-center gap-2 ${
+                    isLateOverride
+                      ? 'bg-amber-600 hover:bg-amber-500 text-white shadow-lg'
+                      : 'bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white'
+                  }`}
                 >
-                  {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
-                  {submitting ? 'Submitting Register…' : `Confirm & Submit Register (${roster.length} students)`}
+                  {submitting ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <CheckCircle2 className="w-4 h-4" />
+                  )}
+                  {submitting
+                    ? 'Submitting Register…'
+                    : isLateOverride
+                    ? `Confirm & Submit Emergency Late Clearance (${roster.length} students)`
+                    : windowStatus && !windowStatus.allowed
+                    ? `Window Closed (${windowStatus.reason || 'Closed'})`
+                    : `Confirm & Submit Register (${roster.length} students)`}
                 </button>
               )}
             </div>

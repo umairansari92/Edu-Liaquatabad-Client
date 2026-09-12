@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   IdCard,
   Settings,
+  Calendar,
 } from 'lucide-react';
 
 export const Sidebar = () => {
@@ -30,6 +31,7 @@ export const Sidebar = () => {
         { label: 'Workspace', path: '/dashboard', icon: LayoutDashboard },
         { label: 'Institutional Approvals Queue', path: '/approvals', icon: ShieldCheck },
         { label: 'Attendance', path: '/attendance', icon: ClipboardCheck },
+        { label: 'Holidays & Calendar', path: '/holidays', icon: Calendar },
         { label: 'Exams & Results', path: '/exams', icon: Award },
         { label: 'My Service Record', path: '/profile', icon: IdCard },
         { label: 'Circulars & Docs', path: '/documents', icon: FileText },
@@ -41,6 +43,7 @@ export const Sidebar = () => {
         { label: 'Faculty & Users', path: '/users', icon: Users },
         { label: 'Directory & Export', path: '/directory', icon: BookUser },
         { label: 'Attendance', path: '/attendance', icon: ClipboardCheck },
+        { label: 'Holidays & Calendar', path: '/holidays', icon: Calendar },
         { label: 'Exams & Results', path: '/exams', icon: Award },
         { label: 'Transfers', path: '/transfers', icon: ArrowLeftRight },
         { label: 'My Profile', path: '/profile', icon: IdCard },

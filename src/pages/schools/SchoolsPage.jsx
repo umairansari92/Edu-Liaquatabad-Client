@@ -14,11 +14,13 @@ import {
   ChevronRight,
   ShieldCheck,
   Layers,
+  Clock,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import apiClient from '../../services/apiClient.js';
 import PageContainer from '../../components/layout/PageContainer.jsx';
 import EditSchoolModal from '../dashboard/components/EditSchoolModal.jsx';
+import SchoolTimingsModal from './components/SchoolTimingsModal.jsx';
 
 export const SchoolsPage = () => {
   const [schoolsList, setSchoolsList] = useState([]);
@@ -44,6 +46,10 @@ export const SchoolsPage = () => {
   // Edit School Modal State
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedSchoolForEdit, setSelectedSchoolForEdit] = useState(null);
+
+  // School Timings Modal State
+  const [isTimingsModalOpen, setIsTimingsModalOpen] = useState(false);
+  const [selectedSchoolForTimings, setSelectedSchoolForTimings] = useState(null);
 
   // Fetch Municipal Schools
   const fetchSchools = useCallback(async () => {
@@ -233,17 +239,31 @@ export const SchoolsPage = () => {
                       </h4>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedSchoolForEdit(school);
-                        setIsEditModalOpen(true);
-                      }}
-                      className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white transition"
-                      title="Edit School Details"
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedSchoolForTimings(school);
+                          setIsTimingsModalOpen(true);
+                        }}
+                        className="rounded-lg p-1.5 text-emerald-400 hover:bg-emerald-950/60 hover:text-emerald-300 transition"
+                        title="Configure Operational Timings & Windows"
+                      >
+                        <Clock className="h-4 w-4" />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedSchoolForEdit(school);
+                          setIsEditModalOpen(true);
+                        }}
+                        className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white transition"
+                        title="Edit School Details"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
 
                   <div className="mt-4 space-y-2 border-t border-slate-800/80 pt-3 text-xs text-slate-300">
@@ -254,6 +274,24 @@ export const SchoolsPage = () => {
                     <div className="flex items-center justify-between text-slate-400">
                       <span>SEMIS Code:</span>
                       <span className="font-mono text-cyan-400">{school.emisCode || '—'}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-slate-400">
+                      <span className="flex items-center gap-1.5">
+                        <Clock className="h-3 w-3 text-emerald-400" />
+                        Hours (Mon-Sat):
+                      </span>
+                      <span className="font-mono text-emerald-400 font-semibold">
+                        {school.timings?.regular?.startTime || '08:00'} – {school.timings?.regular?.endTime || '13:30'}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-slate-400">
+                      <span className="flex items-center gap-1.5">
+                        <Clock className="h-3 w-3 text-cyan-400" />
+                        Friday (Jummah):
+                      </span>
+                      <span className="font-mono text-cyan-400 font-semibold">
+                        {school.timings?.friday?.startTime || '07:30'} – {school.timings?.friday?.endTime || '12:00'}
+                      </span>
                     </div>
                     {school.contactPhone && (
                       <div className="flex items-center gap-2 text-slate-400">
@@ -443,6 +481,14 @@ export const SchoolsPage = () => {
           onClose={() => setIsEditModalOpen(false)}
           school={selectedSchoolForEdit}
           onSchoolUpdated={fetchSchools}
+        />
+
+        {/* Modal: School Timings & Windows */}
+        <SchoolTimingsModal
+          isOpen={isTimingsModalOpen}
+          onClose={() => setIsTimingsModalOpen(false)}
+          school={selectedSchoolForTimings}
+          onTimingsUpdated={fetchSchools}
         />
       </div>
     </PageContainer>
