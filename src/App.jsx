@@ -40,7 +40,7 @@ function App() {
   return (
     <BrowserRouter>
       <ScreenCaptureProtection>
-        <div className="min-h-screen flex flex-col bg-slate-950">
+        <div className="min-h-screen flex flex-col bg-[#F8FBFD] text-[#102033]">
           <div className="flex-1">
             <AppRoutes />
           </div>
@@ -52,18 +52,20 @@ function App() {
         toastOptions={{
           duration: 4000,
           style: {
-            background: '#0F172A',
-            color: '#F8FAFC',
-            border: '1px solid #1E293B',
+            background: '#FFFFFF',
+            color: '#102033',
+            border: '1px solid rgba(0, 106, 199, 0.15)',
+            boxShadow: '0 8px 30px rgba(0, 33, 61, 0.08)',
             borderRadius: '12px',
             fontSize: '13px',
             fontFamily: 'Inter, system-ui, sans-serif',
+            fontWeight: '500',
           },
           success: {
-            iconTheme: { primary: '#10B981', secondary: '#F8FAFC' },
+            iconTheme: { primary: '#4B7F3A', secondary: '#FFFFFF' },
           },
           error: {
-            iconTheme: { primary: '#F43F5E', secondary: '#F8FAFC' },
+            iconTheme: { primary: '#DC2626', secondary: '#FFFFFF' },
           },
         }}
       />

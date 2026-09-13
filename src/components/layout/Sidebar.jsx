@@ -6,7 +6,6 @@ import {
   Building2,
   Users,
   BookUser,
-  GraduationCap,
   ClipboardCheck,
   Award,
   ArrowLeftRight,
@@ -14,7 +13,6 @@ import {
   ShieldAlert,
   ShieldCheck,
   IdCard,
-  Settings,
   Calendar,
 } from 'lucide-react';
 
@@ -56,9 +54,9 @@ export const Sidebar = () => {
   }
 
   return (
-    <aside className="w-64 bg-slate-900 border-r border-slate-800 text-slate-300 h-[calc(100vh-4rem)] sticky top-16 shrink-0 flex flex-col justify-between p-4 overflow-y-auto z-30 select-none">
+    <aside className="w-64 bg-white border-r border-slate-200 text-[#526477] h-[calc(100vh-4rem)] sticky top-16 shrink-0 flex flex-col justify-between p-4 overflow-y-auto z-30 select-none shadow-xs">
       <div className="space-y-1">
-        <div className="px-3 py-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+        <div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-[#8094A8]">
           Navigation &amp; Modules
         </div>
 
@@ -69,25 +67,25 @@ export const Sidebar = () => {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+              className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                 isActive
-                  ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/30'
-                  : 'hover:bg-slate-800 hover:text-white'
+                  ? 'bg-[#F0F8FF] text-[#006AC7] border border-[#B9DEFF] font-semibold shadow-xs'
+                  : 'hover:bg-[#F8FBFD] hover:text-[#102033] text-[#526477]'
               }`}
             >
-              <Icon className={`w-5 h-5 ${isActive ? 'text-emerald-400' : 'text-slate-400'}`} />
+              <Icon className={`w-5 h-5 ${isActive ? 'text-[#006AC7]' : 'text-[#8094A8]'}`} />
               <span>{item.label}</span>
             </Link>
           );
         })}
       </div>
 
-      <div className="p-3 rounded-lg bg-slate-800/60 border border-slate-700/60 text-xs text-slate-400">
-        <p className="font-semibold text-slate-200">Active Jurisdiction</p>
-        <p className="mt-0.5">Liaquatabad Town Centre</p>
-        <div className="mt-2 flex items-center justify-between text-[11px] text-slate-400 border-t border-slate-700/50 pt-2">
+      <div className="p-3.5 rounded-xl bg-[#F8FBFD] border border-slate-200 text-xs text-[#526477]">
+        <p className="font-bold text-[#102033]">Active Jurisdiction</p>
+        <p className="mt-0.5 text-[#526477]">Liaquatabad Town Centre</p>
+        <div className="mt-2.5 flex items-center justify-between text-[11px] text-[#526477] border-t border-slate-200 pt-2">
           <span>Scope:</span>
-          <span className="font-mono text-emerald-400">{user.scope}</span>
+          <span className="font-mono font-bold text-[#006AC7]">{user.scope}</span>
         </div>
       </div>
     </aside>

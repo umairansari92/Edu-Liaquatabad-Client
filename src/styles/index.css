@@ -1,47 +1,129 @@
 @import "tailwindcss";
 
-@theme {
-  --color-dmc-navy-950: #020617;
-  --color-dmc-navy-900: #0F172A;
-  --color-dmc-navy-800: #1E293B;
-  --color-dmc-navy-700: #334155;
-  
-  --color-dmc-emerald-600: #059669;
-  --color-dmc-emerald-500: #10B981;
-  --color-dmc-emerald-100: #D1FAE5;
-  --color-dmc-emerald-50: #ECFDF5;
+/**
+ * Education Department Liaquatabad Town Centre (DMC)
+ * VERSION 2.0 — FROZEN DESIGN CONSTITUTION (August 2026)
+ * In accordance with docs/DESIGN.md:
+ * - BLUE = Identity & Authority (55% of UI surface area)
+ * - WHITE / SURFACE = Breathing space (25% of UI surface area)
+ * - NEUTRAL = Structure & text (12% of UI surface area)
+ * - GREEN = Accent only (8% — strictly <= 8%)
+ */
 
-  --color-dmc-amber-500: #F59E0B;
-  --color-dmc-amber-100: #FEF3C7;
-  
+@theme {
+  /* ── Primary Brand Blue Scale ── */
+  --color-brand-blue-50: #F0F8FF;
+  --color-brand-blue-100: #DCEFFF;
+  --color-brand-blue-200: #B9DEFF;
+  --color-brand-blue-300: #82C4F5;
+  --color-brand-blue-400: #3FA4E8;
+  --color-brand-blue-500: #006AC7;
+  --color-brand-blue-600: #005299;
+  --color-brand-blue-700: #003F75;
+  --color-brand-blue-800: #00213D;
+
+  /* ── Government Green Scale (Accent Only <= 8%) ── */
+  --color-gov-green-50: #F2F8EF;
+  --color-gov-green-100: #E3F0DC;
+  --color-gov-green-200: #C9DFBC;
+  --color-gov-green-300: #A7C895;
+  --color-gov-green-400: #7FAE6A;
+  --color-gov-green-500: #4B7F3A;
+  --color-gov-green-600: #38662D;
+  --color-gov-green-700: #294D22;
+
+  /* ── Neutral & Surface Tokens ── */
+  --color-surface: #F8FBFD;
+  --color-surface-hero: #F0F8FF;
+  --color-surface-card: #FFFFFF;
+  --color-text-primary: #102033;
+  --color-text-body: #526477;
+  --color-text-muted: #8094A8;
+  --color-border-subtle: rgba(16, 32, 51, 0.10);
+  --color-border-brand: rgba(0, 106, 199, 0.14);
+
+  /* ── Status Tokens ── */
+  --color-status-active: #4B7F3A;
+  --color-status-pending: #D97706;
+  --color-status-correction: #EA580C;
+  --color-status-danger: #DC2626;
+  --color-status-info: #006AC7;
+  --color-status-inactive: #6B7280;
+
+  /* ── Typography Scale ── */
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-display: 'Outfit', 'Inter', system-ui, sans-serif;
+  --font-display: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 @layer base {
   body {
-    background-color: #F8FAFC;
-    color: #0F172A;
+    background-color: #F8FBFD;
+    color: #102033;
     font-family: var(--font-sans);
+    line-height: 1.6;
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-display);
+    font-family: var(--font-sans);
+    color: #102033;
     letter-spacing: -0.02em;
+    font-weight: 700;
   }
 }
 
-/* Glassmorphism & Custom Accents */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+/* ── V2.0 Glassmorphism & Card Standards ── */
+.glass-card {
+  background-color: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(0, 106, 199, 0.12);
+  box-shadow: 0 8px 30px rgba(0, 33, 61, 0.05);
 }
 
-.dark-glass-panel {
-  background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(51, 65, 85, 0.8);
+.glass-panel {
+  background-color: rgba(255, 255, 255, 0.90);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(0, 106, 199, 0.10);
+  box-shadow: 0 4px 20px rgba(0, 33, 61, 0.04);
+}
+
+/* ── Standard Button Tokens ── */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: #006AC7;
+  color: #FFFFFF;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  padding: 0.625rem 1.25rem;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 4px 14px rgba(0, 106, 199, 0.25);
+}
+
+.btn-primary:hover {
+  background-color: #005299;
+  box-shadow: 0 6px 18px rgba(0, 106, 199, 0.35);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: #F0F8FF;
+  color: #006AC7;
+  border: 1px solid rgba(0, 106, 199, 0.20);
+  font-weight: 600;
+  border-radius: 0.75rem;
+  padding: 0.625rem 1.25rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-secondary:hover {
+  background-color: #DCEFFF;
 }
 
 /* ── Screen Capture & Print Protection for Non-Privileged Roles ── */
@@ -66,4 +148,3 @@ body.screen-protected canvas {
     visibility: hidden !important;
   }
 }
-
