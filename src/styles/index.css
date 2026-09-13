@@ -52,7 +52,8 @@
 
   /* ── Typography Scale ── */
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-display: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 @layer base {
@@ -63,11 +64,39 @@
     line-height: 1.6;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-sans);
+  h1 {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    letter-spacing: -0.025em;
     color: #102033;
-    letter-spacing: -0.02em;
+  }
+
+  h2 {
+    font-family: var(--font-heading);
     font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #102033;
+  }
+
+  h3 {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    color: #102033;
+  }
+
+  h4 {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: #102033;
+  }
+
+  h5, h6 {
+    font-family: var(--font-sans);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: #102033;
   }
 }
 
@@ -217,6 +246,94 @@
   border-radius: 9999px;
   padding: 0.125rem 0.625rem;
   font-size: 0.6875rem;
+}
+
+/* ─── V2.0 Restrained Premium Micro-Interactions (Constitution Section 8.1) ─── */
+
+/* 1. Light Institutional Skeleton Shimmer */
+@keyframes shimmerLight {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-light {
+  background: linear-gradient(
+    90deg,
+    rgba(240, 248, 255, 0.7) 25%,
+    rgba(255, 255, 255, 0.95) 50%,
+    rgba(240, 248, 255, 0.7) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmerLight 1.8s infinite ease-in-out;
+  border-radius: 0.5rem;
+}
+
+/* 2. Card Micro-Elevation (Physics Lift on Hover) */
+.card-interactive {
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.22s ease-out;
+  will-change: transform, box-shadow;
+}
+
+.card-interactive:hover {
+  transform: translateY(-2.5px);
+  box-shadow: 0 10px 25px -5px rgba(0, 50, 100, 0.08), 0 8px 10px -6px rgba(0, 50, 100, 0.04);
+  border-color: rgba(0, 106, 199, 0.28);
+}
+
+/* 3. Modal & Drawer Snappy Transitions */
+@keyframes modalBackdropFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalCardPopIn {
+  from {
+    opacity: 0;
+    transform: scale(0.975) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-modal-backdrop {
+  animation: modalBackdropFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-modal-card {
+  animation: modalCardPopIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* 4. Tab Content Fade & Micro-Slide (Zero Jhatka) */
+@keyframes tabContentEnter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-tab-content {
+  animation: tabContentEnter 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* 5. Tactile Button Press (Haptic Click Feel) */
+.btn-tactile {
+  transition: transform 0.08s ease-out, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.btn-tactile:active {
+  transform: scale(0.975);
 }
 
 /* ── Screen Capture & Print Protection for Non-Privileged Roles ── */

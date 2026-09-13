@@ -860,7 +860,7 @@ export const RootAdminDashboard = () => {
           {/* Municipal Schools Card */}
           <div
             onClick={() => setActiveTab('schools')}
-            className="group relative cursor-pointer overflow-hidden rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-[#006AC7]/40 hover:shadow-md"
+            className="group relative cursor-pointer overflow-hidden rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm card-interactive hover:border-[#006AC7]/40"
           >
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold uppercase tracking-wider text-[#8094A8]">Schools</span>
@@ -885,7 +885,7 @@ export const RootAdminDashboard = () => {
           {/* Platform Personnel Card */}
           <div
             onClick={() => setActiveTab('users')}
-            className="group relative cursor-pointer overflow-hidden rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-[#006AC7]/40 hover:shadow-md"
+            className="group relative cursor-pointer overflow-hidden rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm card-interactive hover:border-[#006AC7]/40"
           >
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold uppercase tracking-wider text-[#8094A8]">Platform Users</span>
@@ -910,7 +910,7 @@ export const RootAdminDashboard = () => {
           {/* Total Students Enrolled Card */}
           <div
             onClick={() => setActiveTab('academic')}
-            className="group relative cursor-pointer overflow-hidden rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-md"
+            className="group relative cursor-pointer overflow-hidden rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm card-interactive hover:border-indigo-200"
           >
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold uppercase tracking-wider text-[#8094A8]">Students</span>
@@ -935,7 +935,7 @@ export const RootAdminDashboard = () => {
           {/* Active Faculty / Teachers Card */}
           <div
             onClick={() => setActiveTab('transfers')}
-            className="group relative cursor-pointer overflow-hidden rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-teal-200 hover:shadow-md"
+            className="group relative cursor-pointer overflow-hidden rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm card-interactive hover:border-teal-200"
           >
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold uppercase tracking-wider text-[#8094A8]">Faculty</span>
@@ -960,7 +960,7 @@ export const RootAdminDashboard = () => {
           {/* Pending Approvals Card */}
           <div
             onClick={() => setActiveTab('approvals')}
-            className="group relative cursor-pointer overflow-hidden rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-amber-200 hover:shadow-md"
+            className="group relative cursor-pointer overflow-hidden rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm card-interactive hover:border-amber-200"
           >
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold uppercase tracking-wider text-[#8094A8]">Approvals</span>
@@ -985,7 +985,7 @@ export const RootAdminDashboard = () => {
           {/* System Security Audit Stream Card */}
           <div
             onClick={() => setActiveTab('audit')}
-            className="group relative cursor-pointer overflow-hidden rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-purple-200 hover:shadow-md"
+            className="group relative cursor-pointer overflow-hidden rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm card-interactive hover:border-purple-200"
           >
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold uppercase tracking-wider text-[#8094A8]">Audit Stream</span>
@@ -1273,7 +1273,7 @@ export const RootAdminDashboard = () => {
 
         {/* ─── TAB 1: MUNICIPAL SCHOOLS MATRIX ─── */}
         {activeTab === 'schools' && (
-          <div className="space-y-4">
+          <div className="space-y-4 animate-tab-content">
             {/* Filter & Search Bar */}
             <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm">
               <div className="flex flex-1 items-center gap-3">
@@ -1455,7 +1455,7 @@ export const RootAdminDashboard = () => {
 
         {/* ─── TAB 2: GLOBAL PERSONNEL & IDENTITY DIRECTORY (8 ROLES) ─── */}
         {activeTab === 'users' && (
-          <div className="space-y-4">
+          <div className="space-y-4 animate-tab-content">
             <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm">
               <div className="flex flex-1 items-center gap-3">
                 <div className="relative flex-1 max-w-md">
@@ -1719,7 +1719,7 @@ export const RootAdminDashboard = () => {
 
             {/* ─── TAB 3: SUPER ADMIN GOVERNANCE ─── */}
             {activeTab === 'governance' && (
-                              <div className="space-y-4">
+              <div className="space-y-4 animate-tab-content">
                                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm">
                                   <div>
                                     <h3 className="text-base font-bold text-[#102033]">Authorized Super Administrators (Level 90)</h3>
@@ -1844,7 +1844,7 @@ export const RootAdminDashboard = () => {
 
                             {/* ─── TAB 4: CLEARANCE & APPROVALS ROSTER ─── */}
                             {activeTab === 'approvals' && (
-                              <div className="space-y-4">
+                              <div className="space-y-4 animate-tab-content">
                                 <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm">
                                   <h3 className="text-base font-bold text-[#102033]">Personnel Clearance & Approval Queue</h3>
                                   <p className="text-xs text-[#526477]">
@@ -1915,7 +1915,7 @@ export const RootAdminDashboard = () => {
 
                             {/* ─── TAB 5: COMMAND OPS & EMERGENCY ─── */}
                             {activeTab === 'operations' && (
-                              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-tab-content">
                                 {/* Break Glass Architecture */}
                                 <div className="rounded-xl border border-amber-200 bg-white p-6 shadow-sm space-y-4 flex flex-col justify-between">
                                   <div className="space-y-4">
@@ -2020,7 +2020,7 @@ export const RootAdminDashboard = () => {
 
                             {/* ─── TAB 6: IMMUTABLE AUDIT STREAM ─── */}
                             {activeTab === 'audit' && (
-                              <div className="space-y-4">
+                              <div className="space-y-4 animate-tab-content">
                                 <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm">
                                   <div className="flex flex-1 items-center gap-3">
                                     <div className="relative flex-1 max-w-md">
@@ -2105,8 +2105,8 @@ export const RootAdminDashboard = () => {
 
                             {/* ─── MODAL: REGISTER SCHOOL ─── */}
                             {isRegisterSchoolModalOpen && (
-                              <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
-                                <div className="relative w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-5">
+                              <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm animate-modal-backdrop">
+                                <div className="relative w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-5 animate-modal-card">
                                   <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                                     <div className="flex items-center gap-2.5">
                                       <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-2 text-[#4B7F3A]">
@@ -2252,8 +2252,8 @@ export const RootAdminDashboard = () => {
 
                             {/* ─── MODAL: AUTHORIZE SUPER ADMIN (EXISTING USER WORKFLOW) ─── */}
                             {isAuthorizeModalOpen && (
-                              <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
-                                <div className="relative w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-5">
+                              <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm animate-modal-backdrop">
+                                <div className="relative w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-5 animate-modal-card">
                                   <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                                     <div className="flex items-center gap-2.5">
                                       <div className="rounded-lg border border-amber-200 bg-amber-50 p-2 text-amber-700">
@@ -2437,8 +2437,8 @@ export const RootAdminDashboard = () => {
 
                             {/* ─── MODAL: DISABLE SUPER ADMIN ─── */}
                             {isDisableModalOpen && selectedSuperAdminToDisable && (
-                              <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
-                                <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-5">
+                              <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm animate-modal-backdrop">
+                                <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-5 animate-modal-card">
                                   <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
                                     <div className="rounded-lg border border-red-200 bg-red-50 p-2 text-red-600">
                                       <AlertTriangle className="h-5 w-5" />
@@ -2489,8 +2489,8 @@ export const RootAdminDashboard = () => {
 
                             {/* ─── MODAL: EMERGENCY BROADCAST ─── */}
                             {isBroadcastModalOpen && (
-                              <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
-                                <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-5">
+                              <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm animate-modal-backdrop">
+                                <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-5 animate-modal-card">
                                   <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                                     <div className="flex items-center gap-2.5">
                                       <div className="rounded-lg border border-blue-200 bg-blue-50 p-2 text-[#006AC7]">
@@ -2571,8 +2571,8 @@ export const RootAdminDashboard = () => {
 
                             {/* ─── MODAL: FLUSH SECURITY LOCKOUTS (HARDENED WITH TYPED REASON & CONFIRMATION) ─── */}
                             {isFlushLockoutModalOpen && (
-                              <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
-                                <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-5">
+                              <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm animate-modal-backdrop">
+                                <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-5 animate-modal-card">
                                   <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                                     <div className="flex items-center gap-2.5">
                                       <div className="rounded-lg border border-red-200 bg-red-50 p-2 text-red-600">

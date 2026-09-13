@@ -110,8 +110,8 @@ export const OtpVerificationModal = ({ isOpen, onClose, email, onVerified, purpo
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-      <div className="relative w-full max-w-md p-6 bg-white border border-slate-200 rounded-2xl shadow-2xl text-[#102033]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-modal-backdrop">
+      <div className="relative w-full max-w-md p-6 bg-white border border-slate-200 rounded-2xl shadow-2xl text-[#102033] animate-modal-card">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-slate-400 hover:text-[#102033] p-1 rounded-lg hover:bg-slate-100 transition-colors"

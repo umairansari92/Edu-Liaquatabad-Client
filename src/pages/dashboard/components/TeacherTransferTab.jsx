@@ -122,7 +122,7 @@ export const TeacherTransferTab = ({ schoolsList = [], teachersList = [] }) => {
   });
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 animate-tab-content">
       {/* Top Banner & Action Controls */}
       <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm">
         <div className="flex items-center gap-3">
@@ -286,8 +286,8 @@ export const TeacherTransferTab = ({ schoolsList = [], teachersList = [] }) => {
 
       {/* --- MODAL: INITIATE TEACHER TRANSFER --- */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
-          <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-4 text-[#102033]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm animate-modal-backdrop">
+          <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-4 text-[#102033] animate-modal-card">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
                 <ArrowRightLeft className="h-5 w-5 text-[#006AC7]" />
