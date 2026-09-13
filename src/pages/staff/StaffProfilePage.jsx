@@ -39,12 +39,12 @@ export const StaffProfilePage = () => {
     const fetchProfile = async () => {
       setLoading(true);
       try {
-        const res = await apiClient.get(`/staff/${targetId}/profile`);
-        if (res.data?.success && res.data?.data) {
-          setProfileData(res.data.data);
+        const profileResponse = await apiClient.get(`/staff/${targetId}/profile`);
+        if (profileResponse.data?.success && profileResponse.data?.data) {
+          setProfileData(profileResponse.data.data);
         }
-      } catch (err) {
-        toast.error(err.response?.data?.message || 'Failed to retrieve staff profile.');
+      } catch (profileError) {
+        toast.error(profileError.response?.data?.message || 'Failed to retrieve staff profile.');
       } finally {
         setLoading(false);
       }
@@ -71,7 +71,7 @@ export const StaffProfilePage = () => {
       window.URL.revokeObjectURL(downloadUrl);
 
       toast.success('Official Service Record PDF downloaded successfully.');
-    } catch (err) {
+    } catch (pdfDownloadError) {
       toast.error('Failed to generate official PDF record.');
     } finally {
       setDownloadingPdf(false);
@@ -318,27 +318,27 @@ export const StaffProfilePage = () => {
                 </p>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {assignments.active.map((a) => (
+                  {assignments.active.map((assignmentItem) => (
                     <div
-                      key={a._id}
+                      key={assignmentItem._id}
                       className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5 text-xs hover:border-teal-500/30 transition-all"
                     >
                       <div className="flex justify-between items-center">
                         <span className="font-bold text-white">
-                          {a.classId?.name} (Sec {a.sectionId?.name})
+                          {assignmentItem.classId?.name} (Sec {assignmentItem.sectionId?.name})
                         </span>
                         <span className="px-1.5 py-0.5 rounded bg-teal-500/10 text-teal-400 text-[10px] font-bold">
                           ACTIVE
                         </span>
                       </div>
                       <div className="text-teal-300 font-semibold">
-                        {a.subjectId?.name} [{a.subjectId?.code || 'GEN'}]
+                        {assignmentItem.subjectId?.name} [{assignmentItem.subjectId?.code || 'GEN'}]
                       </div>
                       <div className="text-[10px] text-slate-400">
-                        Session: <span className="font-mono text-slate-300">{a.academicSession}</span>
+                        Session: <span className="font-mono text-slate-300">{assignmentItem.academicSession}</span>
                       </div>
                       <div className="text-[10px] text-slate-500">
-                        Effective from: {a.effectiveFrom ? new Date(a.effectiveFrom).toLocaleDateString() : 'N/A'}
+                        Effective from: {assignmentItem.effectiveFrom ? new Date(assignmentItem.effectiveFrom).toLocaleDateString() : 'N/A'}
                       </div>
                     </div>
                   ))}

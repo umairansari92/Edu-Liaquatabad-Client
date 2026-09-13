@@ -43,8 +43,8 @@ export const SchoolTimingsModal = ({ isOpen, onClose, school, onTimingsUpdated }
 
   if (!isOpen || !school) return null;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (submitEvent) => {
+    submitEvent.preventDefault();
     setIsSubmitting(true);
     try {
       const response = await apiClient.patch(`/schools/${school._id}/timings`, formData);
@@ -115,10 +115,10 @@ export const SchoolTimingsModal = ({ isOpen, onClose, school, onTimingsUpdated }
                   type="time"
                   required
                   value={formData.regular.startTime}
-                  onChange={(e) =>
+                  onChange={(inputChangeEvent) =>
                     setFormData({
                       ...formData,
-                      regular: { ...formData.regular, startTime: e.target.value },
+                      regular: { ...formData.regular, startTime: inputChangeEvent.target.value },
                     })
                   }
                   className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white focus:border-emerald-500 focus:outline-none"
@@ -131,10 +131,10 @@ export const SchoolTimingsModal = ({ isOpen, onClose, school, onTimingsUpdated }
                   type="time"
                   required
                   value={formData.regular.endTime}
-                  onChange={(e) =>
+                  onChange={(inputChangeEvent) =>
                     setFormData({
                       ...formData,
-                      regular: { ...formData.regular, endTime: e.target.value },
+                      regular: { ...formData.regular, endTime: inputChangeEvent.target.value },
                     })
                   }
                   className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white focus:border-emerald-500 focus:outline-none"
@@ -147,10 +147,10 @@ export const SchoolTimingsModal = ({ isOpen, onClose, school, onTimingsUpdated }
                   type="time"
                   required
                   value={formData.regular.attendanceWindowStart}
-                  onChange={(e) =>
+                  onChange={(inputChangeEvent) =>
                     setFormData({
                       ...formData,
-                      regular: { ...formData.regular, attendanceWindowStart: e.target.value },
+                      regular: { ...formData.regular, attendanceWindowStart: inputChangeEvent.target.value },
                     })
                   }
                   className="mt-1 w-full rounded-lg border border-emerald-500/50 bg-slate-900 px-3 py-2 text-xs font-mono text-white focus:border-emerald-400 focus:outline-none"
@@ -164,10 +164,10 @@ export const SchoolTimingsModal = ({ isOpen, onClose, school, onTimingsUpdated }
                   type="time"
                   required
                   value={formData.regular.attendanceWindowEnd}
-                  onChange={(e) =>
+                  onChange={(inputChangeEvent) =>
                     setFormData({
                       ...formData,
-                      regular: { ...formData.regular, attendanceWindowEnd: e.target.value },
+                      regular: { ...formData.regular, attendanceWindowEnd: inputChangeEvent.target.value },
                     })
                   }
                   className="mt-1 w-full rounded-lg border border-rose-500/50 bg-slate-900 px-3 py-2 text-xs font-mono text-white focus:border-rose-400 focus:outline-none"
@@ -196,10 +196,10 @@ export const SchoolTimingsModal = ({ isOpen, onClose, school, onTimingsUpdated }
                   type="time"
                   required
                   value={formData.friday.startTime}
-                  onChange={(e) =>
+                  onChange={(inputChangeEvent) =>
                     setFormData({
                       ...formData,
-                      friday: { ...formData.friday, startTime: e.target.value },
+                      friday: { ...formData.friday, startTime: inputChangeEvent.target.value },
                     })
                   }
                   className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white focus:border-cyan-500 focus:outline-none"
@@ -212,10 +212,10 @@ export const SchoolTimingsModal = ({ isOpen, onClose, school, onTimingsUpdated }
                   type="time"
                   required
                   value={formData.friday.endTime}
-                  onChange={(e) =>
+                  onChange={(inputChangeEvent) =>
                     setFormData({
                       ...formData,
-                      friday: { ...formData.friday, endTime: e.target.value },
+                      friday: { ...formData.friday, endTime: inputChangeEvent.target.value },
                     })
                   }
                   className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white focus:border-cyan-500 focus:outline-none"
@@ -228,10 +228,10 @@ export const SchoolTimingsModal = ({ isOpen, onClose, school, onTimingsUpdated }
                   type="time"
                   required
                   value={formData.friday.attendanceWindowStart}
-                  onChange={(e) =>
+                  onChange={(inputChangeEvent) =>
                     setFormData({
                       ...formData,
-                      friday: { ...formData.friday, attendanceWindowStart: e.target.value },
+                      friday: { ...formData.friday, attendanceWindowStart: inputChangeEvent.target.value },
                     })
                   }
                   className="mt-1 w-full rounded-lg border border-cyan-500/50 bg-slate-900 px-3 py-2 text-xs font-mono text-white focus:border-cyan-400 focus:outline-none"
@@ -244,10 +244,10 @@ export const SchoolTimingsModal = ({ isOpen, onClose, school, onTimingsUpdated }
                   type="time"
                   required
                   value={formData.friday.attendanceWindowEnd}
-                  onChange={(e) =>
+                  onChange={(inputChangeEvent) =>
                     setFormData({
                       ...formData,
-                      friday: { ...formData.friday, attendanceWindowEnd: e.target.value },
+                      friday: { ...formData.friday, attendanceWindowEnd: inputChangeEvent.target.value },
                     })
                   }
                   className="mt-1 w-full rounded-lg border border-rose-500/50 bg-slate-900 px-3 py-2 text-xs font-mono text-white focus:border-rose-400 focus:outline-none"
@@ -271,8 +271,8 @@ export const SchoolTimingsModal = ({ isOpen, onClose, school, onTimingsUpdated }
               <input
                 type="checkbox"
                 checked={formData.allowHmLateOverride}
-                onChange={(e) =>
-                  setFormData({ ...formData, allowHmLateOverride: e.target.checked })
+                onChange={(checkboxChangeEvent) =>
+                  setFormData({ ...formData, allowHmLateOverride: checkboxChangeEvent.target.checked })
                 }
                 className="sr-only peer"
               />

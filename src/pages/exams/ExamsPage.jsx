@@ -38,12 +38,12 @@ export const ExamsPage = () => {
       <div className="space-y-6">
         {/* Term Selector Cards */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {terms.map((t) => (
+          {terms.map((termItem) => (
             <div
-              key={t.id}
-              onClick={() => setActiveTerm(t.id)}
+              key={termItem.id}
+              onClick={() => setActiveTerm(termItem.id)}
               className={`cursor-pointer rounded-xl border p-4 transition backdrop-blur-md shadow-lg ${
-                activeTerm === t.id
+                activeTerm === termItem.id
                   ? 'border-indigo-500/50 bg-indigo-950/20 shadow-indigo-950/30'
                   : 'border-slate-800 bg-slate-900/60 hover:bg-slate-900/90'
               }`}
@@ -51,16 +51,16 @@ export const ExamsPage = () => {
               <div className="flex items-center justify-between">
                 <span
                   className={`rounded px-2 py-0.5 text-[10px] font-bold ${
-                    t.status === 'UPCOMING'
+                    termItem.status === 'UPCOMING'
                       ? 'bg-indigo-950 text-indigo-400 border border-indigo-800/50'
                       : 'bg-emerald-950 text-emerald-400 border border-emerald-800/50'
                   }`}
                 >
-                  {t.status}
+                  {termItem.status}
                 </span>
-                <span className="text-xs text-slate-400 font-mono">{t.date}</span>
+                <span className="text-xs text-slate-400 font-mono">{termItem.date}</span>
               </div>
-              <h4 className="mt-3 font-bold text-white text-sm">{t.label}</h4>
+              <h4 className="mt-3 font-bold text-white text-sm">{termItem.label}</h4>
               <p className="mt-1 text-xs text-slate-400">Liaquatabad Town DMC Jurisdiction</p>
             </div>
           ))}

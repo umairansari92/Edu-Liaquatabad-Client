@@ -10,9 +10,9 @@ import {
 } from 'lucide-react';
 
 // ─── Utility ─────────────────────────────────────────────────────────────────
-const fmtDate = (d) => {
-  const dt = d ? new Date(d) : new Date();
-  return dt.toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' });
+const fmtDate = (dateValue) => {
+  const dateObj = dateValue ? new Date(dateValue) : new Date();
+  return dateObj.toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
 // ─── Attendance Status Chip ───────────────────────────────────────────────────
@@ -22,11 +22,11 @@ const AttendanceChip = ({ status }) => {
     PENDING_VERIFICATION: { bg: 'bg-amber-950/60',   border: 'border-amber-700/50',   text: 'text-amber-300',   dot: 'bg-amber-400',   label: 'Pending Verification' },
     VERIFIED:             { bg: 'bg-emerald-950/60', border: 'border-emerald-700/50', text: 'text-emerald-300', dot: 'bg-emerald-400', label: 'Verified' },
   };
-  const s = map[status] || map.NOT_SUBMITTED;
+  const chipStyle = map[status] || map.NOT_SUBMITTED;
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-semibold ${s.bg} ${s.border} ${s.text}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${s.dot} animate-pulse`} />
-      {s.label}
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-semibold ${chipStyle.bg} ${chipStyle.border} ${chipStyle.text}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${chipStyle.dot} animate-pulse`} />
+      {chipStyle.label}
     </span>
   );
 };
@@ -55,19 +55,19 @@ const AttendanceModal = ({ section, onClose, onSubmitted }) => {
   useEffect(() => {
     let mounted = true;
     apiClient.get('/attendance/sheet', { params: { sectionId: section._id } })
-      .then((res) => { if (mounted) setRoster(res.data?.data?.roster || []); })
-      .catch((e) => { if (mounted) setError(e.response?.data?.message || 'Failed to load roster.'); })
+      .then((sheetResponse) => { if (mounted) setRoster(sheetResponse.data?.data?.roster || []); })
+      .catch((rosterError) => { if (mounted) setError(rosterError.response?.data?.message || 'Failed to load roster.'); })
       .finally(() => { if (mounted) setLoading(false); });
     return () => { mounted = false; };
   }, [section._id]);
 
-  const toggle = (id) => setRoster((p) => p.map((r) => {
-    if (String(r.studentProfileId) !== String(id)) return r;
+  const toggle = (studentProfileId) => setRoster((prevRoster) => prevRoster.map((rosterItem) => {
+    if (String(rosterItem.studentProfileId) !== String(studentProfileId)) return rosterItem;
     const cycle = { PRESENT: 'ABSENT', ABSENT: 'LEAVE', LEAVE: 'PRESENT' };
-    return { ...r, currentStatus: cycle[r.currentStatus] || 'PRESENT' };
+    return { ...rosterItem, currentStatus: cycle[rosterItem.currentStatus] || 'PRESENT' };
   }));
 
-  const markAll = (s) => setRoster((p) => p.map((r) => ({ ...r, currentStatus: s })));
+  const markAll = (targetStatus) => setRoster((prevRoster) => prevRoster.map((rosterItem) => ({ ...rosterItem, currentStatus: targetStatus })));
 
   const submit = async () => {
     setSubmitting(true); setError(null);
@@ -264,11 +264,11 @@ const TeacherDashboard = () => {
     </PageContainer>
   );
 
-  const s = summary || {};
-  const sections = s.sections || [];
-  const pending  = s.summary?.pendingAttendanceCount ?? 0;
-  const total    = s.summary?.totalAssignedStudents   ?? 0;
-  const secCount = s.summary?.assignedSectionCount    ?? 0;
+  const activeSummary = summary || {};
+  const sections = activeSummary.sections || [];
+  const pending  = activeSummary.summary?.pendingAttendanceCount ?? 0;
+  const total    = activeSummary.summary?.totalAssignedStudents   ?? 0;
+  const secCount = activeSummary.summary?.assignedSectionCount    ?? 0;
 
   return (
     <>

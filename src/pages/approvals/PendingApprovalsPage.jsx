@@ -47,7 +47,7 @@ export const PendingApprovalsPage = () => {
       } else {
         setItems([]);
       }
-    } catch (err) {
+    } catch (pendingListError) {
       toast.error('Failed to load pending approvals list.');
       setItems([]);
     } finally {
@@ -67,7 +67,7 @@ export const PendingApprovalsPage = () => {
       if (res.data?.success && res.data?.data) {
         setApplicantDetail(res.data.data);
       }
-    } catch (err) {
+    } catch (detailInspectionError) {
       toast.error('Failed to fetch detailed profile inspection.');
     } finally {
       setDetailLoading(false);
@@ -105,8 +105,8 @@ export const PendingApprovalsPage = () => {
         setApplicantDetail(null);
         fetchPendingList();
       }
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to process decision.');
+    } catch (decisionError) {
+      toast.error(decisionError.response?.data?.message || 'Failed to process decision.');
       setDecisionModal((prev) => ({ ...prev, submitting: false }));
     }
   };
@@ -176,7 +176,7 @@ export const PendingApprovalsPage = () => {
         <input
           type="text"
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(inputChangeEvent) => setSearchQuery(inputChangeEvent.target.value)}
           placeholder="Search by applicant name, employee ID, designation, or institution..."
           className="bg-transparent border-none text-xs text-white placeholder-slate-500 focus:outline-none w-full"
         />
@@ -492,8 +492,8 @@ export const PendingApprovalsPage = () => {
                 <textarea
                   rows={3}
                   value={decisionModal.reason}
-                  onChange={(e) =>
-                    setDecisionModal((prev) => ({ ...prev, reason: e.target.value }))
+                  onChange={(textareaChangeEvent) =>
+                    setDecisionModal((prev) => ({ ...prev, reason: textareaChangeEvent.target.value }))
                   }
                   placeholder="Enter specific discrepancy or reason (minimum 5 characters)..."
                   className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs outline-none focus:ring-2 focus:ring-teal-500"

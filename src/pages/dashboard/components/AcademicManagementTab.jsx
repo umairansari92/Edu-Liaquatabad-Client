@@ -144,8 +144,8 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
     setIsClassModalOpen(true);
   };
 
-  const handleSaveClass = async (e) => {
-    e.preventDefault();
+  const handleSaveClass = async (submitEvent) => {
+    submitEvent.preventDefault();
     try {
       if (editingClass) {
         await apiClient.patch(`/academic/classes/${editingClass._id}`, classForm);
@@ -185,8 +185,8 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
     setIsSectionModalOpen(true);
   };
 
-  const handleSaveSection = async (e) => {
-    e.preventDefault();
+  const handleSaveSection = async (submitEvent) => {
+    submitEvent.preventDefault();
     try {
       if (editingSection) {
         await apiClient.patch(`/academic/sections/${editingSection._id}`, sectionForm);
@@ -240,8 +240,8 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
     setIsSubjectModalOpen(true);
   };
 
-  const handleSaveSubject = async (e) => {
-    e.preventDefault();
+  const handleSaveSubject = async (submitEvent) => {
+    submitEvent.preventDefault();
     try {
       if (editingSubject) {
         await apiClient.patch(`/academic/subjects/${editingSubject._id}`, subjectForm);
@@ -269,19 +269,19 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
   };
 
   // Filter lists based on search
-  const filteredClasses = classes.filter((c) =>
-    c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    c.code.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredClasses = classes.filter((classItem) =>
+    classItem.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    classItem.code.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const filteredSections = sections.filter((s) =>
-    s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (s.roomNumber && s.roomNumber.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredSections = sections.filter((sectionItem) =>
+    sectionItem.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (sectionItem.roomNumber && sectionItem.roomNumber.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  const filteredSubjects = subjects.filter((s) =>
-    s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    s.code.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredSubjects = subjects.filter((subjectItem) =>
+    subjectItem.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    subjectItem.code.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // Map of classes to section count
@@ -293,7 +293,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
     return acc;
   }, {});
 
-  const currentSchool = schoolsList.find((s) => s._id === selectedSchoolId);
+  const currentSchool = schoolsList.find((schoolItem) => schoolItem._id === selectedSchoolId);
 
   return (
     <div className="space-y-5">
@@ -317,7 +317,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
             </label>
             <select
               value={selectedSchoolId}
-              onChange={(e) => handleSchoolChange(e.target.value)}
+              onChange={(selectChangeEvent) => handleSchoolChange(selectChangeEvent.target.value)}
               className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none"
             >
               {schoolsList.map((school) => (
@@ -335,7 +335,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
             </label>
             <select
               value={selectedClassId}
-              onChange={(e) => handleClassChange(e.target.value)}
+              onChange={(selectChangeEvent) => handleClassChange(selectChangeEvent.target.value)}
               className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none"
             >
               <option value="">All Classes in School ({classes.length})</option>
@@ -354,7 +354,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
             </label>
             <select
               value={selectedSectionId}
-              onChange={(e) => setSelectedSectionId(e.target.value)}
+              onChange={(selectChangeEvent) => setSelectedSectionId(selectChangeEvent.target.value)}
               disabled={!selectedClassId}
               className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none disabled:opacity-50"
             >
@@ -423,7 +423,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
               type="text"
               placeholder={`Search ${subTab}...`}
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(inputChangeEvent) => setSearchQuery(inputChangeEvent.target.value)}
               className="rounded-lg border border-slate-700 bg-slate-800 pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none"
             />
           </div>
@@ -772,7 +772,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                   required
                   placeholder="e.g. Class 10, Grade 8, Kindergarten"
                   value={classForm.name}
-                  onChange={(e) => setClassForm({ ...classForm, name: e.target.value })}
+                  onChange={(inputChangeEvent) => setClassForm({ ...classForm, name: inputChangeEvent.target.value })}
                   className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
                 />
               </div>
@@ -783,7 +783,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                   required
                   placeholder="e.g. CL-10, GR-08"
                   value={classForm.code}
-                  onChange={(e) => setClassForm({ ...classForm, code: e.target.value.toUpperCase() })}
+                  onChange={(inputChangeEvent) => setClassForm({ ...classForm, code: inputChangeEvent.target.value.toUpperCase() })}
                   className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 font-mono uppercase text-indigo-300 focus:border-indigo-500 focus:outline-none"
                 />
               </div>
@@ -795,7 +795,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                   min={1}
                   max={12}
                   value={classForm.gradeLevel}
-                  onChange={(e) => setClassForm({ ...classForm, gradeLevel: parseInt(e.target.value, 10) || 1 })}
+                  onChange={(inputChangeEvent) => setClassForm({ ...classForm, gradeLevel: parseInt(inputChangeEvent.target.value, 10) || 1 })}
                   className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
                 />
               </div>
@@ -841,7 +841,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                 <select
                   required
                   value={sectionForm.classId}
-                  onChange={(e) => setSectionForm({ ...sectionForm, classId: e.target.value })}
+                  onChange={(selectChangeEvent) => setSectionForm({ ...sectionForm, classId: selectChangeEvent.target.value })}
                   className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
                 >
                   {classes.map((cls) => (
@@ -858,7 +858,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                   required
                   placeholder="e.g. A, B, Blue, Red, Science"
                   value={sectionForm.name}
-                  onChange={(e) => setSectionForm({ ...sectionForm, name: e.target.value })}
+                  onChange={(inputChangeEvent) => setSectionForm({ ...sectionForm, name: inputChangeEvent.target.value })}
                   className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
                 />
               </div>
@@ -869,7 +869,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                   min={5}
                   max={120}
                   value={sectionForm.capacity}
-                  onChange={(e) => setSectionForm({ ...sectionForm, capacity: parseInt(e.target.value, 10) || 40 })}
+                  onChange={(inputChangeEvent) => setSectionForm({ ...sectionForm, capacity: parseInt(inputChangeEvent.target.value, 10) || 40 })}
                   className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
                 />
               </div>
@@ -879,7 +879,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                   type="text"
                   placeholder="e.g. Room 104, West Wing Lab"
                   value={sectionForm.roomNumber}
-                  onChange={(e) => setSectionForm({ ...sectionForm, roomNumber: e.target.value })}
+                  onChange={(inputChangeEvent) => setSectionForm({ ...sectionForm, roomNumber: inputChangeEvent.target.value })}
                   className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
                 />
               </div>
@@ -927,7 +927,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                   required
                   placeholder="e.g. Mathematics, Physics, English Literature"
                   value={subjectForm.name}
-                  onChange={(e) => setSubjectForm({ ...subjectForm, name: e.target.value })}
+                  onChange={(inputChangeEvent) => setSubjectForm({ ...subjectForm, name: inputChangeEvent.target.value })}
                   className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
                 />
               </div>
@@ -938,7 +938,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                   required
                   placeholder="e.g. MATH-101, PHY-201"
                   value={subjectForm.code}
-                  onChange={(e) => setSubjectForm({ ...subjectForm, code: e.target.value.toUpperCase() })}
+                  onChange={(inputChangeEvent) => setSubjectForm({ ...subjectForm, code: inputChangeEvent.target.value.toUpperCase() })}
                   className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 font-mono uppercase text-indigo-300 focus:border-indigo-500 focus:outline-none"
                 />
               </div>
@@ -946,7 +946,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                 <label className="block font-semibold text-slate-300">Class (Optional - leave empty for global)</label>
                 <select
                   value={subjectForm.classId}
-                  onChange={(e) => setSubjectForm({ ...subjectForm, classId: e.target.value })}
+                  onChange={(selectChangeEvent) => setSubjectForm({ ...subjectForm, classId: selectChangeEvent.target.value })}
                   className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
                 >
                   <option value="">Applicable to All Classes</option>
@@ -962,7 +962,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                   type="checkbox"
                   id="electiveCheckbox"
                   checked={subjectForm.isElective}
-                  onChange={(e) => setSubjectForm({ ...subjectForm, isElective: e.target.checked })}
+                  onChange={(checkboxChangeEvent) => setSubjectForm({ ...subjectForm, isElective: checkboxChangeEvent.target.checked })}
                   className="rounded border-slate-700 bg-slate-800 text-indigo-600 focus:ring-indigo-500"
                 />
                 <label htmlFor="electiveCheckbox" className="font-semibold text-slate-300">

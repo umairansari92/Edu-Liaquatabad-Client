@@ -41,12 +41,12 @@ const TeacherAttendanceWorkspace = ({ user }) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await apiClient.get('/academic/teacher-summary');
-      if (res.data?.data) {
-        setSections(res.data.data.sections || []);
+      const sectionsResponse = await apiClient.get('/academic/teacher-summary');
+      if (sectionsResponse.data?.data) {
+        setSections(sectionsResponse.data.data.sections || []);
       }
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load assigned sections.');
+    } catch (sectionsError) {
+      setError(sectionsError.response?.data?.message || 'Failed to load assigned sections.');
     } finally {
       setLoading(false);
     }
@@ -64,13 +64,13 @@ const TeacherAttendanceWorkspace = ({ user }) => {
     setIsLateOverride(false);
     setLateReason('');
     try {
-      const res = await apiClient.get('/attendance/sheet', {
+      const sheetResponse = await apiClient.get('/attendance/sheet', {
         params: { sectionId: sec._id, date: selectedDate },
       });
-      setRoster(res.data?.data?.roster || []);
-      setWindowStatus(res.data?.data?.windowStatus || null);
-    } catch (err) {
-      setRosterError(err.response?.data?.message || 'Failed to load student roster for this section.');
+      setRoster(sheetResponse.data?.data?.roster || []);
+      setWindowStatus(sheetResponse.data?.data?.windowStatus || null);
+    } catch (sheetError) {
+      setRosterError(sheetError.response?.data?.message || 'Failed to load student roster for this section.');
     } finally {
       setRosterLoading(false);
     }
@@ -78,16 +78,16 @@ const TeacherAttendanceWorkspace = ({ user }) => {
 
   const toggleStatus = (studentProfileId) => {
     setRoster((prev) =>
-      prev.map((r) => {
-        if (String(r.studentProfileId) !== String(studentProfileId)) return r;
+      prev.map((rosterItem) => {
+        if (String(rosterItem.studentProfileId) !== String(studentProfileId)) return rosterItem;
         const cycle = { PRESENT: 'ABSENT', ABSENT: 'LEAVE', LEAVE: 'PRESENT' };
-        return { ...r, currentStatus: cycle[r.currentStatus] || 'PRESENT' };
+        return { ...rosterItem, currentStatus: cycle[rosterItem.currentStatus] || 'PRESENT' };
       })
     );
   };
 
   const markAll = (status) => {
-    setRoster((prev) => prev.map((r) => ({ ...r, currentStatus: status })));
+    setRoster((prev) => prev.map((rosterItem) => ({ ...rosterItem, currentStatus: status })));
   };
 
   const handleSubmitAttendance = async () => {
@@ -107,30 +107,30 @@ const TeacherAttendanceWorkspace = ({ user }) => {
     setRosterError(null);
     try {
       const absentStudentProfileIds = roster
-        .filter((r) => r.currentStatus === 'ABSENT')
-        .map((r) => r.studentProfileId);
+        .filter((rosterItem) => rosterItem.currentStatus === 'ABSENT')
+        .map((rosterItem) => rosterItem.studentProfileId);
       const leaveStudentProfileIds = roster
-        .filter((r) => r.currentStatus === 'LEAVE')
-        .map((r) => r.studentProfileId);
+        .filter((rosterItem) => rosterItem.currentStatus === 'LEAVE')
+        .map((rosterItem) => rosterItem.studentProfileId);
 
       const payload = {
         sectionId: activeModalSection._id,
         date: selectedDate,
         absentStudentProfileIds,
         leaveStudentProfileIds,
-        records: roster.map((r) => ({
-          studentProfileId: r.studentProfileId,
-          status: r.currentStatus,
-          remarks: r.remarks || '',
+        records: roster.map((rosterItem) => ({
+          studentProfileId: rosterItem.studentProfileId,
+          status: rosterItem.currentStatus,
+          remarks: rosterItem.remarks || '',
         })),
         isLateOverride: Boolean(isLateOverride),
         lateReason: isLateOverride ? lateReason.trim() : undefined,
       };
-      const res = await apiClient.post('/attendance/submit', payload);
-      setSubmissionSuccess(`Attendance submitted successfully for ${res.data?.data?.totalRecords || roster.length} students.`);
+      const submitResponse = await apiClient.post('/attendance/submit', payload);
+      setSubmissionSuccess(`Attendance submitted successfully for ${submitResponse.data?.data?.totalRecords || roster.length} students.`);
       fetchTeacherSections();
-    } catch (err) {
-      setRosterError(err.response?.data?.message || 'Failed to submit attendance.');
+    } catch (submitError) {
+      setRosterError(submitError.response?.data?.message || 'Failed to submit attendance.');
     } finally {
       setSubmitting(false);
     }
@@ -148,7 +148,7 @@ const TeacherAttendanceWorkspace = ({ user }) => {
             type="date"
             max={new Date().toISOString().split('T')[0]}
             value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
+            onChange={(inputChangeEvent) => setSelectedDate(inputChangeEvent.target.value)}
             className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs text-white focus:border-emerald-500 focus:outline-none"
           />
           <button
@@ -268,13 +268,13 @@ const TeacherAttendanceWorkspace = ({ user }) => {
             <div className="flex items-center justify-between px-6 py-3 bg-slate-900 border-b border-slate-800 text-xs">
               <div className="flex gap-3">
                 <span className="text-emerald-400 font-semibold">
-                  ✓ {roster.filter((r) => r.currentStatus === 'PRESENT').length} Present
+                  ✓ {roster.filter((rosterItem) => rosterItem.currentStatus === 'PRESENT').length} Present
                 </span>
                 <span className="text-rose-400 font-semibold">
-                  ✗ {roster.filter((r) => r.currentStatus === 'ABSENT').length} Absent
+                  ✗ {roster.filter((rosterItem) => rosterItem.currentStatus === 'ABSENT').length} Absent
                 </span>
                 <span className="text-amber-400 font-semibold">
-                  ◌ {roster.filter((r) => r.currentStatus === 'LEAVE').length} Leave
+                  ◌ {roster.filter((rosterItem) => rosterItem.currentStatus === 'LEAVE').length} Leave
                 </span>
               </div>
               <div className="flex gap-2">
@@ -340,7 +340,7 @@ const TeacherAttendanceWorkspace = ({ user }) => {
                       <input
                         type="checkbox"
                         checked={isLateOverride}
-                        onChange={(e) => setIsLateOverride(e.target.checked)}
+                        onChange={(checkboxChangeEvent) => setIsLateOverride(checkboxChangeEvent.target.checked)}
                         className="rounded border-slate-700 bg-slate-800 text-amber-500 focus:ring-amber-400"
                       />
                       <span>Apply Same-Day Emergency Clearance Override</span>
@@ -355,7 +355,7 @@ const TeacherAttendanceWorkspace = ({ user }) => {
                           rows="2"
                           required
                           value={lateReason}
-                          onChange={(e) => setLateReason(e.target.value)}
+                          onChange={(textareaChangeEvent) => setLateReason(textareaChangeEvent.target.value)}
                           placeholder="e.g. Electrical feeder trip & internet outage resolved at 14:45 PKT"
                           className="w-full rounded-lg border border-amber-500/50 bg-slate-900 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-400 focus:outline-none"
                         />
@@ -508,8 +508,8 @@ export const AttendancePage = () => {
         setSchoolsList(list);
         if (list.length > 0) setSelectedSchoolId(list[0]._id);
       }
-    } catch (err) {
-      console.error('Failed to load schools:', err);
+    } catch (schoolsError) {
+      console.error('Failed to load schools:', schoolsError);
       toast.error('Unable to retrieve municipal school list.');
     } finally {
       setIsSchoolsLoading(false);
@@ -530,7 +530,7 @@ export const AttendancePage = () => {
           <input
             type="date"
             value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
+            onChange={(inputChangeEvent) => setSelectedDate(inputChangeEvent.target.value)}
             className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs text-white focus:border-emerald-500 focus:outline-none"
           />
           <button
@@ -633,12 +633,12 @@ export const AttendancePage = () => {
 
           <select
             value={selectedSchoolId}
-            onChange={(e) => setSelectedSchoolId(e.target.value)}
+            onChange={(selectChangeEvent) => setSelectedSchoolId(selectChangeEvent.target.value)}
             className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none min-w-[240px]"
           >
-            {schoolsList.map((s) => (
-              <option key={s._id} value={s._id}>
-                {s.name} ({s.schoolCode})
+            {schoolsList.map((schoolItem) => (
+              <option key={schoolItem._id} value={schoolItem._id}>
+                {schoolItem.name} ({schoolItem.schoolCode})
               </option>
             ))}
           </select>

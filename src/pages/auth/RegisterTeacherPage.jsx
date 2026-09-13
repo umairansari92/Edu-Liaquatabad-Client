@@ -352,9 +352,9 @@ export const RegisterTeacherPage = () => {
                         className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
                       >
                         <option value="">Select your institution</option>
-                        {schools.map((s) => (
-                          <option key={s._id} value={s._id}>
-                            {s.name} ({s.schoolCode || 'DMC'})
+                        {schools.map((schoolItem) => (
+                          <option key={schoolItem._id} value={schoolItem._id}>
+                            {schoolItem.name} ({schoolItem.schoolCode || 'DMC'})
                           </option>
                         ))}
                       </select>
@@ -551,9 +551,9 @@ export const RegisterTeacherPage = () => {
                               className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-white text-xs outline-none"
                             >
                               <option value="">Select Class</option>
-                              {schoolStructure.classes.map((c) => (
-                                <option key={c._id} value={c._id}>
-                                  {c.name} (Grade {c.numericGrade})
+                              {schoolStructure.classes.map((classItem) => (
+                                <option key={classItem._id} value={classItem._id}>
+                                  {classItem.name} (Grade {classItem.numericGrade})
                                 </option>
                               ))}
                             </select>

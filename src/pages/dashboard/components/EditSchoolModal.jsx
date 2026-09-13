@@ -113,7 +113,7 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
                 type="text"
                 required
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(inputChangeEvent) => setFormData({ ...formData, name: inputChangeEvent.target.value })}
                 className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
               />
             </div>
@@ -123,7 +123,7 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
               <input
                 type="text"
                 value={formData.schoolCode}
-                onChange={(e) => setFormData({ ...formData, schoolCode: e.target.value.toUpperCase() })}
+                onChange={(inputChangeEvent) => setFormData({ ...formData, schoolCode: inputChangeEvent.target.value.toUpperCase() })}
                 placeholder="e.g. MMHA, GGSS"
                 className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 font-mono text-emerald-400 uppercase placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
               />
@@ -134,7 +134,7 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
               <input
                 type="text"
                 value={formData.emisCode}
-                onChange={(e) => setFormData({ ...formData, emisCode: e.target.value })}
+                onChange={(inputChangeEvent) => setFormData({ ...formData, emisCode: inputChangeEvent.target.value })}
                 placeholder="Provincial EMIS identifier"
                 className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 font-mono text-slate-200 placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
               />
@@ -144,7 +144,7 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
               <label className="block font-semibold text-slate-300">Lifecycle Status *</label>
               <select
                 value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                onChange={(selectChangeEvent) => setFormData({ ...formData, status: selectChangeEvent.target.value })}
                 className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white font-semibold focus:border-emerald-500 focus:outline-none"
               >
                 <option value="ACTIVE">ACTIVE (Operational)</option>
@@ -159,7 +159,7 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
               <label className="block font-semibold text-slate-300">School Type *</label>
               <select
                 value={formData.schoolType}
-                onChange={(e) => setFormData({ ...formData, schoolType: e.target.value })}
+                onChange={(selectChangeEvent) => setFormData({ ...formData, schoolType: selectChangeEvent.target.value })}
                 className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white focus:border-emerald-500 focus:outline-none"
               >
                 <option value="PRIMARY">PRIMARY (Grades 1-5)</option>
@@ -173,7 +173,7 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
               <label className="block font-semibold text-slate-300">Gender Category *</label>
               <select
                 value={formData.genderType}
-                onChange={(e) => setFormData({ ...formData, genderType: e.target.value })}
+                onChange={(selectChangeEvent) => setFormData({ ...formData, genderType: selectChangeEvent.target.value })}
                 className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white focus:border-emerald-500 focus:outline-none"
               >
                 <option value="BOYS">BOYS</option>
@@ -187,7 +187,7 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
               <input
                 type="text"
                 value={formData.contactPhone}
-                onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
+                onChange={(inputChangeEvent) => setFormData({ ...formData, contactPhone: inputChangeEvent.target.value })}
                 placeholder="e.g. 021-36612345"
                 className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
               />
@@ -198,7 +198,7 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
               <input
                 type="email"
                 value={formData.contactEmail}
-                onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
+                onChange={(inputChangeEvent) => setFormData({ ...formData, contactEmail: inputChangeEvent.target.value })}
                 placeholder="official@school.edu.pk"
                 className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
               />
@@ -211,7 +211,7 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
               type="text"
               required
               value={formData.address}
-              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+              onChange={(inputChangeEvent) => setFormData({ ...formData, address: inputChangeEvent.target.value })}
               className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
             />
           </div>
@@ -223,7 +223,7 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
               required
               minLength={3}
               value={formData.reason}
-              onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+              onChange={(inputChangeEvent) => setFormData({ ...formData, reason: inputChangeEvent.target.value })}
               placeholder="Reason logged to immutable audit stream"
               className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-amber-300 placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
             />

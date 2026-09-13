@@ -55,9 +55,9 @@ export const TeacherTransferTab = ({ schoolsList = [], teachersList = [] }) => {
   }, [fetchTransfers]);
 
   // Selected teacher's current school
-  const selectedTeacher = teachersList.find((t) => t._id === formData.teacherId);
+  const selectedTeacher = teachersList.find((teacherItem) => teacherItem._id === formData.teacherId);
   const currentSchoolName = selectedTeacher?.schoolId?.name || (
-    schoolsList.find((s) => s._id === (selectedTeacher?.schoolId?._id || selectedTeacher?.schoolId))?.name || 'Unassigned / Global Pool'
+    schoolsList.find((schoolItem) => schoolItem._id === (selectedTeacher?.schoolId?._id || selectedTeacher?.schoolId))?.name || 'Unassigned / Global Pool'
   );
   const currentSchoolId = selectedTeacher?.schoolId?._id || selectedTeacher?.schoolId;
 
@@ -70,8 +70,8 @@ export const TeacherTransferTab = ({ schoolsList = [], teachersList = [] }) => {
     setIsModalOpen(true);
   };
 
-  const handleSubmitTransfer = async (e) => {
-    e.preventDefault();
+  const handleSubmitTransfer = async (submitEvent) => {
+    submitEvent.preventDefault();
     if (!formData.teacherId) {
       toast.error('Please select a teacher to transfer.');
       return;
@@ -108,10 +108,10 @@ export const TeacherTransferTab = ({ schoolsList = [], teachersList = [] }) => {
   };
 
   // Filter transfers
-  const filteredTransfers = transfers.filter((t) => {
-    const teacherName = t.userId?.fullName || '';
-    const fromName = t.currentSchoolId?.name || '';
-    const toName = t.destinationSchoolId?.name || '';
+  const filteredTransfers = transfers.filter((transferRecord) => {
+    const teacherName = transferRecord.userId?.fullName || '';
+    const fromName = transferRecord.currentSchoolId?.name || '';
+    const toName = transferRecord.destinationSchoolId?.name || '';
     const query = searchQuery.toLowerCase();
     return (
       teacherName.toLowerCase().includes(query) ||
@@ -165,7 +165,7 @@ export const TeacherTransferTab = ({ schoolsList = [], teachersList = [] }) => {
             type="text"
             placeholder="Search by teacher name, school, or justification..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(inputChangeEvent) => setSearchQuery(inputChangeEvent.target.value)}
             className="w-full rounded-lg border border-slate-700 bg-slate-800 pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:border-teal-500 focus:outline-none"
           />
         </div>
@@ -174,7 +174,7 @@ export const TeacherTransferTab = ({ schoolsList = [], teachersList = [] }) => {
           <label className="text-xs text-slate-400">Filter Status:</label>
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            onChange={(selectChangeEvent) => setStatusFilter(selectChangeEvent.target.value)}
             className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs text-white focus:border-teal-500 focus:outline-none"
           >
             <option value="">All Statuses ({transfers.length})</option>
@@ -309,13 +309,13 @@ export const TeacherTransferTab = ({ schoolsList = [], teachersList = [] }) => {
                 <select
                   required
                   value={formData.teacherId}
-                  onChange={(e) => setFormData({ ...formData, teacherId: e.target.value })}
+                  onChange={(selectChangeEvent) => setFormData({ ...formData, teacherId: selectChangeEvent.target.value })}
                   className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white focus:border-teal-500 focus:outline-none"
                 >
                   <option value="">-- Choose Teacher --</option>
-                  {teachersList.map((t) => (
-                    <option key={t._id} value={t._id}>
-                      {t.fullName} ({t.designation || 'Teacher'}) — {t.email}
+                  {teachersList.map((teacherItem) => (
+                    <option key={teacherItem._id} value={teacherItem._id}>
+                      {teacherItem.fullName} ({teacherItem.designation || 'Teacher'}) — {teacherItem.email}
                     </option>
                   ))}
                 </select>
@@ -335,15 +335,15 @@ export const TeacherTransferTab = ({ schoolsList = [], teachersList = [] }) => {
                 <select
                   required
                   value={formData.destinationSchoolId}
-                  onChange={(e) => setFormData({ ...formData, destinationSchoolId: e.target.value })}
+                  onChange={(selectChangeEvent) => setFormData({ ...formData, destinationSchoolId: selectChangeEvent.target.value })}
                   className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white focus:border-teal-500 focus:outline-none"
                 >
                   <option value="">-- Select Destination Municipal School --</option>
                   {schoolsList
-                    .filter((s) => s._id !== currentSchoolId)
-                    .map((school) => (
-                      <option key={school._id} value={school._id}>
-                        {school.name} ({school.schoolCode || 'NO-CODE'})
+                    .filter((schoolItem) => schoolItem._id !== currentSchoolId)
+                    .map((schoolItem) => (
+                      <option key={schoolItem._id} value={schoolItem._id}>
+                        {schoolItem.name} ({schoolItem.schoolCode || 'NO-CODE'})
                       </option>
                     ))}
                 </select>
@@ -357,7 +357,7 @@ export const TeacherTransferTab = ({ schoolsList = [], teachersList = [] }) => {
                   rows={3}
                   minLength={5}
                   value={formData.reason}
-                  onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
+                  onChange={(textareaChangeEvent) => setFormData({ ...formData, reason: textareaChangeEvent.target.value })}
                   placeholder="Official transfer order reference, rationalization of staff, or administrative need..."
                   className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 p-2.5 text-white placeholder-slate-500 focus:border-teal-500 focus:outline-none"
                 />

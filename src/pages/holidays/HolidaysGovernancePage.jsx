@@ -136,8 +136,8 @@ export const HolidaysGovernancePage = () => {
   };
 
   // Handle Holiday Submit
-  const handleHolidaySubmit = async (e) => {
-    e.preventDefault();
+  const handleHolidaySubmit = async (submitEvent) => {
+    submitEvent.preventDefault();
     if (holidayForm.reason.trim().length < 10) {
       toast.error('Justification must be at least 10 characters long.');
       return;
@@ -155,23 +155,23 @@ export const HolidaysGovernancePage = () => {
         showInBanner: holidayForm.showInBanner,
       };
 
-      const res = await apiClient.post('/holidays', payload);
-      if (res.data?.success) {
+      const createResponse = await apiClient.post('/holidays', payload);
+      if (createResponse.data?.success) {
         toast.success(`"${holidayForm.title}" declared successfully!`);
         setIsHolidayModalOpen(false);
         fetchData();
       }
-    } catch (err) {
-      console.error('Failed to create holiday:', err);
-      toast.error(err.response?.data?.message || 'Failed to declare holiday.');
+    } catch (holidayError) {
+      console.error('Failed to create holiday:', holidayError);
+      toast.error(holidayError.response?.data?.message || 'Failed to declare holiday.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   // Handle Weekly Off Submit
-  const handleWeeklyOffSubmit = async (e) => {
-    e.preventDefault();
+  const handleWeeklyOffSubmit = async (submitEvent) => {
+    submitEvent.preventDefault();
     if (weeklyOffForm.reason.trim().length < 10) {
       toast.error('Justification must be at least 10 characters long.');
       return;
@@ -184,15 +184,15 @@ export const HolidaysGovernancePage = () => {
         effectiveFrom: weeklyOffForm.effectiveFrom,
         scopeType: 'TOWN',
       };
-      const res = await apiClient.post('/weekly-off', payload);
-      if (res.data?.success) {
+      const weeklyOffResponse = await apiClient.post('/weekly-off', payload);
+      if (weeklyOffResponse.data?.success) {
         toast.success('Weekly-off policy updated town-wide!');
         setIsWeeklyOffModalOpen(false);
         fetchData();
       }
-    } catch (err) {
-      console.error('Failed to update weekly off:', err);
-      toast.error(err.response?.data?.message || 'Failed to update weekly off pattern.');
+    } catch (weeklyOffError) {
+      console.error('Failed to update weekly off:', weeklyOffError);
+      toast.error(weeklyOffError.response?.data?.message || 'Failed to update weekly off pattern.');
     } finally {
       setIsSubmitting(false);
     }
@@ -207,22 +207,22 @@ export const HolidaysGovernancePage = () => {
     }
 
     try {
-      const res = await apiClient.patch(`/holidays/${id}/cancel`, { reason: reason.trim() });
-      if (res.data?.success) {
+      const cancelResponse = await apiClient.patch(`/holidays/${id}/cancel`, { reason: reason.trim() });
+      if (cancelResponse.data?.success) {
         toast.success(`Holiday "${title}" cancelled.`);
         fetchData();
       }
-    } catch (err) {
-      console.error('Failed to cancel holiday:', err);
-      toast.error(err.response?.data?.message || 'Failed to cancel holiday.');
+    } catch (cancelError) {
+      console.error('Failed to cancel holiday:', cancelError);
+      toast.error(cancelError.response?.data?.message || 'Failed to cancel holiday.');
     }
   };
 
   const todayStr = new Date().toISOString().split('T')[0];
   const activeTodayHoliday = holidays.find(
-    (h) => h.status === 'ACTIVE' && todayStr >= h.startDate && todayStr <= h.endDate
+    (holidayItem) => holidayItem.status === 'ACTIVE' && todayStr >= holidayItem.startDate && todayStr <= holidayItem.endDate
   );
-  const activeWeeklyPattern = weeklyOffs.find((p) => p.status === 'ACTIVE');
+  const activeWeeklyPattern = weeklyOffs.find((patternItem) => patternItem.status === 'ACTIVE');
 
   return (
     <PageContainer>
@@ -505,7 +505,7 @@ export const HolidaysGovernancePage = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
-                {holidays.filter((h) => activeTab === 'ALL' || h.status === activeTab).length === 0 ? (
+                {holidays.filter((holidayItem) => activeTab === 'ALL' || holidayItem.status === activeTab).length === 0 ? (
                   <tr>
                     <td colSpan="7" className="px-6 py-12 text-center text-slate-500">
                       No breaks or closures found matching filter.
@@ -513,12 +513,12 @@ export const HolidaysGovernancePage = () => {
                   </tr>
                 ) : (
                   holidays
-                    .filter((h) => activeTab === 'ALL' || h.status === activeTab)
-                    .map((h) => (
-                      <tr key={h._id} className="hover:bg-slate-800/40 transition">
+                    .filter((holidayItem) => activeTab === 'ALL' || holidayItem.status === activeTab)
+                    .map((holidayItem) => (
+                      <tr key={holidayItem._id} className="hover:bg-slate-800/40 transition">
                         <td className="px-6 py-4">
-                          <div className="font-bold text-white">{h.title}</div>
-                          <div className="text-[11px] text-slate-400 line-clamp-1">{h.reason}</div>
+                          <div className="font-bold text-white">{holidayItem.title}</div>
+                          <div className="text-[11px] text-slate-400 line-clamp-1">{holidayItem.reason}</div>
                         </td>
                         <td className="px-6 py-4">
                           <span
@@ -607,7 +607,7 @@ export const HolidaysGovernancePage = () => {
                     type="text"
                     required
                     value={holidayForm.title}
-                    onChange={(e) => setHolidayForm({ ...holidayForm, title: e.target.value })}
+                    onChange={(inputChangeEvent) => setHolidayForm({ ...holidayForm, title: inputChangeEvent.target.value })}
                     placeholder="e.g. Summer Vacation / Monsoon Rain Emergency"
                     className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
                   />
@@ -621,7 +621,7 @@ export const HolidaysGovernancePage = () => {
                       required
                       min={isHm ? todayStr : undefined}
                       value={holidayForm.startDate}
-                      onChange={(e) => setHolidayForm({ ...holidayForm, startDate: e.target.value })}
+                      onChange={(inputChangeEvent) => setHolidayForm({ ...holidayForm, startDate: inputChangeEvent.target.value })}
                       className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-mono text-white focus:border-emerald-500 focus:outline-none"
                     />
                   </div>
@@ -632,7 +632,7 @@ export const HolidaysGovernancePage = () => {
                       required
                       min={holidayForm.startDate || todayStr}
                       value={holidayForm.endDate}
-                      onChange={(e) => setHolidayForm({ ...holidayForm, endDate: e.target.value })}
+                      onChange={(inputChangeEvent) => setHolidayForm({ ...holidayForm, endDate: inputChangeEvent.target.value })}
                       className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-mono text-white focus:border-emerald-500 focus:outline-none"
                     />
                   </div>
@@ -643,7 +643,7 @@ export const HolidaysGovernancePage = () => {
                     <label className="block text-xs font-semibold text-slate-300">Category *</label>
                     <select
                       value={holidayForm.holidayType}
-                      onChange={(e) => setHolidayForm({ ...holidayForm, holidayType: e.target.value })}
+                      onChange={(selectChangeEvent) => setHolidayForm({ ...holidayForm, holidayType: selectChangeEvent.target.value })}
                       className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none"
                     >
                       <option value="GAZETTED">Gazetted Holiday</option>
@@ -674,7 +674,7 @@ export const HolidaysGovernancePage = () => {
                     required
                     rows="3"
                     value={holidayForm.reason}
-                    onChange={(e) => setHolidayForm({ ...holidayForm, reason: e.target.value })}
+                    onChange={(textareaChangeEvent) => setHolidayForm({ ...holidayForm, reason: textareaChangeEvent.target.value })}
                     placeholder="Provide specific notification number, weather warning, or infrastructure breakdown details..."
                     className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
                   ></textarea>
@@ -763,7 +763,7 @@ export const HolidaysGovernancePage = () => {
                     type="date"
                     required
                     value={weeklyOffForm.effectiveFrom}
-                    onChange={(e) => setWeeklyOffForm({ ...weeklyOffForm, effectiveFrom: e.target.value })}
+                    onChange={(inputChangeEvent) => setWeeklyOffForm({ ...weeklyOffForm, effectiveFrom: inputChangeEvent.target.value })}
                     className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-mono text-white focus:border-cyan-500 focus:outline-none"
                   />
                 </div>
@@ -776,7 +776,7 @@ export const HolidaysGovernancePage = () => {
                     required
                     rows="3"
                     value={weeklyOffForm.reason}
-                    onChange={(e) => setWeeklyOffForm({ ...weeklyOffForm, reason: e.target.value })}
+                    onChange={(textareaChangeEvent) => setWeeklyOffForm({ ...weeklyOffForm, reason: textareaChangeEvent.target.value })}
                     placeholder="Enter government notification reference or administrative justification..."
                     className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-cyan-500 focus:outline-none"
                   ></textarea>

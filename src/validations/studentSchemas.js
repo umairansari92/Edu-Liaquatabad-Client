@@ -8,7 +8,7 @@ const safeString = (maxLen = 200, minLen = 0, minMsg = '') => {
   if (minLen > 0) {
     schema = schema.min(minLen, minMsg || `Must be at least ${minLen} characters`);
   }
-  return schema.refine((v) => !SCRIPT_INJECTION_REGEX.test(v), {
+  return schema.refine((inputValue) => !SCRIPT_INJECTION_REGEX.test(inputValue), {
     message: 'Input contains disallowed characters.',
   });
 };
@@ -19,10 +19,10 @@ const nameField = (label = 'Name') =>
     .trim()
     .min(2, `${label} must be at least 2 characters`)
     .max(100, `${label} must be 100 characters or fewer`)
-    .refine((v) => !SCRIPT_INJECTION_REGEX.test(v), {
+    .refine((inputValue) => !SCRIPT_INJECTION_REGEX.test(inputValue), {
       message: 'Input contains disallowed characters.',
     })
-    .refine((v) => !SPECIAL_CHARS_STRICT_REGEX.test(v), {
+    .refine((inputValue) => !SPECIAL_CHARS_STRICT_REGEX.test(inputValue), {
       message: `${label} must not contain special characters.`,
     });
 

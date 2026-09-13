@@ -175,9 +175,9 @@ const HmDashboard = () => {
     try {
       await apiClient.patch(`/approvals/${requestId}/${action}`);
       toast.success(`Request ${action}d successfully.`);
-      setApprovals((prev) => prev.filter((r) => r._id !== requestId));
-    } catch (err) {
-      toast.error(err.response?.data?.message || `Failed to ${action} request.`);
+      setApprovals((prevApprovals) => prevApprovals.filter((approvalRequest) => approvalRequest._id !== requestId));
+    } catch (approvalError) {
+      toast.error(approvalError.response?.data?.message || `Failed to ${action} request.`);
     }
   };
 
@@ -247,16 +247,16 @@ const HmDashboard = () => {
             <EmptyState label="No teachers found for your school." />
           ) : (
             <div className="space-y-2">
-              {teachers.map((t) => (
-                <div key={t._id} className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+              {teachers.map((teacherItem) => (
+                <div key={teacherItem._id} className="p-4 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between">
                   <div>
-                    <p className="font-semibold text-white text-sm">{t.fullName}</p>
-                    <p className="text-xs text-slate-400">{t.designation || 'Teacher'} • {t.email}</p>
+                    <p className="font-semibold text-white text-sm">{teacherItem.fullName}</p>
+                    <p className="text-xs text-slate-400">{teacherItem.designation || 'Teacher'} • {teacherItem.email}</p>
                   </div>
                   <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                    t.status === 'ACTIVE' ? 'bg-emerald-950 text-emerald-400' : 'bg-slate-700 text-slate-400'
+                    teacherItem.status === 'ACTIVE' ? 'bg-emerald-950 text-emerald-400' : 'bg-slate-700 text-slate-400'
                   }`}>
-                    {t.status}
+                    {teacherItem.status}
                   </span>
                 </div>
               ))}

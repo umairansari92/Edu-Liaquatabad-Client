@@ -44,14 +44,14 @@ export const AuditLogsPage = () => {
   }, [fetchLogs]);
 
   const filteredLogs = logsList.filter((log) => {
-    const q = searchQuery.toLowerCase();
+    const searchNormalized = searchQuery.toLowerCase();
     const matchesSearch =
       !searchQuery ||
-      log.action?.toLowerCase().includes(q) ||
-      log.actorName?.toLowerCase().includes(q) ||
-      log.actorRole?.toLowerCase().includes(q) ||
-      log.targetName?.toLowerCase().includes(q) ||
-      log.reason?.toLowerCase().includes(q);
+      log.action?.toLowerCase().includes(searchNormalized) ||
+      log.actorName?.toLowerCase().includes(searchNormalized) ||
+      log.actorRole?.toLowerCase().includes(searchNormalized) ||
+      log.targetName?.toLowerCase().includes(searchNormalized) ||
+      log.reason?.toLowerCase().includes(searchNormalized);
 
     const matchesResult = !resultFilter || log.result === resultFilter;
     return matchesSearch && matchesResult;
@@ -81,7 +81,7 @@ export const AuditLogsPage = () => {
               <input
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(inputChangeEvent) => setSearchQuery(inputChangeEvent.target.value)}
                 placeholder="Search by action (e.g. USER_ROLE_ASSIGNED, BREAK_GLASS), actor, reason..."
                 className="w-full rounded-lg border border-slate-700 bg-slate-800/90 py-2 pl-9 pr-4 text-xs text-slate-200 placeholder-slate-500 focus:border-purple-500 focus:outline-none"
               />
@@ -89,7 +89,7 @@ export const AuditLogsPage = () => {
 
             <select
               value={resultFilter}
-              onChange={(e) => setResultFilter(e.target.value)}
+              onChange={(selectChangeEvent) => setResultFilter(selectChangeEvent.target.value)}
               className="rounded-lg border border-slate-700 bg-slate-800/90 px-3 py-2 text-xs text-slate-200 focus:border-purple-500 focus:outline-none"
             >
               <option value="">All Results</option>

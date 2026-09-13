@@ -83,7 +83,7 @@ export const UsersPage = () => {
     if (selectedUserIds.length === usersList.length) {
       setSelectedUserIds([]);
     } else {
-      setSelectedUserIds(usersList.map((u) => u._id));
+      setSelectedUserIds(usersList.map((userItem) => userItem._id));
     }
   };
 
@@ -154,7 +154,7 @@ export const UsersPage = () => {
               <input
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(inputChangeEvent) => setSearchQuery(inputChangeEvent.target.value)}
                 placeholder="Search by full name, email, or civil designation..."
                 className="w-full rounded-lg border border-slate-700 bg-slate-800/90 py-2 pl-9 pr-4 text-xs text-slate-200 placeholder-slate-500 focus:border-blue-500 focus:outline-none"
               />
@@ -162,7 +162,7 @@ export const UsersPage = () => {
 
             <select
               value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
+              onChange={(selectChangeEvent) => setRoleFilter(selectChangeEvent.target.value)}
               className="rounded-lg border border-slate-700 bg-slate-800/90 px-3 py-2 text-xs text-slate-200 focus:border-blue-500 focus:outline-none"
             >
               <option value="">All Roles</option>
@@ -177,7 +177,7 @@ export const UsersPage = () => {
 
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(selectChangeEvent) => setStatusFilter(selectChangeEvent.target.value)}
               className="rounded-lg border border-slate-700 bg-slate-800/90 px-3 py-2 text-xs text-slate-200 focus:border-blue-500 focus:outline-none"
             >
               <option value="">All Statuses</option>

@@ -59,9 +59,9 @@ const StudentDashboard = () => {
   const loadHomework = useCallback(async () => {
     setHwLoading(true);
     try {
-      const res = await apiClient.get('/homework/student');
-      setHomework(res.data?.data?.homework || []);
-    } catch (err) {
+      const homeworkResponse = await apiClient.get('/homework/student');
+      setHomework(homeworkResponse.data?.data?.homework || []);
+    } catch (homeworkError) {
       toast.error('Failed to load homework. Please try again.');
     } finally {
       setHwLoading(false);
@@ -72,9 +72,9 @@ const StudentDashboard = () => {
   const loadAttendance = useCallback(async () => {
     setAttLoading(true);
     try {
-      const res = await apiClient.get('/attendance/analytics/student');
-      setAttendance(res.data?.data || null);
-    } catch (err) {
+      const attendanceResponse = await apiClient.get('/attendance/analytics/student');
+      setAttendance(attendanceResponse.data?.data || null);
+    } catch (attendanceError) {
       toast.error('Could not load attendance analytics.');
       setAttendance(null);
     } finally {
@@ -89,11 +89,11 @@ const StudentDashboard = () => {
   }, [activeTab, hwLoaded, attLoaded, loadHomework, loadAttendance]);
 
   // ── Due-soon + overdue counters for badge ─────────────────────────────────
-  const dueSoon  = homework.filter((h) => {
-    const d = new Date(h.dueDate) - new Date();
-    return d > 0 && d < 2 * 24 * 60 * 60 * 1000; // within 48 hours
+  const dueSoon  = homework.filter((homeworkItem) => {
+    const timeRemainingMs = new Date(homeworkItem.dueDate) - new Date();
+    return timeRemainingMs > 0 && timeRemainingMs < 2 * 24 * 60 * 60 * 1000; // within 48 hours
   });
-  const overdue  = homework.filter((h) => new Date(h.dueDate) < new Date());
+  const overdue  = homework.filter((homeworkItem) => new Date(homeworkItem.dueDate) < new Date());
 
   return (
     <PageContainer

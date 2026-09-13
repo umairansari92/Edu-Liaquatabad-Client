@@ -115,8 +115,8 @@ export const UserAuthorityModal = ({
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (submitEvent) => {
+    submitEvent.preventDefault();
 
     if (!reasonText || reasonText.trim().length < 10) {
       toast.error('A mandatory justification reason (min 10 characters) is required.');
@@ -264,7 +264,7 @@ export const UserAuthorityModal = ({
                 <input
                   type="text"
                   value={designationText}
-                  onChange={(e) => setDesignationText(e.target.value)}
+                  onChange={(inputChangeEvent) => setDesignationText(inputChangeEvent.target.value)}
                   placeholder="e.g. Senior Clerk, Head Master, PST, JST, DDO, Supervisor..."
                   className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-amber-300 text-sm font-medium focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
                 />
@@ -365,7 +365,7 @@ export const UserAuthorityModal = ({
                   </label>
                   <select
                     value={selectedSchoolId}
-                    onChange={(e) => setSelectedSchoolId(e.target.value)}
+                    onChange={(selectChangeEvent) => setSelectedSchoolId(selectChangeEvent.target.value)}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-white text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-medium"
                   >
                     <option value="">-- Select Municipal School --</option>
@@ -388,7 +388,7 @@ export const UserAuthorityModal = ({
                 </label>
                 <textarea
                   value={reasonText}
-                  onChange={(e) => setReasonText(e.target.value)}
+                  onChange={(textareaChangeEvent) => setReasonText(textareaChangeEvent.target.value)}
                   rows={2}
                   placeholder="Official notification reference or departmental rationale (min 10 characters)..."
                   className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm focus:border-emerald-500 focus:outline-none transition-colors"
@@ -443,7 +443,7 @@ export const UserAuthorityModal = ({
                       <div className="sm:col-span-2">
                         <span className="text-slate-400 block text-[11px]">Assigned School Jurisdiction:</span>
                         <span className="font-medium text-emerald-300 text-xs">
-                          {schoolsList.find((s) => String(s._id) === String(selectedSchoolId))?.name ||
+                          {schoolsList.find((schoolItem) => String(schoolItem._id) === String(selectedSchoolId))?.name ||
                             targetUser.schoolId?.name ||
                             'Unassigned'}
                         </span>

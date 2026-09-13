@@ -72,8 +72,8 @@ export const SchoolsPage = () => {
   }, [fetchSchools]);
 
   // Handle School Registration
-  const handleRegisterSubmit = async (e) => {
-    e.preventDefault();
+  const handleRegisterSubmit = async (submissionEvent) => {
+    submissionEvent.preventDefault();
     if (!formData.name.trim() || !formData.schoolCode.trim()) {
       toast.error('School name and code are required.');
       return;
@@ -114,13 +114,13 @@ export const SchoolsPage = () => {
 
   // Filtered Schools
   const filteredSchools = schoolsList.filter((school) => {
-    const q = searchQuery.toLowerCase();
+    const searchNormalized = searchQuery.toLowerCase();
     const matchesQuery =
       !searchQuery ||
-      school.name?.toLowerCase().includes(q) ||
-      school.schoolCode?.toLowerCase().includes(q) ||
-      school.emisCode?.toLowerCase().includes(q) ||
-      school.address?.toLowerCase().includes(q);
+      school.name?.toLowerCase().includes(searchNormalized) ||
+      school.schoolCode?.toLowerCase().includes(searchNormalized) ||
+      school.emisCode?.toLowerCase().includes(searchNormalized) ||
+      school.address?.toLowerCase().includes(searchNormalized);
 
     const matchesType = !schoolTypeFilter || school.schoolType === schoolTypeFilter;
     const matchesGender = !schoolGenderFilter || school.genderType === schoolGenderFilter;
@@ -162,7 +162,7 @@ export const SchoolsPage = () => {
               <input
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(inputChangeEvent) => setSearchQuery(inputChangeEvent.target.value)}
                 placeholder="Search by school name, code, EMIS, or address..."
                 className="w-full rounded-lg border border-slate-700 bg-slate-800/90 py-2 pl-9 pr-4 text-xs text-slate-200 placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
               />
@@ -170,7 +170,7 @@ export const SchoolsPage = () => {
 
             <select
               value={schoolTypeFilter}
-              onChange={(e) => setSchoolTypeFilter(e.target.value)}
+              onChange={(selectChangeEvent) => setSchoolTypeFilter(selectChangeEvent.target.value)}
               className="rounded-lg border border-slate-700 bg-slate-800/90 px-3 py-2 text-xs text-slate-200 focus:border-emerald-500 focus:outline-none"
             >
               <option value="">All Categories</option>
@@ -182,7 +182,7 @@ export const SchoolsPage = () => {
 
             <select
               value={schoolGenderFilter}
-              onChange={(e) => setSchoolGenderFilter(e.target.value)}
+              onChange={(selectChangeEvent) => setSchoolGenderFilter(selectChangeEvent.target.value)}
               className="rounded-lg border border-slate-700 bg-slate-800/90 px-3 py-2 text-xs text-slate-200 focus:border-emerald-500 focus:outline-none"
             >
               <option value="">All Orientations</option>
@@ -361,7 +361,7 @@ export const SchoolsPage = () => {
                     type="text"
                     required
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={(inputChangeEvent) => setFormData({ ...formData, name: inputChangeEvent.target.value })}
                     placeholder="e.g. Government Boys Secondary School Liaquatabad No. 4"
                     className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
                   />
@@ -374,7 +374,7 @@ export const SchoolsPage = () => {
                       type="text"
                       required
                       value={formData.schoolCode}
-                      onChange={(e) => setFormData({ ...formData, schoolCode: e.target.value })}
+                      onChange={(inputChangeEvent) => setFormData({ ...formData, schoolCode: inputChangeEvent.target.value })}
                       placeholder="e.g. LQT-SEC-004"
                       className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white uppercase focus:border-emerald-500 focus:outline-none"
                     />
@@ -384,7 +384,7 @@ export const SchoolsPage = () => {
                     <input
                       type="text"
                       value={formData.emisCode}
-                      onChange={(e) => setFormData({ ...formData, emisCode: e.target.value })}
+                      onChange={(inputChangeEvent) => setFormData({ ...formData, emisCode: inputChangeEvent.target.value })}
                       placeholder="e.g. 408010104"
                       className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none"
                     />
@@ -396,7 +396,7 @@ export const SchoolsPage = () => {
                     <label className="block text-xs font-semibold text-slate-300">Category *</label>
                     <select
                       value={formData.schoolType}
-                      onChange={(e) => setFormData({ ...formData, schoolType: e.target.value })}
+                      onChange={(selectChangeEvent) => setFormData({ ...formData, schoolType: selectChangeEvent.target.value })}
                       className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none"
                     >
                       <option value="SECONDARY">Secondary</option>
@@ -409,7 +409,7 @@ export const SchoolsPage = () => {
                     <label className="block text-xs font-semibold text-slate-300">Orientation *</label>
                     <select
                       value={formData.genderType}
-                      onChange={(e) => setFormData({ ...formData, genderType: e.target.value })}
+                      onChange={(selectChangeEvent) => setFormData({ ...formData, genderType: selectChangeEvent.target.value })}
                       className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none"
                     >
                       <option value="BOYS">Boys</option>
@@ -424,7 +424,7 @@ export const SchoolsPage = () => {
                   <input
                     type="text"
                     value={formData.address}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    onChange={(inputChangeEvent) => setFormData({ ...formData, address: inputChangeEvent.target.value })}
                     placeholder="e.g. Block 4, Near Dak Khana, Liaquatabad, Karachi"
                     className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
                   />
@@ -436,7 +436,7 @@ export const SchoolsPage = () => {
                     <input
                       type="text"
                       value={formData.contactPhone}
-                      onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
+                      onChange={(inputChangeEvent) => setFormData({ ...formData, contactPhone: inputChangeEvent.target.value })}
                       placeholder="e.g. 021-99234567"
                       className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none"
                     />
@@ -446,7 +446,7 @@ export const SchoolsPage = () => {
                     <input
                       type="email"
                       value={formData.contactEmail}
-                      onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
+                      onChange={(inputChangeEvent) => setFormData({ ...formData, contactEmail: inputChangeEvent.target.value })}
                       placeholder="e.g. gbss4@schools.gov.pk"
                       className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none"
                     />

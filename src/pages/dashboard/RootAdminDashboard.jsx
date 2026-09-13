@@ -80,26 +80,26 @@ export const RootAdminDashboard = () => {
 
   // Active command center tab (synchronized with sidebar routes)
   const [activeTab, setActiveTab] = useState(() => {
-    const p = window.location.pathname;
-    if (p === '/schools') return 'schools';
-    if (p === '/users') return 'users';
-    if (p === '/transfers') return 'transfers';
-    if (p === '/audit-logs') return 'audit';
-    if (p === '/attendance' || p === '/exams') return 'academic';
-    if (p === '/documents') return 'reports';
+    const currentPath = window.location.pathname;
+    if (currentPath === '/schools') return 'schools';
+    if (currentPath === '/users') return 'users';
+    if (currentPath === '/transfers') return 'transfers';
+    if (currentPath === '/audit-logs') return 'audit';
+    if (currentPath === '/attendance' || currentPath === '/exams') return 'academic';
+    if (currentPath === '/documents') return 'reports';
     return 'schools';
   });
 
   // Sync tab when sidebar link is clicked
   useEffect(() => {
-    const p = location.pathname;
-    if (p === '/schools') setActiveTab('schools');
-    else if (p === '/users') setActiveTab('users');
-    else if (p === '/transfers') setActiveTab('transfers');
-    else if (p === '/audit-logs') setActiveTab('audit');
-    else if (p === '/attendance' || p === '/exams') setActiveTab('academic');
-    else if (p === '/documents') setActiveTab('reports');
-    else if (p === '/dashboard') setActiveTab('schools');
+    const currentPath = location.pathname;
+    if (currentPath === '/schools') setActiveTab('schools');
+    else if (currentPath === '/users') setActiveTab('users');
+    else if (currentPath === '/transfers') setActiveTab('transfers');
+    else if (currentPath === '/audit-logs') setActiveTab('audit');
+    else if (currentPath === '/attendance' || currentPath === '/exams') setActiveTab('academic');
+    else if (currentPath === '/documents') setActiveTab('reports');
+    else if (currentPath === '/dashboard') setActiveTab('schools');
   }, [location.pathname]);
 
   // Overview & Telemetry State
@@ -221,8 +221,8 @@ export const RootAdminDashboard = () => {
           setCustomOutageMessage(response.data.data.errorMessage);
         }
       }
-    } catch (err) {
-      console.warn('[KillSwitch] Failed to fetch system status:', err.message);
+    } catch (statusError) {
+      console.warn('[KillSwitch] Failed to fetch system status:', statusError.message);
     }
   }, [authenticatedUser?.role]);
 
@@ -243,8 +243,8 @@ export const RootAdminDashboard = () => {
         setIsKillSwitchModalOpen(false);
         setKillSwitchConfirmed(false);
       }
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to toggle kill switch.');
+    } catch (toggleError) {
+      toast.error(toggleError.response?.data?.message || 'Failed to toggle kill switch.');
     } finally {
       setIsKillSwitchToggling(false);
     }
@@ -259,8 +259,8 @@ export const RootAdminDashboard = () => {
 
   const handleSelectAllVisibleUsers = () => {
     const selectableUsers = usersList
-      .filter((u) => u.role !== 'ROOT_ADMIN')
-      .map((u) => u._id);
+      .filter((userItem) => userItem.role !== 'ROOT_ADMIN')
+      .map((userItem) => userItem._id);
     if (selectedUserIds.length === selectableUsers.length) {
       setSelectedUserIds([]);
     } else {
@@ -949,7 +949,7 @@ export const RootAdminDashboard = () => {
             </div>
             <div className="mt-2 flex items-baseline gap-1.5">
               <span className="text-2xl font-black text-white">
-                {isOverviewLoading ? '...' : (overviewData?.roleDistribution?.teachers ?? usersList.filter((u) => u.role === 'TEACHER').length)}
+                {isOverviewLoading ? '...' : (overviewData?.roleDistribution?.teachers ?? usersList.filter((userItem) => userItem.role === 'TEACHER').length)}
               </span>
               <span className="text-[10px] font-medium text-teal-400">Teachers</span>
             </div>
@@ -1465,7 +1465,7 @@ export const RootAdminDashboard = () => {
         {activeTab === 'transfers' && (
           <TeacherTransferTab
             schoolsList={schoolsList}
-            teachersList={usersList.filter((u) => u.role === 'TEACHER')}
+            teachersList={usersList.filter((userItem) => userItem.role === 'TEACHER')}
           />
         )}
 
@@ -1574,8 +1574,8 @@ export const RootAdminDashboard = () => {
                         <input
                           type="checkbox"
                           checked={
-                            usersList.filter((u) => u.role !== 'ROOT_ADMIN').length > 0 &&
-                            selectedUserIds.length === usersList.filter((u) => u.role !== 'ROOT_ADMIN').length
+                            usersList.filter((userItem) => userItem.role !== 'ROOT_ADMIN').length > 0 &&
+                            selectedUserIds.length === usersList.filter((userItem) => userItem.role !== 'ROOT_ADMIN').length
                           }
                           onChange={handleSelectAllVisibleUsers}
                           className="rounded border-slate-700 bg-slate-800 text-blue-600 focus:ring-blue-500 cursor-pointer"
@@ -2323,7 +2323,7 @@ export const RootAdminDashboard = () => {
                     <input
                       type="text"
                       value={authorizeUserSearch}
-                      onChange={(e) => setAuthorizeUserSearch(e.target.value)}
+                      onChange={(inputChangeEvent) => setAuthorizeUserSearch(inputChangeEvent.target.value)}
                       placeholder="Filter by name, email, or civil title..."
                       className="w-full rounded-lg border border-slate-700 bg-slate-800/90 py-1.5 pl-9 pr-3 text-xs text-slate-200 placeholder-slate-500 focus:border-amber-500 focus:outline-none"
                     />
@@ -2332,14 +2332,14 @@ export const RootAdminDashboard = () => {
                   {/* Scrollable User Selector Roster */}
                   <div className="max-h-40 overflow-y-auto rounded-lg border border-slate-700 bg-slate-950/60 divide-y divide-slate-800/80">
                     {(() => {
-                      const candidateUsers = usersList.filter((u) => {
-                        if (u.role === 'ROOT_ADMIN' || u.role === 'SUPER_ADMIN') return false;
+                      const candidateUsers = usersList.filter((candidateUser) => {
+                        if (candidateUser.role === 'ROOT_ADMIN' || candidateUser.role === 'SUPER_ADMIN') return false;
                         if (!authorizeUserSearch.trim()) return true;
-                        const q = authorizeUserSearch.toLowerCase();
+                        const queryNormalized = authorizeUserSearch.toLowerCase();
                         return (
-                          u.fullName?.toLowerCase().includes(q) ||
-                          u.email?.toLowerCase().includes(q) ||
-                          u.designation?.toLowerCase().includes(q)
+                          candidateUser.fullName?.toLowerCase().includes(queryNormalized) ||
+                          candidateUser.email?.toLowerCase().includes(queryNormalized) ||
+                          candidateUser.designation?.toLowerCase().includes(queryNormalized)
                         );
                       });
 
@@ -2351,12 +2351,12 @@ export const RootAdminDashboard = () => {
                         );
                       }
 
-                      return candidateUsers.map((u) => {
-                        const isSelected = authorizeFormData.userId === u._id;
+                      return candidateUsers.map((candidateUser) => {
+                        const isSelected = authorizeFormData.userId === candidateUser._id;
                         return (
                           <div
-                            key={u._id}
-                            onClick={() => setAuthorizeFormData({ ...authorizeFormData, userId: u._id })}
+                            key={candidateUser._id}
+                            onClick={() => setAuthorizeFormData({ ...authorizeFormData, userId: candidateUser._id })}
                             className={`flex items-center justify-between p-2.5 text-xs transition cursor-pointer ${
                               isSelected
                                 ? 'bg-amber-500/20 border-l-4 border-amber-500'
@@ -2389,7 +2389,7 @@ export const RootAdminDashboard = () => {
 
                 {/* Selected User Confirmation Card */}
                 {authorizeFormData.userId && (() => {
-                  const picked = usersList.find((u) => u._id === authorizeFormData.userId);
+                  const picked = usersList.find((userItem) => userItem._id === authorizeFormData.userId);
                   if (!picked) return null;
                   return (
                     <div className="rounded-lg border border-emerald-500/30 bg-emerald-950/20 p-2.5 text-xs flex items-center justify-between">
@@ -2419,7 +2419,7 @@ export const RootAdminDashboard = () => {
                     <label className="block text-xs font-semibold text-slate-300">Operational Scope *</label>
                     <select
                       value={authorizeFormData.scope}
-                      onChange={(e) => setAuthorizeFormData({ ...authorizeFormData, scope: e.target.value })}
+                      onChange={(selectChangeEvent) => setAuthorizeFormData({ ...authorizeFormData, scope: selectChangeEvent.target.value })}
                       className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white focus:border-amber-500 focus:outline-none"
                     >
                       <option value="GLOBAL">GLOBAL (Platform-wide Authority)</option>
@@ -2436,7 +2436,7 @@ export const RootAdminDashboard = () => {
                     rows={2}
                     minLength={5}
                     value={authorizeFormData.reason}
-                    onChange={(e) => setAuthorizeFormData({ ...authorizeFormData, reason: e.target.value })}
+                    onChange={(textareaChangeEvent) => setAuthorizeFormData({ ...authorizeFormData, reason: textareaChangeEvent.target.value })}
                     placeholder="Provide explicit operational justification for granting Super Admin authority..."
                     className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 p-2.5 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
                   />
@@ -2796,7 +2796,7 @@ export const RootAdminDashboard = () => {
                   <textarea
                     rows={2}
                     value={customOutageMessage}
-                    onChange={(e) => setCustomOutageMessage(e.target.value)}
+                    onChange={(textareaChangeEvent) => setCustomOutageMessage(textareaChangeEvent.target.value)}
                     className="w-full rounded-lg border border-slate-700 bg-slate-800 p-2.5 text-xs text-white placeholder-slate-500 focus:border-red-500 focus:outline-none"
                     placeholder="Enter technical database error message..."
                   />
@@ -2845,7 +2845,7 @@ export const RootAdminDashboard = () => {
                       <input
                         type="checkbox"
                         checked={killSwitchConfirmed}
-                        onChange={(e) => setKillSwitchConfirmed(e.target.checked)}
+                        onChange={(checkboxChangeEvent) => setKillSwitchConfirmed(checkboxChangeEvent.target.checked)}
                         className="mt-0.5 h-4 w-4 rounded border-slate-700 bg-slate-800 text-red-600 focus:ring-red-500"
                       />
                       <span className="text-xs text-slate-300 select-none">
