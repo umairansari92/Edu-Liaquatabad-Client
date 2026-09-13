@@ -71,22 +71,22 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md overflow-y-auto">
-      <div className="relative w-full max-w-2xl rounded-2xl border border-emerald-500/40 bg-slate-900 p-6 shadow-2xl space-y-5 my-8">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm overflow-y-auto">
+      <div className="relative w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-5 my-8 text-[#102033]">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div className="flex items-center gap-2.5">
-            <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2 text-emerald-400">
+            <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-2 text-[#4B7F3A]">
               <Building2 className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-lg font-extrabold text-white">Edit Municipal School Record</h3>
-              <p className="text-xs text-slate-400">Update institutional attributes, civil details, and lifecycle status</p>
+              <h3 className="text-lg font-extrabold text-[#102033]">Edit Municipal School Record</h3>
+              <p className="text-xs text-[#526477]">Update institutional attributes, civil details, and lifecycle status</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white cursor-pointer transition"
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-[#102033] cursor-pointer transition"
           >
             <XCircle className="h-5 w-5" />
           </button>
@@ -94,58 +94,58 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           {/* Readonly Jurisdiction Info */}
-          <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3 flex items-center justify-between">
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 flex items-center justify-between">
             <div>
-              <span className="text-slate-400 font-medium">Jurisdictional Town (Read-Only):</span>
-              <p className="text-white font-semibold mt-0.5">
+              <span className="text-[#526477] font-medium">Jurisdictional Town (Read-Only):</span>
+              <p className="text-[#102033] font-semibold mt-0.5">
                 {school.townId?.name || 'Liaquatabad Town Centre'} ({school.townId?.code || 'TOWN_LIAQ'})
               </p>
             </div>
-            <span className="rounded-md border border-slate-700 bg-slate-800 px-2 py-1 text-[11px] font-mono text-slate-400">
+            <span className="rounded-md border border-slate-200 bg-white px-2 py-1 text-[11px] font-mono text-[#526477]">
               ID: {school._id}
             </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block font-semibold text-slate-300">School Official Name *</label>
+              <label className="block font-semibold text-[#526477]">School Official Name *</label>
               <input
                 type="text"
                 required
                 value={formData.name}
                 onChange={(inputChangeEvent) => setFormData({ ...formData, name: inputChangeEvent.target.value })}
-                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-300">School Code (Prefix for IDs)</label>
+              <label className="block font-semibold text-[#526477]">School Code (Prefix for IDs)</label>
               <input
                 type="text"
                 value={formData.schoolCode}
                 onChange={(inputChangeEvent) => setFormData({ ...formData, schoolCode: inputChangeEvent.target.value.toUpperCase() })}
                 placeholder="e.g. MMHA, GGSS"
-                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 font-mono text-emerald-400 uppercase placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 font-mono text-[#006AC7] uppercase placeholder-slate-400 focus:border-[#006AC7] focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-300">EMIS Code</label>
+              <label className="block font-semibold text-[#526477]">EMIS Code</label>
               <input
                 type="text"
                 value={formData.emisCode}
                 onChange={(inputChangeEvent) => setFormData({ ...formData, emisCode: inputChangeEvent.target.value })}
                 placeholder="Provincial EMIS identifier"
-                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 font-mono text-slate-200 placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 font-mono text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-300">Lifecycle Status *</label>
+              <label className="block font-semibold text-[#526477]">Lifecycle Status *</label>
               <select
                 value={formData.status}
                 onChange={(selectChangeEvent) => setFormData({ ...formData, status: selectChangeEvent.target.value })}
-                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white font-semibold focus:border-emerald-500 focus:outline-none"
+                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-[#102033] font-semibold focus:border-[#006AC7] focus:outline-none"
               >
                 <option value="ACTIVE">ACTIVE (Operational)</option>
                 <option value="SUSPENDED">SUSPENDED (Temporarily Closed)</option>
@@ -156,11 +156,11 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-300">School Type *</label>
+              <label className="block font-semibold text-[#526477]">School Type *</label>
               <select
                 value={formData.schoolType}
                 onChange={(selectChangeEvent) => setFormData({ ...formData, schoolType: selectChangeEvent.target.value })}
-                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white focus:border-emerald-500 focus:outline-none"
+                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-[#102033] focus:border-[#006AC7] focus:outline-none"
               >
                 <option value="PRIMARY">PRIMARY (Grades 1-5)</option>
                 <option value="ELEMENTARY">ELEMENTARY (Grades 1-8)</option>
@@ -170,11 +170,11 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-300">Gender Category *</label>
+              <label className="block font-semibold text-[#526477]">Gender Category *</label>
               <select
                 value={formData.genderType}
                 onChange={(selectChangeEvent) => setFormData({ ...formData, genderType: selectChangeEvent.target.value })}
-                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white focus:border-emerald-500 focus:outline-none"
+                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-[#102033] focus:border-[#006AC7] focus:outline-none"
               >
                 <option value="BOYS">BOYS</option>
                 <option value="GIRLS">GIRLS</option>
@@ -183,41 +183,41 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-300">Contact Phone</label>
+              <label className="block font-semibold text-[#526477]">Contact Phone</label>
               <input
                 type="text"
                 value={formData.contactPhone}
                 onChange={(inputChangeEvent) => setFormData({ ...formData, contactPhone: inputChangeEvent.target.value })}
                 placeholder="e.g. 021-36612345"
-                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:outline-none"
               />
             </div>
 
             <div>
-              <label className="block font-semibold text-slate-300">Contact Email</label>
+              <label className="block font-semibold text-[#526477]">Contact Email</label>
               <input
                 type="email"
                 value={formData.contactEmail}
                 onChange={(inputChangeEvent) => setFormData({ ...formData, contactEmail: inputChangeEvent.target.value })}
                 placeholder="official@school.edu.pk"
-                className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:outline-none"
               />
             </div>
           </div>
 
           <div>
-            <label className="block font-semibold text-slate-300">Institutional Address *</label>
+            <label className="block font-semibold text-[#526477]">Institutional Address *</label>
             <input
               type="text"
               required
               value={formData.address}
               onChange={(inputChangeEvent) => setFormData({ ...formData, address: inputChangeEvent.target.value })}
-              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+              className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:outline-none"
             />
           </div>
 
           <div>
-            <label className="block font-semibold text-slate-300">Mandatory Justification / Reason *</label>
+            <label className="block font-semibold text-[#526477]">Mandatory Justification / Reason *</label>
             <input
               type="text"
               required
@@ -225,22 +225,22 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
               value={formData.reason}
               onChange={(inputChangeEvent) => setFormData({ ...formData, reason: inputChangeEvent.target.value })}
               placeholder="Reason logged to immutable audit stream"
-              className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-amber-300 placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+              className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-amber-700 placeholder-slate-400 focus:border-[#006AC7] focus:outline-none"
             />
           </div>
 
-          <div className="flex items-center justify-end gap-3 border-t border-slate-800 pt-4">
+          <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
             <button
               type="button"
               onClick={onClose}
-              className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 font-medium text-slate-300 hover:bg-slate-700 cursor-pointer"
+              className="rounded-lg border border-slate-300 bg-white px-4 py-2 font-medium text-[#526477] hover:bg-slate-50 cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2 font-semibold text-white hover:bg-emerald-500 transition shadow cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-2 rounded-lg bg-[#4B7F3A] px-5 py-2 font-semibold text-white hover:bg-[#3d682f] transition shadow-sm cursor-pointer disabled:opacity-50"
             >
               <Save className="h-4 w-4" />
               <span>{isSubmitting ? 'Saving...' : 'Save School Changes'}</span>

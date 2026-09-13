@@ -126,6 +126,99 @@
   background-color: #DCEFFF;
 }
 
+/* ── V2.0 Component Utility Classes ── */
+.card-light {
+  background-color: #FFFFFF;
+  border: 1px solid rgba(16, 32, 51, 0.08);
+  border-radius: 0.875rem;
+  box-shadow: 0 1px 3px rgba(0, 33, 61, 0.04);
+}
+
+.card-light-hover {
+  background-color: #FFFFFF;
+  border: 1px solid rgba(16, 32, 51, 0.08);
+  border-radius: 0.875rem;
+  box-shadow: 0 1px 3px rgba(0, 33, 61, 0.04);
+  transition: all 0.2s ease-in-out;
+}
+
+.card-light-hover:hover {
+  transform: translateY(-2px);
+  border-color: rgba(0, 106, 199, 0.25);
+  box-shadow: 0 10px 25px -5px rgba(0, 33, 61, 0.08);
+}
+
+.table-container-light {
+  background-color: #FFFFFF;
+  border: 1px solid rgba(16, 32, 51, 0.08);
+  border-radius: 0.875rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 33, 61, 0.04);
+}
+
+.table-header-light {
+  background-color: #F0F8FF;
+  color: #526477;
+  font-weight: 700;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid rgba(16, 32, 51, 0.08);
+}
+
+.table-row-light {
+  border-bottom: 1px solid rgba(16, 32, 51, 0.05);
+  color: #102033;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.table-row-light:hover {
+  background-color: rgba(240, 248, 255, 0.6);
+}
+
+.input-light {
+  background-color: #F8FBFD;
+  border: 1px solid rgba(16, 32, 51, 0.14);
+  border-radius: 0.5rem;
+  color: #102033;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+  transition: all 0.15s ease-in-out;
+  outline: none;
+}
+
+.input-light:focus {
+  border-color: #006AC7;
+  background-color: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(0, 106, 199, 0.12);
+}
+
+.badge-blue {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background-color: #F0F8FF;
+  color: #006AC7;
+  border: 1px solid rgba(0, 106, 199, 0.20);
+  font-weight: 600;
+  border-radius: 9999px;
+  padding: 0.125rem 0.625rem;
+  font-size: 0.6875rem;
+}
+
+.badge-green {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background-color: #F2F8EF;
+  color: #4B7F3A;
+  border: 1px solid rgba(75, 127, 58, 0.20);
+  font-weight: 600;
+  border-radius: 9999px;
+  padding: 0.125rem 0.625rem;
+  font-size: 0.6875rem;
+}
+
 /* ── Screen Capture & Print Protection for Non-Privileged Roles ── */
 body.screen-protected {
   -webkit-user-select: none !important;

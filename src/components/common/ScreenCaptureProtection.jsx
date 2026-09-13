@@ -143,13 +143,13 @@ export const ScreenCaptureProtection = ({ children }) => {
     <div className="relative min-h-screen select-none">
       {/* ── Dynamic Anti-Leak Forensic Civic Watermark ── */}
       <div
-        className="pointer-events-none fixed inset-0 z-40 overflow-hidden opacity-[0.07] select-none flex flex-wrap gap-x-20 gap-y-16 p-6"
+        className="pointer-events-none fixed inset-0 z-40 overflow-hidden opacity-[0.04] select-none flex flex-wrap gap-x-20 gap-y-16 p-6"
         aria-hidden="true"
       >
         {Array.from({ length: 32 }).map((_, index) => (
           <div
             key={index}
-            className="transform -rotate-25 text-[11px] font-mono font-bold tracking-widest text-slate-300 uppercase whitespace-nowrap"
+            className="transform -rotate-25 text-[11px] font-mono font-bold tracking-widest text-slate-900 uppercase whitespace-nowrap"
           >
             LIAQUATABAD DMC • {watermarkIdentity} • {currentDateString} • CONFIDENTIAL
           </div>
@@ -163,17 +163,17 @@ export const ScreenCaptureProtection = ({ children }) => {
 
       {/* ── Privacy Shield (Triggered when window loses focus e.g. Snipping Tool / Screen Grabber) ── */}
       {isWindowBlurred && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-950/95 backdrop-blur-2xl p-6 text-center select-none animate-in fade-in duration-100">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-amber-500/30 bg-amber-500/10 text-amber-400 mb-4 shadow-xl">
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white/95 backdrop-blur-2xl p-6 text-center select-none animate-in fade-in duration-100">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-amber-300 bg-amber-50 text-amber-600 mb-4 shadow-sm">
             <Lock className="h-8 w-8" />
           </div>
-          <h2 className="text-lg font-bold text-white tracking-wide">
+          <h2 className="text-lg font-bold text-[#102033] tracking-wide">
             Liaquatabad Municipal Platform • Privacy Guard
           </h2>
-          <p className="mt-2 max-w-md text-xs text-slate-400 leading-relaxed">
+          <p className="mt-2 max-w-md text-xs text-[#526477] leading-relaxed">
             Content is obscured while the application window is out of focus to prevent unauthorized screen capture or external recording.
           </p>
-          <p className="mt-4 text-[11px] font-mono text-emerald-400 bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5">
+          <p className="mt-4 text-[11px] font-mono text-[#006AC7] bg-[#F0F8FF] border border-blue-200 rounded-lg px-3 py-1.5">
             Click anywhere on this window to resume viewing.
           </p>
         </div>
@@ -181,14 +181,14 @@ export const ScreenCaptureProtection = ({ children }) => {
 
       {/* ── Flash Capture Warning (Triggered on PrintScreen / Screenshot shortcuts) ── */}
       {showCaptureWarning && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/95 p-6 text-center animate-in fade-in zoom-in-95 duration-75">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-red-500/40 bg-red-500/10 text-red-400 mb-4 animate-bounce">
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white/95 backdrop-blur-md p-6 text-center animate-in fade-in zoom-in-95 duration-75">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-rose-200 bg-rose-50 text-rose-600 mb-4 animate-bounce shadow-sm">
             <ShieldAlert className="h-8 w-8" />
           </div>
-          <h2 className="text-xl font-extrabold text-white tracking-wide uppercase">
+          <h2 className="text-xl font-extrabold text-[#102033] tracking-wide uppercase">
             Screenshot Prohibited
           </h2>
-          <p className="mt-2 max-w-md text-xs text-slate-300">
+          <p className="mt-2 max-w-md text-xs text-[#526477]">
             Capturing or redistributing municipal education records is prohibited under official administrative data policy.
           </p>
         </div>

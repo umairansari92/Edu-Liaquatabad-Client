@@ -20,18 +20,18 @@ const formatDisplayDate = (dateValue) => {
 
 const renderRoleBadge = (userRole) => {
   const roleColorStyles = {
-    ROOT_ADMIN:  'bg-purple-950/70 border-purple-700/60 text-purple-300',
-    SUPER_ADMIN: 'bg-indigo-950/70 border-indigo-700/60 text-indigo-300',
-    ADMIN:       'bg-blue-950/70 border-blue-700/60 text-blue-300',
-    SUPERVISOR:  'bg-teal-950/70 border-teal-700/60 text-teal-300',
-    HM:          'bg-emerald-950/70 border-emerald-700/60 text-emerald-300',
-    TEACHER:     'bg-cyan-950/70 border-cyan-700/60 text-cyan-300',
-    PEON:        'bg-slate-800 border-slate-700 text-slate-300',
-    STUDENT:     'bg-sky-950/70 border-sky-700/60 text-sky-300',
-    PARENT:      'bg-rose-950/70 border-rose-700/60 text-rose-300',
+    ROOT_ADMIN:  'bg-purple-50 border-purple-200 text-purple-700',
+    SUPER_ADMIN: 'bg-indigo-50 border-indigo-200 text-indigo-700',
+    ADMIN:       'bg-blue-50 border-blue-200 text-[#006AC7]',
+    SUPERVISOR:  'bg-teal-50 border-teal-200 text-teal-700',
+    HM:          'bg-emerald-50 border-emerald-200 text-[#4B7F3A]',
+    TEACHER:     'bg-cyan-50 border-cyan-200 text-cyan-700',
+    PEON:        'bg-slate-100 border-slate-200 text-slate-700',
+    STUDENT:     'bg-sky-50 border-sky-200 text-sky-700',
+    PARENT:      'bg-rose-50 border-rose-200 text-rose-700',
   };
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border font-mono tracking-wide ${roleColorStyles[userRole] || 'bg-slate-800 border-slate-700 text-slate-300'}`}>
+    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold border font-mono tracking-wide ${roleColorStyles[userRole] || 'bg-slate-100 border-slate-200 text-slate-700'}`}>
       {userRole}
     </span>
   );
@@ -39,20 +39,20 @@ const renderRoleBadge = (userRole) => {
 
 const renderStatusBadge = (entityStatus) => {
   const statusConfig = {
-    ACTIVE:             { label: 'Active',         icon: CheckCircle2, color: 'text-emerald-400 bg-emerald-950/50 border-emerald-800/60' },
-    PENDING_APPROVAL:   { label: 'Pending',        icon: Clock,        color: 'text-amber-400 bg-amber-950/50 border-amber-800/60' },
-    REQUIRES_CORRECTION:{ label: 'Needs Fix',      icon: AlertCircle,  color: 'text-orange-400 bg-orange-950/50 border-orange-800/60' },
-    SUSPENDED:          { label: 'Suspended',      icon: ShieldAlert,  color: 'text-rose-400 bg-rose-950/50 border-rose-800/60' },
-    TRANSFERRED:        { label: 'Transferred',    icon: ArrowRightLeft,color:'text-blue-400 bg-blue-950/50 border-blue-800/60' },
-    GRADUATED:          { label: 'Graduated',      icon: GraduationCap,color: 'text-cyan-400 bg-cyan-950/50 border-cyan-800/60' },
-    DROPPED_OUT:        { label: 'Dropped Out',    icon: UserX,        color: 'text-slate-400 bg-slate-800 border-slate-700' },
-    INACTIVE:           { label: 'Inactive',       icon: UserX,        color: 'text-slate-400 bg-slate-800 border-slate-700' },
-    RETIRED:            { label: 'Retired',        icon: CheckCircle2, color: 'text-purple-400 bg-purple-950/50 border-purple-800/60' },
+    ACTIVE:             { label: 'Active',         icon: CheckCircle2, color: 'text-[#4B7F3A] bg-emerald-50 border-emerald-200' },
+    PENDING_APPROVAL:   { label: 'Pending',        icon: Clock,        color: 'text-amber-700 bg-amber-50 border-amber-200' },
+    REQUIRES_CORRECTION:{ label: 'Needs Fix',      icon: AlertCircle,  color: 'text-orange-700 bg-orange-50 border-orange-200' },
+    SUSPENDED:          { label: 'Suspended',      icon: ShieldAlert,  color: 'text-rose-700 bg-rose-50 border-rose-200' },
+    TRANSFERRED:        { label: 'Transferred',    icon: ArrowRightLeft,color:'text-[#006AC7] bg-blue-50 border-blue-200' },
+    GRADUATED:          { label: 'Graduated',      icon: GraduationCap,color: 'text-cyan-700 bg-cyan-50 border-cyan-200' },
+    DROPPED_OUT:        { label: 'Dropped Out',    icon: UserX,        color: 'text-slate-600 bg-slate-100 border-slate-200' },
+    INACTIVE:           { label: 'Inactive',       icon: UserX,        color: 'text-slate-600 bg-slate-100 border-slate-200' },
+    RETIRED:            { label: 'Retired',        icon: CheckCircle2, color: 'text-purple-700 bg-purple-50 border-purple-200' },
   };
-  const config = statusConfig[entityStatus] || { label: entityStatus || 'Unknown', icon: AlertCircle, color: 'text-slate-400 bg-slate-800 border-slate-700' };
+  const config = statusConfig[entityStatus] || { label: entityStatus || 'Unknown', icon: AlertCircle, color: 'text-slate-600 bg-slate-100 border-slate-200' };
   const StatusIconComponent = config.icon;
   return (
-    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${config.color}`}>
+    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${config.color}`}>
       <StatusIconComponent className="h-3 w-3" />
       {config.label}
     </span>
@@ -60,24 +60,24 @@ const renderStatusBadge = (entityStatus) => {
 };
 
 const TableCell = ({ children, className = '' }) => (
-  <td className={`px-4 py-3 align-middle ${className}`}>{children}</td>
+  <td className={`px-4 py-3.5 align-middle ${className}`}>{children}</td>
 );
 
 const LoadingSkeletonRow = ({ columnsCount }) => (
   <tr>
-    <td colSpan={columnsCount} className="py-12 text-center text-slate-500">
-      <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2 text-slate-600" />
-      <span className="text-xs">Loading records from municipal directory...</span>
+    <td colSpan={columnsCount} className="py-12 text-center text-[#526477]">
+      <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2 text-[#006AC7]" />
+      <span className="text-xs font-medium">Loading records from municipal directory...</span>
     </td>
   </tr>
 );
 
 const EmptyStateRow = ({ columnsCount }) => (
   <tr>
-    <td colSpan={columnsCount} className="py-12 text-center text-slate-500">
-      <Users className="h-8 w-8 mx-auto mb-2 text-slate-700" />
-      <p className="text-xs font-medium">No matching records found.</p>
-      <p className="text-[11px] text-slate-600 mt-0.5">Try clearing or adjusting search filters.</p>
+    <td colSpan={columnsCount} className="py-12 text-center text-[#526477]">
+      <Users className="h-8 w-8 mx-auto mb-2 text-slate-300" />
+      <p className="text-xs font-bold text-[#102033]">No matching records found.</p>
+      <p className="text-[11px] text-[#8094A8] mt-0.5">Try clearing or adjusting search filters.</p>
     </td>
   </tr>
 );
@@ -108,13 +108,13 @@ const downloadCsvFile = async (endpointUrl, targetFilename, queryParameters, set
 
 const SearchInputField = ({ value, onChange, placeholderText, focusBorderColorClass }) => (
   <div className="relative flex-1 min-w-[180px] max-w-xs">
-    <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-500" />
+    <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
     <input
       type="text"
       value={value}
       onChange={(event) => onChange(event.target.value)}
       placeholder={placeholderText}
-      className={`w-full rounded-lg border border-slate-700 bg-slate-800/90 py-1.5 pl-8 pr-3 text-xs text-slate-200 placeholder-slate-500 focus:outline-none ${focusBorderColorClass}`}
+      className={`w-full rounded-xl border border-slate-200 bg-slate-50/50 py-1.5 pl-8 pr-3 text-xs font-medium text-[#102033] placeholder-slate-400 focus:bg-white focus:outline-none ${focusBorderColorClass}`}
     />
   </div>
 );
@@ -123,7 +123,7 @@ const FilterDropdownSelect = ({ value, onChange, focusBorderColorClass, children
   <select
     value={value}
     onChange={(event) => onChange(event.target.value)}
-    className={`rounded-lg border border-slate-700 bg-slate-800/90 px-3 py-1.5 text-xs text-slate-200 focus:outline-none ${focusBorderColorClass}`}
+    className={`rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-1.5 text-xs font-bold text-[#526477] focus:bg-white focus:outline-none ${focusBorderColorClass}`}
   >
     {children}
   </select>
@@ -139,22 +139,23 @@ const DirectoryFilterToolbar = ({
   isExportingData,
   exportButtonColorClass,
 }) => (
-  <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between rounded-xl border border-slate-800 bg-slate-900/70 p-3">
+  <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
     <div className="flex flex-wrap gap-2 flex-1">{children}</div>
     <div className="flex items-center gap-2 shrink-0">
-      <span className="text-xs text-slate-400 font-mono whitespace-nowrap">
-        <span className="text-white font-bold">{totalRecordsCount}</span> {entityLabelSingular}
+      <span className="text-xs text-[#526477] font-medium whitespace-nowrap">
+        <span className="text-[#102033] font-bold">{totalRecordsCount}</span> {entityLabelSingular}
       </span>
       <button
         onClick={onRefreshTriggered}
-        className="rounded-lg border border-slate-700 bg-slate-800 p-1.5 text-slate-300 hover:bg-slate-700 transition"
+        className="rounded-xl border border-slate-200 bg-white p-2 text-[#526477] hover:text-[#102033] hover:bg-slate-50 shadow-sm transition"
+        title="Refresh Records"
       >
         <RefreshCw className={`h-3.5 w-3.5 ${isLoadingData ? 'animate-spin' : ''}`} />
       </button>
       <button
         onClick={onExportTriggered}
         disabled={isExportingData}
-        className={`flex items-center gap-1.5 rounded-lg ${exportButtonColorClass} disabled:opacity-50 px-3 py-1.5 text-xs font-semibold text-white transition`}
+        className={`flex items-center gap-1.5 rounded-xl ${exportButtonColorClass} disabled:opacity-50 px-3.5 py-2 text-xs font-bold text-white shadow-sm transition`}
       >
         <Download className="h-3.5 w-3.5" />
         {isExportingData ? 'Exporting...' : 'Export CSV'}
@@ -222,18 +223,18 @@ const StaffDirectoryTab = ({ municipalSchoolsList }) => {
         isLoadingData={isLoading}
         onExportTriggered={handleExportStaffCsv}
         isExportingData={isExporting}
-        exportButtonColorClass="bg-emerald-700 hover:bg-emerald-600"
+        exportButtonColorClass="bg-[#006AC7] hover:bg-[#00529B]"
       >
         <SearchInputField
           value={searchQuery}
           onChange={setSearchQuery}
           placeholderText="Search name or email..."
-          focusBorderColorClass="focus:border-emerald-500"
+          focusBorderColorClass="focus:border-[#006AC7]"
         />
         <FilterDropdownSelect
           value={selectedSchoolId}
           onChange={setSelectedSchoolId}
-          focusBorderColorClass="focus:border-emerald-500"
+          focusBorderColorClass="focus:border-[#006AC7]"
         >
           <option value="">All Schools</option>
           {municipalSchoolsList.map((schoolItem) => (
@@ -245,7 +246,7 @@ const StaffDirectoryTab = ({ municipalSchoolsList }) => {
         <FilterDropdownSelect
           value={selectedRole}
           onChange={setSelectedRole}
-          focusBorderColorClass="focus:border-emerald-500"
+          focusBorderColorClass="focus:border-[#006AC7]"
         >
           <option value="">All Roles</option>
           {['ADMIN', 'SUPERVISOR', 'HM', 'TEACHER', 'PEON'].map((roleName) => (
@@ -257,7 +258,7 @@ const StaffDirectoryTab = ({ municipalSchoolsList }) => {
         <FilterDropdownSelect
           value={selectedStatus}
           onChange={setSelectedStatus}
-          focusBorderColorClass="focus:border-emerald-500"
+          focusBorderColorClass="focus:border-[#006AC7]"
         >
           <option value="">All Statuses</option>
           {['ACTIVE', 'PENDING_APPROVAL', 'SUSPENDED', 'TRANSFERRED', 'RETIRED', 'INACTIVE'].map((statusName) => (
@@ -268,58 +269,58 @@ const StaffDirectoryTab = ({ municipalSchoolsList }) => {
         </FilterDropdownSelect>
       </DirectoryFilterToolbar>
 
-      <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900/80 shadow-2xl">
+      <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="border-b border-slate-800 bg-slate-950/80 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+          <table className="w-full text-left text-xs text-[#526477]">
+            <thead className="border-b border-slate-200/80 bg-slate-50/80 text-[10px] font-bold uppercase tracking-wider text-[#526477]">
               <tr>
                 {['Full Name & Email', 'Designation', 'Role', 'School', 'Phone', 'Status', 'Registered'].map((headerTitle) => (
-                  <th key={headerTitle} className="px-4 py-3">{headerTitle}</th>
+                  <th key={headerTitle} className="px-4 py-3.5">{headerTitle}</th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-slate-100">
               {isLoading ? (
                 <LoadingSkeletonRow columnsCount={7} />
               ) : staffRecords.length === 0 ? (
                 <EmptyStateRow columnsCount={7} />
               ) : (
                 staffRecords.map((staffMember) => (
-                  <tr key={staffMember._id} className="hover:bg-slate-800/40 transition">
+                  <tr key={staffMember._id} className="hover:bg-blue-50/40 transition">
                     <TableCell>
-                      <div className="font-semibold text-white">{staffMember.fullName}</div>
-                      <div className="flex items-center gap-1 mt-0.5 text-[11px] text-slate-500 font-mono">
-                        <Mail className="h-3 w-3" />
+                      <div className="font-bold text-[#102033]">{staffMember.fullName}</div>
+                      <div className="flex items-center gap-1 mt-0.5 text-[11px] text-[#526477] font-mono">
+                        <Mail className="h-3 w-3 text-slate-400" />
                         {staffMember.email || '—'}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <span className="text-amber-300 font-medium">{staffMember.designation || '—'}</span>
+                      <span className="text-amber-700 font-bold">{staffMember.designation || '—'}</span>
                     </TableCell>
                     <TableCell>{renderRoleBadge(staffMember.role)}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        <Building2 className="h-3.5 w-3.5 text-slate-500 shrink-0" />
-                        <span className="truncate max-w-[160px]">{staffMember.schoolId?.name || '—'}</span>
+                        <Building2 className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                        <span className="truncate max-w-[160px] text-[#102033] font-medium">{staffMember.schoolId?.name || '—'}</span>
                       </div>
                       {staffMember.schoolId?.schoolCode && (
-                        <div className="text-[11px] text-slate-600 font-mono mt-0.5">
+                        <div className="text-[11px] text-[#8094A8] font-mono mt-0.5">
                           {staffMember.schoolId.schoolCode}
                         </div>
                       )}
                     </TableCell>
                     <TableCell>
                       {staffMember.phoneNumber ? (
-                        <div className="flex items-center gap-1 text-slate-400">
-                          <Phone className="h-3 w-3" />
+                        <div className="flex items-center gap-1 text-[#526477]">
+                          <Phone className="h-3 w-3 text-slate-400" />
                           {staffMember.phoneNumber}
                         </div>
                       ) : (
-                        <span className="text-slate-600">—</span>
+                        <span className="text-[#8094A8]">—</span>
                       )}
                     </TableCell>
                     <TableCell>{renderStatusBadge(staffMember.status)}</TableCell>
-                    <TableCell className="text-slate-500 font-mono whitespace-nowrap">
+                    <TableCell className="text-[#8094A8] font-mono whitespace-nowrap">
                       {formatDisplayDate(staffMember.createdAt)}
                     </TableCell>
                   </tr>
@@ -394,18 +395,18 @@ const StudentsDirectoryTab = ({ municipalSchoolsList }) => {
         isLoadingData={isLoading}
         onExportTriggered={handleExportStudentsCsv}
         isExportingData={isExporting}
-        exportButtonColorClass="bg-blue-700 hover:bg-blue-600"
+        exportButtonColorClass="bg-[#006AC7] hover:bg-[#00529B]"
       >
         <SearchInputField
           value={searchQuery}
           onChange={setSearchQuery}
           placeholderText="Search student name, GR No..."
-          focusBorderColorClass="focus:border-blue-500"
+          focusBorderColorClass="focus:border-[#006AC7]"
         />
         <FilterDropdownSelect
           value={selectedSchoolId}
           onChange={setSelectedSchoolId}
-          focusBorderColorClass="focus:border-blue-500"
+          focusBorderColorClass="focus:border-[#006AC7]"
         >
           <option value="">All Schools</option>
           {municipalSchoolsList.map((schoolItem) => (
@@ -417,7 +418,7 @@ const StudentsDirectoryTab = ({ municipalSchoolsList }) => {
         <FilterDropdownSelect
           value={selectedStatus}
           onChange={setSelectedStatus}
-          focusBorderColorClass="focus:border-blue-500"
+          focusBorderColorClass="focus:border-[#006AC7]"
         >
           <option value="">All Statuses</option>
           {['ACTIVE', 'PENDING_APPROVAL', 'TRANSFERRED', 'GRADUATED', 'DROPPED_OUT', 'INACTIVE'].map((statusName) => (
@@ -428,97 +429,97 @@ const StudentsDirectoryTab = ({ municipalSchoolsList }) => {
         </FilterDropdownSelect>
       </DirectoryFilterToolbar>
 
-      <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900/80 shadow-2xl">
+      <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="border-b border-slate-800 bg-slate-950/80 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+          <table className="w-full text-left text-xs text-[#526477]">
+            <thead className="border-b border-slate-200/80 bg-slate-50/80 text-[10px] font-bold uppercase tracking-wider text-[#526477]">
               <tr>
                 {['Student', 'GR No', 'Global ID', 'School', 'Class/Section', 'Gender', 'Guardian', 'Admission', 'Status'].map(
                   (headerTitle) => (
-                    <th key={headerTitle} className="px-4 py-3">{headerTitle}</th>
+                    <th key={headerTitle} className="px-4 py-3.5">{headerTitle}</th>
                   )
                 )}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-slate-100">
               {isLoading ? (
                 <LoadingSkeletonRow columnsCount={9} />
               ) : studentRecords.length === 0 ? (
                 <EmptyStateRow columnsCount={9} />
               ) : (
                 studentRecords.map((studentAccount, index) => (
-                  <tr key={studentAccount._id || index} className="hover:bg-slate-800/40 transition">
+                  <tr key={studentAccount._id || index} className="hover:bg-blue-50/40 transition">
                     <TableCell>
-                      <div className="font-semibold text-white">{studentAccount.fullName || '—'}</div>
+                      <div className="font-bold text-[#102033]">{studentAccount.fullName || '—'}</div>
                       {studentAccount.email && (
-                        <div className="flex items-center gap-1 mt-0.5 text-[11px] text-slate-500 font-mono">
-                          <Mail className="h-3 w-3" />
+                        <div className="flex items-center gap-1 mt-0.5 text-[11px] text-[#526477] font-mono">
+                          <Mail className="h-3 w-3 text-slate-400" />
                           {studentAccount.email}
                         </div>
                       )}
                     </TableCell>
                     <TableCell>
-                      <span className="inline-flex items-center gap-1 font-mono text-amber-300 font-bold">
+                      <span className="inline-flex items-center gap-1 font-mono text-amber-700 font-bold">
                         <Hash className="h-3 w-3" />
                         {studentAccount.grNumber || '—'}
                       </span>
                     </TableCell>
                     <TableCell>
                       {studentAccount.globalStudentId ? (
-                        <span className="inline-flex items-center gap-1 font-mono text-cyan-400 text-[11px] bg-cyan-950/40 border border-cyan-800/40 rounded px-1.5 py-0.5">
+                        <span className="inline-flex items-center gap-1 font-mono text-[#006AC7] font-bold text-[11px] bg-blue-50 border border-blue-200 rounded px-1.5 py-0.5">
                           <IdCard className="h-3 w-3" />
                           {studentAccount.globalStudentId}
                         </span>
                       ) : (
-                        <span className="text-slate-600">—</span>
+                        <span className="text-[#8094A8]">—</span>
                       )}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        <Building2 className="h-3.5 w-3.5 text-slate-500 shrink-0" />
-                        <span className="truncate max-w-[140px]">{studentAccount.schoolId?.name || '—'}</span>
+                        <Building2 className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                        <span className="truncate max-w-[140px] text-[#102033] font-medium">{studentAccount.schoolId?.name || '—'}</span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-1">
-                        <Building2 className="h-3.5 w-3.5 text-slate-500 shrink-0" />
-                        <span>{studentAccount.classId?.name || '—'}</span>
+                      <div className="flex items-center gap-1 text-[#102033]">
+                        <Building2 className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                        <span className="font-medium">{studentAccount.classId?.name || '—'}</span>
                         {studentAccount.sectionId?.name && (
-                          <span className="text-slate-400 ml-1">/ {studentAccount.sectionId.name}</span>
+                          <span className="text-[#526477] ml-1">/ {studentAccount.sectionId.name}</span>
                         )}
                       </div>
                     </TableCell>
                     <TableCell>
                       <span
-                        className={`font-medium ${
+                        className={`font-bold ${
                           studentAccount.gender === 'MALE'
-                            ? 'text-blue-400'
+                            ? 'text-[#006AC7]'
                             : studentAccount.gender === 'FEMALE'
-                            ? 'text-pink-400'
-                            : 'text-slate-500'
+                            ? 'text-pink-600'
+                            : 'text-[#526477]'
                         }`}
                       >
                         {studentAccount.gender || '—'}
                       </span>
                     </TableCell>
                     <TableCell>
-                      <div className="truncate max-w-[120px] text-slate-300">
+                      <div className="truncate max-w-[120px] text-[#102033] font-medium">
                         {studentAccount.fatherOrGuardianName || '—'}
                       </div>
                       {studentAccount.guardianContactNumber && (
-                        <div className="flex items-center gap-1 mt-0.5 text-[11px] text-slate-500">
-                          <Phone className="h-3 w-3" />
+                        <div className="flex items-center gap-1 mt-0.5 text-[11px] text-[#526477]">
+                          <Phone className="h-3 w-3 text-slate-400" />
                           {studentAccount.guardianContactNumber}
                         </div>
                       )}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-1 text-slate-400">
-                        <CalendarDays className="h-3.5 w-3.5 text-slate-600" />
+                      <div className="flex items-center gap-1 text-[#526477]">
+                        <CalendarDays className="h-3.5 w-3.5 text-slate-400" />
                         {studentAccount.admissionDate ? formatDisplayDate(studentAccount.admissionDate) : '—'}
                       </div>
                       {studentAccount.admissionType && (
-                        <div className="text-[10px] text-slate-600 font-mono mt-0.5">
+                        <div className="text-[10px] text-[#8094A8] font-mono mt-0.5">
                           {studentAccount.admissionType}
                         </div>
                       )}
@@ -594,18 +595,18 @@ const GuardiansDirectoryTab = () => {
         isLoadingData={isLoading}
         onExportTriggered={handleExportGuardiansCsv}
         isExportingData={isExporting}
-        exportButtonColorClass="bg-rose-700 hover:bg-rose-600"
+        exportButtonColorClass="bg-[#006AC7] hover:bg-[#00529B]"
       >
         <SearchInputField
           value={searchQuery}
           onChange={setSearchQuery}
           placeholderText="Search name, email, or phone..."
-          focusBorderColorClass="focus:border-rose-500"
+          focusBorderColorClass="focus:border-[#006AC7]"
         />
         <FilterDropdownSelect
           value={selectedStatus}
           onChange={setSelectedStatus}
-          focusBorderColorClass="focus:border-rose-500"
+          focusBorderColorClass="focus:border-[#006AC7]"
         >
           <option value="">All Statuses</option>
           {['ACTIVE', 'PENDING_APPROVAL', 'SUSPENDED', 'INACTIVE'].map((statusName) => (
@@ -616,57 +617,57 @@ const GuardiansDirectoryTab = () => {
         </FilterDropdownSelect>
       </DirectoryFilterToolbar>
 
-      <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900/80 shadow-2xl">
+      <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="border-b border-slate-800 bg-slate-950/80 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+          <table className="w-full text-left text-xs text-[#526477]">
+            <thead className="border-b border-slate-200/80 bg-slate-50/80 text-[10px] font-bold uppercase tracking-wider text-[#526477]">
               <tr>
                 {['Guardian', 'Email', 'Phone', 'Linked Students', 'Status', 'Registered'].map((headerTitle) => (
-                  <th key={headerTitle} className="px-4 py-3">{headerTitle}</th>
+                  <th key={headerTitle} className="px-4 py-3.5">{headerTitle}</th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-slate-100">
               {isLoading ? (
                 <LoadingSkeletonRow columnsCount={6} />
               ) : guardianRecords.length === 0 ? (
                 <EmptyStateRow columnsCount={6} />
               ) : (
                 guardianRecords.map((guardianAccount) => (
-                  <tr key={guardianAccount._id} className="hover:bg-slate-800/40 transition">
+                  <tr key={guardianAccount._id} className="hover:bg-blue-50/40 transition">
                     <TableCell>
-                      <div className="font-semibold text-white">{guardianAccount.fullName}</div>
+                      <div className="font-bold text-[#102033]">{guardianAccount.fullName}</div>
                     </TableCell>
                     <TableCell>
                       {guardianAccount.email ? (
-                        <div className="flex items-center gap-1 font-mono text-[11px] text-slate-400">
-                          <Mail className="h-3 w-3 text-slate-500" />
+                        <div className="flex items-center gap-1 font-mono text-[11px] text-[#526477]">
+                          <Mail className="h-3 w-3 text-slate-400" />
                           {guardianAccount.email}
                         </div>
                       ) : (
-                        <span className="text-slate-600">—</span>
+                        <span className="text-[#8094A8]">—</span>
                       )}
                     </TableCell>
                     <TableCell>
                       {guardianAccount.phoneNumber ? (
-                        <div className="flex items-center gap-1 text-slate-400">
-                          <Phone className="h-3 w-3 text-slate-500" />
+                        <div className="flex items-center gap-1 text-[#526477]">
+                          <Phone className="h-3 w-3 text-slate-400" />
                           {guardianAccount.phoneNumber}
                         </div>
                       ) : (
-                        <span className="text-slate-600">—</span>
+                        <span className="text-[#8094A8]">—</span>
                       )}
                     </TableCell>
                     <TableCell>
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-800 border border-slate-700 px-2 py-0.5 text-[11px] text-slate-400">
-                        <GraduationCap className="h-3 w-3 text-amber-400" />
-                        <span className="text-amber-300 font-semibold">{guardianAccount.linkedStudentsCount ?? '?'}</span>
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-[11px] text-[#526477]">
+                        <GraduationCap className="h-3 w-3 text-[#006AC7]" />
+                        <span className="text-[#006AC7] font-bold">{guardianAccount.linkedStudentsCount ?? '?'}</span>
                         <span>linked</span>
                       </span>
-                      <p className="text-[10px] text-slate-600 mt-0.5">Full list available in CSV export</p>
+                      <p className="text-[10px] text-[#8094A8] mt-0.5">Full list available in CSV export</p>
                     </TableCell>
                     <TableCell>{renderStatusBadge(guardianAccount.status)}</TableCell>
-                    <TableCell className="text-slate-500 font-mono whitespace-nowrap">
+                    <TableCell className="text-[#8094A8] font-mono whitespace-nowrap">
                       {formatDisplayDate(guardianAccount.createdAt)}
                     </TableCell>
                   </tr>
@@ -690,16 +691,16 @@ const DIRECTORY_NAVIGATION_TABS = [
 
 const TAB_ACCENT_STYLES = {
   staff: {
-    activeStyle: 'border-emerald-500 text-emerald-400',
-    hoverStyle:  'hover:text-emerald-400 hover:border-emerald-600/40',
+    activeStyle: 'border-[#006AC7] text-[#006AC7]',
+    hoverStyle:  'hover:text-[#006AC7] hover:border-[#006AC7]/40',
   },
   students: {
-    activeStyle: 'border-blue-500 text-blue-400',
-    hoverStyle:  'hover:text-blue-400 hover:border-blue-600/40',
+    activeStyle: 'border-[#006AC7] text-[#006AC7]',
+    hoverStyle:  'hover:text-[#006AC7] hover:border-[#006AC7]/40',
   },
   guardians: {
-    activeStyle: 'border-rose-500 text-rose-400',
-    hoverStyle:  'hover:text-rose-400 hover:border-rose-600/40',
+    activeStyle: 'border-[#006AC7] text-[#006AC7]',
+    hoverStyle:  'hover:text-[#006AC7] hover:border-[#006AC7]/40',
   },
 };
 
@@ -730,7 +731,7 @@ export const DirectoryPage = () => {
       subtitle="Education Department Liaquatabad Town — Staff, Students & Guardian records with CSV export"
     >
       <div className="space-y-6">
-        <div className="flex items-center gap-0 border-b border-slate-800 overflow-x-auto">
+        <div className="flex items-center gap-0 border-b border-slate-200 overflow-x-auto">
           {visibleTabsList.map((tabConfig) => {
             const TabIconComponent = tabConfig.icon;
             const accentStyleConfig = TAB_ACCENT_STYLES[tabConfig.id];
@@ -740,10 +741,10 @@ export const DirectoryPage = () => {
                 key={tabConfig.id}
                 type="button"
                 onClick={() => setActiveTabId(tabConfig.id)}
-                className={`flex items-center gap-2 px-5 py-3 text-sm font-semibold border-b-2 whitespace-nowrap transition-all ${
+                className={`flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-2 whitespace-nowrap transition-all ${
                   isTabActive
                     ? accentStyleConfig.activeStyle
-                    : `border-transparent text-slate-500 ${accentStyleConfig.hoverStyle}`
+                    : `border-transparent text-[#526477] ${accentStyleConfig.hoverStyle}`
                 }`}
               >
                 <TabIconComponent className="h-4 w-4" />

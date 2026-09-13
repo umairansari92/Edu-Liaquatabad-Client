@@ -157,26 +157,26 @@ export const UserAuthorityModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
-      <div className="w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-fade-in">
+      <div className="w-full max-w-2xl bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
+        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/80">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-emerald-950/70 border border-emerald-800/60 text-emerald-400">
-              <Shield className="w-5 h-5" />
+            <div className="p-2.5 rounded-xl bg-blue-50 text-[#006AC7] border border-blue-200">
+              <Shield className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-base font-display font-bold text-white">
+              <h2 className="text-lg font-bold text-[#102033]">
                 Enterprise Authority & Designation Management
               </h2>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-[#526477]">
                 Liaquatabad Town Centre Education Directorate • Tier Separation Engine
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+            className="p-2 text-slate-400 hover:text-[#102033] rounded-lg hover:bg-slate-100 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -185,35 +185,35 @@ export const UserAuthorityModal = ({
         {/* Content Body */}
         <div className="p-6 space-y-6 overflow-y-auto flex-1 custom-scrollbar">
           {/* Target Identity Overview Card */}
-          <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800">
+          <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80">
             <div className="flex items-start justify-between">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-white text-base">{targetUser.fullName}</span>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 font-mono">
+                  <span className="font-semibold text-[#102033] text-base">{targetUser.fullName}</span>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-slate-200/80 text-[#526477] font-mono">
                     {targetUser.email}
                   </span>
                 </div>
                 <div className="mt-2 grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
                   <div>
-                    <span className="text-slate-500 block">Civil Designation</span>
-                    <span className="font-medium text-amber-400">{targetUser.designation || 'None'}</span>
+                    <span className="text-[#8094A8] block">Civil Designation</span>
+                    <span className="font-medium text-amber-700">{targetUser.designation || 'None'}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 block">Base Role</span>
-                    <span className="font-mono text-cyan-400">{targetUser.baseRole || 'TEACHER'}</span>
+                    <span className="text-[#8094A8] block">Base Role</span>
+                    <span className="font-mono text-[#006AC7]">{targetUser.baseRole || 'TEACHER'}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 block">Current Authority</span>
-                    <span className="font-mono font-bold text-emerald-400">{targetUser.role}</span>
+                    <span className="text-[#8094A8] block">Current Authority</span>
+                    <span className="font-mono font-bold text-[#4B7F3A]">{targetUser.role}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 block">Current Scope</span>
-                    <span className="font-mono text-purple-400">{targetUser.scope}</span>
+                    <span className="text-[#8094A8] block">Current Scope</span>
+                    <span className="font-mono text-purple-700">{targetUser.scope}</span>
                   </div>
                   <div>
-                    <span className="text-slate-500 block">Assigned School</span>
-                    <span className="font-medium text-emerald-400 truncate block" title={targetUser.schoolId?.name || 'None'}>
+                    <span className="text-[#8094A8] block">Assigned School</span>
+                    <span className="font-medium text-[#4B7F3A] truncate block" title={targetUser.schoolId?.name || 'None'}>
                       {targetUser.schoolId?.name || 'None'}
                     </span>
                   </div>
@@ -223,28 +223,28 @@ export const UserAuthorityModal = ({
           </div>
 
           {isTargetAcademicEntity ? (
-            <div className="p-5 rounded-2xl bg-sky-950/30 border border-sky-800/40 text-sky-200 text-sm space-y-3">
-              <div className="flex items-center gap-2.5 font-bold text-sky-300">
-                <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />
+            <div className="p-5 rounded-2xl bg-sky-50 border border-sky-200 text-sky-900 text-sm space-y-3">
+              <div className="flex items-center gap-2.5 font-bold text-sky-900">
+                <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
                 <span>Academic Entity Boundary Protection</span>
               </div>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                <strong>{targetUser.fullName}</strong> is registered as a <span className="text-cyan-300 font-semibold">{targetUser.role}</span>. 
+              <p className="text-xs text-[#526477] leading-relaxed">
+                <strong>{targetUser.fullName}</strong> is registered as a <span className="text-[#006AC7] font-semibold">{targetUser.role}</span>. 
                 Students and Parents are external academic beneficiaries and cannot hold civil service posts, teaching assignments, or institutional administrative authorities.
               </p>
-              <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800/80 text-xs text-slate-400 space-y-1">
-                <p className="text-amber-300 font-medium">Looking for Student Academic Promotion?</p>
+              <div className="p-3 rounded-xl bg-white border border-slate-200 text-xs text-[#526477] space-y-1">
+                <p className="text-amber-700 font-medium">Looking for Student Academic Promotion?</p>
                 <p>
                   Student grade progression (e.g. promoting from Class 5 to Class 6 at the end of an academic term) is managed through the <strong>Academic & Examinations Module</strong>, not system authority grants.
                 </p>
               </div>
             </div>
           ) : !canActorManageTarget ? (
-            <div className="p-4 rounded-xl bg-red-950/30 border border-red-800/40 text-red-300 text-sm flex items-center gap-3">
-              <ShieldAlert className="w-6 h-6 flex-shrink-0 text-red-400" />
+            <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-center gap-3">
+              <ShieldAlert className="w-6 h-6 flex-shrink-0 text-rose-600" />
               <div>
                 <p className="font-semibold">Hierarchy Guard Enforcement</p>
-                <p className="text-xs text-red-400/90 mt-0.5">
+                <p className="text-xs text-rose-700 mt-0.5">
                   You cannot modify this account. Your authority level ({actorLevel}) is equal to or lower than the target account ({targetLevel}).
                 </p>
               </div>
@@ -254,10 +254,10 @@ export const UserAuthorityModal = ({
               {/* Civil Designation — Fully Editable with Quick Presets */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                  <label className="block text-xs font-semibold text-[#526477] uppercase tracking-wider">
                     Civil Service Designation (Official Job Title)
                   </label>
-                  <span className="text-[11px] text-amber-400 font-medium">
+                  <span className="text-[11px] text-amber-700 font-medium">
                     Supports multiple titles (e.g. Head Master / DDO)
                   </span>
                 </div>
@@ -266,12 +266,12 @@ export const UserAuthorityModal = ({
                   value={designationText}
                   onChange={(inputChangeEvent) => setDesignationText(inputChangeEvent.target.value)}
                   placeholder="e.g. Senior Clerk, Head Master, PST, JST, DDO, Supervisor..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-amber-300 text-sm font-medium focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-amber-800 text-sm font-medium focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition-colors"
                 />
 
                 {/* Quick Title Presets */}
                 <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                  <span className="text-[10px] text-slate-500 mr-1">Quick presets:</span>
+                  <span className="text-[10px] text-[#8094A8] mr-1">Quick presets:</span>
                   {['PST', 'JST', 'SST', 'Head Master', 'Senior Clerk', 'Junior Clerk', 'DDO', 'Accountant', 'Supervisor'].map((preset) => (
                     <button
                       type="button"
@@ -283,7 +283,7 @@ export const UserAuthorityModal = ({
                           setDesignationText(`${designationText} / ${preset}`);
                         }
                       }}
-                      className="px-2 py-0.5 rounded-md bg-slate-950 hover:bg-amber-950/60 hover:text-amber-300 text-slate-400 text-[11px] font-mono border border-slate-800 transition"
+                      className="px-2 py-0.5 rounded-md bg-white hover:bg-amber-50 hover:text-amber-800 text-[#526477] text-[11px] font-mono border border-slate-200 transition"
                     >
                       + {preset}
                     </button>
@@ -292,20 +292,20 @@ export const UserAuthorityModal = ({
                     <button
                       type="button"
                       onClick={() => setDesignationText('')}
-                      className="px-1.5 py-0.5 rounded text-[10px] text-red-400 hover:bg-red-950/40 ml-auto"
+                      className="px-1.5 py-0.5 rounded text-[10px] text-rose-600 hover:bg-rose-50 ml-auto"
                     >
                       Clear
                     </button>
                   )}
                 </div>
-                <p className="text-[11px] text-slate-500 mt-1.5">
+                <p className="text-[11px] text-[#8094A8] mt-1.5">
                   Civil service designation is the employee's official public/departmental title. You can assign single or combined titles (e.g., "Senior Clerk / DDO" or "Head Master / In-charge").
                 </p>
               </div>
 
               {/* Authority Selector */}
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-semibold text-[#526477] uppercase tracking-wider mb-2">
                   Grant System Authority (Technical Access Boundary)
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -318,12 +318,12 @@ export const UserAuthorityModal = ({
                         onClick={() => handleAuthoritySelect(authKey)}
                         className={`p-2.5 rounded-xl text-xs font-semibold border transition-all text-left flex flex-col justify-between ${
                           isSelected
-                            ? 'bg-emerald-950/60 border-emerald-600 text-emerald-300 shadow-md shadow-emerald-950/50'
-                            : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+                            ? 'bg-emerald-50 border-emerald-500 text-[#4B7F3A] shadow-sm'
+                            : 'bg-white border-slate-200 text-[#526477] hover:border-slate-300 hover:text-[#102033]'
                         }`}
                       >
                         <span className="font-mono">{authKey}</span>
-                        <span className="text-[10px] text-slate-500 mt-1">Level {AUTHORITY_LEVELS[authKey]}</span>
+                        <span className="text-[10px] text-[#8094A8] mt-1">Level {AUTHORITY_LEVELS[authKey]}</span>
                       </button>
                     );
                   })}
@@ -332,7 +332,7 @@ export const UserAuthorityModal = ({
 
               {/* Scope Selector */}
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-semibold text-[#526477] uppercase tracking-wider mb-1.5">
                   Jurisdictional Scope Boundary
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -345,8 +345,8 @@ export const UserAuthorityModal = ({
                         onClick={() => setSelectedScope(scopeKey)}
                         className={`p-2 rounded-xl text-xs font-semibold border transition-all text-left ${
                           isSelected
-                            ? 'bg-cyan-950/60 border-cyan-600 text-cyan-300 shadow-sm'
-                            : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200'
+                            ? 'bg-blue-50 border-blue-500 text-[#006AC7] shadow-sm'
+                            : 'bg-white border-slate-200 text-[#526477] hover:border-slate-300 hover:text-[#102033]'
                         }`}
                       >
                         <span className="font-mono">{scopeKey}</span>
@@ -359,14 +359,14 @@ export const UserAuthorityModal = ({
               {/* School Assignment Selector (for HM or SCHOOL Scope) */}
               {(selectedAuthority === 'HM' || selectedScope === 'SCHOOL') && (
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                  <label className="block text-xs font-semibold text-[#526477] uppercase tracking-wider mb-1.5 flex items-center justify-between">
                     <span>Assigned Municipal School (Jurisdiction)</span>
-                    <span className="text-[11px] text-emerald-400 font-normal">Operational boundary</span>
+                    <span className="text-[11px] text-[#4B7F3A] font-semibold">Operational boundary</span>
                   </label>
                   <select
                     value={selectedSchoolId}
                     onChange={(selectChangeEvent) => setSelectedSchoolId(selectChangeEvent.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-slate-800 text-white text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 font-medium"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-[#102033] text-sm focus:border-[#006AC7] focus:outline-none focus:ring-1 focus:ring-[#006AC7] font-medium"
                   >
                     <option value="">-- Select Municipal School --</option>
                     {schoolsList.map((sch) => (
@@ -375,7 +375,7 @@ export const UserAuthorityModal = ({
                       </option>
                     ))}
                   </select>
-                  <p className="text-[11px] text-slate-500 mt-1">
+                  <p className="text-[11px] text-[#8094A8] mt-1">
                     Head Master will hold administrative jurisdiction and oversight for this specific school.
                   </p>
                 </div>
@@ -383,7 +383,7 @@ export const UserAuthorityModal = ({
 
               {/* Mandatory Justification Reason */}
               <div>
-                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-1.5">
+                <label className="block text-xs font-semibold text-[#526477] uppercase tracking-wider mb-1.5">
                   Mandatory Justification Reason (Required for Audit Log)
                 </label>
                 <textarea
@@ -391,58 +391,58 @@ export const UserAuthorityModal = ({
                   onChange={(textareaChangeEvent) => setReasonText(textareaChangeEvent.target.value)}
                   rows={2}
                   placeholder="Official notification reference or departmental rationale (min 10 characters)..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-sm focus:border-emerald-500 focus:outline-none transition-colors"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 text-[#102033] text-sm focus:border-[#006AC7] focus:outline-none transition-colors"
                 />
               </div>
 
               {/* Confirmation Step Diff */}
               {isConfirming && (
-                <div className="p-4 rounded-xl bg-amber-950/30 border border-amber-800/40 text-amber-300 text-xs space-y-3 animate-fade-in">
-                  <div className="flex items-center gap-2 font-bold text-amber-200">
+                <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-3 animate-fade-in">
+                  <div className="flex items-center gap-2 font-bold text-amber-900">
                     <AlertTriangle className="w-4 h-4" />
                     <span>Please Confirm Designation & Authority Updates</span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-amber-800/30">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-amber-200">
                     <div>
-                      <span className="text-slate-400 block text-[11px]">Target Personnel:</span>
-                      <span className="font-semibold text-white text-sm">{targetUser.fullName}</span>
-                      <span className="text-[10px] text-slate-500 block font-mono">{targetUser.email}</span>
+                      <span className="text-[#8094A8] block text-[11px]">Target Personnel:</span>
+                      <span className="font-semibold text-[#102033] text-sm">{targetUser.fullName}</span>
+                      <span className="text-[10px] text-[#8094A8] block font-mono">{targetUser.email}</span>
                     </div>
 
                     <div>
-                      <span className="text-slate-400 block text-[11px]">Civil Designation (Official Title):</span>
+                      <span className="text-[#8094A8] block text-[11px]">Civil Designation (Official Title):</span>
                       <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                        <span className="text-slate-400 text-xs line-through">{targetUser.designation || 'None'}</span>
-                        <ArrowRight className="inline w-3 h-3 text-amber-400 shrink-0" />
-                        <span className="font-bold text-amber-300 text-xs bg-amber-950/50 px-2 py-0.5 rounded border border-amber-800/50">
+                        <span className="text-[#8094A8] text-xs line-through">{targetUser.designation || 'None'}</span>
+                        <ArrowRight className="inline w-3 h-3 text-amber-600 shrink-0" />
+                        <span className="font-bold text-amber-800 text-xs bg-white px-2 py-0.5 rounded border border-amber-300">
                           {designationText.trim() || targetUser.designation || 'None'}
                         </span>
                       </div>
                     </div>
 
                     <div>
-                      <span className="text-slate-400 block text-[11px]">System Technical Authority:</span>
+                      <span className="text-[#8094A8] block text-[11px]">System Technical Authority:</span>
                       <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                        <span className="font-mono text-slate-400 text-xs">
+                        <span className="font-mono text-[#8094A8] text-xs">
                           {targetUser.role} <span className="text-[10px] text-slate-500">(Lvl {AUTHORITY_LEVELS[targetUser.role] || 0})</span>
                         </span>
-                        <ArrowRight className="inline w-3 h-3 text-emerald-400 shrink-0" />
-                        <span className="font-mono font-bold text-emerald-400 text-xs bg-emerald-950/50 px-2 py-0.5 rounded border border-emerald-800/50">
-                          {selectedAuthority} <span className="text-[10px] text-emerald-500">(Lvl {AUTHORITY_LEVELS[selectedAuthority] || 0})</span>
+                        <ArrowRight className="inline w-3 h-3 text-[#4B7F3A] shrink-0" />
+                        <span className="font-mono font-bold text-[#4B7F3A] text-xs bg-white px-2 py-0.5 rounded border border-emerald-300">
+                          {selectedAuthority} <span className="text-[10px] text-[#4B7F3A]">(Lvl {AUTHORITY_LEVELS[selectedAuthority] || 0})</span>
                         </span>
                       </div>
                     </div>
 
                     <div>
-                      <span className="text-slate-400 block text-[11px]">Jurisdictional Scope:</span>
-                      <span className="font-mono text-cyan-300 text-xs">{selectedScope}</span>
+                      <span className="text-[#8094A8] block text-[11px]">Jurisdictional Scope:</span>
+                      <span className="font-mono text-[#006AC7] text-xs">{selectedScope}</span>
                     </div>
 
                     {(selectedAuthority === 'HM' || selectedScope === 'SCHOOL' || selectedSchoolId) && (
                       <div className="sm:col-span-2">
-                        <span className="text-slate-400 block text-[11px]">Assigned School Jurisdiction:</span>
-                        <span className="font-medium text-emerald-300 text-xs">
+                        <span className="text-[#8094A8] block text-[11px]">Assigned School Jurisdiction:</span>
+                        <span className="font-medium text-[#4B7F3A] text-xs">
                           {schoolsList.find((schoolItem) => String(schoolItem._id) === String(selectedSchoolId))?.name ||
                             targetUser.schoolId?.name ||
                             'Unassigned'}
@@ -451,12 +451,12 @@ export const UserAuthorityModal = ({
                     )}
                   </div>
 
-                  <div className="p-2.5 rounded-lg bg-slate-950/80 border border-slate-800 text-[11px] text-slate-400 space-y-1">
+                  <div className="p-2.5 rounded-lg bg-white border border-amber-200 text-[11px] text-[#526477] space-y-1">
                     <p>
-                      <strong className="text-cyan-300">Designation vs System Authority:</strong>{' '}
-                      Civil Designation (<span className="text-amber-300 font-semibold">{designationText.trim() || targetUser.designation}</span>) is their official governmental title. System Authority (<span className="text-emerald-400 font-mono font-semibold">{selectedAuthority}</span>) grants software permissions in the portal.
+                      <strong className="text-[#006AC7]">Designation vs System Authority:</strong>{' '}
+                      Civil Designation (<span className="text-amber-800 font-semibold">{designationText.trim() || targetUser.designation}</span>) is their official governmental title. System Authority (<span className="text-[#4B7F3A] font-mono font-semibold">{selectedAuthority}</span>) grants software permissions in the portal.
                     </p>
-                    <p className="text-amber-400/80 text-[10px]">
+                    <p className="text-amber-800 text-[10px]">
                       * Executing this update will increment tokenVersion and revoke existing active login sessions for security compliance.
                     </p>
                   </div>
@@ -467,7 +467,7 @@ export const UserAuthorityModal = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="px-6 py-4 border-t border-slate-800 flex items-center justify-end gap-3 bg-slate-950/60">
+        <div className="px-6 py-4 border-t border-slate-100 flex items-center justify-end gap-3 bg-slate-50">
           <button
             type="button"
             onClick={() => {
@@ -475,7 +475,7 @@ export const UserAuthorityModal = ({
               else onClose();
             }}
             disabled={isSubmitting}
-            className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            className="px-4 py-2 rounded-xl text-xs font-semibold text-[#526477] hover:text-[#102033] hover:bg-slate-100 transition-colors"
           >
             {isConfirming ? 'Back to Edit' : 'Cancel'}
           </button>
@@ -487,8 +487,8 @@ export const UserAuthorityModal = ({
               disabled={isSubmitting}
               className={`px-5 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all ${
                 isConfirming
-                  ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/30'
-                  : 'bg-slate-800 hover:bg-slate-700 text-white'
+                  ? 'bg-[#4B7F3A] hover:bg-[#3d682f] text-white shadow-md'
+                  : 'bg-[#006AC7] hover:bg-[#00529B] text-white shadow-sm'
               }`}
             >
               {isSubmitting ? (

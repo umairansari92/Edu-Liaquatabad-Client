@@ -131,17 +131,17 @@ export const RegisterTeacherPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8 font-sans selection:bg-teal-500 selection:text-white">
+    <div className="min-h-screen bg-[#F8FBFD] flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8 font-sans selection:bg-[#006AC7] selection:text-white">
       <div className="sm:mx-auto sm:w-full sm:max-w-3xl text-center">
         <Link to="/" className="inline-flex items-center justify-center space-x-3 mb-3 group">
-          <div className="w-12 h-12 rounded-2xl bg-teal-600 flex items-center justify-center shadow-lg shadow-teal-900/40 group-hover:bg-teal-500 transition-colors">
+          <div className="w-12 h-12 rounded-2xl bg-[#006AC7] flex items-center justify-center shadow-lg shadow-[#006AC7]/20 group-hover:bg-[#00529B] transition-colors">
             <School className="w-6 h-6 text-white" />
           </div>
         </Link>
-        <h2 className="text-2xl sm:text-3xl font-display font-bold text-white tracking-tight">
+        <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#102033] tracking-tight">
           Official Staff &amp; Faculty Registration
         </h2>
-        <p className="mt-1 text-xs sm:text-sm text-slate-400">
+        <p className="mt-1 text-xs sm:text-sm text-[#526477]">
           Education Department Liaquatabad Town Centre (DMC) — Institutional Service Record Portal
         </p>
 
@@ -161,8 +161,8 @@ export const RegisterTeacherPage = () => {
                 onClick={() => setActiveStep(step.num)}
                 className={`flex-1 py-2 px-2 text-xs font-semibold rounded-lg border transition-all ${
                   activeStep === step.num
-                    ? 'bg-teal-600/20 border-teal-500 text-teal-300'
-                    : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200'
+                    ? 'bg-blue-50 border-[#006AC7] text-[#006AC7] shadow-sm'
+                    : 'bg-white border-slate-200 text-[#526477] hover:text-[#102033] hover:bg-slate-50'
                 }`}
               >
                 <span className="block text-[10px] opacity-75">STEP {step.num}</span>
@@ -174,41 +174,41 @@ export const RegisterTeacherPage = () => {
       </div>
 
       <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-3xl">
-        <div className="bg-slate-900/90 backdrop-blur-xl py-8 px-6 sm:px-10 shadow-2xl rounded-2xl border border-slate-800">
+        <div className="bg-white py-8 px-6 sm:px-10 shadow-xl rounded-2xl border border-slate-200/80">
           {submitted ? (
             <div className="text-center py-8">
-              <div className="w-20 h-20 bg-teal-500/10 border border-teal-500/30 rounded-3xl flex items-center justify-center mx-auto mb-5 text-teal-400">
+              <div className="w-20 h-20 bg-[#4B7F3A]/10 border border-[#4B7F3A]/30 rounded-3xl flex items-center justify-center mx-auto mb-5 text-[#4B7F3A]">
                 <CheckCircle className="w-10 h-10" />
               </div>
-              <h3 className="text-2xl font-bold text-white mb-2">Staff Application Submitted!</h3>
-              <div className="max-w-md mx-auto p-4 rounded-xl bg-slate-950 border border-slate-800 text-left my-4 text-xs space-y-2">
+              <h3 className="text-2xl font-bold text-[#102033] mb-2">Staff Application Submitted!</h3>
+              <div className="max-w-md mx-auto p-4 rounded-xl bg-slate-50 border border-slate-200 text-left my-4 text-xs space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Applicant Name:</span>
-                  <span className="font-semibold text-white">{pendingFormData?.fullName}</span>
+                  <span className="text-[#526477]">Applicant Name:</span>
+                  <span className="font-semibold text-[#102033]">{pendingFormData?.fullName}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Employee No:</span>
-                  <span className="font-mono font-semibold text-teal-400">{pendingFormData?.employeeId}</span>
+                  <span className="text-[#526477]">Employee No:</span>
+                  <span className="font-mono font-semibold text-[#006AC7]">{pendingFormData?.employeeId}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Designation:</span>
-                  <span className="font-semibold text-white">{pendingFormData?.designation}</span>
+                  <span className="text-[#526477]">Designation:</span>
+                  <span className="font-semibold text-[#102033]">{pendingFormData?.designation}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400">Account Status:</span>
-                  <span className="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-bold">
+                  <span className="text-[#526477]">Account Status:</span>
+                  <span className="px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200 font-bold">
                     PENDING_APPROVAL
                   </span>
                 </div>
               </div>
-              <p className="text-xs text-slate-300 mb-6 max-w-lg mx-auto leading-relaxed">
+              <p className="text-xs text-[#526477] mb-6 max-w-lg mx-auto leading-relaxed">
                 Your email has been verified via 6-digit OTP. Your institutional profile is now in{' '}
-                <strong className="text-amber-300">PENDING_APPROVAL</strong> status. The Head Master or Municipal
+                <strong className="text-amber-700">PENDING_APPROVAL</strong> status. The Head Master or Municipal
                 Education Officer for your selected institution will verify your credentials before granting access.
               </p>
               <Link
                 to="/login"
-                className="inline-block py-2.5 px-8 rounded-xl text-xs font-semibold bg-teal-600 hover:bg-teal-500 text-white transition-all shadow-lg shadow-teal-900/40"
+                className="inline-block py-2.5 px-8 rounded-xl text-xs font-semibold bg-[#006AC7] hover:bg-[#00529B] text-white transition-all shadow-sm"
               >
                 Return to Sign In
               </Link>
@@ -216,7 +216,7 @@ export const RegisterTeacherPage = () => {
           ) : (
             <form onSubmit={handleSubmit(onInitiateSubmit)} className="space-y-6">
               {errorMessage && (
-                <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs flex items-center gap-2">
+                <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 flex-shrink-0" />
                   <span>{errorMessage}</span>
                 </div>
@@ -225,57 +225,57 @@ export const RegisterTeacherPage = () => {
               {/* ─── STEP 1: Personal Information ─────────────────────────────────── */}
               {activeStep === 1 && (
                 <div className="space-y-4 animate-in fade-in duration-200">
-                  <div className="border-b border-slate-800 pb-2 mb-4">
-                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                      <IdCard className="w-4 h-4 text-teal-400" />
+                  <div className="border-b border-slate-200 pb-2 mb-4">
+                    <h4 className="text-sm font-bold text-[#102033] flex items-center gap-2">
+                      <IdCard className="w-4 h-4 text-[#006AC7]" />
                       Section 1: Personal &amp; Identification Details
                     </h4>
-                    <p className="text-[11px] text-slate-400">Official identification per Government CNIC record</p>
+                    <p className="text-[11px] text-[#526477]">Official identification per Government CNIC record</p>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-medium text-slate-300 mb-1">Full Legal Name *</label>
+                      <label className="block text-xs font-medium text-[#526477] mb-1">Full Legal Name *</label>
                       <input
                         type="text"
                         {...register('fullName')}
                         placeholder="e.g. Muhammad Aslam"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50/50 border border-slate-300 text-[#102033] text-xs focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:border-transparent outline-none"
                       />
-                      {errors.fullName && <p className="text-[11px] text-rose-400 mt-1">{errors.fullName.message}</p>}
+                      {errors.fullName && <p className="text-[11px] text-rose-600 mt-1">{errors.fullName.message}</p>}
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-slate-300 mb-1">Father's Name *</label>
+                      <label className="block text-xs font-medium text-[#526477] mb-1">Father's Name *</label>
                       <input
                         type="text"
                         {...register('fatherName')}
                         placeholder="e.g. Abdul Karim"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50/50 border border-slate-300 text-[#102033] text-xs focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:border-transparent outline-none"
                       />
-                      {errors.fatherName && <p className="text-[11px] text-rose-400 mt-1">{errors.fatherName.message}</p>}
+                      {errors.fatherName && <p className="text-[11px] text-rose-600 mt-1">{errors.fatherName.message}</p>}
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-slate-300 mb-1">Date of Birth *</label>
+                      <label className="block text-xs font-medium text-[#526477] mb-1">Date of Birth *</label>
                       <input
                         type="date"
                         {...register('dateOfBirth')}
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50/50 border border-slate-300 text-[#102033] text-xs focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:border-transparent outline-none"
                       />
-                      {errors.dateOfBirth && <p className="text-[11px] text-rose-400 mt-1">{errors.dateOfBirth.message}</p>}
+                      {errors.dateOfBirth && <p className="text-[11px] text-rose-600 mt-1">{errors.dateOfBirth.message}</p>}
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-slate-300 mb-1">CNIC (National ID) *</label>
+                      <label className="block text-xs font-medium text-[#526477] mb-1">CNIC (National ID) *</label>
                       <input
                         type="text"
                         {...register('cnic')}
                         placeholder="42101-1234567-1"
                         maxLength={15}
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs font-mono focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50/50 border border-slate-300 text-[#102033] text-xs font-mono focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:border-transparent outline-none"
                       />
-                      {errors.cnic && <p className="text-[11px] text-rose-400 mt-1">{errors.cnic.message}</p>}
+                      {errors.cnic && <p className="text-[11px] text-rose-600 mt-1">{errors.cnic.message}</p>}
                     </div>
                   </div>
 
@@ -283,7 +283,7 @@ export const RegisterTeacherPage = () => {
                     <button
                       type="button"
                       onClick={() => setActiveStep(2)}
-                      className="py-2.5 px-6 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold transition-all shadow-lg shadow-teal-900/30"
+                      className="py-2.5 px-6 rounded-xl bg-[#006AC7] hover:bg-[#00529B] text-white text-xs font-semibold transition-all shadow-sm"
                     >
                       Next: Employment Details &rarr;
                     </button>
@@ -294,19 +294,19 @@ export const RegisterTeacherPage = () => {
               {/* ─── STEP 2: Employment Information ───────────────────────────────── */}
               {activeStep === 2 && (
                 <div className="space-y-4 animate-in fade-in duration-200">
-                  <div className="border-b border-slate-800 pb-2 mb-4">
-                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                      <Briefcase className="w-4 h-4 text-teal-400" />
+                  <div className="border-b border-slate-200 pb-2 mb-4">
+                    <h4 className="text-sm font-bold text-[#102033] flex items-center gap-2">
+                      <Briefcase className="w-4 h-4 text-[#006AC7]" />
                       Section 2: Employment &amp; Institutional Assignment
                     </h4>
-                    <p className="text-[11px] text-slate-400">Civil service appointment &amp; school affiliation</p>
+                    <p className="text-[11px] text-[#526477]">Civil service appointment &amp; school affiliation</p>
                   </div>
 
                   {/* Teaching Staff Toggle */}
-                  <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
                     <div>
-                      <span className="text-xs font-semibold text-white block">Staff Classification</span>
-                      <span className="text-[11px] text-slate-400">
+                      <span className="text-xs font-semibold text-[#102033] block">Staff Classification</span>
+                      <span className="text-[11px] text-[#526477]">
                         Is this employee appointed to teaching duties or support staff?
                       </span>
                     </div>
@@ -314,9 +314,9 @@ export const RegisterTeacherPage = () => {
                       <input
                         type="checkbox"
                         {...register('isTeachingStaff')}
-                        className="w-4 h-4 rounded text-teal-600 bg-slate-900 border-slate-700 focus:ring-teal-500"
+                        className="w-4 h-4 rounded text-[#006AC7] border-slate-300 focus:ring-[#006AC7]"
                       />
-                      <span className="text-xs font-medium text-slate-300">
+                      <span className="text-xs font-medium text-[#102033]">
                         {isTeachingStaff ? 'Teaching Faculty' : 'Non-Teaching Support Staff'}
                       </span>
                     </label>
@@ -324,32 +324,32 @@ export const RegisterTeacherPage = () => {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-medium text-slate-300 mb-1">Employee Number (Personal No.) *</label>
+                      <label className="block text-xs font-medium text-[#526477] mb-1">Employee Number (Personal No.) *</label>
                       <input
                         type="text"
                         {...register('employeeId')}
                         placeholder="e.g. EMP-10492"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs font-mono uppercase focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50/50 border border-slate-300 text-[#102033] text-xs font-mono uppercase focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:border-transparent outline-none"
                       />
-                      {errors.employeeId && <p className="text-[11px] text-rose-400 mt-1">{errors.employeeId.message}</p>}
+                      {errors.employeeId && <p className="text-[11px] text-rose-600 mt-1">{errors.employeeId.message}</p>}
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-slate-300 mb-1">Official Designation *</label>
+                      <label className="block text-xs font-medium text-[#526477] mb-1">Official Designation *</label>
                       <input
                         type="text"
                         {...register('designation')}
                         placeholder="e.g. PST, JST, HST, Senior Clerk, Peon"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50/50 border border-slate-300 text-[#102033] text-xs focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:border-transparent outline-none"
                       />
-                      {errors.designation && <p className="text-[11px] text-rose-400 mt-1">{errors.designation.message}</p>}
+                      {errors.designation && <p className="text-[11px] text-rose-600 mt-1">{errors.designation.message}</p>}
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-slate-300 mb-1">School Affiliation (Claimed) *</label>
+                      <label className="block text-xs font-medium text-[#526477] mb-1">School Affiliation (Claimed) *</label>
                       <select
                         {...register('schoolId')}
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50/50 border border-slate-300 text-[#102033] text-xs focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:border-transparent outline-none"
                       >
                         <option value="">Select your institution</option>
                         {schools.map((schoolItem) => (
@@ -358,50 +358,50 @@ export const RegisterTeacherPage = () => {
                           </option>
                         ))}
                       </select>
-                      {errors.schoolId && <p className="text-[11px] text-rose-400 mt-1">{errors.schoolId.message}</p>}
+                      {errors.schoolId && <p className="text-[11px] text-rose-600 mt-1">{errors.schoolId.message}</p>}
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-slate-300 mb-1">Date of Appointment *</label>
+                      <label className="block text-xs font-medium text-[#526477] mb-1">Date of Appointment *</label>
                       <input
                         type="date"
                         {...register('appointmentDate')}
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50/50 border border-slate-300 text-[#102033] text-xs focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:border-transparent outline-none"
                       />
-                      {errors.appointmentDate && <p className="text-[11px] text-rose-400 mt-1">{errors.appointmentDate.message}</p>}
+                      {errors.appointmentDate && <p className="text-[11px] text-rose-600 mt-1">{errors.appointmentDate.message}</p>}
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-slate-300 mb-1">Highest Qualification *</label>
+                      <label className="block text-xs font-medium text-[#526477] mb-1">Highest Qualification *</label>
                       <input
                         type="text"
                         {...register('qualification')}
                         placeholder="e.g. M.Sc Mathematics, B.Ed"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50/50 border border-slate-300 text-[#102033] text-xs focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:border-transparent outline-none"
                       />
-                      {errors.qualification && <p className="text-[11px] text-rose-400 mt-1">{errors.qualification.message}</p>}
+                      {errors.qualification && <p className="text-[11px] text-rose-600 mt-1">{errors.qualification.message}</p>}
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-slate-300 mb-1">Contact Phone Number *</label>
+                      <label className="block text-xs font-medium text-[#526477] mb-1">Contact Phone Number *</label>
                       <input
                         type="tel"
                         {...register('phoneNumber')}
                         placeholder="03001234567"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50/50 border border-slate-300 text-[#102033] text-xs focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:border-transparent outline-none"
                       />
-                      {errors.phoneNumber && <p className="text-[11px] text-rose-400 mt-1">{errors.phoneNumber.message}</p>}
+                      {errors.phoneNumber && <p className="text-[11px] text-rose-600 mt-1">{errors.phoneNumber.message}</p>}
                     </div>
 
                     <div className="sm:col-span-2">
-                      <label className="block text-xs font-medium text-slate-300 mb-1">Official Email Address *</label>
+                      <label className="block text-xs font-medium text-[#526477] mb-1">Official Email Address *</label>
                       <input
                         type="email"
                         {...register('email')}
                         placeholder="faculty@liaquatabad-schools.gov.pk"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50/50 border border-slate-300 text-[#102033] text-xs focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:border-transparent outline-none"
                       />
-                      {errors.email && <p className="text-[11px] text-rose-400 mt-1">{errors.email.message}</p>}
+                      {errors.email && <p className="text-[11px] text-rose-600 mt-1">{errors.email.message}</p>}
                     </div>
                   </div>
 
@@ -409,14 +409,14 @@ export const RegisterTeacherPage = () => {
                     <button
                       type="button"
                       onClick={() => setActiveStep(1)}
-                      className="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-all"
+                      className="py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#526477] text-xs font-semibold transition-all"
                     >
                       &larr; Back
                     </button>
                     <button
                       type="button"
                       onClick={() => setActiveStep(3)}
-                      className="py-2.5 px-6 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold transition-all shadow-lg shadow-teal-900/30"
+                      className="py-2.5 px-6 rounded-xl bg-[#006AC7] hover:bg-[#00529B] text-white text-xs font-semibold transition-all shadow-sm"
                     >
                       Next: Bank / Payroll &rarr;
                     </button>
@@ -427,59 +427,59 @@ export const RegisterTeacherPage = () => {
               {/* ─── STEP 3: Bank & Payroll Information ───────────────────────────── */}
               {activeStep === 3 && (
                 <div className="space-y-4 animate-in fade-in duration-200">
-                  <div className="border-b border-slate-800 pb-2 mb-4">
-                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                      <CreditCard className="w-4 h-4 text-teal-400" />
+                  <div className="border-b border-slate-200 pb-2 mb-4">
+                    <h4 className="text-sm font-bold text-[#102033] flex items-center gap-2">
+                      <CreditCard className="w-4 h-4 text-[#006AC7]" />
                       Section 3: Bank &amp; Payroll Disbursement Details
                     </h4>
-                    <p className="text-[11px] text-slate-400">
+                    <p className="text-[11px] text-[#526477]">
                       Official bank account information for salary and government disbursements
                     </p>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-medium text-slate-300 mb-1">Bank Name *</label>
+                      <label className="block text-xs font-medium text-[#526477] mb-1">Bank Name *</label>
                       <input
                         type="text"
                         {...register('bankName')}
                         placeholder="e.g. National Bank of Pakistan (NBP)"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50/50 border border-slate-300 text-[#102033] text-xs focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:border-transparent outline-none"
                       />
-                      {errors.bankName && <p className="text-[11px] text-rose-400 mt-1">{errors.bankName.message}</p>}
+                      {errors.bankName && <p className="text-[11px] text-rose-600 mt-1">{errors.bankName.message}</p>}
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-slate-300 mb-1">Branch Name &amp; Code *</label>
+                      <label className="block text-xs font-medium text-[#526477] mb-1">Branch Name &amp; Code *</label>
                       <input
                         type="text"
                         {...register('branchName')}
                         placeholder="e.g. Liaquatabad Main Branch (0123)"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50/50 border border-slate-300 text-[#102033] text-xs focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:border-transparent outline-none"
                       />
-                      {errors.branchName && <p className="text-[11px] text-rose-400 mt-1">{errors.branchName.message}</p>}
+                      {errors.branchName && <p className="text-[11px] text-rose-600 mt-1">{errors.branchName.message}</p>}
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-slate-300 mb-1">Account Title *</label>
+                      <label className="block text-xs font-medium text-[#526477] mb-1">Account Title *</label>
                       <input
                         type="text"
                         {...register('accountTitle')}
                         placeholder="e.g. Muhammad Aslam"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50/50 border border-slate-300 text-[#102033] text-xs focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:border-transparent outline-none"
                       />
-                      {errors.accountTitle && <p className="text-[11px] text-rose-400 mt-1">{errors.accountTitle.message}</p>}
+                      {errors.accountTitle && <p className="text-[11px] text-rose-600 mt-1">{errors.accountTitle.message}</p>}
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-slate-300 mb-1">Bank Account Number / IBAN *</label>
+                      <label className="block text-xs font-medium text-[#526477] mb-1">Bank Account Number / IBAN *</label>
                       <input
                         type="text"
                         {...register('accountNumber')}
                         placeholder="e.g. PK36NBPA00000012345678"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs font-mono focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50/50 border border-slate-300 text-[#102033] text-xs font-mono focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:border-transparent outline-none"
                       />
-                      {errors.accountNumber && <p className="text-[11px] text-rose-400 mt-1">{errors.accountNumber.message}</p>}
+                      {errors.accountNumber && <p className="text-[11px] text-rose-600 mt-1">{errors.accountNumber.message}</p>}
                     </div>
                   </div>
 
@@ -487,14 +487,14 @@ export const RegisterTeacherPage = () => {
                     <button
                       type="button"
                       onClick={() => setActiveStep(2)}
-                      className="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-all"
+                      className="py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#526477] text-xs font-semibold transition-all"
                     >
                       &larr; Back
                     </button>
                     <button
                       type="button"
                       onClick={() => setActiveStep(isTeachingStaff ? 4 : 4)}
-                      className="py-2.5 px-6 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold transition-all shadow-lg shadow-teal-900/30"
+                      className="py-2.5 px-6 rounded-xl bg-[#006AC7] hover:bg-[#00529B] text-white text-xs font-semibold transition-all shadow-sm"
                     >
                       {isTeachingStaff ? 'Next: Teaching Duties \u2192' : 'Next: Credentials \u2192'}
                     </button>
@@ -505,13 +505,13 @@ export const RegisterTeacherPage = () => {
               {/* ─── STEP 4: Teaching Assignments (Teachers Only) ─────────────────── */}
               {isTeachingStaff && activeStep === 4 && (
                 <div className="space-y-4 animate-in fade-in duration-200">
-                  <div className="border-b border-slate-800 pb-2 mb-4 flex justify-between items-center">
+                  <div className="border-b border-slate-200 pb-2 mb-4 flex justify-between items-center">
                     <div>
-                      <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                        <BookOpen className="w-4 h-4 text-teal-400" />
+                      <h4 className="text-sm font-bold text-[#102033] flex items-center gap-2">
+                        <BookOpen className="w-4 h-4 text-[#006AC7]" />
                         Section 4: Proposed Teaching Assignments
                       </h4>
-                      <p className="text-[11px] text-slate-400">
+                      <p className="text-[11px] text-[#526477]">
                         Declare classes, sections, and subjects taught (history is preserved)
                       </p>
                     </div>
@@ -525,7 +525,7 @@ export const RegisterTeacherPage = () => {
                           academicSession: '2025-2026',
                         })
                       }
-                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-teal-600/20 text-teal-300 border border-teal-500/30 text-xs font-semibold hover:bg-teal-600/30 transition-all"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-50 text-[#006AC7] border border-blue-200 text-xs font-semibold hover:bg-blue-100 transition-all"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       Add Subject Assignment
@@ -533,7 +533,7 @@ export const RegisterTeacherPage = () => {
                   </div>
 
                   {fields.length === 0 ? (
-                    <div className="p-6 rounded-xl border border-dashed border-slate-800 text-center text-xs text-slate-400">
+                    <div className="p-6 rounded-xl border border-dashed border-slate-300 text-center text-xs text-[#526477]">
                       No teaching assignments added yet. Click &quot;Add Subject Assignment&quot; above to declare your
                       teaching duties (e.g. Class 5-A English, Class 6-B Science).
                     </div>
@@ -542,13 +542,13 @@ export const RegisterTeacherPage = () => {
                       {fields.map((item, index) => (
                         <div
                           key={item.id}
-                          className="p-3.5 rounded-xl bg-slate-950 border border-slate-800 grid grid-cols-1 sm:grid-cols-4 gap-2 items-center"
+                          className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 grid grid-cols-1 sm:grid-cols-4 gap-2 items-center"
                         >
                           <div>
-                            <label className="block text-[10px] font-medium text-slate-400 mb-0.5">Class</label>
+                            <label className="block text-[10px] font-medium text-[#526477] mb-0.5">Class</label>
                             <select
                               {...register(`teachingAssignments.${index}.classId`)}
-                              className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-white text-xs outline-none"
+                              className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 text-[#102033] text-xs outline-none focus:ring-1 focus:ring-[#006AC7]"
                             >
                               <option value="">Select Class</option>
                               {schoolStructure.classes.map((classItem) => (
@@ -560,10 +560,10 @@ export const RegisterTeacherPage = () => {
                           </div>
 
                           <div>
-                            <label className="block text-[10px] font-medium text-slate-400 mb-0.5">Section</label>
+                            <label className="block text-[10px] font-medium text-[#526477] mb-0.5">Section</label>
                             <select
                               {...register(`teachingAssignments.${index}.sectionId`)}
-                              className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-white text-xs outline-none"
+                              className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 text-[#102033] text-xs outline-none focus:ring-1 focus:ring-[#006AC7]"
                             >
                               <option value="">Select Section</option>
                               {schoolStructure.sections.map((sec) => (
@@ -575,10 +575,10 @@ export const RegisterTeacherPage = () => {
                           </div>
 
                           <div>
-                            <label className="block text-[10px] font-medium text-slate-400 mb-0.5">Subject</label>
+                            <label className="block text-[10px] font-medium text-[#526477] mb-0.5">Subject</label>
                             <select
                               {...register(`teachingAssignments.${index}.subjectId`)}
-                              className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-white text-xs outline-none"
+                              className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 text-[#102033] text-xs outline-none focus:ring-1 focus:ring-[#006AC7]"
                             >
                               <option value="">Select Subject</option>
                               {schoolStructure.subjects.map((sub) => (
@@ -591,18 +591,18 @@ export const RegisterTeacherPage = () => {
 
                           <div className="flex items-center gap-2">
                             <div className="flex-1">
-                              <label className="block text-[10px] font-medium text-slate-400 mb-0.5">Session</label>
+                              <label className="block text-[10px] font-medium text-[#526477] mb-0.5">Session</label>
                               <input
                                 type="text"
                                 {...register(`teachingAssignments.${index}.academicSession`)}
                                 placeholder="2025-2026"
-                                className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-white text-xs outline-none font-mono"
+                                className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 text-[#102033] text-xs outline-none font-mono focus:ring-1 focus:ring-[#006AC7]"
                               />
                             </div>
                             <button
                               type="button"
                               onClick={() => remove(index)}
-                              className="mt-3 p-1.5 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg transition-colors"
+                              className="mt-3 p-1.5 text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -616,14 +616,14 @@ export const RegisterTeacherPage = () => {
                     <button
                       type="button"
                       onClick={() => setActiveStep(3)}
-                      className="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-all"
+                      className="py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#526477] text-xs font-semibold transition-all"
                     >
                       &larr; Back
                     </button>
                     <button
                       type="button"
                       onClick={() => setActiveStep(5)}
-                      className="py-2.5 px-6 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold transition-all shadow-lg shadow-teal-900/30"
+                      className="py-2.5 px-6 rounded-xl bg-[#006AC7] hover:bg-[#00529B] text-white text-xs font-semibold transition-all shadow-sm"
                     >
                       Next: Set Password &rarr;
                     </button>
@@ -634,61 +634,61 @@ export const RegisterTeacherPage = () => {
               {/* ─── STEP 5: Password & Submit (or Step 4 if non-teaching) ───────── */}
               {((isTeachingStaff && activeStep === 5) || (!isTeachingStaff && activeStep === 4)) && (
                 <div className="space-y-4 animate-in fade-in duration-200">
-                  <div className="border-b border-slate-800 pb-2 mb-4">
-                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                      <Lock className="w-4 h-4 text-teal-400" />
+                  <div className="border-b border-slate-200 pb-2 mb-4">
+                    <h4 className="text-sm font-bold text-[#102033] flex items-center gap-2">
+                      <Lock className="w-4 h-4 text-[#006AC7]" />
                       Final Step: Security Credentials &amp; Verification
                     </h4>
-                    <p className="text-[11px] text-slate-400">
+                    <p className="text-[11px] text-[#526477]">
                       Set account password and dispatch email verification code
                     </p>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-medium text-slate-300 mb-1">Account Password *</label>
+                      <label className="block text-xs font-medium text-[#526477] mb-1">Account Password *</label>
                       <div className="relative">
                         <input
                           type={showPassword ? 'text' : 'password'}
                           {...register('password')}
                           placeholder="••••••••"
-                          className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs pr-10 focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50/50 border border-slate-300 text-[#102033] text-xs pr-10 focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:border-transparent outline-none"
                         />
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-2.5 text-slate-500 hover:text-slate-300"
+                          className="absolute right-3 top-2.5 text-[#8094A8] hover:text-[#102033]"
                         >
                           {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                       </div>
-                      {errors.password && <p className="text-[11px] text-rose-400 mt-1">{errors.password.message}</p>}
+                      {errors.password && <p className="text-[11px] text-rose-600 mt-1">{errors.password.message}</p>}
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-slate-300 mb-1">Confirm Password *</label>
+                      <label className="block text-xs font-medium text-[#526477] mb-1">Confirm Password *</label>
                       <div className="relative">
                         <input
                           type={showConfirmPassword ? 'text' : 'password'}
                           {...register('confirmPassword')}
                           placeholder="••••••••"
-                          className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white text-xs pr-10 focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50/50 border border-slate-300 text-[#102033] text-xs pr-10 focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:border-transparent outline-none"
                         />
                         <button
                           type="button"
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                          className="absolute right-3 top-2.5 text-slate-500 hover:text-slate-300"
+                          className="absolute right-3 top-2.5 text-[#8094A8] hover:text-[#102033]"
                         >
                           {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                         </button>
                       </div>
                       {errors.confirmPassword && (
-                        <p className="text-[11px] text-rose-400 mt-1">{errors.confirmPassword.message}</p>
+                        <p className="text-[11px] text-rose-600 mt-1">{errors.confirmPassword.message}</p>
                       )}
                     </div>
                   </div>
 
-                  <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs leading-relaxed">
+                  <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs leading-relaxed">
                     <strong>Notice:</strong> Upon submitting, a 6-digit verification code (OTP) will be dispatched to
                     your official email. Your account will be created in <strong>PENDING_APPROVAL</strong> status until
                     an authorized institutional officer verifies your official credentials.
@@ -698,14 +698,14 @@ export const RegisterTeacherPage = () => {
                     <button
                       type="button"
                       onClick={() => setActiveStep(isTeachingStaff ? 4 : 3)}
-                      className="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-all"
+                      className="py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#526477] text-xs font-semibold transition-all"
                     >
                       &larr; Back
                     </button>
                     <button
                       type="submit"
                       disabled={loading}
-                      className="py-2.5 px-8 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold transition-all shadow-lg shadow-teal-900/40 disabled:opacity-50 flex items-center gap-2"
+                      className="py-2.5 px-8 rounded-xl bg-[#006AC7] hover:bg-[#00529B] text-white text-xs font-semibold transition-all shadow-sm disabled:opacity-50 flex items-center gap-2"
                     >
                       {loading ? 'Dispatching OTP...' : 'Verify Email & Submit Profile'}
                     </button>
@@ -715,10 +715,10 @@ export const RegisterTeacherPage = () => {
             </form>
           )}
 
-          <div className="mt-6 pt-4 border-t border-slate-800 text-center">
-            <p className="text-xs text-slate-400">
+          <div className="mt-6 pt-4 border-t border-slate-200 text-center">
+            <p className="text-xs text-[#526477]">
               Already have an active account?{' '}
-              <Link to="/login" className="text-teal-400 hover:text-teal-300 font-semibold">
+              <Link to="/login" className="text-[#006AC7] hover:underline font-semibold">
                 Sign In to Portal
               </Link>
             </p>

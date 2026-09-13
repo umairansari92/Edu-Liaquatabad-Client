@@ -226,16 +226,16 @@ export const HolidaysGovernancePage = () => {
 
   return (
     <PageContainer>
-      <div className="space-y-6 text-slate-100">
+      <div className="space-y-6 text-[#102033]">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800 pb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-5">
           <div>
-            <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400 uppercase tracking-wider">
+            <div className="flex items-center gap-2 text-xs font-bold text-[#006AC7] uppercase tracking-wider">
               <Building2 className="h-4 w-4" />
               <span>Municipal Institutional Governance</span>
             </div>
-            <h1 className="text-2xl font-extrabold text-white mt-1">Calendar &amp; Holiday Governance</h1>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <h1 className="text-2xl font-black text-[#102033] mt-1">Calendar &amp; Holiday Governance</h1>
+            <p className="text-xs text-[#526477] mt-0.5">
               1-Click Town-wide breaks, Sindh weekend notifications, and Headmaster emergency closures
             </p>
           </div>
@@ -245,7 +245,7 @@ export const HolidaysGovernancePage = () => {
               type="button"
               onClick={fetchData}
               disabled={loading}
-              className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800/80 px-3 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-700 transition"
+              className="flex items-center gap-1.5 rounded-xl border border-slate-200/80 bg-white px-3 py-2 text-xs font-bold text-[#526477] hover:text-[#102033] hover:bg-slate-50 shadow-sm transition"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
               <span>Refresh</span>
@@ -256,7 +256,7 @@ export const HolidaysGovernancePage = () => {
                 <button
                   type="button"
                   onClick={() => setIsWeeklyOffModalOpen(true)}
-                  className="flex items-center gap-1.5 rounded-lg border border-cyan-500/40 bg-cyan-500/10 px-3 py-2 text-xs font-semibold text-cyan-300 hover:bg-cyan-500/20 transition"
+                  className="flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-3.5 py-2 text-xs font-bold text-[#006AC7] hover:bg-blue-100 shadow-sm transition"
                 >
                   <CalendarDays className="h-3.5 w-3.5" />
                   <span>Weekend Policy</span>
@@ -277,7 +277,7 @@ export const HolidaysGovernancePage = () => {
                     });
                     setIsHolidayModalOpen(true);
                   }}
-                  className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow-lg hover:bg-emerald-500 transition"
+                  className="flex items-center gap-1.5 rounded-xl bg-[#006AC7] px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#00529B] transition"
                 >
                   <Plus className="h-4 w-4" />
                   <span>Declare Custom Break</span>
@@ -301,7 +301,7 @@ export const HolidaysGovernancePage = () => {
                   });
                   setIsHolidayModalOpen(true);
                 }}
-                className="flex items-center gap-1.5 rounded-lg bg-rose-600 px-4 py-2 text-xs font-semibold text-white shadow-lg hover:bg-rose-500 transition"
+                className="flex items-center gap-1.5 rounded-xl bg-rose-600 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-rose-700 transition"
               >
                 <AlertTriangle className="h-4 w-4" />
                 <span>Declare Emergency Closure</span>
@@ -313,27 +313,27 @@ export const HolidaysGovernancePage = () => {
         {/* Live Status Overview Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Card 1: Today's Status */}
-          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 backdrop-blur-md">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Today's Operating Status</span>
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#526477]">Today's Operating Status</span>
             <div className="mt-2 flex items-center gap-3">
               {activeTodayHoliday ? (
                 <>
-                  <div className="rounded-lg bg-amber-500/10 p-2.5 text-amber-400 border border-amber-500/20">
+                  <div className="rounded-xl bg-amber-50 p-2.5 text-amber-600 border border-amber-200">
                     <AlertTriangle className="h-6 w-6" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-amber-300">{activeTodayHoliday.title}</h3>
-                    <p className="text-xs text-slate-400 line-clamp-1">{activeTodayHoliday.reason}</p>
+                    <h3 className="text-sm font-bold text-amber-800">{activeTodayHoliday.title}</h3>
+                    <p className="text-xs text-[#526477] line-clamp-1">{activeTodayHoliday.reason}</p>
                   </div>
                 </>
               ) : (
                 <>
-                  <div className="rounded-lg bg-emerald-500/10 p-2.5 text-emerald-400 border border-emerald-500/20">
+                  <div className="rounded-xl bg-emerald-50 p-2.5 text-[#4B7F3A] border border-emerald-200">
                     <CheckCircle2 className="h-6 w-6" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-white">Schools In Session</h3>
-                    <p className="text-xs text-slate-400">Regular academic operations active in Liaquatabad</p>
+                    <h3 className="text-sm font-bold text-[#102033]">Schools In Session</h3>
+                    <p className="text-xs text-[#526477]">Regular academic operations active in Liaquatabad</p>
                   </div>
                 </>
               )}
@@ -341,17 +341,17 @@ export const HolidaysGovernancePage = () => {
           </div>
 
           {/* Card 2: Weekend Policy */}
-          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 backdrop-blur-md">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Active Weekend Pattern</span>
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#526477]">Active Weekend Pattern</span>
             <div className="mt-2 flex items-center gap-3">
-              <div className="rounded-lg bg-cyan-500/10 p-2.5 text-cyan-400 border border-cyan-500/20">
+              <div className="rounded-xl bg-blue-50 p-2.5 text-[#006AC7] border border-blue-200">
                 <CalendarDays className="h-6 w-6" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-white">
+                <h3 className="text-sm font-bold text-[#102033]">
                   {activeWeeklyPattern?.offDays?.includes(6) ? 'Saturday & Sunday Off' : 'Sunday Only Off'}
                 </h3>
-                <p className="text-xs text-slate-400 line-clamp-1">
+                <p className="text-xs text-[#526477] line-clamp-1">
                   {activeWeeklyPattern?.reason || 'Standard Government Weekend Schedule'}
                 </p>
               </div>
@@ -359,15 +359,15 @@ export const HolidaysGovernancePage = () => {
           </div>
 
           {/* Card 3: Jurisdiction Scope */}
-          <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 backdrop-blur-md">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Administrative Scope</span>
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#526477]">Administrative Scope</span>
             <div className="mt-2 flex items-center gap-3">
-              <div className="rounded-lg bg-purple-500/10 p-2.5 text-purple-400 border border-purple-500/20">
+              <div className="rounded-xl bg-purple-50 p-2.5 text-purple-700 border border-purple-200">
                 <ShieldCheck className="h-6 w-6" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-white">Liaquatabad Town Centre</h3>
-                <p className="text-xs text-purple-300 font-mono">
+                <h3 className="text-sm font-bold text-[#102033]">Liaquatabad Town Centre</h3>
+                <p className="text-xs text-purple-700 font-mono font-bold">
                   {user?.role} • {isHm ? 'Single School Authority' : 'Town-Wide Municipal Authority'}
                 </p>
               </div>
@@ -377,15 +377,15 @@ export const HolidaysGovernancePage = () => {
 
         {/* 1-Click Town-Wide Rapid Presets (Admins Only) */}
         {isTownAdmin && (
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 space-y-3 backdrop-blur-md">
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 space-y-3 shadow-sm">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4 text-emerald-400" />
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">
+                <ShieldCheck className="h-4 w-4 text-[#4B7F3A]" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#102033]">
                   1-Click Rapid Break Presets (Town-Wide Coverage)
                 </h3>
               </div>
-              <span className="text-[11px] text-slate-500">Zero per-register manual entry required</span>
+              <span className="text-[11px] text-[#8094A8] font-medium">Zero per-register manual entry required</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -393,14 +393,14 @@ export const HolidaysGovernancePage = () => {
               <button
                 type="button"
                 onClick={() => handleApplyPreset('SUMMER_VACATION')}
-                className="flex items-center gap-3 rounded-xl border border-amber-500/30 bg-amber-950/20 p-3.5 text-left transition hover:border-amber-400 hover:bg-amber-900/30 group"
+                className="flex items-center gap-3 rounded-xl border border-amber-200 bg-amber-50/70 p-3.5 text-left transition hover:border-amber-400 hover:bg-amber-100/60 group shadow-sm"
               >
-                <div className="rounded-lg bg-amber-500/10 p-2 text-amber-400 group-hover:scale-105 transition">
+                <div className="rounded-lg bg-amber-100 p-2 text-amber-700 group-hover:scale-105 transition">
                   <Palmtree className="h-5 w-5" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-amber-200">Summer Vacation</h4>
-                  <p className="text-[10px] text-amber-400/80">June 01 – July 31 (2 Months)</p>
+                  <h4 className="text-xs font-bold text-amber-900">Summer Vacation</h4>
+                  <p className="text-[10px] text-amber-700 font-medium">June 01 – July 31 (2 Months)</p>
                 </div>
               </button>
 
@@ -408,14 +408,14 @@ export const HolidaysGovernancePage = () => {
               <button
                 type="button"
                 onClick={() => handleApplyPreset('WINTER_VACATION')}
-                className="flex items-center gap-3 rounded-xl border border-cyan-500/30 bg-cyan-950/20 p-3.5 text-left transition hover:border-cyan-400 hover:bg-cyan-900/30 group"
+                className="flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50/70 p-3.5 text-left transition hover:border-blue-400 hover:bg-blue-100/60 group shadow-sm"
               >
-                <div className="rounded-lg bg-cyan-500/10 p-2 text-cyan-400 group-hover:scale-105 transition">
+                <div className="rounded-lg bg-blue-100 p-2 text-[#006AC7] group-hover:scale-105 transition">
                   <Snowflake className="h-5 w-5" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-cyan-200">Winter Vacation</h4>
-                  <p className="text-[10px] text-cyan-400/80">Dec 22 – Dec 31 (Last 10 Days)</p>
+                  <h4 className="text-xs font-bold text-blue-900">Winter Vacation</h4>
+                  <p className="text-[10px] text-blue-700 font-medium">Dec 22 – Dec 31 (Last 10 Days)</p>
                 </div>
               </button>
 
@@ -423,14 +423,14 @@ export const HolidaysGovernancePage = () => {
               <button
                 type="button"
                 onClick={() => handleApplyPreset('EID_FITR')}
-                className="flex items-center gap-3 rounded-xl border border-emerald-500/30 bg-emerald-950/20 p-3.5 text-left transition hover:border-emerald-400 hover:bg-emerald-900/30 group"
+                className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50/70 p-3.5 text-left transition hover:border-emerald-400 hover:bg-emerald-100/60 group shadow-sm"
               >
-                <div className="rounded-lg bg-emerald-500/10 p-2 text-emerald-400 group-hover:scale-105 transition">
+                <div className="rounded-lg bg-emerald-100 p-2 text-[#4B7F3A] group-hover:scale-105 transition">
                   <Moon className="h-5 w-5" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-emerald-200">Eid-ul-Fitr</h4>
-                  <p className="text-[10px] text-emerald-400/80">3-Day Gazetted Break</p>
+                  <h4 className="text-xs font-bold text-emerald-900">Eid-ul-Fitr</h4>
+                  <p className="text-[10px] text-emerald-700 font-medium">3-Day Gazetted Break</p>
                 </div>
               </button>
 
@@ -438,14 +438,14 @@ export const HolidaysGovernancePage = () => {
               <button
                 type="button"
                 onClick={() => handleApplyPreset('RAIN_EMERGENCY')}
-                className="flex items-center gap-3 rounded-xl border border-rose-500/30 bg-rose-950/20 p-3.5 text-left transition hover:border-rose-400 hover:bg-rose-900/30 group"
+                className="flex items-center gap-3 rounded-xl border border-rose-200 bg-rose-50/70 p-3.5 text-left transition hover:border-rose-400 hover:bg-rose-100/60 group shadow-sm"
               >
-                <div className="rounded-lg bg-rose-500/10 p-2 text-rose-400 group-hover:scale-105 transition">
+                <div className="rounded-lg bg-rose-100 p-2 text-rose-700 group-hover:scale-105 transition">
                   <CloudRain className="h-5 w-5" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-rose-200">Rain Emergency</h4>
-                  <p className="text-[10px] text-rose-400/80">Monsoon Weather Alert</p>
+                  <h4 className="text-xs font-bold text-rose-900">Rain Emergency</h4>
+                  <p className="text-[10px] text-rose-700 font-medium">Monsoon Weather Alert</p>
                 </div>
               </button>
             </div>
@@ -454,11 +454,11 @@ export const HolidaysGovernancePage = () => {
 
         {/* Headmaster Notice */}
         {isHm && (
-          <div className="flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-950/20 p-4 text-xs text-amber-300">
-            <Info className="h-5 w-5 shrink-0 mt-0.5" />
+          <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-800 shadow-sm">
+            <Info className="h-5 w-5 shrink-0 mt-0.5 text-amber-600" />
             <div>
-              <p className="font-bold text-white">Headmaster Bounded Closure Policy</p>
-              <p className="mt-0.5 text-amber-200/90">
+              <p className="font-bold text-amber-900">Headmaster Bounded Closure Policy</p>
+              <p className="mt-0.5 text-amber-700 font-medium">
                 You may declare single-school emergency closures exclusively for your verified school assignment.
                 Town-wide breaks are managed by the Liaquatabad DMC Directorate. Backdating is strictly blocked.
               </p>
@@ -467,11 +467,11 @@ export const HolidaysGovernancePage = () => {
         )}
 
         {/* Scheduled Holidays & Breaks List */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 shadow-xl backdrop-blur-md overflow-hidden">
-          <div className="flex items-center justify-between border-b border-slate-800 px-6 py-4">
+        <div className="rounded-2xl border border-slate-200/80 bg-white shadow-sm overflow-hidden">
+          <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
             <div className="flex items-center gap-3">
-              <Calendar className="h-5 w-5 text-emerald-400" />
-              <h3 className="text-base font-bold text-white">Scheduled Breaks &amp; Official Closures</h3>
+              <Calendar className="h-5 w-5 text-[#006AC7]" />
+              <h3 className="text-base font-bold text-[#102033]">Scheduled Breaks &amp; Official Closures</h3>
             </div>
             <div className="flex items-center gap-2">
               {['ALL', 'ACTIVE', 'CANCELLED'].map((tab) => (
@@ -479,10 +479,10 @@ export const HolidaysGovernancePage = () => {
                   key={tab}
                   type="button"
                   onClick={() => setActiveTab(tab)}
-                  className={`rounded-lg px-3 py-1 text-xs font-semibold transition ${
+                  className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${
                     activeTab === tab
-                      ? 'bg-emerald-600 text-white'
-                      : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                      ? 'bg-[#006AC7] text-white shadow-sm'
+                      : 'text-[#526477] hover:bg-slate-100 hover:text-[#102033]'
                   }`}
                 >
                   {tab}
@@ -492,8 +492,8 @@ export const HolidaysGovernancePage = () => {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-slate-300">
-              <thead className="bg-slate-800/60 text-[11px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-800">
+            <table className="w-full text-left text-xs text-[#526477]">
+              <thead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-[#526477] border-b border-slate-200/80">
                 <tr>
                   <th className="px-6 py-3.5">Announcement / Title</th>
                   <th className="px-6 py-3.5">Scope</th>
@@ -504,48 +504,48 @@ export const HolidaysGovernancePage = () => {
                   <th className="px-6 py-3.5 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-slate-100">
                 {holidays.filter((holidayItem) => activeTab === 'ALL' || holidayItem.status === activeTab).length === 0 ? (
                   <tr>
-                    <td colSpan="7" className="px-6 py-12 text-center text-slate-500">
+                    <td colSpan="7" className="px-6 py-12 text-center text-[#8094A8]">
                       No breaks or closures found matching filter.
                     </td>
                   </tr>
                 ) : (
                   holidays
                     .filter((holidayItem) => activeTab === 'ALL' || holidayItem.status === activeTab)
-                    .map((holidayItem) => (
-                      <tr key={holidayItem._id} className="hover:bg-slate-800/40 transition">
+                    .map((h) => (
+                      <tr key={h._id} className="hover:bg-blue-50/40 transition">
                         <td className="px-6 py-4">
-                          <div className="font-bold text-white">{holidayItem.title}</div>
-                          <div className="text-[11px] text-slate-400 line-clamp-1">{holidayItem.reason}</div>
+                          <div className="font-bold text-[#102033]">{h.title}</div>
+                          <div className="text-[11px] text-[#526477] line-clamp-1">{h.reason}</div>
                         </td>
                         <td className="px-6 py-4">
                           <span
                             className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${
                               h.scopeType === 'TOWN'
-                                ? 'bg-purple-950/80 text-purple-300 border-purple-800/50'
-                                : 'bg-amber-950/80 text-amber-300 border-amber-800/50'
+                                ? 'bg-purple-50 text-purple-700 border-purple-200'
+                                : 'bg-amber-50 text-amber-700 border-amber-200'
                             }`}
                           >
                             {h.scopeType === 'TOWN' ? 'Town-Wide' : h.schoolId?.name || 'Single School'}
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <span className="font-mono text-cyan-400">{h.holidayType}</span>
+                          <span className="font-mono text-[#006AC7] font-semibold">{h.holidayType}</span>
                         </td>
-                        <td className="px-6 py-4 font-mono text-slate-200">
+                        <td className="px-6 py-4 font-mono text-[#102033]">
                           {h.startDate} {h.startDate !== h.endDate ? `to ${h.endDate}` : ''}
                         </td>
-                        <td className="px-6 py-4 text-slate-400">
+                        <td className="px-6 py-4 text-[#526477]">
                           {h.declaredBy?.fullName || 'Municipal Authority'}
                         </td>
                         <td className="px-6 py-4">
                           <span
-                            className={`rounded px-2 py-0.5 text-[10px] font-bold ${
+                            className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${
                               h.status === 'ACTIVE'
-                                ? 'bg-emerald-950/80 text-emerald-400 border border-emerald-800/50'
-                                : 'bg-slate-800 text-slate-400 border border-slate-700'
+                                ? 'bg-emerald-50 text-[#4B7F3A] border-emerald-200'
+                                : 'bg-slate-100 text-slate-700 border-slate-200'
                             }`}
                           >
                             {h.status}
@@ -556,7 +556,7 @@ export const HolidaysGovernancePage = () => {
                             <button
                               type="button"
                               onClick={() => handleCancelHoliday(h._id, h.title)}
-                              className="rounded p-1 text-slate-400 hover:bg-rose-950/60 hover:text-rose-400 transition"
+                              className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition"
                               title="Revoke / Cancel Holiday"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -573,18 +573,18 @@ export const HolidaysGovernancePage = () => {
 
         {/* Modal: Declare Holiday / Emergency Closure */}
         {isHolidayModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md">
-            <div className="relative w-full max-w-lg rounded-2xl border border-emerald-500/40 bg-slate-900 p-6 shadow-2xl space-y-4 text-slate-100">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
+            <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-4 text-[#102033]">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div className="flex items-center gap-2">
-                  <div className="rounded-lg bg-emerald-500/10 p-2 text-emerald-400">
+                  <div className="rounded-xl bg-blue-50 p-2.5 text-[#006AC7]">
                     <Calendar className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-white">
+                    <h3 className="text-base font-bold text-[#102033]">
                       {isHm ? 'Declare School Emergency Closure' : 'Declare Holiday / Vacation Break'}
                     </h3>
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-[#526477]">
                       {isHm
                         ? 'Applies only to your assigned school'
                         : 'Applies town-wide across all municipal schools'}
@@ -594,7 +594,7 @@ export const HolidaysGovernancePage = () => {
                 <button
                   type="button"
                   onClick={() => setIsHolidayModalOpen(false)}
-                  className="text-slate-400 hover:text-white"
+                  className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100"
                 >
                   ✕
                 </button>
@@ -602,49 +602,49 @@ export const HolidaysGovernancePage = () => {
 
               <form onSubmit={handleHolidaySubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300">Title *</label>
+                  <label className="block text-xs font-bold text-[#526477]">Title *</label>
                   <input
                     type="text"
                     required
                     value={holidayForm.title}
                     onChange={(inputChangeEvent) => setHolidayForm({ ...holidayForm, title: inputChangeEvent.target.value })}
                     placeholder="e.g. Summer Vacation / Monsoon Rain Emergency"
-                    className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+                    className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300">Start Date *</label>
+                    <label className="block text-xs font-bold text-[#526477]">Start Date *</label>
                     <input
                       type="date"
                       required
                       min={isHm ? todayStr : undefined}
                       value={holidayForm.startDate}
                       onChange={(inputChangeEvent) => setHolidayForm({ ...holidayForm, startDate: inputChangeEvent.target.value })}
-                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-mono text-white focus:border-emerald-500 focus:outline-none"
+                      className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-mono text-[#102033] focus:border-[#006AC7] focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300">End Date *</label>
+                    <label className="block text-xs font-bold text-[#526477]">End Date *</label>
                     <input
                       type="date"
                       required
                       min={holidayForm.startDate || todayStr}
                       value={holidayForm.endDate}
                       onChange={(inputChangeEvent) => setHolidayForm({ ...holidayForm, endDate: inputChangeEvent.target.value })}
-                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-mono text-white focus:border-emerald-500 focus:outline-none"
+                      className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-mono text-[#102033] focus:border-[#006AC7] focus:outline-none"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300">Category *</label>
+                    <label className="block text-xs font-bold text-[#526477]">Category *</label>
                     <select
                       value={holidayForm.holidayType}
                       onChange={(selectChangeEvent) => setHolidayForm({ ...holidayForm, holidayType: selectChangeEvent.target.value })}
-                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none"
+                      className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-[#102033] focus:border-[#006AC7] focus:outline-none"
                     >
                       <option value="GAZETTED">Gazetted Holiday</option>
                       <option value="SUMMER_BREAK">Summer Break</option>
@@ -656,19 +656,19 @@ export const HolidaysGovernancePage = () => {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300">Scope</label>
+                    <label className="block text-xs font-bold text-[#526477]">Scope</label>
                     <input
                       type="text"
                       disabled
                       value={isHm ? 'Single School Only' : 'Town-Wide (All Schools)'}
-                      className="mt-1 w-full rounded-lg border border-slate-800 bg-slate-800/50 px-3 py-2 text-xs font-mono text-slate-400"
+                      className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-mono text-[#526477]"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300">
-                    Official Justification / Reason * <span className="text-slate-500">(minimum 10 characters)</span>
+                  <label className="block text-xs font-bold text-[#526477]">
+                    Official Justification / Reason * <span className="text-slate-400">(minimum 10 characters)</span>
                   </label>
                   <textarea
                     required
@@ -676,23 +676,23 @@ export const HolidaysGovernancePage = () => {
                     value={holidayForm.reason}
                     onChange={(textareaChangeEvent) => setHolidayForm({ ...holidayForm, reason: textareaChangeEvent.target.value })}
                     placeholder="Provide specific notification number, weather warning, or infrastructure breakdown details..."
-                    className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+                    className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:outline-none"
                   ></textarea>
                 </div>
 
-                <div className="flex items-center justify-end gap-3 border-t border-slate-800 pt-3">
+                <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-3">
                   <button
                     type="button"
                     onClick={() => setIsHolidayModalOpen(false)}
                     disabled={isSubmitting}
-                    className="rounded-lg border border-slate-700 px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800"
+                    className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-bold text-[#526477] hover:bg-slate-100"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="rounded-lg bg-emerald-600 px-5 py-2 text-xs font-semibold text-white shadow hover:bg-emerald-500 disabled:opacity-50"
+                    className="rounded-xl bg-[#006AC7] px-5 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#00529B] disabled:opacity-50"
                   >
                     {isSubmitting ? 'Submitting...' : 'Enforce Announcement'}
                   </button>
@@ -704,22 +704,22 @@ export const HolidaysGovernancePage = () => {
 
         {/* Modal: Configure Weekend Policy (Admins Only) */}
         {isWeeklyOffModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md">
-            <div className="relative w-full max-w-lg rounded-2xl border border-cyan-500/40 bg-slate-900 p-6 shadow-2xl space-y-4 text-slate-100">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
+            <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-4 text-[#102033]">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div className="flex items-center gap-2">
-                  <div className="rounded-lg bg-cyan-500/10 p-2 text-cyan-400">
+                  <div className="rounded-xl bg-blue-50 p-2.5 text-[#006AC7]">
                     <CalendarDays className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-white">Town-Wide Weekend Policy</h3>
-                    <p className="text-xs text-slate-400">Configure recurring weekly off days for Liaquatabad</p>
+                    <h3 className="text-base font-bold text-[#102033]">Town-Wide Weekend Policy</h3>
+                    <p className="text-xs text-[#526477]">Configure recurring weekly off days for Liaquatabad</p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setIsWeeklyOffModalOpen(false)}
-                  className="text-slate-400 hover:text-white"
+                  className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100"
                 >
                   ✕
                 </button>
@@ -727,15 +727,15 @@ export const HolidaysGovernancePage = () => {
 
               <form onSubmit={handleWeeklyOffSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300">Policy Mode *</label>
+                  <label className="block text-xs font-bold text-[#526477]">Policy Mode *</label>
                   <div className="mt-2 grid grid-cols-2 gap-3">
                     <button
                       type="button"
                       onClick={() => setWeeklyOffForm({ ...weeklyOffForm, offDays: [0, 6] })}
-                      className={`rounded-xl border p-3 text-left transition ${
+                      className={`rounded-2xl border p-3.5 text-left transition ${
                         weeklyOffForm.offDays.includes(6)
-                          ? 'border-cyan-500 bg-cyan-500/10 text-cyan-300'
-                          : 'border-slate-800 bg-slate-800/40 text-slate-400'
+                          ? 'border-[#006AC7] bg-blue-50 text-[#006AC7] font-bold shadow-sm'
+                          : 'border-slate-200 bg-slate-50 text-[#526477]'
                       }`}
                     >
                       <div className="font-bold text-xs">Saturday &amp; Sunday Off</div>
@@ -745,10 +745,10 @@ export const HolidaysGovernancePage = () => {
                     <button
                       type="button"
                       onClick={() => setWeeklyOffForm({ ...weeklyOffForm, offDays: [0] })}
-                      className={`rounded-xl border p-3 text-left transition ${
+                      className={`rounded-2xl border p-3.5 text-left transition ${
                         !weeklyOffForm.offDays.includes(6)
-                          ? 'border-cyan-500 bg-cyan-500/10 text-cyan-300'
-                          : 'border-slate-800 bg-slate-800/40 text-slate-400'
+                          ? 'border-[#006AC7] bg-blue-50 text-[#006AC7] font-bold shadow-sm'
+                          : 'border-slate-200 bg-slate-50 text-[#526477]'
                       }`}
                     >
                       <div className="font-bold text-xs">Sunday Only Off</div>
@@ -758,19 +758,19 @@ export const HolidaysGovernancePage = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300">Effective From Date *</label>
+                  <label className="block text-xs font-bold text-[#526477]">Effective From Date *</label>
                   <input
                     type="date"
                     required
                     value={weeklyOffForm.effectiveFrom}
                     onChange={(inputChangeEvent) => setWeeklyOffForm({ ...weeklyOffForm, effectiveFrom: inputChangeEvent.target.value })}
-                    className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-mono text-white focus:border-cyan-500 focus:outline-none"
+                    className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-mono text-[#102033] focus:border-[#006AC7] focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300">
-                    Official Justification * <span className="text-slate-500">(minimum 10 characters)</span>
+                  <label className="block text-xs font-bold text-[#526477]">
+                    Official Justification * <span className="text-slate-400">(minimum 10 characters)</span>
                   </label>
                   <textarea
                     required
@@ -778,23 +778,23 @@ export const HolidaysGovernancePage = () => {
                     value={weeklyOffForm.reason}
                     onChange={(textareaChangeEvent) => setWeeklyOffForm({ ...weeklyOffForm, reason: textareaChangeEvent.target.value })}
                     placeholder="Enter government notification reference or administrative justification..."
-                    className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-cyan-500 focus:outline-none"
+                    className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:outline-none"
                   ></textarea>
                 </div>
 
-                <div className="flex items-center justify-end gap-3 border-t border-slate-800 pt-3">
+                <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-3">
                   <button
                     type="button"
                     onClick={() => setIsWeeklyOffModalOpen(false)}
                     disabled={isSubmitting}
-                    className="rounded-lg border border-slate-700 px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800"
+                    className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-bold text-[#526477] hover:bg-slate-100"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="rounded-lg bg-cyan-600 px-5 py-2 text-xs font-semibold text-white shadow hover:bg-cyan-500 disabled:opacity-50"
+                    className="rounded-xl bg-[#006AC7] px-5 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#00529B] disabled:opacity-50"
                   >
                     {isSubmitting ? 'Saving...' : 'Apply Weekend Policy'}
                   </button>

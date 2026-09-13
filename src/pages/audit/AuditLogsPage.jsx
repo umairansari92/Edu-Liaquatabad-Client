@@ -65,7 +65,7 @@ export const AuditLogsPage = () => {
         <button
           type="button"
           onClick={fetchLogs}
-          className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-medium text-slate-200 hover:bg-slate-700 transition"
+          className="flex items-center gap-1.5 rounded-xl border border-slate-200/80 bg-white px-3 py-2 text-xs font-bold text-[#526477] hover:text-[#102033] hover:bg-slate-50 shadow-sm transition"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
           <span>Refresh Ledger</span>
@@ -74,23 +74,23 @@ export const AuditLogsPage = () => {
     >
       <div className="space-y-6">
         {/* Search & Filter Controls */}
-        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between rounded-xl border border-slate-800 bg-slate-900/70 p-4 backdrop-blur-md">
+        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
           <div className="flex flex-1 items-center gap-3">
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(inputChangeEvent) => setSearchQuery(inputChangeEvent.target.value)}
                 placeholder="Search by action (e.g. USER_ROLE_ASSIGNED, BREAK_GLASS), actor, reason..."
-                className="w-full rounded-lg border border-slate-700 bg-slate-800/90 py-2 pl-9 pr-4 text-xs text-slate-200 placeholder-slate-500 focus:border-purple-500 focus:outline-none"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2 pl-9 pr-4 text-xs font-medium text-[#102033] placeholder-slate-400 focus:bg-white focus:border-[#006AC7] focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
               />
             </div>
 
             <select
               value={resultFilter}
               onChange={(selectChangeEvent) => setResultFilter(selectChangeEvent.target.value)}
-              className="rounded-lg border border-slate-700 bg-slate-800/90 px-3 py-2 text-xs text-slate-200 focus:border-purple-500 focus:outline-none"
+              className="rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-bold text-[#526477] focus:bg-white focus:border-[#006AC7] focus:outline-none"
             >
               <option value="">All Results</option>
               <option value="SUCCESS">Success</option>
@@ -99,23 +99,23 @@ export const AuditLogsPage = () => {
             </select>
           </div>
 
-          <div className="text-xs text-slate-400 font-mono text-right">
-            Total Ledger Entries: <span className="font-bold text-white">{filteredLogs.length}</span>
+          <div className="text-xs text-[#526477] font-medium text-right">
+            Total Ledger Entries: <span className="font-bold text-[#102033]">{filteredLogs.length}</span>
           </div>
         </div>
 
         {/* Audit Stream Feed */}
-        <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-950 p-4 font-mono text-xs shadow-2xl space-y-3">
+        <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 font-mono text-xs shadow-sm space-y-3">
           {isLoading ? (
-            <div className="py-12 text-center text-slate-400">
-              <RefreshCw className="mx-auto h-6 w-6 animate-spin text-purple-400" />
-              <p className="mt-2 text-xs">Streaming immutable audit records...</p>
+            <div className="py-12 text-center text-[#526477]">
+              <RefreshCw className="mx-auto h-6 w-6 animate-spin text-[#006AC7]" />
+              <p className="mt-2 text-xs font-medium">Streaming immutable audit records...</p>
             </div>
           ) : filteredLogs.length === 0 ? (
-            <div className="py-12 text-center text-slate-500">
-              <Terminal className="mx-auto h-8 w-8 text-slate-600 mb-2" />
-              <p className="font-semibold text-slate-400">No matching audit events</p>
-              <p className="mt-1 text-slate-600">Events appear as administrative actions and logins occur.</p>
+            <div className="py-12 text-center text-[#526477]">
+              <Terminal className="mx-auto h-8 w-8 text-slate-300 mb-2" />
+              <p className="font-bold text-[#102033]">No matching audit events</p>
+              <p className="mt-1 text-slate-400">Events appear as administrative actions and logins occur.</p>
             </div>
           ) : (
             filteredLogs.map((log) => {
@@ -124,40 +124,40 @@ export const AuditLogsPage = () => {
               return (
                 <div
                   key={log._id}
-                  className="rounded-lg border border-slate-900 bg-slate-900/50 p-3 transition hover:bg-slate-900/80 space-y-2"
+                  className="rounded-xl border border-slate-200 bg-slate-50/60 p-3.5 transition hover:bg-blue-50/30 space-y-2"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="flex items-center gap-3 flex-wrap">
-                      <span className="text-[10px] text-slate-500">
+                      <span className="text-[10px] text-[#8094A8]">
                         {new Date(log.createdAt).toLocaleString()}
                       </span>
 
                       <span
-                        className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${
+                        className={`rounded-full px-2 py-0.5 text-[10px] font-bold border ${
                           log.result === 'SUCCESS'
-                            ? 'bg-emerald-950 text-emerald-400 border border-emerald-800/50'
+                            ? 'bg-emerald-50 text-[#4B7F3A] border-emerald-200'
                             : log.result === 'DENIED'
-                            ? 'bg-amber-950 text-amber-300 border border-amber-800/50'
-                            : 'bg-red-950 text-red-400 border border-red-800/50'
+                            ? 'bg-amber-50 text-amber-700 border-amber-200'
+                            : 'bg-rose-50 text-rose-700 border-rose-200'
                         }`}
                       >
                         {log.result}
                       </span>
 
-                      <span className="font-bold text-amber-300">{log.action}</span>
+                      <span className="font-bold text-[#006AC7]">{log.action}</span>
 
-                      <span className="text-slate-400 text-xs">
-                        Actor: <strong className="text-white">{log.actorName || 'System'}</strong> ({log.actorRole}
+                      <span className="text-[#526477] text-xs">
+                        Actor: <strong className="text-[#102033]">{log.actorName || 'System'}</strong> ({log.actorRole}
                         {log.actorDesignation ? ` • ${log.actorDesignation}` : ''})
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-3 text-[11px] text-slate-400">
+                    <div className="flex items-center gap-3 text-[11px] text-[#526477]">
                       <span>IP: {log.ipAddress || '127.0.0.1'}</span>
                       <button
                         type="button"
                         onClick={() => setExpandedLogId(isExpanded ? null : log._id)}
-                        className="text-purple-400 hover:underline flex items-center gap-1 cursor-pointer"
+                        className="text-[#006AC7] hover:underline font-bold flex items-center gap-1 cursor-pointer"
                       >
                         <span>{isExpanded ? 'Hide' : 'Details'}</span>
                         {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
@@ -166,24 +166,24 @@ export const AuditLogsPage = () => {
                   </div>
 
                   {log.reason && (
-                    <div className="text-xs text-slate-300 bg-slate-950/60 p-2 rounded border border-slate-900">
-                      <span className="text-slate-500">Reason: </span>
+                    <div className="text-xs text-[#102033] bg-white p-2.5 rounded-lg border border-slate-200">
+                      <span className="text-[#526477] font-medium">Reason: </span>
                       <span>{log.reason}</span>
                     </div>
                   )}
 
                   {isExpanded && (
-                    <div className="mt-2 space-y-2 border-t border-slate-800/80 pt-2 text-[11px]">
+                    <div className="mt-2 space-y-2 border-t border-slate-200 pt-2 text-[11px]">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <p className="text-slate-500 font-semibold mb-1">Previous State Snapshot</p>
-                          <pre className="rounded bg-slate-950 p-2 text-rose-300 overflow-x-auto text-[10px]">
+                          <p className="text-[#526477] font-bold mb-1">Previous State Snapshot</p>
+                          <pre className="rounded-lg bg-slate-100 p-2 text-rose-800 border border-slate-200 overflow-x-auto text-[10px]">
                             {JSON.stringify(log.previousState, null, 2) || 'null'}
                           </pre>
                         </div>
                         <div>
-                          <p className="text-slate-500 font-semibold mb-1">New State Snapshot</p>
-                          <pre className="rounded bg-slate-950 p-2 text-emerald-300 overflow-x-auto text-[10px]">
+                          <p className="text-[#526477] font-bold mb-1">New State Snapshot</p>
+                          <pre className="rounded-lg bg-slate-100 p-2 text-emerald-800 border border-slate-200 overflow-x-auto text-[10px]">
                             {JSON.stringify(log.newState, null, 2) || 'null'}
                           </pre>
                         </div>

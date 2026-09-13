@@ -110,39 +110,39 @@ export const OtpVerificationModal = ({ isOpen, onClose, email, onVerified, purpo
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-      <div className="relative w-full max-w-md p-6 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl text-white">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+      <div className="relative w-full max-w-md p-6 bg-white border border-slate-200 rounded-2xl shadow-2xl text-[#102033]">
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+          className="absolute top-4 right-4 text-slate-400 hover:text-[#102033] p-1 rounded-lg hover:bg-slate-100 transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
 
         <div className="text-center">
-          <div className="w-12 h-12 mx-auto rounded-xl bg-emerald-950 border border-emerald-800 text-emerald-400 flex items-center justify-center mb-3">
+          <div className="w-12 h-12 mx-auto rounded-xl bg-emerald-50 border border-emerald-200 text-[#4B7F3A] flex items-center justify-center mb-3">
             <Mail className="w-6 h-6" />
           </div>
-          <h3 className="text-xl font-display font-bold text-white">Email Verification Required</h3>
-          <p className="text-xs text-slate-400 mt-1">
+          <h3 className="text-xl font-bold text-[#102033]">Email Verification Required</h3>
+          <p className="text-xs text-[#526477] mt-1">
             We dispatched a 6-digit security code to: <br />
-            <span className="font-semibold text-emerald-400 font-mono">{email}</span>
+            <span className="font-semibold text-[#006AC7] font-mono">{email}</span>
           </p>
         </div>
 
         {/* Development Mode Quick Code Helper */}
         {activeDevOtp && (
-          <div className="mt-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-center justify-between">
+          <div className="mt-4 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="font-medium text-amber-400/80">Dev Code:</span>
-              <span className="font-mono font-bold text-sm tracking-wider text-amber-200 bg-slate-950 px-2.5 py-0.5 rounded border border-amber-500/30">
+              <span className="font-medium text-amber-700">Dev Code:</span>
+              <span className="font-mono font-bold text-sm tracking-wider text-amber-900 bg-white px-2.5 py-0.5 rounded border border-amber-300">
                 {activeDevOtp}
               </span>
             </div>
             <button
               type="button"
               onClick={handleAutoFill}
-              className="px-2.5 py-1 text-xs font-semibold bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 rounded-lg transition-colors border border-amber-500/30"
+              className="px-2.5 py-1 text-xs font-semibold bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-lg transition-colors border border-amber-300"
             >
               Auto-fill
             </button>
@@ -150,7 +150,7 @@ export const OtpVerificationModal = ({ isOpen, onClose, email, onVerified, purpo
         )}
 
         {errorMessage && (
-          <div className="mt-4 p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs flex items-center gap-2">
+          <div className="mt-4 p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
             <AlertCircle className="w-4 h-4 flex-shrink-0" />
             <span>{errorMessage}</span>
           </div>
@@ -168,7 +168,7 @@ export const OtpVerificationModal = ({ isOpen, onClose, email, onVerified, purpo
               value={digit}
               onChange={(changeEvent) => handleChange(index, changeEvent.target.value)}
               onKeyDown={(keyboardEvent) => handleKeyDown(index, keyboardEvent)}
-              className="w-11 h-13 text-center text-xl font-bold bg-slate-950 border border-slate-800 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 rounded-xl text-white outline-none transition-all"
+              className="w-11 h-13 text-center text-xl font-bold bg-white border border-slate-300 focus:border-[#006AC7] focus:ring-2 focus:ring-blue-100 rounded-xl text-[#102033] outline-none transition-all"
             />
           ))}
         </div>
@@ -177,25 +177,25 @@ export const OtpVerificationModal = ({ isOpen, onClose, email, onVerified, purpo
         <button
           onClick={handleVerify}
           disabled={loading || otp.join('').length !== 6}
-          className="w-full py-3 px-4 rounded-xl font-semibold text-sm bg-emerald-600 hover:bg-emerald-500 text-white transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+          className="w-full py-3 px-4 rounded-xl font-semibold text-sm bg-[#006AC7] hover:bg-[#00529B] text-white transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm"
         >
           {loading ? 'Validating Security Code...' : 'Verify & Continue'}
         </button>
 
         {/* Resend Controls */}
-        <div className="mt-4 text-center text-xs text-slate-400 flex items-center justify-center gap-1.5">
+        <div className="mt-4 text-center text-xs text-[#526477] flex items-center justify-center gap-1.5">
           <span>Didn't receive the email?</span>
           {canResend ? (
             <button
               onClick={handleResend}
               disabled={resending}
-              className="text-emerald-400 hover:text-emerald-300 font-semibold inline-flex items-center gap-1"
+              className="text-[#006AC7] hover:underline font-semibold inline-flex items-center gap-1"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${resending ? 'animate-spin' : ''}`} />
               Resend Code
             </button>
           ) : (
-            <span className="text-slate-500 font-mono">Resend in {timer}s</span>
+            <span className="text-[#8094A8] font-mono">Resend in {timer}s</span>
           )}
         </div>
       </div>

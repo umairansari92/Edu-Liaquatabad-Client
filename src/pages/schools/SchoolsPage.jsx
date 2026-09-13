@@ -137,7 +137,7 @@ export const SchoolsPage = () => {
           <button
             type="button"
             onClick={fetchSchools}
-            className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-medium text-slate-200 hover:bg-slate-700 transition"
+            className="flex items-center gap-1.5 rounded-xl border border-slate-200/80 bg-white px-3 py-2 text-xs font-bold text-[#526477] hover:text-[#102033] hover:bg-slate-50 shadow-sm transition"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${isSchoolsLoading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
@@ -145,7 +145,7 @@ export const SchoolsPage = () => {
           <button
             type="button"
             onClick={() => setIsRegisterModalOpen(true)}
-            className="flex items-center gap-1.5 rounded-lg border border-emerald-500/40 bg-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow-lg hover:bg-emerald-500 transition"
+            className="flex items-center gap-1.5 rounded-xl bg-[#006AC7] px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#00529B] transition"
           >
             <Plus className="h-4 w-4" />
             <span>Register School</span>
@@ -155,23 +155,23 @@ export const SchoolsPage = () => {
     >
       <div className="space-y-6">
         {/* Search & Filter Controls */}
-        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between rounded-xl border border-slate-800 bg-slate-900/70 p-4 backdrop-blur-md">
+        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
           <div className="flex flex-1 items-center gap-3">
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(inputChangeEvent) => setSearchQuery(inputChangeEvent.target.value)}
                 placeholder="Search by school name, code, EMIS, or address..."
-                className="w-full rounded-lg border border-slate-700 bg-slate-800/90 py-2 pl-9 pr-4 text-xs text-slate-200 placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2 pl-9 pr-4 text-xs font-medium text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
               />
             </div>
 
             <select
               value={schoolTypeFilter}
               onChange={(selectChangeEvent) => setSchoolTypeFilter(selectChangeEvent.target.value)}
-              className="rounded-lg border border-slate-700 bg-slate-800/90 px-3 py-2 text-xs text-slate-200 focus:border-emerald-500 focus:outline-none"
+              className="rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-bold text-[#526477] focus:border-[#006AC7] focus:bg-white focus:outline-none"
             >
               <option value="">All Categories</option>
               <option value="SECONDARY">Secondary</option>
@@ -183,7 +183,7 @@ export const SchoolsPage = () => {
             <select
               value={schoolGenderFilter}
               onChange={(selectChangeEvent) => setSchoolGenderFilter(selectChangeEvent.target.value)}
-              className="rounded-lg border border-slate-700 bg-slate-800/90 px-3 py-2 text-xs text-slate-200 focus:border-emerald-500 focus:outline-none"
+              className="rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-bold text-[#526477] focus:border-[#006AC7] focus:bg-white focus:outline-none"
             >
               <option value="">All Orientations</option>
               <option value="BOYS">Boys</option>
@@ -192,22 +192,22 @@ export const SchoolsPage = () => {
             </select>
           </div>
 
-          <div className="text-xs text-slate-400 font-mono text-right">
-            Showing <span className="font-bold text-white">{filteredSchools.length}</span> of {schoolsList.length} institutions
+          <div className="text-xs text-[#526477] font-medium text-right">
+            Showing <span className="font-bold text-[#102033]">{filteredSchools.length}</span> of {schoolsList.length} institutions
           </div>
         </div>
 
         {/* Schools Cards Grid */}
         {isSchoolsLoading ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-slate-800 bg-slate-900/40 p-16 text-slate-400">
-            <RefreshCw className="h-8 w-8 animate-spin text-emerald-400 mb-3" />
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200/80 bg-white p-16 text-[#526477] shadow-sm">
+            <RefreshCw className="h-8 w-8 animate-spin text-[#006AC7] mb-3" />
             <p className="text-sm font-medium">Streaming municipal school directory...</p>
           </div>
         ) : filteredSchools.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-slate-800 bg-slate-900/40 p-16 text-center text-slate-400">
-            <Building2 className="h-12 w-12 text-slate-600 mb-3" />
-            <h3 className="text-base font-bold text-white">No Municipal Schools Found</h3>
-            <p className="mt-1 max-w-sm text-xs text-slate-400">
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200/80 bg-white p-16 text-center text-[#526477] shadow-sm">
+            <Building2 className="h-12 w-12 text-slate-300 mb-3" />
+            <h3 className="text-base font-bold text-[#102033]">No Municipal Schools Found</h3>
+            <p className="mt-1 max-w-sm text-xs text-[#526477]">
               {searchQuery || schoolTypeFilter || schoolGenderFilter
                 ? 'Try adjusting your search criteria or clear active filters.'
                 : 'No schools are currently registered in Liaquatabad Town Centre. Register the first school to begin.'}
@@ -215,26 +215,26 @@ export const SchoolsPage = () => {
             <button
               type="button"
               onClick={() => setIsRegisterModalOpen(true)}
-              className="mt-4 flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white shadow hover:bg-emerald-500 transition"
+              className="mt-4 flex items-center gap-1.5 rounded-xl bg-[#006AC7] px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#00529B] transition"
             >
               <Plus className="h-3.5 w-3.5" />
               <span>Register New School</span>
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
             {filteredSchools.map((school) => (
               <div
                 key={school._id}
-                className="group relative flex flex-col justify-between rounded-xl border border-slate-800 bg-slate-900/70 p-5 shadow-lg backdrop-blur-md transition hover:border-emerald-500/50 hover:bg-slate-900/90"
+                className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm hover:border-[#006AC7]/40 hover:shadow-md transition-all"
               >
                 <div>
                   <div className="flex items-start justify-between gap-3">
                     <div className="space-y-1">
-                      <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/20">
+                      <span className="inline-block rounded-full bg-blue-50 px-2.5 py-0.5 text-[10px] font-bold text-[#006AC7] border border-blue-100">
                         {school.schoolType || 'SECONDARY'} • {school.genderType || 'CO-ED'}
                       </span>
-                      <h4 className="text-base font-extrabold text-white group-hover:text-emerald-300 transition line-clamp-1">
+                      <h4 className="text-base font-bold text-[#102033] group-hover:text-[#006AC7] transition line-clamp-1">
                         {school.name}
                       </h4>
                     </div>
@@ -246,7 +246,7 @@ export const SchoolsPage = () => {
                           setSelectedSchoolForTimings(school);
                           setIsTimingsModalOpen(true);
                         }}
-                        className="rounded-lg p-1.5 text-emerald-400 hover:bg-emerald-950/60 hover:text-emerald-300 transition"
+                        className="rounded-xl p-2 text-[#006AC7] hover:bg-blue-50 transition"
                         title="Configure Operational Timings & Windows"
                       >
                         <Clock className="h-4 w-4" />
@@ -258,7 +258,7 @@ export const SchoolsPage = () => {
                           setSelectedSchoolForEdit(school);
                           setIsEditModalOpen(true);
                         }}
-                        className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white transition"
+                        className="rounded-xl p-2 text-slate-400 hover:text-[#102033] hover:bg-slate-100 transition"
                         title="Edit School Details"
                       >
                         <Edit2 className="h-4 w-4" />
@@ -266,65 +266,65 @@ export const SchoolsPage = () => {
                     </div>
                   </div>
 
-                  <div className="mt-4 space-y-2 border-t border-slate-800/80 pt-3 text-xs text-slate-300">
-                    <div className="flex items-center justify-between text-slate-400">
+                  <div className="mt-4 space-y-2 border-t border-slate-100 pt-3 text-xs text-[#526477]">
+                    <div className="flex items-center justify-between">
                       <span>School Code:</span>
-                      <span className="font-mono font-bold text-amber-400">{school.schoolCode || '—'}</span>
+                      <span className="font-mono font-bold text-[#102033]">{school.schoolCode || '—'}</span>
                     </div>
-                    <div className="flex items-center justify-between text-slate-400">
+                    <div className="flex items-center justify-between">
                       <span>SEMIS Code:</span>
-                      <span className="font-mono text-cyan-400">{school.emisCode || '—'}</span>
+                      <span className="font-mono font-bold text-[#006AC7]">{school.emisCode || '—'}</span>
                     </div>
-                    <div className="flex items-center justify-between text-slate-400">
+                    <div className="flex items-center justify-between">
                       <span className="flex items-center gap-1.5">
-                        <Clock className="h-3 w-3 text-emerald-400" />
+                        <Clock className="h-3 w-3 text-[#4B7F3A]" />
                         Hours (Mon-Sat):
                       </span>
-                      <span className="font-mono text-emerald-400 font-semibold">
+                      <span className="font-mono text-[#4B7F3A] font-bold">
                         {school.timings?.regular?.startTime || '08:00'} – {school.timings?.regular?.endTime || '13:30'}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between text-slate-400">
+                    <div className="flex items-center justify-between">
                       <span className="flex items-center gap-1.5">
-                        <Clock className="h-3 w-3 text-cyan-400" />
+                        <Clock className="h-3 w-3 text-[#006AC7]" />
                         Friday (Jummah):
                       </span>
-                      <span className="font-mono text-cyan-400 font-semibold">
+                      <span className="font-mono text-[#006AC7] font-bold">
                         {school.timings?.friday?.startTime || '07:30'} – {school.timings?.friday?.endTime || '12:00'}
                       </span>
                     </div>
                     {school.contactPhone && (
-                      <div className="flex items-center gap-2 text-slate-400">
-                        <Phone className="h-3.5 w-3.5 text-slate-500" />
+                      <div className="flex items-center gap-2 text-[#526477]">
+                        <Phone className="h-3.5 w-3.5 text-slate-400" />
                         <span>{school.contactPhone}</span>
                       </div>
                     )}
                     {school.contactEmail && (
-                      <div className="flex items-center gap-2 text-slate-400 truncate">
-                        <Mail className="h-3.5 w-3.5 text-slate-500" />
+                      <div className="flex items-center gap-2 text-[#526477] truncate">
+                        <Mail className="h-3.5 w-3.5 text-slate-400" />
                         <span className="truncate">{school.contactEmail}</span>
                       </div>
                     )}
                     {school.address && (
-                      <div className="flex items-start gap-2 text-slate-400">
-                        <MapPin className="h-3.5 w-3.5 text-slate-500 shrink-0 mt-0.5" />
+                      <div className="flex items-start gap-2 text-[#526477]">
+                        <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0 mt-0.5" />
                         <span className="line-clamp-2">{school.address}</span>
                       </div>
                     )}
                   </div>
                 </div>
 
-                <div className="mt-4 flex items-center justify-between border-t border-slate-800/80 pt-3 text-[11px]">
+                <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-[11px]">
                   <span
-                    className={`rounded px-2 py-0.5 font-bold ${
+                    className={`rounded-full px-2.5 py-0.5 font-bold border ${
                       school.status === 'ACTIVE'
-                        ? 'bg-emerald-950/80 text-emerald-400 border border-emerald-800/50'
-                        : 'bg-red-950/80 text-red-400 border border-red-800/50'
+                        ? 'bg-emerald-50 text-[#4B7F3A] border-emerald-200'
+                        : 'bg-rose-50 text-rose-700 border-rose-200'
                     }`}
                   >
                     {school.status || 'ACTIVE'}
                   </span>
-                  <span className="text-slate-500">Liaquatabad Town DMC</span>
+                  <span className="text-[#8094A8] font-medium">Liaquatabad Town DMC</span>
                 </div>
               </div>
             ))}
@@ -333,22 +333,22 @@ export const SchoolsPage = () => {
 
         {/* Modal: Register School */}
         {isRegisterModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md">
-            <div className="relative w-full max-w-lg rounded-2xl border border-emerald-500/40 bg-slate-900 p-6 shadow-2xl space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
+            <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div className="flex items-center gap-2">
-                  <div className="rounded-lg bg-emerald-500/10 p-2 text-emerald-400">
+                  <div className="rounded-xl bg-blue-50 p-2.5 text-[#006AC7]">
                     <SchoolIcon className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-white">Register Municipal School</h3>
-                    <p className="text-xs text-slate-400">Add institutional record to Liaquatabad Town registry</p>
+                    <h3 className="text-base font-bold text-[#102033]">Register Municipal School</h3>
+                    <p className="text-xs text-[#526477]">Add institutional record to Liaquatabad Town registry</p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setIsRegisterModalOpen(false)}
-                  className="text-slate-400 hover:text-white"
+                  className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100"
                 >
                   ✕
                 </button>
@@ -356,48 +356,48 @@ export const SchoolsPage = () => {
 
               <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300">School Name *</label>
+                  <label className="block text-xs font-bold text-[#526477]">School Name *</label>
                   <input
                     type="text"
                     required
                     value={formData.name}
                     onChange={(inputChangeEvent) => setFormData({ ...formData, name: inputChangeEvent.target.value })}
                     placeholder="e.g. Government Boys Secondary School Liaquatabad No. 4"
-                    className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+                    className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300">School Code *</label>
+                    <label className="block text-xs font-bold text-[#526477]">School Code *</label>
                     <input
                       type="text"
                       required
                       value={formData.schoolCode}
                       onChange={(inputChangeEvent) => setFormData({ ...formData, schoolCode: inputChangeEvent.target.value })}
                       placeholder="e.g. LQT-SEC-004"
-                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white uppercase focus:border-emerald-500 focus:outline-none"
+                      className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-[#102033] uppercase focus:border-[#006AC7] focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300">SEMIS / EMIS Code</label>
+                    <label className="block text-xs font-bold text-[#526477]">SEMIS / EMIS Code</label>
                     <input
                       type="text"
                       value={formData.emisCode}
                       onChange={(inputChangeEvent) => setFormData({ ...formData, emisCode: inputChangeEvent.target.value })}
                       placeholder="e.g. 408010104"
-                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none"
+                      className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-[#102033] focus:border-[#006AC7] focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300">Category *</label>
+                    <label className="block text-xs font-bold text-[#526477]">Category *</label>
                     <select
                       value={formData.schoolType}
                       onChange={(selectChangeEvent) => setFormData({ ...formData, schoolType: selectChangeEvent.target.value })}
-                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none"
+                      className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-[#102033] focus:border-[#006AC7] focus:outline-none"
                     >
                       <option value="SECONDARY">Secondary</option>
                       <option value="PRIMARY">Primary</option>
@@ -406,11 +406,11 @@ export const SchoolsPage = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300">Orientation *</label>
+                    <label className="block text-xs font-bold text-[#526477]">Orientation *</label>
                     <select
                       value={formData.genderType}
                       onChange={(selectChangeEvent) => setFormData({ ...formData, genderType: selectChangeEvent.target.value })}
-                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none"
+                      className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-[#102033] focus:border-[#006AC7] focus:outline-none"
                     >
                       <option value="BOYS">Boys</option>
                       <option value="GIRLS">Girls</option>
@@ -420,51 +420,51 @@ export const SchoolsPage = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300">Physical Address</label>
+                  <label className="block text-xs font-bold text-[#526477]">Physical Address</label>
                   <input
                     type="text"
                     value={formData.address}
                     onChange={(inputChangeEvent) => setFormData({ ...formData, address: inputChangeEvent.target.value })}
                     placeholder="e.g. Block 4, Near Dak Khana, Liaquatabad, Karachi"
-                    className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+                    className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300">Contact Phone</label>
+                    <label className="block text-xs font-bold text-[#526477]">Contact Phone</label>
                     <input
                       type="text"
                       value={formData.contactPhone}
                       onChange={(inputChangeEvent) => setFormData({ ...formData, contactPhone: inputChangeEvent.target.value })}
                       placeholder="e.g. 021-99234567"
-                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none"
+                      className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-[#102033] focus:border-[#006AC7] focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300">Official Email</label>
+                    <label className="block text-xs font-bold text-[#526477]">Official Email</label>
                     <input
                       type="email"
                       value={formData.contactEmail}
                       onChange={(inputChangeEvent) => setFormData({ ...formData, contactEmail: inputChangeEvent.target.value })}
                       placeholder="e.g. gbss4@schools.gov.pk"
-                      className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white focus:border-emerald-500 focus:outline-none"
+                      className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-[#102033] focus:border-[#006AC7] focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
                     />
                   </div>
                 </div>
 
-                <div className="flex items-center justify-end gap-2 border-t border-slate-800 pt-3">
+                <div className="flex items-center justify-end gap-2 border-t border-slate-100 pt-3">
                   <button
                     type="button"
                     onClick={() => setIsRegisterModalOpen(false)}
-                    className="rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-xs text-slate-300 hover:bg-slate-700"
+                    className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-bold text-[#526477] hover:bg-slate-100"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-500 disabled:opacity-50"
+                    className="flex items-center gap-1.5 rounded-xl bg-[#006AC7] px-4 py-2 text-xs font-bold text-white hover:bg-[#00529B] disabled:opacity-50 shadow-sm"
                   >
                     <Plus className="h-3.5 w-3.5" />
                     <span>{isSubmitting ? 'Registering...' : 'Confirm Registration'}</span>

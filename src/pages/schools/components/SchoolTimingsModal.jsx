@@ -62,32 +62,32 @@ export const SchoolTimingsModal = ({ isOpen, onClose, school, onTimingsUpdated }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md">
-      <div className="relative w-full max-w-2xl rounded-2xl border border-emerald-500/40 bg-slate-900 p-6 shadow-2xl space-y-5 text-slate-100 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
+      <div className="relative w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-5 text-[#102033] max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-start justify-between border-b border-slate-800 pb-4">
+        <div className="flex items-start justify-between border-b border-slate-100 pb-4">
           <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-emerald-500/10 p-2.5 text-emerald-400 border border-emerald-500/20">
+            <div className="rounded-xl bg-blue-50 p-2.5 text-[#006AC7] border border-blue-200">
               <Clock className="h-6 w-6" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-white">School Operational Timings &amp; Attendance Windows</h3>
-              <p className="text-xs text-slate-400">
-                Configure official gates &amp; teacher attendance windows for <span className="text-emerald-300 font-semibold">{school.name}</span>
+              <h3 className="text-lg font-bold text-[#102033]">School Operational Timings &amp; Attendance Windows</h3>
+              <p className="text-xs text-[#526477]">
+                Configure official gates &amp; teacher attendance windows for <span className="text-[#006AC7] font-semibold">{school.name}</span>
               </p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white transition"
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-[#102033] transition"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
         {/* Info Banner */}
-        <div className="flex items-start gap-2.5 rounded-xl border border-cyan-500/20 bg-cyan-500/10 p-3 text-xs text-cyan-300">
+        <div className="flex items-start gap-2.5 rounded-xl border border-blue-200 bg-blue-50/80 p-3 text-xs text-[#006AC7]">
           <Info className="h-4 w-4 shrink-0 mt-0.5" />
           <p>
             All times are enforced strictly in <strong>Pakistan Standard Time (Asia/Karachi PKT, UTC+5)</strong>.
@@ -97,20 +97,20 @@ export const SchoolTimingsModal = ({ isOpen, onClose, school, onTimingsUpdated }
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Section 1: Regular Schedule (Monday - Thursday, Saturday) */}
-          <div className="rounded-xl border border-slate-800 bg-slate-800/40 p-4 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-700/60 pb-2">
+          <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-2">
               <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-emerald-400" />
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200">
+                <Calendar className="h-4 w-4 text-[#006AC7]" />
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#102033]">
                   Regular Working Days (Monday – Thursday, Saturday)
                 </h4>
               </div>
-              <span className="text-[11px] text-slate-400">Standard School Hours</span>
+              <span className="text-[11px] text-[#526477]">Standard School Hours</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-slate-300">School Gate Opening (Start Time)</label>
+                <label className="block text-xs font-medium text-[#526477]">School Gate Opening (Start Time)</label>
                 <input
                   type="time"
                   required
@@ -121,12 +121,12 @@ export const SchoolTimingsModal = ({ isOpen, onClose, school, onTimingsUpdated }
                       regular: { ...formData.regular, startTime: inputChangeEvent.target.value },
                     })
                   }
-                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white focus:border-emerald-500 focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-mono text-[#102033] focus:border-[#006AC7] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-300">School Gate Closing (End Time)</label>
+                <label className="block text-xs font-medium text-[#526477]">School Gate Closing (End Time)</label>
                 <input
                   type="time"
                   required
@@ -137,12 +137,12 @@ export const SchoolTimingsModal = ({ isOpen, onClose, school, onTimingsUpdated }
                       regular: { ...formData.regular, endTime: inputChangeEvent.target.value },
                     })
                   }
-                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white focus:border-emerald-500 focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-mono text-[#102033] focus:border-[#006AC7] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-emerald-400">Attendance Window Opens</label>
+                <label className="block text-xs font-medium text-[#4B7F3A]">Attendance Window Opens</label>
                 <input
                   type="time"
                   required
@@ -153,13 +153,13 @@ export const SchoolTimingsModal = ({ isOpen, onClose, school, onTimingsUpdated }
                       regular: { ...formData.regular, attendanceWindowStart: inputChangeEvent.target.value },
                     })
                   }
-                  className="mt-1 w-full rounded-lg border border-emerald-500/50 bg-slate-900 px-3 py-2 text-xs font-mono text-white focus:border-emerald-400 focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-emerald-300 bg-white px-3 py-2 text-xs font-mono text-[#102033] focus:border-[#4B7F3A] focus:outline-none"
                 />
-                <span className="text-[10px] text-slate-500 mt-1 block">Earliest time teachers can mark attendance</span>
+                <span className="text-[10px] text-[#8094A8] mt-1 block">Earliest time teachers can mark attendance</span>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-rose-400">Attendance Window Closes</label>
+                <label className="block text-xs font-medium text-rose-600">Attendance Window Closes</label>
                 <input
                   type="time"
                   required
@@ -170,28 +170,28 @@ export const SchoolTimingsModal = ({ isOpen, onClose, school, onTimingsUpdated }
                       regular: { ...formData.regular, attendanceWindowEnd: inputChangeEvent.target.value },
                     })
                   }
-                  className="mt-1 w-full rounded-lg border border-rose-500/50 bg-slate-900 px-3 py-2 text-xs font-mono text-white focus:border-rose-400 focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-rose-300 bg-white px-3 py-2 text-xs font-mono text-[#102033] focus:border-rose-500 focus:outline-none"
                 />
-                <span className="text-[10px] text-slate-500 mt-1 block">Late cutoff; submissions blocked afterwards</span>
+                <span className="text-[10px] text-[#8094A8] mt-1 block">Late cutoff; submissions blocked afterwards</span>
               </div>
             </div>
           </div>
 
           {/* Section 2: Friday (Jummah) Schedule */}
-          <div className="rounded-xl border border-slate-800 bg-slate-800/40 p-4 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-700/60 pb-2">
+          <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-2">
               <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-cyan-400" />
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200">
+                <Calendar className="h-4 w-4 text-[#006AC7]" />
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#102033]">
                   Friday Special Schedule (Jummah Timing)
                 </h4>
               </div>
-              <span className="text-[11px] text-cyan-400 font-semibold">Automatic Activation</span>
+              <span className="text-[11px] text-[#006AC7] font-semibold">Automatic Activation</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-slate-300">Friday School Opening</label>
+                <label className="block text-xs font-medium text-[#526477]">Friday School Opening</label>
                 <input
                   type="time"
                   required
@@ -202,12 +202,12 @@ export const SchoolTimingsModal = ({ isOpen, onClose, school, onTimingsUpdated }
                       friday: { ...formData.friday, startTime: inputChangeEvent.target.value },
                     })
                   }
-                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white focus:border-cyan-500 focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-mono text-[#102033] focus:border-[#006AC7] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-300">Friday School Dismissal</label>
+                <label className="block text-xs font-medium text-[#526477]">Friday School Dismissal</label>
                 <input
                   type="time"
                   required
@@ -218,12 +218,12 @@ export const SchoolTimingsModal = ({ isOpen, onClose, school, onTimingsUpdated }
                       friday: { ...formData.friday, endTime: inputChangeEvent.target.value },
                     })
                   }
-                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-white focus:border-cyan-500 focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-mono text-[#102033] focus:border-[#006AC7] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-cyan-400">Friday Window Opens</label>
+                <label className="block text-xs font-medium text-[#006AC7]">Friday Window Opens</label>
                 <input
                   type="time"
                   required
@@ -234,12 +234,12 @@ export const SchoolTimingsModal = ({ isOpen, onClose, school, onTimingsUpdated }
                       friday: { ...formData.friday, attendanceWindowStart: inputChangeEvent.target.value },
                     })
                   }
-                  className="mt-1 w-full rounded-lg border border-cyan-500/50 bg-slate-900 px-3 py-2 text-xs font-mono text-white focus:border-cyan-400 focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-blue-300 bg-white px-3 py-2 text-xs font-mono text-[#102033] focus:border-[#006AC7] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-rose-400">Friday Window Closes (Pre-Jummah)</label>
+                <label className="block text-xs font-medium text-rose-600">Friday Window Closes (Pre-Jummah)</label>
                 <input
                   type="time"
                   required
@@ -250,20 +250,20 @@ export const SchoolTimingsModal = ({ isOpen, onClose, school, onTimingsUpdated }
                       friday: { ...formData.friday, attendanceWindowEnd: inputChangeEvent.target.value },
                     })
                   }
-                  className="mt-1 w-full rounded-lg border border-rose-500/50 bg-slate-900 px-3 py-2 text-xs font-mono text-white focus:border-rose-400 focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-rose-300 bg-white px-3 py-2 text-xs font-mono text-[#102033] focus:border-rose-500 focus:outline-none"
                 />
               </div>
             </div>
           </div>
 
           {/* Section 3: Headmaster Late Clearance Privilege */}
-          <div className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-800/40 p-4">
+          <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/70 p-4">
             <div className="space-y-0.5">
-              <label className="text-xs font-bold text-white flex items-center gap-1.5">
-                <ShieldCheck className="h-4 w-4 text-emerald-400" />
+              <label className="text-xs font-bold text-[#102033] flex items-center gap-1.5">
+                <ShieldCheck className="h-4 w-4 text-[#4B7F3A]" />
                 Allow HM Same-Day Emergency Late Clearance
               </label>
-              <p className="text-[11px] text-slate-400 max-w-md">
+              <p className="text-[11px] text-[#526477] max-w-md">
                 Enables the Headmaster to clear late attendance on the same calendar day (until 23:59 PKT) in case of power or internet disruptions.
               </p>
             </div>
@@ -276,24 +276,24 @@ export const SchoolTimingsModal = ({ isOpen, onClose, school, onTimingsUpdated }
                 }
                 className="sr-only peer"
               />
-              <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+              <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#4B7F3A]"></div>
             </label>
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-end gap-3 border-t border-slate-800 pt-4">
+          <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
             <button
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="rounded-lg border border-slate-700 px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800 transition"
+              className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-[#526477] hover:bg-slate-50 transition"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2 text-xs font-semibold text-white shadow-lg hover:bg-emerald-500 transition disabled:opacity-50"
+              className="flex items-center gap-2 rounded-lg bg-[#4B7F3A] px-5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-[#3d682f] transition disabled:opacity-50"
             >
               <Save className="h-4 w-4" />
               <span>{isSubmitting ? 'Saving Timings...' : 'Save & Enforce Timings'}</span>

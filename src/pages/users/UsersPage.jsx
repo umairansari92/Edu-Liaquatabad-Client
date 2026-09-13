@@ -137,7 +137,7 @@ export const UsersPage = () => {
           <button
             type="button"
             onClick={fetchUsers}
-            className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs font-medium text-slate-200 hover:bg-slate-700 transition"
+            className="flex items-center gap-1.5 rounded-xl border border-slate-200/80 bg-white px-3 py-2 text-xs font-bold text-[#526477] hover:text-[#102033] hover:bg-slate-50 shadow-sm transition"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
@@ -147,23 +147,23 @@ export const UsersPage = () => {
     >
       <div className="space-y-6">
         {/* Search & Filter Bar */}
-        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between rounded-xl border border-slate-800 bg-slate-900/70 p-4 backdrop-blur-md">
+        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
           <div className="flex flex-1 items-center gap-3">
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(inputChangeEvent) => setSearchQuery(inputChangeEvent.target.value)}
                 placeholder="Search by full name, email, or civil designation..."
-                className="w-full rounded-lg border border-slate-700 bg-slate-800/90 py-2 pl-9 pr-4 text-xs text-slate-200 placeholder-slate-500 focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2 pl-9 pr-4 text-xs font-medium text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
               />
             </div>
 
             <select
               value={roleFilter}
               onChange={(selectChangeEvent) => setRoleFilter(selectChangeEvent.target.value)}
-              className="rounded-lg border border-slate-700 bg-slate-800/90 px-3 py-2 text-xs text-slate-200 focus:border-blue-500 focus:outline-none"
+              className="rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-bold text-[#526477] focus:border-[#006AC7] focus:bg-white focus:outline-none"
             >
               <option value="">All Roles</option>
               <option value="SUPER_ADMIN">Super Admin</option>
@@ -178,7 +178,7 @@ export const UsersPage = () => {
             <select
               value={statusFilter}
               onChange={(selectChangeEvent) => setStatusFilter(selectChangeEvent.target.value)}
-              className="rounded-lg border border-slate-700 bg-slate-800/90 px-3 py-2 text-xs text-slate-200 focus:border-blue-500 focus:outline-none"
+              className="rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-bold text-[#526477] focus:border-[#006AC7] focus:bg-white focus:outline-none"
             >
               <option value="">All Statuses</option>
               <option value="ACTIVE">Active</option>
@@ -187,15 +187,15 @@ export const UsersPage = () => {
             </select>
           </div>
 
-          <div className="text-xs text-slate-400 font-mono text-right">
-            Total Accounts: <span className="font-bold text-white">{totalCount}</span>
+          <div className="text-xs text-[#526477] font-medium text-right">
+            Total Accounts: <span className="font-bold text-[#102033]">{totalCount}</span>
           </div>
         </div>
 
         {/* Bulk Actions Command Strip */}
         {selectedUserIds.length > 0 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 rounded-xl border border-blue-500/30 bg-blue-950/20 p-3 text-xs text-slate-300">
-            <span className="font-semibold text-blue-400">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 rounded-2xl border border-blue-200 bg-blue-50/70 p-3.5 text-xs text-[#102033] shadow-sm">
+            <span className="font-bold text-[#006AC7]">
               {selectedUserIds.length} user{selectedUserIds.length > 1 ? 's' : ''} selected
             </span>
             <div className="flex items-center gap-2">
@@ -203,7 +203,7 @@ export const UsersPage = () => {
                 type="button"
                 onClick={() => handleExecuteBulkAction('APPROVE')}
                 disabled={isBulkOperating}
-                className="flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-500 disabled:opacity-50 transition"
+                className="flex items-center gap-1 rounded-xl bg-[#4B7F3A] px-3.5 py-2 text-xs font-bold text-white hover:bg-[#3D692F] disabled:opacity-50 transition shadow-sm"
               >
                 <UserCheck className="h-3.5 w-3.5" />
                 <span>Bulk Approve</span>
@@ -212,7 +212,7 @@ export const UsersPage = () => {
                 type="button"
                 onClick={() => handleExecuteBulkAction('SUSPEND')}
                 disabled={isBulkOperating}
-                className="flex items-center gap-1 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-500 disabled:opacity-50 transition"
+                className="flex items-center gap-1 rounded-xl bg-rose-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-rose-700 disabled:opacity-50 transition shadow-sm"
               >
                 <UserX className="h-3.5 w-3.5" />
                 <span>Bulk Suspend</span>
@@ -220,7 +220,7 @@ export const UsersPage = () => {
               <button
                 type="button"
                 onClick={() => setSelectedUserIds([])}
-                className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-700 transition"
+                className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-[#526477] hover:bg-slate-50 transition"
               >
                 Clear
               </button>
@@ -229,20 +229,20 @@ export const UsersPage = () => {
         )}
 
         {/* Users Table */}
-        <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900/80 shadow-2xl backdrop-blur-md">
+        <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-slate-300">
-              <thead className="border-b border-slate-800 bg-slate-950/80 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <table className="w-full text-left text-xs text-[#526477]">
+              <thead className="border-b border-slate-200/80 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-[#526477]">
                 <tr>
                   <th className="w-10 px-4 py-3.5">
                     <button
                       type="button"
                       onClick={handleSelectAllOnPage}
-                      className="text-slate-400 hover:text-white"
+                      className="text-slate-400 hover:text-[#102033]"
                       title="Select All"
                     >
                       {selectedUserIds.length > 0 && selectedUserIds.length === usersList.length ? (
-                        <CheckSquare className="h-4 w-4 text-blue-400" />
+                        <CheckSquare className="h-4 w-4 text-[#006AC7]" />
                       ) : (
                         <Square className="h-4 w-4" />
                       )}
@@ -257,20 +257,20 @@ export const UsersPage = () => {
                   <th className="px-4 py-3.5 text-right">Operations</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-slate-100">
                 {isLoading ? (
                   <tr>
-                    <td colSpan={8} className="py-12 text-center text-slate-400">
-                      <RefreshCw className="mx-auto h-6 w-6 animate-spin text-blue-400" />
+                    <td colSpan={8} className="py-12 text-center text-[#526477]">
+                      <RefreshCw className="mx-auto h-6 w-6 animate-spin text-[#006AC7]" />
                       <p className="mt-2 font-medium">Retrieving personnel records...</p>
                     </td>
                   </tr>
                 ) : usersList.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="py-12 text-center text-slate-500">
-                      <Users className="mx-auto h-8 w-8 text-slate-600 mb-2" />
-                      <p className="font-semibold text-slate-400">No personnel records found</p>
-                      <p className="mt-1 text-xs text-slate-600">Try modifying active role or status filters.</p>
+                    <td colSpan={8} className="py-12 text-center text-[#526477]">
+                      <Users className="mx-auto h-8 w-8 text-slate-300 mb-2" />
+                      <p className="font-bold text-[#102033]">No personnel records found</p>
+                      <p className="mt-1 text-xs text-[#8094A8]">Try modifying active role or status filters.</p>
                     </td>
                   </tr>
                 ) : (
@@ -281,16 +281,16 @@ export const UsersPage = () => {
                     return (
                       <tr
                         key={userRecord._id}
-                        className={`transition hover:bg-slate-800/40 ${isSelected ? 'bg-blue-950/20' : ''}`}
+                        className={`transition hover:bg-blue-50/40 ${isSelected ? 'bg-blue-50/60' : ''}`}
                       >
                         <td className="px-4 py-3.5">
                           <button
                             type="button"
                             onClick={() => handleToggleSelectUser(userRecord._id)}
-                            className="text-slate-400 hover:text-white"
+                            className="text-slate-400 hover:text-[#102033]"
                           >
                             {isSelected ? (
-                              <CheckSquare className="h-4 w-4 text-blue-400" />
+                              <CheckSquare className="h-4 w-4 text-[#006AC7]" />
                             ) : (
                               <Square className="h-4 w-4" />
                             )}
@@ -298,21 +298,21 @@ export const UsersPage = () => {
                         </td>
 
                         <td className="px-4 py-3.5">
-                          <div className="font-semibold text-white">{userRecord.fullName}</div>
-                          <div className="text-[11px] text-slate-400 font-mono flex items-center gap-1 mt-0.5">
-                            <Mail className="h-3 w-3 text-slate-500" />
+                          <div className="font-bold text-[#102033]">{userRecord.fullName}</div>
+                          <div className="text-[11px] text-[#526477] font-medium flex items-center gap-1 mt-0.5">
+                            <Mail className="h-3 w-3 text-slate-400" />
                             <span>{userRecord.email}</span>
                           </div>
                         </td>
 
                         <td className="px-4 py-3.5">
-                          <span className="font-medium text-amber-300">
+                          <span className="font-medium text-amber-700">
                             {userRecord.designation || 'Civic Official'}
                           </span>
                         </td>
 
                         <td className="px-4 py-3.5">
-                          <span className="font-mono text-cyan-400 font-medium">
+                          <span className="font-mono text-[#006AC7] font-semibold">
                             {userRecord.baseRole || 'TEACHER'}
                           </span>
                         </td>
@@ -321,12 +321,12 @@ export const UsersPage = () => {
                           <span
                             className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 font-bold font-mono text-[10px] ${
                               userRecord.role === 'ROOT_ADMIN'
-                                ? 'bg-red-950 text-red-400 border border-red-800'
+                                ? 'bg-rose-50 text-rose-700 border border-rose-200'
                                 : userRecord.role === 'SUPER_ADMIN'
-                                ? 'bg-amber-950 text-amber-300 border border-amber-800'
+                                ? 'bg-amber-50 text-amber-700 border border-amber-200'
                                 : userRecord.role === 'ADMIN'
-                                ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
-                                : 'bg-slate-800 text-slate-300 border border-slate-700'
+                                ? 'bg-emerald-50 text-[#4B7F3A] border border-emerald-200'
+                                : 'bg-slate-100 text-slate-700 border border-slate-200'
                             }`}
                           >
                             <Shield className="h-3 w-3" />
@@ -334,18 +334,18 @@ export const UsersPage = () => {
                           </span>
                         </td>
 
-                        <td className="px-4 py-3.5 font-mono text-[11px] text-slate-400">
+                        <td className="px-4 py-3.5 font-mono text-[11px] text-[#526477]">
                           {userRecord.scope || 'TOWN'}
                         </td>
 
                         <td className="px-4 py-3.5">
                           <span
-                            className={`rounded px-2 py-0.5 font-bold text-[10px] ${
+                            className={`rounded-full px-2.5 py-0.5 font-bold text-[10px] border ${
                               userRecord.status === 'ACTIVE'
-                                ? 'bg-emerald-950/80 text-emerald-400 border border-emerald-800/50'
+                                ? 'bg-emerald-50 text-[#4B7F3A] border-emerald-200'
                                 : userRecord.status === 'PENDING_APPROVAL'
-                                ? 'bg-amber-950/80 text-amber-300 border border-amber-800/50'
-                                : 'bg-red-950/80 text-red-400 border border-red-800/50'
+                                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                : 'bg-rose-50 text-rose-700 border-rose-200'
                             }`}
                           >
                             {userRecord.status}
@@ -365,7 +365,7 @@ export const UsersPage = () => {
                                     'Administrative onboarding approval'
                                   )
                                 }
-                                className="rounded p-1 text-emerald-400 hover:bg-emerald-950/50 hover:text-emerald-300"
+                                className="rounded-lg p-1.5 text-[#4B7F3A] hover:bg-emerald-50"
                                 title="Approve Registration"
                               >
                                 <UserCheck className="h-4 w-4" />
@@ -383,7 +383,7 @@ export const UsersPage = () => {
                                     'Administrative suspension'
                                   )
                                 }
-                                className="rounded p-1 text-red-400 hover:bg-red-950/50 hover:text-red-300"
+                                className="rounded-lg p-1.5 text-rose-600 hover:bg-rose-50"
                                 title="Suspend Account"
                               >
                                 <UserX className="h-4 w-4" />
@@ -401,7 +401,7 @@ export const UsersPage = () => {
                                     'Reinstated by administrator'
                                   )
                                 }
-                                className="rounded p-1 text-emerald-400 hover:bg-emerald-950/50 hover:text-emerald-300"
+                                className="rounded-lg p-1.5 text-[#4B7F3A] hover:bg-emerald-50"
                                 title="Reactivate Account"
                               >
                                 <CheckCircle2 className="h-4 w-4" />
@@ -415,7 +415,7 @@ export const UsersPage = () => {
                                   setSelectedUserForAuthority(userRecord);
                                   setIsAuthorityModalOpen(true);
                                 }}
-                                className="rounded p-1 text-slate-400 hover:bg-slate-800 hover:text-white"
+                                className="rounded-lg p-1.5 text-slate-400 hover:text-[#102033] hover:bg-slate-100"
                                 title="Manage Designation & Authority"
                               >
                                 <ShieldCheck className="h-4 w-4" />

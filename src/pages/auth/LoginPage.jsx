@@ -80,7 +80,6 @@ export const LoginPage = () => {
     return () => clearInterval(cooldownTicker);
   }, [captchaCooldown]);
 
-
   // Live countdown ticker — runs every second when lockoutSeconds > 0
   useEffect(() => {
     if (lockoutSeconds === null || lockoutSeconds <= 0) {
@@ -127,7 +126,6 @@ export const LoginPage = () => {
           payload.captchaAnswer = trimmedAnswer;
           payload.captchaChallengeToken = captcha.challengeToken;
         }
-        // If user left captcha blank, don't send token — server will skip CAPTCHA check
       }
 
       const response = await apiClient.post('/auth/login', payload);
@@ -142,7 +140,6 @@ export const LoginPage = () => {
       const status = loginError.response?.status;
       const errorNotificationMessage = loginError.response?.data?.message || 'Authentication failed. Please verify credentials.';
 
-      // HTTP 423 = Account Locked — extract minutesRemaining and start countdown
       if (status === 423) {
         const minuteMatch = errorNotificationMessage.match(/(\d+)\s*minute/);
         const minutes = minuteMatch ? parseInt(minuteMatch[1], 10) : 15;
@@ -154,7 +151,6 @@ export const LoginPage = () => {
       }
 
       dispatch(setError(errorNotificationMessage));
-      // Refresh CAPTCHA on failed attempt (not user-triggered, no cooldown)
       fetchCaptcha(false);
     } finally {
       setLoading(false);
@@ -162,34 +158,34 @@ export const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans selection:bg-emerald-500 selection:text-white">
+    <div className="min-h-screen bg-[#F8FBFD] flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans selection:bg-[#006AC7] selection:text-white">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <Link to="/" className="inline-flex items-center justify-center space-x-3 mb-5 group">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-600 flex items-center justify-center shadow-lg group-hover:bg-emerald-500 transition-colors">
+          <div className="w-12 h-12 rounded-2xl bg-[#006AC7] flex items-center justify-center shadow-md group-hover:bg-[#00529B] transition-colors">
             <School className="w-6 h-6 text-white" />
           </div>
         </Link>
-        <h2 className="text-2xl sm:text-3xl font-display font-bold text-white tracking-tight">
+        <h2 className="text-2xl sm:text-3xl font-bold text-[#102033] tracking-tight">
           Official Portal Sign In
         </h2>
-        <p className="mt-1.5 text-xs text-slate-400">
+        <p className="mt-1.5 text-xs text-[#526477] font-medium">
           Education Department Liaquatabad Town Centre (DMC)
         </p>
       </div>
 
       <div className="mt-7 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
-        <div className="bg-slate-900/90 backdrop-blur-xl py-8 px-6 sm:px-10 shadow-2xl rounded-2xl border border-slate-800">
+        <div className="bg-white py-8 px-6 sm:px-10 shadow-xl rounded-2xl border border-slate-200/80">
           {errorMessage && (
             <div className={`mb-5 p-3.5 rounded-xl text-xs flex flex-col gap-2.5 ${
               lockoutSeconds
-                ? 'bg-amber-500/10 border border-amber-500/30 text-amber-300'
-                : 'bg-rose-500/10 border border-rose-500/20 text-rose-400'
+                ? 'bg-amber-50 border border-amber-200 text-amber-800'
+                : 'bg-rose-50 border border-rose-200 text-rose-700'
             }`}>
               <div className="flex items-start gap-2.5">
                 {lockoutSeconds ? (
-                  <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-amber-400" />
+                  <Clock className="w-4 h-4 flex-shrink-0 mt-0.5 text-amber-600" />
                 ) : (
-                  <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-rose-600" />
                 )}
                 <span>{lockoutSeconds
                   ? 'Account temporarily locked due to excessive failed attempts.'
@@ -198,10 +194,10 @@ export const LoginPage = () => {
               </div>
               {lockoutSeconds > 0 && (
                 <div className="flex items-center justify-between pl-6">
-                  <span className="text-amber-400/80">Retry available in:</span>
-                  <div className="flex items-center gap-1.5 bg-amber-500/20 border border-amber-500/30 rounded-lg px-3 py-1.5">
-                    <Clock className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-                    <span className="font-mono font-bold text-amber-300 text-sm tracking-widest">
+                  <span className="text-amber-700 font-medium">Retry available in:</span>
+                  <div className="flex items-center gap-1.5 bg-amber-100/80 border border-amber-300 rounded-lg px-3 py-1.5">
+                    <Clock className="w-3.5 h-3.5 text-amber-700 animate-pulse" />
+                    <span className="font-mono font-bold text-amber-900 text-sm tracking-widest">
                       {formatCountdown(lockoutSeconds)}
                     </span>
                   </div>
@@ -211,7 +207,7 @@ export const LoginPage = () => {
           )}
 
           <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
-            {/* Honeypot field (hidden from legitimate users) */}
+            {/* Honeypot field */}
             <input
               type="text"
               {...register('_gotcha')}
@@ -221,50 +217,51 @@ export const LoginPage = () => {
             />
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
+              <label className="block text-xs font-bold uppercase tracking-wider text-[#526477] mb-1.5">
                 Official Email or Student GR Number
               </label>
-              <div className="relative rounded-lg shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+              <div className="relative rounded-xl shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                   <Mail className="w-4 h-4" />
                 </div>
                 <input
                   type="text"
                   {...register('email')}
                   placeholder="Official email or GR Number (e.g. 1045)"
-                  className="block w-full pl-9 pr-3 py-2.5 bg-slate-950/80 border border-slate-800 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-xs"
+                  className="block w-full pl-10 pr-3 py-2.5 bg-slate-50/50 border border-slate-300 rounded-xl text-[#102033] placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#006AC7] focus:ring-1 focus:ring-[#006AC7] text-xs font-medium"
                 />
               </div>
               {errors.email && (
-                <p className="mt-1 text-xs text-rose-400">{errors.email.message}</p>
+                <p className="mt-1 text-xs text-rose-600 font-medium">{errors.email.message}</p>
               )}
             </div>
+
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300">
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#526477]">
                   Secure Password
                 </label>
                 <Link
                   to="/forgot-password"
-                  className="text-[11px] text-emerald-400 hover:text-emerald-300 transition-colors"
+                  className="text-[11px] text-[#006AC7] hover:underline font-bold transition-colors"
                 >
                   Forgot password?
                 </Link>
               </div>
-              <div className="relative rounded-lg shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-500">
+              <div className="relative rounded-xl shadow-sm">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                   <Lock className="w-4 h-4" />
                 </div>
                 <input
                   type={showPassword ? 'text' : 'password'}
                   {...register('password')}
                   placeholder="••••••••••••"
-                  className="block w-full pl-9 pr-10 py-2.5 bg-slate-950/80 border border-slate-800 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-xs"
+                  className="block w-full pl-10 pr-10 py-2.5 bg-slate-50/50 border border-slate-300 rounded-xl text-[#102033] placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#006AC7] focus:ring-1 focus:ring-[#006AC7] text-xs font-medium"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-700 transition-colors cursor-pointer"
                   tabIndex="-1"
                   title={showPassword ? 'Hide password' : 'Show password'}
                 >
@@ -272,7 +269,7 @@ export const LoginPage = () => {
                 </button>
               </div>
               {errors.password && (
-                <p className="mt-1 text-xs text-rose-400">{errors.password.message}</p>
+                <p className="mt-1 text-xs text-rose-600 font-medium">{errors.password.message}</p>
               )}
             </div>
 
@@ -280,18 +277,18 @@ export const LoginPage = () => {
             {captcha && (
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
-                    <Calculator className="w-3.5 h-3.5 text-emerald-400" />
+                  <label className="block text-xs font-bold uppercase tracking-wider text-[#526477] flex items-center gap-1.5">
+                    <Calculator className="w-3.5 h-3.5 text-[#006AC7]" />
                     Security Math Challenge
                   </label>
                   <button
                     type="button"
                     onClick={() => fetchCaptcha(true)}
                     disabled={captchaLoading || captchaCooldown > 0}
-                    className={`text-[11px] flex items-center gap-1 transition-colors ${
+                    className={`text-[11px] flex items-center gap-1 font-bold transition-colors ${
                       captchaCooldown > 0
-                        ? 'text-slate-600 cursor-not-allowed'
-                        : 'text-slate-400 hover:text-emerald-400'
+                        ? 'text-slate-400 cursor-not-allowed'
+                        : 'text-[#006AC7] hover:underline'
                     }`}
                   >
                     <RefreshCw className={`w-3 h-3 ${captchaLoading ? 'animate-spin' : ''}`} />
@@ -299,14 +296,14 @@ export const LoginPage = () => {
                   </button>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="px-3.5 py-2 rounded-lg bg-slate-950 border border-slate-800 text-emerald-400 font-mono text-xs font-bold tracking-wider select-none shadow-inner">
+                  <div className="px-4 py-2 rounded-xl bg-blue-50 border border-blue-200 text-[#006AC7] font-mono text-xs font-bold tracking-wider select-none shadow-sm">
                     {captcha.question} = ?
                   </div>
                   <input
                     type="text"
                     {...register('captchaAnswer')}
                     placeholder="Result"
-                    className="block flex-1 px-3 py-2 bg-slate-950/80 border border-slate-800 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-xs text-center font-mono"
+                    className="block flex-1 px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-xl text-[#102033] placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#006AC7] focus:ring-1 focus:ring-[#006AC7] text-xs text-center font-mono font-bold"
                   />
                 </div>
               </div>
@@ -316,10 +313,10 @@ export const LoginPage = () => {
               <button
                 type="submit"
                 disabled={loading || lockoutSeconds > 0}
-                className={`w-full flex justify-center items-center gap-2 py-2.5 px-4 rounded-xl text-xs font-semibold text-white shadow-lg transition-all ${
+                className={`w-full flex justify-center items-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold text-white shadow-sm transition-all ${
                   lockoutSeconds > 0
-                    ? 'bg-slate-700 cursor-not-allowed opacity-60'
-                    : 'bg-emerald-600 hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 shadow-emerald-950/50'
+                    ? 'bg-slate-300 cursor-not-allowed opacity-70 text-slate-600'
+                    : 'bg-[#006AC7] hover:bg-[#00529B] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#006AC7]'
                 }`}
               >
                 {lockoutSeconds > 0 ? (
@@ -339,16 +336,16 @@ export const LoginPage = () => {
             </div>
           </form>
 
-          <div className="mt-6 border-t border-slate-800/80 pt-5 text-center text-xs text-slate-400 space-y-2">
+          <div className="mt-6 border-t border-slate-100 pt-5 text-center text-xs text-[#526477] space-y-2 font-medium">
             <p>
               Student Self-Registration?{' '}
-              <Link to="/register-student" className="text-emerald-400 hover:text-emerald-300 font-medium">
+              <Link to="/register-student" className="text-[#006AC7] hover:underline font-bold">
                 Register Student Account
               </Link>
             </p>
             <p>
               Faculty Registration?{' '}
-              <Link to="/register-teacher" className="text-emerald-400 hover:text-emerald-300 font-medium">
+              <Link to="/register-teacher" className="text-[#006AC7] hover:underline font-bold">
                 Register Faculty Account
               </Link>
             </p>
@@ -356,8 +353,8 @@ export const LoginPage = () => {
         </div>
 
         {/* Security badge footer */}
-        <div className="mt-4 flex items-center justify-center gap-2 text-[11px] text-slate-500">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+        <div className="mt-4 flex items-center justify-center gap-2 text-[11px] text-[#526477] font-medium">
+          <ShieldCheck className="w-3.5 h-3.5 text-[#4B7F3A]" />
           <span>Protected by Triple-Lock Rate Limiting & 256-bit Encryption</span>
         </div>
       </div>

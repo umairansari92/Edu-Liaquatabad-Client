@@ -78,7 +78,7 @@ export const DashboardRouter = () => {
       subtitle={`Education Department Liaquatabad Town Centre (DMC) • Scope: ${user.scope}`}
       actions={
         <div className="flex items-center gap-2">
-          <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-950 border border-emerald-700 text-emerald-400">
+          <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 border border-emerald-200 text-[#4B7F3A]">
             System Online
           </span>
         </div>
@@ -86,84 +86,84 @@ export const DashboardRouter = () => {
     >
       {/* Top Metric Cards — Real-time Scoped Aggregation */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-        <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-sm">
+        <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase text-slate-400 tracking-wider">Registered Schools</span>
-            <div className="p-2 rounded-lg bg-emerald-950 text-emerald-400">
+            <span className="text-xs font-bold uppercase text-[#526477] tracking-wider">Registered Schools</span>
+            <div className="p-2.5 rounded-xl bg-blue-50 text-[#006AC7]">
               <School className="w-5 h-5" />
             </div>
           </div>
-          <p className="text-3xl font-display font-bold text-white mt-3">{stats.totalSchools}</p>
-          <p className="text-xs text-emerald-400 mt-1">Liaquatabad Town Centre</p>
+          <p className="text-3xl font-black text-[#102033] mt-3">{stats.totalSchools}</p>
+          <p className="text-xs text-[#526477] font-medium mt-1">Liaquatabad Town Centre</p>
         </div>
 
-        <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-sm">
+        <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase text-slate-400 tracking-wider">Active Faculty</span>
-            <div className="p-2 rounded-lg bg-teal-950 text-teal-400">
+            <span className="text-xs font-bold uppercase text-[#526477] tracking-wider">Active Faculty</span>
+            <div className="p-2.5 rounded-xl bg-teal-50 text-teal-600">
               <Users className="w-5 h-5" />
             </div>
           </div>
-          <p className="text-3xl font-display font-bold text-white mt-3">{stats.totalTeachers}</p>
-          <p className="text-xs text-teal-400 mt-1">Verified & Assigned</p>
+          <p className="text-3xl font-black text-[#102033] mt-3">{stats.totalTeachers}</p>
+          <p className="text-xs text-teal-700 font-medium mt-1">Verified & Assigned</p>
         </div>
 
-        <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-sm">
+        <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase text-slate-400 tracking-wider">Total Enrollment</span>
-            <div className="p-2 rounded-lg bg-cyan-950 text-cyan-400">
+            <span className="text-xs font-bold uppercase text-[#526477] tracking-wider">Total Enrollment</span>
+            <div className="p-2.5 rounded-xl bg-indigo-50 text-indigo-600">
               <GraduationCap className="w-5 h-5" />
             </div>
           </div>
-          <p className="text-3xl font-display font-bold text-white mt-3">{stats.enrolledStudents}</p>
-          <p className="text-xs text-cyan-400 mt-1">Municipal Students</p>
+          <p className="text-3xl font-black text-[#102033] mt-3">{stats.enrolledStudents}</p>
+          <p className="text-xs text-indigo-700 font-medium mt-1">Municipal Students</p>
         </div>
 
-        <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 shadow-sm">
+        <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold uppercase text-slate-400 tracking-wider">Today's Attendance</span>
-            <div className="p-2 rounded-lg bg-amber-950 text-amber-400">
+            <span className="text-xs font-bold uppercase text-[#526477] tracking-wider">Today's Attendance</span>
+            <div className="p-2.5 rounded-xl bg-amber-50 text-amber-600">
               <ClipboardCheck className="w-5 h-5" />
             </div>
           </div>
-          <p className="text-3xl font-display font-bold text-white mt-3">{stats.digitalAttendanceRate || '98%'}</p>
-          <p className="text-xs text-amber-400 mt-1">Town Average</p>
+          <p className="text-3xl font-black text-[#102033] mt-3">{stats.digitalAttendanceRate || '98%'}</p>
+          <p className="text-xs text-amber-700 font-medium mt-1">Town Average</p>
         </div>
       </div>
 
       {/* Role Context & Actions Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 p-6 rounded-2xl bg-slate-900 border border-slate-800">
-          <h2 className="text-lg font-display font-bold text-white mb-4 flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-emerald-400" />
+        <div className="lg:col-span-2 p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
+          <h2 className="text-lg font-bold text-[#102033] mb-4 flex items-center gap-2">
+            <ShieldCheck className="w-5 h-5 text-[#4B7F3A]" />
             Active Governance Session
           </h2>
-          <div className="space-y-3 text-sm text-slate-300">
-            <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800/80 space-y-2">
+          <div className="space-y-3 text-sm text-[#526477]">
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2.5">
               <div className="flex items-center justify-between">
-                <span className="text-slate-400 font-medium">Logged in Authority:</span>
-                <span className="font-semibold text-white">{user.fullName}</span>
+                <span className="text-[#526477] font-medium">Logged in Authority:</span>
+                <span className="font-bold text-[#102033]">{user.fullName}</span>
               </div>
-              <div className="flex items-center justify-between pt-2 border-t border-slate-800">
-                <span className="text-slate-400 font-medium">Civil Service Title (Designation):</span>
-                <span className="font-semibold text-amber-400">{user.designation || 'None'}</span>
+              <div className="flex items-center justify-between pt-2 border-t border-slate-200/60">
+                <span className="text-[#526477] font-medium">Civil Service Title (Designation):</span>
+                <span className="font-bold text-amber-700">{user.designation || 'None'}</span>
               </div>
-              <div className="flex items-center justify-between pt-2 border-t border-slate-800">
-                <span className="text-slate-400 font-medium">Base Registration Role:</span>
-                <span className="font-mono text-cyan-400 font-semibold">{user.baseRole || 'TEACHER'}</span>
+              <div className="flex items-center justify-between pt-2 border-t border-slate-200/60">
+                <span className="text-[#526477] font-medium">Base Registration Role:</span>
+                <span className="font-mono text-[#006AC7] font-bold">{user.baseRole || 'TEACHER'}</span>
               </div>
-              <div className="flex items-center justify-between pt-2 border-t border-slate-800">
-                <span className="text-slate-400 font-medium">Granted System Authority:</span>
-                <span className="font-mono text-emerald-400 font-semibold">{user.role}</span>
+              <div className="flex items-center justify-between pt-2 border-t border-slate-200/60">
+                <span className="text-[#526477] font-medium">Granted System Authority:</span>
+                <span className="font-mono text-[#4B7F3A] font-bold">{user.role}</span>
               </div>
-              <div className="flex items-center justify-between pt-2 border-t border-slate-800">
-                <span className="text-slate-400 font-medium">Data Boundary Scope:</span>
-                <span className="font-mono text-purple-400">{user.scope}</span>
+              <div className="flex items-center justify-between pt-2 border-t border-slate-200/60">
+                <span className="text-[#526477] font-medium">Data Boundary Scope:</span>
+                <span className="font-mono text-purple-700 font-bold">{user.scope}</span>
               </div>
             </div>
 
-            <div className="p-4 rounded-xl bg-emerald-950/20 border border-emerald-800/30 text-emerald-300 text-xs flex items-center gap-3">
-              <ShieldCheck className="w-5 h-5 flex-shrink-0 text-emerald-400" />
+            <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-[#4B7F3A] text-xs font-medium flex items-center gap-3">
+              <ShieldCheck className="w-5 h-5 flex-shrink-0 text-[#4B7F3A]" />
               <span>
                 All interactions within this dashboard are strictly mediated by the BFF Gateway and logged to the immutable audit trail.
               </span>
@@ -171,23 +171,23 @@ export const DashboardRouter = () => {
           </div>
         </div>
 
-        <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800">
-          <h2 className="text-lg font-display font-bold text-white mb-4 flex items-center gap-2">
-            <FileText className="w-5 h-5 text-teal-400" />
+        <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
+          <h2 className="text-lg font-bold text-[#102033] mb-4 flex items-center gap-2">
+            <FileText className="w-5 h-5 text-[#006AC7]" />
             Quick Access
           </h2>
           <div className="space-y-2.5">
-            <button className="w-full text-left p-3 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 transition-colors text-sm font-medium text-slate-200 flex items-center justify-between">
+            <button className="w-full text-left p-3.5 rounded-xl bg-slate-50 hover:bg-blue-50/50 border border-slate-200/80 transition-colors text-sm font-bold text-[#102033] flex items-center justify-between">
               <span>View Municipal Circulars</span>
-              <span className="text-xs text-slate-500">Official</span>
+              <span className="text-xs text-[#8094A8] font-medium">Official</span>
             </button>
-            <button className="w-full text-left p-3 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 transition-colors text-sm font-medium text-slate-200 flex items-center justify-between">
+            <button className="w-full text-left p-3.5 rounded-xl bg-slate-50 hover:bg-blue-50/50 border border-slate-200/80 transition-colors text-sm font-bold text-[#102033] flex items-center justify-between">
               <span>Attendance Verification</span>
-              <span className="text-xs text-slate-500">Daily</span>
+              <span className="text-xs text-[#8094A8] font-medium">Daily</span>
             </button>
-            <button className="w-full text-left p-3 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 transition-colors text-sm font-medium text-slate-200 flex items-center justify-between">
+            <button className="w-full text-left p-3.5 rounded-xl bg-slate-50 hover:bg-blue-50/50 border border-slate-200/80 transition-colors text-sm font-bold text-[#102033] flex items-center justify-between">
               <span>Transfer Directives</span>
-              <span className="text-xs text-slate-500">Records</span>
+              <span className="text-xs text-[#8094A8] font-medium">Records</span>
             </button>
           </div>
         </div>

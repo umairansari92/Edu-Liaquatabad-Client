@@ -298,13 +298,13 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
   return (
     <div className="space-y-5">
       {/* Cascading Navigation Bar */}
-      <div className="rounded-xl border border-slate-800 bg-slate-900/80 p-4 shadow-xl backdrop-blur-md">
-        <div className="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
+      <div className="rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-200/80 mb-3">
           <div className="flex items-center gap-2">
-            <GraduationCap className="h-5 w-5 text-indigo-400" />
-            <h3 className="text-sm font-bold text-white">Hierarchical Academic Control Matrix</h3>
+            <GraduationCap className="h-5 w-5 text-[#006AC7]" />
+            <h3 className="text-sm font-bold text-[#102033]">Hierarchical Academic Control Matrix</h3>
           </div>
-          <span className="text-xs text-indigo-400 font-medium">
+          <span className="text-xs text-[#006AC7] font-semibold">
             Cascading Scope: School → Class → Section
           </span>
         </div>
@@ -312,13 +312,13 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {/* 1. School Selector */}
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-[#526477] mb-1">
               1. Select Municipal School
             </label>
             <select
               value={selectedSchoolId}
               onChange={(selectChangeEvent) => handleSchoolChange(selectChangeEvent.target.value)}
-              className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-[#102033] focus:border-[#006AC7] focus:outline-none"
             >
               {schoolsList.map((school) => (
                 <option key={school._id} value={school._id}>
@@ -330,13 +330,13 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
 
           {/* 2. Class Selector */}
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-[#526477] mb-1">
               2. Filter by Class (Optional)
             </label>
             <select
               value={selectedClassId}
               onChange={(selectChangeEvent) => handleClassChange(selectChangeEvent.target.value)}
-              className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-[#102033] focus:border-[#006AC7] focus:outline-none"
             >
               <option value="">All Classes in School ({classes.length})</option>
               {classes.map((cls) => (
@@ -349,14 +349,14 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
 
           {/* 3. Section Selector */}
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-[#526477] mb-1">
               3. Filter by Section (Optional)
             </label>
             <select
               value={selectedSectionId}
               onChange={(selectChangeEvent) => setSelectedSectionId(selectChangeEvent.target.value)}
               disabled={!selectedClassId}
-              className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-xs text-white focus:border-indigo-500 focus:outline-none disabled:opacity-50"
+              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-[#102033] focus:border-[#006AC7] focus:outline-none disabled:opacity-50"
             >
               <option value="">All Sections</option>
               {sections
@@ -372,7 +372,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
       </div>
 
       {/* Subtab Header & Action Buttons */}
-      <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between rounded-xl border border-slate-800 bg-slate-900/60 p-4 backdrop-blur-md">
+      <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm">
         {/* Navigation Pills */}
         <div className="flex items-center gap-2">
           <button
@@ -380,8 +380,8 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
             onClick={() => setSubTab('classes')}
             className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition cursor-pointer ${
               subTab === 'classes'
-                ? 'bg-indigo-600 text-white shadow'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                ? 'bg-[#006AC7] text-white shadow-sm'
+                : 'text-[#526477] hover:text-[#102033] hover:bg-[#F0F8FF]'
             }`}
           >
             <GraduationCap className="h-4 w-4" />
@@ -393,8 +393,8 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
             onClick={() => setSubTab('sections')}
             className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition cursor-pointer ${
               subTab === 'sections'
-                ? 'bg-indigo-600 text-white shadow'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                ? 'bg-[#006AC7] text-white shadow-sm'
+                : 'text-[#526477] hover:text-[#102033] hover:bg-[#F0F8FF]'
             }`}
           >
             <Layers className="h-4 w-4" />
@@ -406,8 +406,8 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
             onClick={() => setSubTab('subjects')}
             className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition cursor-pointer ${
               subTab === 'subjects'
-                ? 'bg-indigo-600 text-white shadow'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                ? 'bg-[#006AC7] text-white shadow-sm'
+                : 'text-[#526477] hover:text-[#102033] hover:bg-[#F0F8FF]'
             }`}
           >
             <BookOpen className="h-4 w-4" />
@@ -418,13 +418,13 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
         {/* Search & Add Action */}
         <div className="flex items-center gap-2">
           <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+            <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#8094A8]" />
             <input
               type="text"
               placeholder={`Search ${subTab}...`}
               value={searchQuery}
               onChange={(inputChangeEvent) => setSearchQuery(inputChangeEvent.target.value)}
-              className="rounded-lg border border-slate-700 bg-slate-800 pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:border-indigo-500 focus:outline-none"
+              className="rounded-lg border border-slate-300 bg-white pl-8 pr-3 py-1.5 text-xs text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:outline-none"
             />
           </div>
 
@@ -432,7 +432,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
             <button
               type="button"
               onClick={handleOpenCreateClass}
-              className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500 transition shadow cursor-pointer"
+              className="flex items-center gap-1.5 rounded-lg bg-[#006AC7] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#00529B] transition shadow-sm cursor-pointer"
             >
               <Plus className="h-3.5 w-3.5" />
               <span>Add Class</span>
@@ -444,7 +444,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
               type="button"
               onClick={handleOpenCreateSection}
               disabled={classes.length === 0}
-              className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500 transition shadow cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-1.5 rounded-lg bg-[#006AC7] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#00529B] transition shadow-sm cursor-pointer disabled:opacity-50"
             >
               <Plus className="h-3.5 w-3.5" />
               <span>Add Section</span>
@@ -455,7 +455,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
             <button
               type="button"
               onClick={handleOpenCreateSubject}
-              className="flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500 transition shadow cursor-pointer"
+              className="flex items-center gap-1.5 rounded-lg bg-[#006AC7] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#00529B] transition shadow-sm cursor-pointer"
             >
               <Plus className="h-3.5 w-3.5" />
               <span>Add Subject</span>
@@ -469,7 +469,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
               fetchSections();
               fetchSubjects();
             }}
-            className="rounded-lg border border-slate-700 bg-slate-800 p-1.5 text-slate-300 hover:text-white hover:bg-slate-700 transition cursor-pointer"
+            className="rounded-lg border border-slate-300 bg-white p-1.5 text-[#526477] hover:text-[#102033] hover:bg-slate-50 transition cursor-pointer"
             title="Refresh Academic Data"
           >
             <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -481,10 +481,10 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
       {subTab === 'classes' && (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filteredClasses.length === 0 ? (
-            <div className="col-span-full py-12 text-center rounded-xl border border-dashed border-slate-800 bg-slate-900/40">
-              <GraduationCap className="mx-auto h-10 w-10 text-slate-600 mb-2" />
-              <p className="text-sm font-semibold text-slate-300">No classes found</p>
-              <p className="text-xs text-slate-500 mt-1">
+            <div className="col-span-full py-12 text-center rounded-xl border border-dashed border-slate-200 bg-white">
+              <GraduationCap className="mx-auto h-10 w-10 text-slate-400 mb-2" />
+              <p className="text-sm font-semibold text-[#102033]">No classes found</p>
+              <p className="text-xs text-[#8094A8] mt-1">
                 {currentSchool ? `Add classes to ${currentSchool.name}` : 'Select a school to view classes'}
               </p>
             </div>
@@ -496,62 +496,62 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
               return (
                 <div
                   key={cls._id}
-                  className={`rounded-xl border p-4 shadow-lg backdrop-blur-md transition flex flex-col justify-between ${
+                  className={`rounded-xl border p-4 shadow-sm transition flex flex-col justify-between ${
                     isArchived
-                      ? 'border-slate-800 bg-slate-950/40 opacity-60'
+                      ? 'border-slate-200 bg-slate-50 opacity-60'
                       : secCount === 0
-                      ? 'border-amber-500/30 bg-slate-900/90'
-                      : 'border-slate-800 bg-slate-900/80 hover:border-slate-700'
+                      ? 'border-amber-200 bg-amber-50/40'
+                      : 'border-slate-200/80 bg-white hover:shadow-md hover:border-blue-200'
                   }`}
                 >
                   <div>
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="rounded-md border border-indigo-500/30 bg-indigo-500/10 px-2 py-0.5 text-xs font-mono font-bold text-indigo-400">
+                        <span className="rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-mono font-bold text-[#006AC7]">
                           {cls.code}
                         </span>
-                        <span className="text-xs font-bold text-white">{cls.name}</span>
+                        <span className="text-xs font-bold text-[#102033]">{cls.name}</span>
                       </div>
                       <span
                         className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
                           isArchived
-                            ? 'bg-slate-800 text-slate-400'
+                            ? 'bg-slate-100 text-slate-600'
                             : cls.status === 'ACTIVE'
-                            ? 'bg-emerald-500/20 text-emerald-400'
-                            : 'bg-amber-500/20 text-amber-300'
+                            ? 'bg-emerald-50 text-[#4B7F3A] border border-emerald-200'
+                            : 'bg-amber-50 text-amber-700 border border-amber-200'
                         }`}
                       >
                         {cls.status}
                       </span>
                     </div>
 
-                    <div className="mt-3 space-y-1.5 text-xs text-slate-300">
+                    <div className="mt-3 space-y-1.5 text-xs text-[#526477]">
                       <div className="flex justify-between">
-                        <span className="text-slate-400">Grade Level:</span>
-                        <span className="font-semibold text-white">Grade {cls.gradeLevel}</span>
+                        <span className="text-[#8094A8]">Grade Level:</span>
+                        <span className="font-semibold text-[#102033]">Grade {cls.gradeLevel}</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span className="text-slate-400">Active Sections:</span>
+                        <span className="text-[#8094A8]">Active Sections:</span>
                         {secCount === 0 ? (
-                          <span className="inline-flex items-center gap-1 rounded-md border border-amber-500/40 bg-amber-950/40 px-2 py-0.5 text-[11px] font-semibold text-amber-400 animate-pulse">
+                          <span className="inline-flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
                             <AlertCircle className="h-3 w-3" />
                             No Sections Assigned
                           </span>
                         ) : (
-                          <span className="font-bold text-emerald-400">{secCount} Sections</span>
+                          <span className="font-bold text-[#4B7F3A]">{secCount} Sections</span>
                         )}
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-4 flex items-center justify-between border-t border-slate-800/80 pt-3 text-xs">
+                  <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-xs">
                     <button
                       type="button"
                       onClick={() => {
                         setSelectedClassId(cls._id);
                         setSubTab('sections');
                       }}
-                      className="text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1 cursor-pointer"
+                      className="text-[#006AC7] hover:underline font-semibold flex items-center gap-1 cursor-pointer"
                     >
                       View Sections <ChevronRight className="h-3.5 w-3.5" />
                     </button>
@@ -560,7 +560,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                       <button
                         type="button"
                         onClick={() => handleOpenEditClass(cls)}
-                        className="rounded p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
+                        className="rounded p-1.5 text-slate-500 hover:text-[#102033] hover:bg-slate-100 transition cursor-pointer"
                         title="Edit Class"
                       >
                         <Edit2 className="h-3.5 w-3.5" />
@@ -569,7 +569,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                         <button
                           type="button"
                           onClick={() => handleArchiveClass(cls)}
-                          className="rounded p-1.5 text-amber-400 hover:text-amber-300 hover:bg-amber-950/40 transition cursor-pointer"
+                          className="rounded p-1.5 text-amber-600 hover:text-amber-700 hover:bg-amber-50 transition cursor-pointer"
                           title="Archive Class (Soft Delete)"
                         >
                           <Archive className="h-3.5 w-3.5" />
@@ -586,9 +586,9 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
 
       {/* ─── TAB 2 CONTENT: SECTIONS DIRECTORY ─── */}
       {subTab === 'sections' && (
-        <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900/80 shadow-xl backdrop-blur-md">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="border-b border-slate-800 bg-slate-950/60 text-[11px] uppercase font-bold text-slate-400 tracking-wider">
+        <div className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-sm">
+          <table className="w-full text-left text-xs text-[#526477]">
+            <thead className="border-b border-slate-200/80 bg-[#F0F8FF]/80 text-[11px] uppercase font-bold text-[#526477] tracking-wider">
               <tr>
                 <th className="px-5 py-3.5">Section Name</th>
                 <th className="px-4 py-3.5">Associated Class</th>
@@ -598,38 +598,38 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                 <th className="px-4 py-3.5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-slate-100">
               {filteredSections.length === 0 ? (
                 <tr>
                   <td colSpan="6" className="py-12 text-center text-slate-400">
-                    <Layers className="mx-auto h-8 w-8 text-slate-600 mb-2" />
-                    <p className="text-sm font-semibold text-slate-300">No sections found</p>
-                    <p className="text-xs text-slate-500 mt-1">Create a new section for this class or school.</p>
+                    <Layers className="mx-auto h-8 w-8 text-slate-300 mb-2" />
+                    <p className="text-sm font-semibold text-[#102033]">No sections found</p>
+                    <p className="text-xs text-[#8094A8] mt-1">Create a new section for this class or school.</p>
                   </td>
                 </tr>
               ) : (
                 filteredSections.map((sec) => (
-                  <tr key={sec._id} className="transition hover:bg-slate-800/40">
-                    <td className="px-5 py-4 font-bold text-white">
+                  <tr key={sec._id} className="transition hover:bg-blue-50/40">
+                    <td className="px-5 py-4 font-bold text-[#102033]">
                       Section {sec.name}
                     </td>
-                    <td className="px-4 py-4 text-indigo-300">
+                    <td className="px-4 py-4 text-[#006AC7] font-medium">
                       {sec.classId?.name || 'Class Record'}
                     </td>
-                    <td className="px-4 py-4 text-slate-300 font-mono">
+                    <td className="px-4 py-4 text-[#526477] font-mono">
                       {sec.roomNumber || 'Unspecified'}
                     </td>
-                    <td className="px-4 py-4 font-medium text-emerald-400">
+                    <td className="px-4 py-4 font-semibold text-[#4B7F3A]">
                       {sec.capacity || 40} Seats
                     </td>
                     <td className="px-4 py-4">
                       <span
                         className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
                           sec.status === 'ARCHIVED'
-                            ? 'bg-slate-800 text-slate-400'
+                            ? 'bg-slate-100 text-slate-500'
                             : sec.status === 'ACTIVE'
-                            ? 'bg-emerald-500/20 text-emerald-400'
-                            : 'bg-amber-500/20 text-amber-300'
+                            ? 'bg-emerald-50 text-[#4B7F3A] border border-emerald-200'
+                            : 'bg-amber-50 text-amber-700 border border-amber-200'
                         }`}
                       >
                         {sec.status}
@@ -640,7 +640,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                         <button
                           type="button"
                           onClick={() => handleOpenEditSection(sec)}
-                          className="rounded p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
+                          className="rounded p-1.5 text-slate-500 hover:text-[#102033] hover:bg-slate-100 cursor-pointer"
                         >
                           <Edit2 className="h-3.5 w-3.5" />
                         </button>
@@ -648,7 +648,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                           <button
                             type="button"
                             onClick={() => handleArchiveSection(sec)}
-                            className="rounded p-1.5 text-amber-400 hover:text-amber-300 hover:bg-amber-950/40 cursor-pointer"
+                            className="rounded p-1.5 text-amber-600 hover:text-amber-700 hover:bg-amber-50 cursor-pointer"
                           >
                             <Archive className="h-3.5 w-3.5" />
                           </button>
@@ -665,9 +665,9 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
 
       {/* ─── TAB 3 CONTENT: SUBJECTS DIRECTORY ─── */}
       {subTab === 'subjects' && (
-        <div className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900/80 shadow-xl backdrop-blur-md">
-          <table className="w-full text-left text-xs text-slate-300">
-            <thead className="border-b border-slate-800 bg-slate-950/60 text-[11px] uppercase font-bold text-slate-400 tracking-wider">
+        <div className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-sm">
+          <table className="w-full text-left text-xs text-[#526477]">
+            <thead className="border-b border-slate-200/80 bg-[#F0F8FF]/80 text-[11px] uppercase font-bold text-[#526477] tracking-wider">
               <tr>
                 <th className="px-5 py-3.5">Subject Details</th>
                 <th className="px-4 py-3.5">Course Code</th>
@@ -677,33 +677,33 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                 <th className="px-4 py-3.5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-slate-100">
               {filteredSubjects.length === 0 ? (
                 <tr>
                   <td colSpan="6" className="py-12 text-center text-slate-400">
-                    <BookOpen className="mx-auto h-8 w-8 text-slate-600 mb-2" />
-                    <p className="text-sm font-semibold text-slate-300">No subjects registered</p>
-                    <p className="text-xs text-slate-500 mt-1">Add courses to the municipal academic curriculum.</p>
+                    <BookOpen className="mx-auto h-8 w-8 text-slate-300 mb-2" />
+                    <p className="text-sm font-semibold text-[#102033]">No subjects registered</p>
+                    <p className="text-xs text-[#8094A8] mt-1">Add courses to the municipal academic curriculum.</p>
                   </td>
                 </tr>
               ) : (
                 filteredSubjects.map((sub) => (
-                  <tr key={sub._id} className="transition hover:bg-slate-800/40">
-                    <td className="px-5 py-4 font-bold text-white">
+                  <tr key={sub._id} className="transition hover:bg-blue-50/40">
+                    <td className="px-5 py-4 font-bold text-[#102033]">
                       {sub.name}
                     </td>
-                    <td className="px-4 py-4 font-mono font-bold text-indigo-400">
+                    <td className="px-4 py-4 font-mono font-bold text-[#006AC7]">
                       {sub.code}
                     </td>
-                    <td className="px-4 py-4 text-slate-300">
+                    <td className="px-4 py-4 text-[#526477]">
                       {sub.classId?.name || 'All Classes'}
                     </td>
                     <td className="px-4 py-4">
                       <span
                         className={`rounded-md px-2 py-0.5 text-[10px] font-bold ${
                           sub.isElective
-                            ? 'bg-purple-500/20 text-purple-300 border border-purple-500/40'
-                            : 'bg-blue-500/20 text-blue-300 border border-blue-500/40'
+                            ? 'bg-purple-50 text-purple-700 border border-purple-200'
+                            : 'bg-blue-50 text-[#006AC7] border border-blue-200'
                         }`}
                       >
                         {sub.isElective ? 'Elective Course' : 'Core Compulsory'}
@@ -713,8 +713,8 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                       <span
                         className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
                           sub.status === 'ARCHIVED'
-                            ? 'bg-slate-800 text-slate-400'
-                            : 'bg-emerald-500/20 text-emerald-400'
+                            ? 'bg-slate-100 text-slate-500'
+                            : 'bg-emerald-50 text-[#4B7F3A] border border-emerald-200'
                         }`}
                       >
                         {sub.status}
@@ -725,7 +725,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                         <button
                           type="button"
                           onClick={() => handleOpenEditSubject(sub)}
-                          className="rounded p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
+                          className="rounded p-1.5 text-slate-500 hover:text-[#102033] hover:bg-slate-100 cursor-pointer"
                         >
                           <Edit2 className="h-3.5 w-3.5" />
                         </button>
@@ -733,7 +733,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                           <button
                             type="button"
                             onClick={() => handleArchiveSubject(sub)}
-                            className="rounded p-1.5 text-amber-400 hover:text-amber-300 hover:bg-amber-950/40 cursor-pointer"
+                            className="rounded p-1.5 text-amber-600 hover:text-amber-700 hover:bg-amber-50 cursor-pointer"
                           >
                             <Archive className="h-3.5 w-3.5" />
                           </button>
@@ -750,45 +750,45 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
 
       {/* --- MODAL: CREATE / EDIT CLASS --- */}
       {isClassModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md">
-          <div className="relative w-full max-w-md rounded-2xl border border-indigo-500/40 bg-slate-900 p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h4 className="text-base font-bold text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
+          <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-4 text-[#102033]">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h4 className="text-base font-bold text-[#102033]">
                 {editingClass ? 'Edit Academic Class' : 'Create New Academic Class'}
               </h4>
               <button
                 type="button"
                 onClick={() => setIsClassModalOpen(false)}
-                className="text-slate-400 hover:text-white"
+                className="text-slate-400 hover:text-[#102033]"
               >
                 <XCircle className="h-5 w-5" />
               </button>
             </div>
             <form onSubmit={handleSaveClass} className="space-y-3 text-xs">
               <div>
-                <label className="block font-semibold text-slate-300">Class Name *</label>
+                <label className="block font-semibold text-[#526477]">Class Name *</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Class 10, Grade 8, Kindergarten"
                   value={classForm.name}
                   onChange={(inputChangeEvent) => setClassForm({ ...classForm, name: inputChangeEvent.target.value })}
-                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-[#102033] focus:border-[#006AC7] focus:outline-none"
                 />
               </div>
               <div>
-                <label className="block font-semibold text-slate-300">Class Identifier Code *</label>
+                <label className="block font-semibold text-[#526477]">Class Identifier Code *</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. CL-10, GR-08"
                   value={classForm.code}
                   onChange={(inputChangeEvent) => setClassForm({ ...classForm, code: inputChangeEvent.target.value.toUpperCase() })}
-                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 font-mono uppercase text-indigo-300 focus:border-indigo-500 focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 font-mono uppercase text-[#006AC7] focus:border-[#006AC7] focus:outline-none"
                 />
               </div>
               <div>
-                <label className="block font-semibold text-slate-300">Grade Level (1 - 12) *</label>
+                <label className="block font-semibold text-[#526477]">Grade Level (1 - 12) *</label>
                 <input
                   type="number"
                   required
@@ -796,20 +796,20 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                   max={12}
                   value={classForm.gradeLevel}
                   onChange={(inputChangeEvent) => setClassForm({ ...classForm, gradeLevel: parseInt(inputChangeEvent.target.value, 10) || 1 })}
-                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-[#102033] focus:border-[#006AC7] focus:outline-none"
                 />
               </div>
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsClassModalOpen(false)}
-                  className="rounded-lg border border-slate-700 px-4 py-2 text-slate-300 hover:bg-slate-800"
+                  className="rounded-lg border border-slate-300 px-4 py-2 text-[#526477] hover:bg-slate-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-lg bg-indigo-600 px-5 py-2 font-semibold text-white hover:bg-indigo-500"
+                  className="rounded-lg bg-[#006AC7] px-5 py-2 font-semibold text-white hover:bg-[#00529B] shadow-sm"
                 >
                   {editingClass ? 'Update Class' : 'Create Class'}
                 </button>
@@ -821,28 +821,28 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
 
       {/* --- MODAL: CREATE / EDIT SECTION --- */}
       {isSectionModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md">
-          <div className="relative w-full max-w-md rounded-2xl border border-indigo-500/40 bg-slate-900 p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h4 className="text-base font-bold text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
+          <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-4 text-[#102033]">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h4 className="text-base font-bold text-[#102033]">
                 {editingSection ? 'Edit Section Record' : 'Create New Section'}
               </h4>
               <button
                 type="button"
                 onClick={() => setIsSectionModalOpen(false)}
-                className="text-slate-400 hover:text-white"
+                className="text-slate-400 hover:text-[#102033]"
               >
                 <XCircle className="h-5 w-5" />
               </button>
             </div>
             <form onSubmit={handleSaveSection} className="space-y-3 text-xs">
               <div>
-                <label className="block font-semibold text-slate-300">Target Class *</label>
+                <label className="block font-semibold text-[#526477]">Target Class *</label>
                 <select
                   required
                   value={sectionForm.classId}
                   onChange={(selectChangeEvent) => setSectionForm({ ...sectionForm, classId: selectChangeEvent.target.value })}
-                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-[#102033] focus:border-[#006AC7] focus:outline-none"
                 >
                   {classes.map((cls) => (
                     <option key={cls._id} value={cls._id}>
@@ -852,48 +852,48 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                 </select>
               </div>
               <div>
-                <label className="block font-semibold text-slate-300">Section Label *</label>
+                <label className="block font-semibold text-[#526477]">Section Label *</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. A, B, Blue, Red, Science"
                   value={sectionForm.name}
                   onChange={(inputChangeEvent) => setSectionForm({ ...sectionForm, name: inputChangeEvent.target.value })}
-                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-[#102033] focus:border-[#006AC7] focus:outline-none"
                 />
               </div>
               <div>
-                <label className="block font-semibold text-slate-300">Student Capacity</label>
+                <label className="block font-semibold text-[#526477]">Student Capacity</label>
                 <input
                   type="number"
                   min={5}
                   max={120}
                   value={sectionForm.capacity}
                   onChange={(inputChangeEvent) => setSectionForm({ ...sectionForm, capacity: parseInt(inputChangeEvent.target.value, 10) || 40 })}
-                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-[#102033] focus:border-[#006AC7] focus:outline-none"
                 />
               </div>
               <div>
-                <label className="block font-semibold text-slate-300">Classroom Number / Hall</label>
+                <label className="block font-semibold text-[#526477]">Classroom Number / Hall</label>
                 <input
                   type="text"
                   placeholder="e.g. Room 104, West Wing Lab"
                   value={sectionForm.roomNumber}
                   onChange={(inputChangeEvent) => setSectionForm({ ...sectionForm, roomNumber: inputChangeEvent.target.value })}
-                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-[#102033] focus:border-[#006AC7] focus:outline-none"
                 />
               </div>
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsSectionModalOpen(false)}
-                  className="rounded-lg border border-slate-700 px-4 py-2 text-slate-300 hover:bg-slate-800"
+                  className="rounded-lg border border-slate-300 px-4 py-2 text-[#526477] hover:bg-slate-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-lg bg-indigo-600 px-5 py-2 font-semibold text-white hover:bg-indigo-500"
+                  className="rounded-lg bg-[#006AC7] px-5 py-2 font-semibold text-white hover:bg-[#00529B] shadow-sm"
                 >
                   {editingSection ? 'Update Section' : 'Create Section'}
                 </button>
@@ -905,49 +905,49 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
 
       {/* --- MODAL: CREATE / EDIT SUBJECT --- */}
       {isSubjectModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md">
-          <div className="relative w-full max-w-md rounded-2xl border border-indigo-500/40 bg-slate-900 p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h4 className="text-base font-bold text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
+          <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-4 text-[#102033]">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h4 className="text-base font-bold text-[#102033]">
                 {editingSubject ? 'Edit Subject Details' : 'Register New Subject'}
               </h4>
               <button
                 type="button"
                 onClick={() => setIsSubjectModalOpen(false)}
-                className="text-slate-400 hover:text-white"
+                className="text-slate-400 hover:text-[#102033]"
               >
                 <XCircle className="h-5 w-5" />
               </button>
             </div>
             <form onSubmit={handleSaveSubject} className="space-y-3 text-xs">
               <div>
-                <label className="block font-semibold text-slate-300">Subject Name *</label>
+                <label className="block font-semibold text-[#526477]">Subject Name *</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Mathematics, Physics, English Literature"
                   value={subjectForm.name}
                   onChange={(inputChangeEvent) => setSubjectForm({ ...subjectForm, name: inputChangeEvent.target.value })}
-                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-[#102033] focus:border-[#006AC7] focus:outline-none"
                 />
               </div>
               <div>
-                <label className="block font-semibold text-slate-300">Course Code *</label>
+                <label className="block font-semibold text-[#526477]">Course Code *</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. MATH-101, PHY-201"
                   value={subjectForm.code}
                   onChange={(inputChangeEvent) => setSubjectForm({ ...subjectForm, code: inputChangeEvent.target.value.toUpperCase() })}
-                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 font-mono uppercase text-indigo-300 focus:border-indigo-500 focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 font-mono uppercase text-[#006AC7] focus:border-[#006AC7] focus:outline-none"
                 />
               </div>
               <div>
-                <label className="block font-semibold text-slate-300">Class (Optional - leave empty for global)</label>
+                <label className="block font-semibold text-[#526477]">Class (Optional - leave empty for global)</label>
                 <select
                   value={subjectForm.classId}
                   onChange={(selectChangeEvent) => setSubjectForm({ ...subjectForm, classId: selectChangeEvent.target.value })}
-                  className="mt-1 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-white focus:border-indigo-500 focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-[#102033] focus:border-[#006AC7] focus:outline-none"
                 >
                   <option value="">Applicable to All Classes</option>
                   {classes.map((cls) => (
@@ -963,23 +963,23 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                   id="electiveCheckbox"
                   checked={subjectForm.isElective}
                   onChange={(checkboxChangeEvent) => setSubjectForm({ ...subjectForm, isElective: checkboxChangeEvent.target.checked })}
-                  className="rounded border-slate-700 bg-slate-800 text-indigo-600 focus:ring-indigo-500"
+                  className="rounded border-slate-300 text-[#006AC7] focus:ring-[#006AC7]"
                 />
-                <label htmlFor="electiveCheckbox" className="font-semibold text-slate-300">
+                <label htmlFor="electiveCheckbox" className="font-semibold text-[#526477]">
                   Elective Course (Optional curriculum)
                 </label>
               </div>
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsSubjectModalOpen(false)}
-                  className="rounded-lg border border-slate-700 px-4 py-2 text-slate-300 hover:bg-slate-800"
+                  className="rounded-lg border border-slate-300 px-4 py-2 text-[#526477] hover:bg-slate-50"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-lg bg-indigo-600 px-5 py-2 font-semibold text-white hover:bg-indigo-500"
+                  className="rounded-lg bg-[#006AC7] px-5 py-2 font-semibold text-white hover:bg-[#00529B] shadow-sm"
                 >
                   {editingSubject ? 'Update Subject' : 'Register Subject'}
                 </button>
