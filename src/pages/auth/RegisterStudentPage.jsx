@@ -1,308 +1,1232 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { School, User, Lock, CheckCircle, AlertCircle, ArrowRight, ShieldCheck, Hash, Eye, EyeOff } from 'lucide-react';
+import { useSelector } from 'react-redux';
+import {
+  School,
+  User,
+  Phone,
+  Mail,
+  Lock,
+  CheckCircle,
+  AlertCircle,
+  ArrowRight,
+  ArrowLeft,
+  ShieldCheck,
+  Building2,
+  Calendar,
+  CreditCard,
+  BookOpen,
+  FileText,
+  MapPin,
+  Eye,
+  EyeOff,
+  Sparkles,
+  KeyRound,
+  IdCard,
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 import apiClient from '../../services/apiClient.js';
-import { studentRegistrationSchema } from '../../validations/authSchemas.js';
+import OtpVerificationModal from '../../components/common/OtpVerificationModal.jsx';
+import HmAddStudentModal from '../../components/hm/HmAddStudentModal.jsx';
+import {
+  studentAdmissionWizardSchema,
+  studentPortalActivationSchema,
+} from '../../validations/authSchemas.js';
+import { convertDateToWords } from '../../utils/dateToWords.js';
+
+const ADMISSION_CLASSES = [
+  'Early Childhood Education (ECE)',
+  'Kindergarten / Prep',
+  'Class 1',
+  'Class 2',
+  'Class 3',
+  'Class 4',
+  'Class 5',
+  'Class 6',
+  'Class 7',
+  'Class 8',
+  'Class 9 (Science)',
+  'Class 9 (General)',
+  'Class 10 (Science)',
+  'Class 10 (General)',
+];
 
 export const RegisterStudentPage = () => {
-  const [submitted, setSubmitted] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { user } = useSelector((state) => state.auth);
+
+  // Active Tab: 'new-admission' (Flow A) vs 'activate-account' (Flow B)
+  const initialTab = searchParams.get('tab') === 'activate-account' ? 'activate-account' : 'new-admission';
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  // HM direct modal state (if logged in HM is visiting)
+  const [showHmModal, setShowHmModal] = useState(false);
+
+  // Flow A Wizard Step: 1 = Student, 2 = Parents/Guardian, 3 = Academic, 4 = Credentials, 5 = Review
+  const [wizardStep, setWizardStep] = useState(1);
+
+  // Shared state
+  const [schools, setSchools] = useState([]);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [registeredGr, setRegisteredGr] = useState('');
-  const [schools, setSchools] = useState([]);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({
-    resolver: zodResolver(studentRegistrationSchema),
+  // OTP Modal state
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [devOtp, setDevOtp] = useState('');
+  const [pendingSubmissionPayload, setPendingSubmissionPayload] = useState(null);
+  const [otpTargetEmail, setOtpTargetEmail] = useState('');
+
+  // Success summary state
+  const [submissionSuccess, setSubmissionSuccess] = useState(null);
+
+  // ─── Form Handlers ────────────────────────────────────────────────────────
+  // Form A: New Admission Wizard
+  const formA = useForm({
+    resolver: zodResolver(studentAdmissionWizardSchema),
+    defaultValues: {
+      studentFullName: '',
+      gender: 'MALE',
+      dateOfBirth: '',
+      dateOfBirthInWords: '',
+      religion: 'ISLAM',
+      placeOfBirth: 'Karachi',
+      studentPhotoUrl: '',
+      fatherFullName: '',
+      motherFullName: '',
+      relationshipWithStudent: 'FATHER',
+      guardianCnicNumber: '',
+      fatherQualification: '',
+      motherQualification: '',
+      fatherOccupation: '',
+      permanentResidentialAddress: '',
+      parentOfficeAddress: '',
+      guardianCellNumber: '',
+      residencePhoneNumber: '',
+      businessPhoneNumber: '',
+      schoolId: '',
+      admissionClassRequested: 'Class 1',
+      lastSchoolAttended: '',
+      admissionDate: new Date().toISOString().slice(0, 10),
+      admissionRemarks: '',
+      guardianEmail: '',
+      password: '',
+      confirmPassword: '',
+      otpCode: '',
+      _gotcha: '',
+    },
+    mode: 'onChange',
   });
 
+  // Form B: Portal Account Activation
+  const formB = useForm({
+    resolver: zodResolver(studentPortalActivationSchema),
+    defaultValues: {
+      schoolId: '',
+      grNumber: '',
+      globalStudentId: '',
+      dateOfBirth: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+      otpCode: '',
+      _gotcha: '',
+    },
+    mode: 'onChange',
+  });
+
+  // Watchers for dynamic behavior
+  const watchedDob = formA.watch('dateOfBirth');
+  const watchedDobWords = formA.watch('dateOfBirthInWords');
+  const watchedFormAValues = formA.watch();
+
+  // Auto-derive DOB in words when DOB figures change
+  useEffect(() => {
+    if (watchedDob) {
+      const derived = convertDateToWords(watchedDob);
+      formA.setValue('dateOfBirthInWords', derived, { shouldValidate: true });
+    }
+  }, [watchedDob, formA]);
+
+  // Sync tab with URL query parameter
+  const handleTabChange = (newTab) => {
+    setActiveTab(newTab);
+    setSearchParams({ tab: newTab });
+    setErrorMessage('');
+    setSubmissionSuccess(null);
+  };
+
+  // Fetch schools list
   useEffect(() => {
     const fetchSchools = async () => {
       try {
-        const schoolsResponse = await apiClient.get('/public/schools');
-        if (schoolsResponse.data?.success && Array.isArray(schoolsResponse.data?.data)) {
-          setSchools(schoolsResponse.data.data);
+        const response = await apiClient.get('/public/schools');
+        const list = response.data?.data?.schools || response.data?.data || [];
+        if (Array.isArray(list)) {
+          setSchools(list);
         }
       } catch {
-        // Fallback default if schools not yet seeded
+        // Quiet fallback
       }
     };
     fetchSchools();
   }, []);
 
-  const onSubmit = async (registrationFormData) => {
+  // ─── Flow A Step Navigation Validation ────────────────────────────────────
+  const validateCurrentStep = async () => {
+    setErrorMessage('');
+    if (wizardStep === 1) {
+      const valid = await formA.trigger(['studentFullName', 'gender', 'dateOfBirth']);
+      return valid;
+    }
+    if (wizardStep === 2) {
+      const valid = await formA.trigger([
+        'fatherFullName',
+        'motherFullName',
+        'relationshipWithStudent',
+        'guardianCnicNumber',
+        'permanentResidentialAddress',
+        'guardianCellNumber',
+      ]);
+      return valid;
+    }
+    if (wizardStep === 3) {
+      const valid = await formA.trigger(['schoolId', 'admissionClassRequested']);
+      return valid;
+    }
+    if (wizardStep === 4) {
+      const valid = await formA.trigger(['guardianEmail', 'password', 'confirmPassword']);
+      return valid;
+    }
+    return true;
+  };
+
+  const handleNextStep = async () => {
+    const isStepValid = await validateCurrentStep();
+    if (isStepValid) {
+      setWizardStep((prev) => Math.min(prev + 1, 5));
+    }
+  };
+
+  const handlePrevStep = () => {
+    setWizardStep((prev) => Math.max(prev - 1, 1));
+  };
+
+  // ─── Flow A: Submission & OTP Dispatch ────────────────────────────────────
+  const onInitiateNewAdmission = async (formData) => {
     setLoading(true);
     setErrorMessage('');
     try {
-      const payload = {
-        fullName: registrationFormData.fullName,
-        fatherOrGuardianName: registrationFormData.fatherOrGuardianName,
-        schoolId: registrationFormData.schoolId,
-        grNumber: registrationFormData.grNumber,
-        password: registrationFormData.password,
-        confirmPassword: registrationFormData.confirmPassword,
-        _gotcha: registrationFormData._gotcha || '',
-      };
-
-      const registrationResponse = await apiClient.post('/auth/register-student', payload);
-      if (registrationResponse.data?.success) {
-        setRegisteredGr(registrationFormData.grNumber);
-        setSubmitted(true);
-        toast.success('Student registration submitted successfully!');
+      // Step 1: Dispatch OTP to guardian email
+      const otpResponse = await apiClient.post('/auth/send-otp', {
+        email: formData.guardianEmail,
+        purpose: 'REGISTRATION',
+      });
+      if (otpResponse.data?.data?.devOtp) {
+        setDevOtp(otpResponse.data.data.devOtp);
       }
-    } catch (registrationError) {
-      const errorNotificationMessage =
-        registrationError.response?.data?.message ||
-        'Registration failed. Please verify your GR Number and School selection.';
-      setErrorMessage(errorNotificationMessage);
+      setOtpTargetEmail(formData.guardianEmail);
+      setPendingSubmissionPayload({ type: 'FLOW_A', data: formData });
+      setShowOtpModal(true);
+    } catch (dispatchError) {
+      setErrorMessage(
+        dispatchError.response?.data?.message || 'Failed to dispatch verification code to email.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ─── Flow B: Submission & OTP Dispatch ────────────────────────────────────
+  const onInitiatePortalActivation = async (formData) => {
+    setLoading(true);
+    setErrorMessage('');
+    try {
+      const otpResponse = await apiClient.post('/auth/send-otp', {
+        email: formData.email,
+        purpose: 'REGISTRATION',
+      });
+      if (otpResponse.data?.data?.devOtp) {
+        setDevOtp(otpResponse.data.data.devOtp);
+      }
+      setOtpTargetEmail(formData.email);
+      setPendingSubmissionPayload({ type: 'FLOW_B', data: formData });
+      setShowOtpModal(true);
+    } catch (dispatchError) {
+      setErrorMessage(
+        dispatchError.response?.data?.message || 'Failed to dispatch verification code to email.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ─── Finalize on OTP Verified ─────────────────────────────────────────────
+  const handleOtpVerified = async (otpCode) => {
+    setShowOtpModal(false);
+    setLoading(true);
+    setErrorMessage('');
+
+    try {
+      if (pendingSubmissionPayload?.type === 'FLOW_A') {
+        const payload = {
+          ...pendingSubmissionPayload.data,
+          otpCode,
+          email: pendingSubmissionPayload.data.guardianEmail,
+        };
+        const response = await apiClient.post('/auth/register-student', payload);
+        if (response.data?.success) {
+          setSubmissionSuccess({
+            type: 'FLOW_A',
+            grNumber: response.data.data?.grNumber,
+            admissionRegisterNumber: response.data.data?.admissionRegisterNumber,
+            globalStudentId: response.data.data?.globalStudentId,
+            email: response.data.data?.email,
+          });
+          toast.success('Admission application submitted successfully!');
+        }
+      } else if (pendingSubmissionPayload?.type === 'FLOW_B') {
+        const payload = {
+          ...pendingSubmissionPayload.data,
+          otpCode,
+        };
+        const response = await apiClient.post('/auth/activate-student-portal', payload);
+        if (response.data?.success) {
+          setSubmissionSuccess({
+            type: 'FLOW_B',
+            grNumber: response.data.data?.grNumber,
+            admissionRegisterNumber: response.data.data?.admissionRegisterNumber,
+            globalStudentId: response.data.data?.globalStudentId,
+            email: response.data.data?.email,
+          });
+          toast.success('Student portal account activated successfully!');
+        }
+      }
+    } catch (error) {
+      setErrorMessage(error.response?.data?.message || 'Submission failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FBFD] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans selection:bg-[#006AC7] selection:text-white">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <Link to="/" className="inline-flex items-center justify-center space-x-3 mb-4 group">
+    <div className="min-h-screen bg-[#F8FBFD] py-10 px-4 sm:px-6 lg:px-8 font-sans selection:bg-[#006AC7] selection:text-white">
+      {/* Brand Header */}
+      <div className="sm:mx-auto sm:w-full sm:max-w-3xl text-center mb-6">
+        <Link to="/" className="inline-flex items-center justify-center space-x-3 mb-3 group">
           <div className="w-12 h-12 rounded-2xl bg-[#006AC7] flex items-center justify-center shadow-lg shadow-[#006AC7]/20 group-hover:bg-[#00529B] transition-colors">
             <School className="w-6 h-6 text-white" />
           </div>
         </Link>
-        <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#102033] tracking-tight">
-          Student Registration
-        </h2>
+        <h1 className="text-2xl sm:text-3xl font-display font-bold text-[#102033] tracking-tight">
+          Student Admission & Portal Registration
+        </h1>
         <p className="mt-1 text-xs text-[#526477]">
-          Education Department Liaquatabad Town Centre (DMC)
+          Government of Sindh • Education Department Liaquatabad Town Centre (DMC)
         </p>
+
+        {/* Head Master Direct Console Shortcut Banner (If HM is logged in) */}
+        {user && (user.role === 'HM' || user.baseRole === 'HM') && (
+          <div className="mt-4 p-3 rounded-xl bg-blue-50 border border-blue-200 text-xs text-[#006AC7] flex items-center justify-between gap-2 text-left">
+            <div className="flex items-center gap-2">
+              <IdCard className="w-4 h-4 flex-shrink-0" />
+              <span>
+                <strong>Head Master Detected:</strong> You can directly enroll new admissions or migrate paper register records into your school.
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowHmModal(true)}
+              className="px-3 py-1 bg-[#006AC7] text-white rounded-lg font-semibold hover:bg-[#00529B] transition-colors flex-shrink-0"
+            >
+              Open HM Modal
+            </button>
+          </div>
+        )}
+
+        {/* Top Segmented Mode Switcher */}
+        <div className="mt-6 inline-flex p-1 rounded-xl bg-slate-200/80 border border-slate-300/80 shadow-inner">
+          <button
+            type="button"
+            onClick={() => handleTabChange('new-admission')}
+            className={`flex items-center gap-2 px-5 py-2 rounded-lg text-xs font-semibold transition-all ${
+              activeTab === 'new-admission'
+                ? 'bg-white text-[#006AC7] shadow-sm'
+                : 'text-[#526477] hover:text-[#102033]'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>New Admission (نیا داخلہ)</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => handleTabChange('activate-account')}
+            className={`flex items-center gap-2 px-5 py-2 rounded-lg text-xs font-semibold transition-all ${
+              activeTab === 'activate-account'
+                ? 'bg-white text-[#006AC7] shadow-sm'
+                : 'text-[#526477] hover:text-[#102033]'
+            }`}
+          >
+            <KeyRound className="w-3.5 h-3.5" />
+            <span>Activate Existing Account (اکاؤنٹ ایکٹیویشن)</span>
+          </button>
+        </div>
       </div>
 
-      <div className="mt-7 sm:mx-auto sm:w-full sm:max-w-lg px-4 sm:px-0">
+      <div className="sm:mx-auto sm:w-full sm:max-w-3xl">
         <div className="bg-white py-8 px-6 sm:px-10 shadow-xl rounded-2xl border border-slate-200/80">
-          {submitted ? (
-            <div className="text-center py-4">
+          {/* Error notification */}
+          {errorMessage && (
+            <div className="mb-6 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2.5">
+              <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
+
+          {/* ═══════════════════════════════════════════════════════════════════ */}
+          {/* SUCCESS SCREEN */}
+          {/* ═══════════════════════════════════════════════════════════════════ */}
+          {submissionSuccess ? (
+            <div className="text-center py-6">
               <div className="w-16 h-16 bg-[#4B7F3A]/10 border border-[#4B7F3A]/30 rounded-2xl flex items-center justify-center mx-auto mb-4 text-[#4B7F3A]">
                 <CheckCircle className="w-8 h-8" />
               </div>
-              <h3 className="text-xl font-display font-bold text-[#102033] mb-2">Registration Submitted!</h3>
-              <p className="text-xs text-[#526477] mb-3 leading-relaxed">
-                Your student profile with GR Number{' '}
-                <span className="font-mono text-[#006AC7] font-bold bg-[#F0F8FF] px-2 py-0.5 rounded border border-blue-200">
-                  {registeredGr}
-                </span>{' '}
-                has been registered in{' '}
-                <span className="text-amber-600 font-semibold">PENDING_APPROVAL</span> status.
+              <h2 className="text-2xl font-display font-bold text-[#102033] mb-2">
+                {submissionSuccess.type === 'FLOW_A'
+                  ? 'Admission Application Submitted!'
+                  : 'Student Portal Account Activated!'}
+              </h2>
+              <p className="text-xs text-[#526477] max-w-md mx-auto mb-6 leading-relaxed">
+                {submissionSuccess.type === 'FLOW_A'
+                  ? 'Your digital admission application has been registered. The Head Master (HM) will verify your physical records to activate portal access.'
+                  : 'Your physical admission has been verified and your portal login credentials are now active! You may proceed directly to sign in.'}
               </p>
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-[#526477] text-xs text-left mb-6 space-y-1">
-                <p className="font-semibold text-[#102033]">Next Step:</p>
-                <p>
-                  Your Head Master (HM) will verify your physical GR record against the official school register to activate your account.
-                </p>
+
+              {/* Identifier Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md mx-auto mb-6 text-left">
+                <div className="p-3.5 rounded-xl bg-[#F0F8FF] border border-blue-200">
+                  <span className="text-[10px] uppercase font-bold text-[#006AC7] tracking-wider block">
+                    Admission Register No. (G.R.)
+                  </span>
+                  <span className="font-mono text-base font-bold text-[#102033]">
+                    {submissionSuccess.admissionRegisterNumber || `GR-${submissionSuccess.grNumber}`}
+                  </span>
+                </div>
+                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                  <span className="text-[10px] uppercase font-bold text-[#526477] tracking-wider block">
+                    Global Student ID
+                  </span>
+                  <span className="font-mono text-base font-bold text-[#102033]">
+                    {submissionSuccess.globalStudentId || 'Allocated on Verification'}
+                  </span>
+                </div>
               </div>
-              <Link
-                to="/login"
-                className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-semibold text-white bg-[#006AC7] hover:bg-[#00529B] shadow-sm transition-all"
-              >
-                Proceed to Sign In
-                <ArrowRight className="w-4 h-4" />
-              </Link>
+
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <Link
+                  to="/login"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 py-2.5 px-6 rounded-xl text-xs font-semibold text-white bg-[#006AC7] hover:bg-[#00529B] shadow-sm transition-all"
+                >
+                  Proceed to Sign In
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSubmissionSuccess(null);
+                    setWizardStep(1);
+                    formA.reset();
+                    formB.reset();
+                  }}
+                  className="w-full sm:w-auto py-2.5 px-4 rounded-xl text-xs font-semibold text-[#526477] hover:text-[#102033] hover:bg-slate-100 transition-colors"
+                >
+                  Submit Another Record
+                </button>
+              </div>
+            </div>
+          ) : activeTab === 'new-admission' ? (
+            /* ═══════════════════════════════════════════════════════════════════ */
+            /* FLOW A: NEW ADMISSION MULTI-STEP WIZARD */
+            /* ═══════════════════════════════════════════════════════════════════ */
+            <div>
+              {/* Wizard Progress Bar */}
+              <div className="mb-8">
+                <div className="flex items-center justify-between relative">
+                  <div className="absolute left-0 top-1/2 -translate-y-1/2 h-0.5 bg-slate-200 w-full z-0" />
+                  <div
+                    className="absolute left-0 top-1/2 -translate-y-1/2 h-0.5 bg-[#006AC7] transition-all duration-300 z-0"
+                    style={{ width: `${((wizardStep - 1) / 4) * 100}%` }}
+                  />
+
+                  {[
+                    { step: 1, label: 'Student', icon: User },
+                    { step: 2, label: 'Parents', icon: Building2 },
+                    { step: 3, label: 'Academic', icon: School },
+                    { step: 4, label: 'Security', icon: Lock },
+                    { step: 5, label: 'Review', icon: FileText },
+                  ].map((item) => {
+                    const Icon = item.icon;
+                    const isCompleted = wizardStep > item.step;
+                    const isCurrent = wizardStep === item.step;
+                    return (
+                      <div key={item.step} className="relative z-10 flex flex-col items-center">
+                        <div
+                          className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold transition-all ${
+                            isCompleted
+                              ? 'bg-[#4B7F3A] text-white shadow-md shadow-[#4B7F3A]/20'
+                              : isCurrent
+                              ? 'bg-[#006AC7] text-white ring-4 ring-blue-100 shadow-md shadow-[#006AC7]/25'
+                              : 'bg-white text-slate-400 border border-slate-300'
+                          }`}
+                        >
+                          {isCompleted ? <CheckCircle className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
+                        </div>
+                        <span
+                          className={`mt-1.5 text-[11px] font-semibold ${
+                            isCurrent ? 'text-[#006AC7]' : isCompleted ? 'text-[#4B7F3A]' : 'text-slate-400'
+                          }`}
+                        >
+                          {item.label}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <form onSubmit={formA.handleSubmit(onInitiateNewAdmission)} className="space-y-6">
+                {/* Honeypot field */}
+                <input type="text" {...formA.register('_gotcha')} tabIndex="-1" className="hidden" />
+
+                {/* ── STEP 1: Student Identity ── */}
+                {wizardStep === 1 && (
+                  <div className="space-y-4">
+                    <div className="border-b border-slate-100 pb-2 mb-4">
+                      <h2 className="text-base font-bold text-[#102033]">1. Student Personal Identity</h2>
+                      <p className="text-xs text-[#526477]">Official student identity matching B-Form records</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Student Full Name */}
+                      <div className="sm:col-span-2">
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                          Student Full Name <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          {...formA.register('studentFullName')}
+                          type="text"
+                          placeholder="e.g. Muhammad Bilal"
+                          className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                        />
+                        {formA.formState.errors.studentFullName && (
+                          <p className="mt-1 text-xs text-rose-600">{formA.formState.errors.studentFullName.message}</p>
+                        )}
+                      </div>
+
+                      {/* Gender */}
+                      <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                          Gender <span className="text-rose-500">*</span>
+                        </label>
+                        <select
+                          {...formA.register('gender')}
+                          className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                        >
+                          <option value="MALE">Male (طالب علم)</option>
+                          <option value="FEMALE">Female (طالبہ)</option>
+                          <option value="OTHER">Other</option>
+                        </select>
+                      </div>
+
+                      {/* Religion */}
+                      <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                          Religion
+                        </label>
+                        <input
+                          {...formA.register('religion')}
+                          type="text"
+                          placeholder="e.g. Islam"
+                          className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                        />
+                      </div>
+
+                      {/* Date of Birth (Figures) */}
+                      <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                          Date of Birth (Figures) <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          {...formA.register('dateOfBirth')}
+                          type="date"
+                          max={new Date().toISOString().slice(0, 10)}
+                          className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                        />
+                        {formA.formState.errors.dateOfBirth && (
+                          <p className="mt-1 text-xs text-rose-600">{formA.formState.errors.dateOfBirth.message}</p>
+                        )}
+                      </div>
+
+                      {/* Place of Birth */}
+                      <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                          Place of Birth
+                        </label>
+                        <input
+                          {...formA.register('placeOfBirth')}
+                          type="text"
+                          placeholder="e.g. Karachi"
+                          className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                        />
+                      </div>
+
+                      {/* Date of Birth in Words (Auto-Derived Read-Only) */}
+                      <div className="sm:col-span-2">
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                          Date of Birth (In Words) — Auto-Derived
+                        </label>
+                        <div className="px-3.5 py-2.5 bg-[#F0F8FF] border border-blue-200 rounded-lg text-xs font-medium text-[#006AC7] flex items-center gap-2">
+                          <BookOpen className="w-4 h-4 flex-shrink-0" />
+                          <span>{watchedDobWords || 'Select Date of Birth above to generate words automatically'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── STEP 2: Parents & Guardian Information ── */}
+                {wizardStep === 2 && (
+                  <div className="space-y-4">
+                    <div className="border-b border-slate-100 pb-2 mb-4">
+                      <h2 className="text-base font-bold text-[#102033]">2. Parents & Guardian Information</h2>
+                      <p className="text-xs text-[#526477]">Contact & identity details for official communication</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Father's Name */}
+                      <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                          Father's Full Name <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          {...formA.register('fatherFullName')}
+                          type="text"
+                          placeholder="e.g. Tariq Mehmood"
+                          className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                        />
+                        {formA.formState.errors.fatherFullName && (
+                          <p className="mt-1 text-xs text-rose-600">{formA.formState.errors.fatherFullName.message}</p>
+                        )}
+                      </div>
+
+                      {/* Mother's Name */}
+                      <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                          Mother's Full Name <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          {...formA.register('motherFullName')}
+                          type="text"
+                          placeholder="e.g. Nasreen Tariq"
+                          className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                        />
+                        {formA.formState.errors.motherFullName && (
+                          <p className="mt-1 text-xs text-rose-600">{formA.formState.errors.motherFullName.message}</p>
+                        )}
+                      </div>
+
+                      {/* Relationship with Student */}
+                      <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                          Primary Guardian Relationship <span className="text-rose-500">*</span>
+                        </label>
+                        <select
+                          {...formA.register('relationshipWithStudent')}
+                          className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                        >
+                          <option value="FATHER">Father (والد)</option>
+                          <option value="MOTHER">Mother (والدہ)</option>
+                          <option value="GUARDIAN">Legal Guardian (سرپرست)</option>
+                        </select>
+                      </div>
+
+                      {/* Guardian CNIC (Protected & Masked in Audit) */}
+                      <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                          Guardian's CNIC <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          {...formA.register('guardianCnicNumber')}
+                          type="text"
+                          placeholder="42101-1234567-1"
+                          maxLength={15}
+                          className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] font-mono focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                        />
+                        {formA.formState.errors.guardianCnicNumber && (
+                          <p className="mt-1 text-xs text-rose-600">{formA.formState.errors.guardianCnicNumber.message}</p>
+                        )}
+                      </div>
+
+                      {/* Father's Qualification & Occupation */}
+                      <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                          Father's Qualification
+                        </label>
+                        <input
+                          {...formA.register('fatherQualification')}
+                          type="text"
+                          placeholder="e.g. Matric / Graduate"
+                          className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                          Father's Occupation
+                        </label>
+                        <input
+                          {...formA.register('fatherOccupation')}
+                          type="text"
+                          placeholder="e.g. Government Service / Business"
+                          className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                        />
+                      </div>
+
+                      {/* Guardian Mobile / Cell */}
+                      <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                          Guardian Mobile Number <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                          {...formA.register('guardianCellNumber')}
+                          type="tel"
+                          placeholder="03001234567"
+                          className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                        />
+                        {formA.formState.errors.guardianCellNumber && (
+                          <p className="mt-1 text-xs text-rose-600">{formA.formState.errors.guardianCellNumber.message}</p>
+                        )}
+                      </div>
+
+                      {/* Residence Phone */}
+                      <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                          Residence Phone (Optional)
+                        </label>
+                        <input
+                          {...formA.register('residencePhoneNumber')}
+                          type="tel"
+                          placeholder="02134567890"
+                          className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                        />
+                      </div>
+
+                      {/* Permanent Residential Address */}
+                      <div className="sm:col-span-2">
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                          Permanent Residential Address <span className="text-rose-500">*</span>
+                        </label>
+                        <textarea
+                          {...formA.register('permanentResidentialAddress')}
+                          rows={2}
+                          placeholder="House / Flat No., Street, Block, Liaquatabad Town, Karachi"
+                          className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                        />
+                        {formA.formState.errors.permanentResidentialAddress && (
+                          <p className="mt-1 text-xs text-rose-600">{formA.formState.errors.permanentResidentialAddress.message}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── STEP 3: Academic & School Details ── */}
+                {wizardStep === 3 && (
+                  <div className="space-y-4">
+                    <div className="border-b border-slate-100 pb-2 mb-4">
+                      <h2 className="text-base font-bold text-[#102033]">3. School & Academic Details</h2>
+                      <p className="text-xs text-[#526477]">Select target government institution and grade</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Target School */}
+                      <div className="sm:col-span-2">
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                          Select School <span className="text-rose-500">*</span>
+                        </label>
+                        <select
+                          {...formA.register('schoolId')}
+                          className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                        >
+                          <option value="">-- Choose Government School in Town --</option>
+                          {schools.map((school) => (
+                            <option key={school._id} value={school._id}>
+                              {school.name} ({school.code || 'LTC'})
+                            </option>
+                          ))}
+                        </select>
+                        {formA.formState.errors.schoolId && (
+                          <p className="mt-1 text-xs text-rose-600">{formA.formState.errors.schoolId.message}</p>
+                        )}
+                      </div>
+
+                      {/* Class Required */}
+                      <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                          Admission Class Required <span className="text-rose-500">*</span>
+                        </label>
+                        <select
+                          {...formA.register('admissionClassRequested')}
+                          className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                        >
+                          {ADMISSION_CLASSES.map((cls) => (
+                            <option key={cls} value={cls}>
+                              {cls}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Date of Admission */}
+                      <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                          Date of Admission
+                        </label>
+                        <input
+                          {...formA.register('admissionDate')}
+                          type="date"
+                          className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                        />
+                      </div>
+
+                      {/* Last School Attended */}
+                      <div className="sm:col-span-2">
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                          Last School Attended (If Applicable)
+                        </label>
+                        <input
+                          {...formA.register('lastSchoolAttended')}
+                          type="text"
+                          placeholder="e.g. Government Primary School No. 2 Liaquatabad"
+                          className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                        />
+                      </div>
+
+                      {/* Remarks */}
+                      <div className="sm:col-span-2">
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                          Special Remarks / Medical Considerations
+                        </label>
+                        <textarea
+                          {...formA.register('admissionRemarks')}
+                          rows={2}
+                          placeholder="Any special educational needs, medical allergies, or sibling references"
+                          className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── STEP 4: Portal Account Setup & Security ── */}
+                {wizardStep === 4 && (
+                  <div className="space-y-4">
+                    <div className="border-b border-slate-100 pb-2 mb-4">
+                      <h2 className="text-base font-bold text-[#102033]">4. Portal Login Credentials</h2>
+                      <p className="text-xs text-[#526477]">Set up credentials for the student / parent portal</p>
+                    </div>
+
+                    <div className="space-y-4">
+                      {/* Guardian Email */}
+                      <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                          Guardian / Account Email <span className="text-rose-500">*</span>
+                        </label>
+                        <div className="relative">
+                          <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                          <input
+                            {...formA.register('guardianEmail')}
+                            type="email"
+                            placeholder="guardian@example.com"
+                            className="block w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                          />
+                        </div>
+                        {formA.formState.errors.guardianEmail && (
+                          <p className="mt-1 text-xs text-rose-600">{formA.formState.errors.guardianEmail.message}</p>
+                        )}
+                        <p className="mt-1 text-[11px] text-slate-400">
+                          A 6-digit cryptographic verification code will be dispatched to this email address.
+                        </p>
+                      </div>
+
+                      {/* Password */}
+                      <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                          Portal Password <span className="text-rose-500">*</span>
+                        </label>
+                        <div className="relative">
+                          <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                          <input
+                            {...formA.register('password')}
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder="••••••••••••"
+                            className="block w-full pl-9 pr-10 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword((prev) => !prev)}
+                            className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
+                          >
+                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                        {formA.formState.errors.password && (
+                          <p className="mt-1 text-xs text-rose-600">{formA.formState.errors.password.message}</p>
+                        )}
+                      </div>
+
+                      {/* Confirm Password */}
+                      <div>
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                          Confirm Password <span className="text-rose-500">*</span>
+                        </label>
+                        <div className="relative">
+                          <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                          <input
+                            {...formA.register('confirmPassword')}
+                            type={showConfirmPassword ? 'text' : 'password'}
+                            placeholder="Re-enter password"
+                            className="block w-full pl-9 pr-10 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword((prev) => !prev)}
+                            className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600"
+                          >
+                            {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                        {formA.formState.errors.confirmPassword && (
+                          <p className="mt-1 text-xs text-rose-600">{formA.formState.errors.confirmPassword.message}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── STEP 5: Review & Submit ── */}
+                {wizardStep === 5 && (
+                  <div className="space-y-4">
+                    <div className="border-b border-slate-100 pb-2 mb-4">
+                      <h2 className="text-base font-bold text-[#102033]">5. Review Admission Record</h2>
+                      <p className="text-xs text-[#526477]">
+                        Verify all information prior to cryptographic OTP email dispatch
+                      </p>
+                    </div>
+
+                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-3">
+                      <div className="flex justify-between border-b border-slate-200/60 pb-2">
+                        <span className="text-slate-500">Student Name:</span>
+                        <span className="font-bold text-[#102033]">{watchedFormAValues.studentFullName}</span>
+                      </div>
+                      <div className="flex justify-between border-b border-slate-200/60 pb-2">
+                        <span className="text-slate-500">Gender & DOB:</span>
+                        <span className="font-medium text-[#102033]">
+                          {watchedFormAValues.gender} • {watchedFormAValues.dateOfBirth} ({watchedDobWords})
+                        </span>
+                      </div>
+                      <div className="flex justify-between border-b border-slate-200/60 pb-2">
+                        <span className="text-slate-500">Father's Name & CNIC:</span>
+                        <span className="font-medium text-[#102033]">
+                          {watchedFormAValues.fatherFullName} ({watchedFormAValues.guardianCnicNumber})
+                        </span>
+                      </div>
+                      <div className="flex justify-between border-b border-slate-200/60 pb-2">
+                        <span className="text-slate-500">Guardian Contact:</span>
+                        <span className="font-medium text-[#102033]">{watchedFormAValues.guardianCellNumber}</span>
+                      </div>
+                      <div className="flex justify-between border-b border-slate-200/60 pb-2">
+                        <span className="text-slate-500">Admission Grade:</span>
+                        <span className="font-bold text-[#006AC7]">{watchedFormAValues.admissionClassRequested}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Target School:</span>
+                        <span className="font-medium text-[#102033]">
+                          {schools.find((s) => s._id === watchedFormAValues.schoolId)?.name || 'Selected School'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Automatic Generation Notice */}
+                    <div className="p-3.5 rounded-xl bg-[#F0F8FF] border border-blue-200 text-[#006AC7] text-xs flex items-start gap-2.5">
+                      <ShieldCheck className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                      <span>
+                        <strong>System Invariant:</strong> The Admission Register Number (GR Number) and Global Student ID will be generated atomically by the server upon OTP verification.
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Wizard Controls */}
+                <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+                  {wizardStep > 1 ? (
+                    <button
+                      type="button"
+                      onClick={handlePrevStep}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-[#526477] hover:text-[#102033] hover:bg-slate-100 transition-colors"
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                      Previous Step
+                    </button>
+                  ) : <div />}
+
+                  {wizardStep < 5 ? (
+                    <button
+                      type="button"
+                      onClick={handleNextStep}
+                      className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-semibold text-white bg-[#006AC7] hover:bg-[#00529B] shadow-sm transition-all"
+                    >
+                      Next Step
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  ) : (
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="inline-flex items-center gap-1.5 px-6 py-2.5 rounded-xl text-xs font-semibold text-white bg-[#4B7F3A] hover:bg-[#38662D] shadow-sm transition-all disabled:opacity-50"
+                    >
+                      {loading ? 'Dispatching OTP...' : 'Verify Email & Submit Admission'}
+                      {!loading && <ArrowRight className="w-3.5 h-3.5" />}
+                    </button>
+                  )}
+                </div>
+              </form>
             </div>
           ) : (
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              {errorMessage && (
-                <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2.5">
-                  <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                  <span>{errorMessage}</span>
+            /* ═══════════════════════════════════════════════════════════════════ */
+            /* FLOW B: PORTAL ACCOUNT ACTIVATION */
+            /* ═══════════════════════════════════════════════════════════════════ */
+            <div>
+              <div className="border-b border-slate-100 pb-3 mb-6">
+                <div className="flex items-center gap-2 text-[#006AC7] mb-1">
+                  <KeyRound className="w-4 h-4" />
+                  <h2 className="text-base font-bold text-[#102033]">
+                    Activate Existing Student Portal Account
+                  </h2>
                 </div>
-              )}
-
-              {/* Honeypot field */}
-              <input
-                type="text"
-                {...register('_gotcha')}
-                tabIndex="-1"
-                autoComplete="off"
-                className="hidden"
-              />
-
-              {/* Student Name */}
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
-                  Student Name
-                </label>
-                <div className="relative rounded-lg shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#8094A8]">
-                    <User className="w-4 h-4" />
-                  </div>
-                  <input
-                    {...register('fullName')}
-                    type="text"
-                    placeholder="e.g. Muhammad Ali"
-                    className="block w-full pl-9 pr-3 py-2.5 bg-slate-50/50 border border-slate-300 rounded-lg text-[#102033] placeholder-[#8094A8] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006AC7] focus:border-transparent text-xs"
-                  />
-                </div>
-                {errors.fullName && <p className="mt-1 text-xs text-rose-600">{errors.fullName.message}</p>}
+                <p className="text-xs text-[#526477] leading-relaxed">
+                  For students already physically enrolled in school or migrated from paper registers. Enter your school details and date of birth to establish online portal login credentials.
+                </p>
               </div>
 
-              {/* Father / Guardian Name */}
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
-                  Father / Guardian Name
-                </label>
-                <div className="relative rounded-lg shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#8094A8]">
-                    <User className="w-4 h-4" />
-                  </div>
-                  <input
-                    {...register('fatherOrGuardianName')}
-                    type="text"
-                    placeholder="e.g. Tariq Mehmood"
-                    className="block w-full pl-9 pr-3 py-2.5 bg-slate-50/50 border border-slate-300 rounded-lg text-[#102033] placeholder-[#8094A8] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006AC7] focus:border-transparent text-xs"
-                  />
-                </div>
-                {errors.fatherOrGuardianName && (
-                  <p className="mt-1 text-xs text-rose-600">{errors.fatherOrGuardianName.message}</p>
-                )}
-              </div>
+              <form onSubmit={formB.handleSubmit(onInitiatePortalActivation)} className="space-y-4">
+                <input type="text" {...formB.register('_gotcha')} tabIndex="-1" className="hidden" />
 
-              {/* School */}
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
-                  School
-                </label>
-                <div className="relative rounded-lg shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#8094A8]">
-                    <School className="w-4 h-4" />
-                  </div>
+                {/* Target School */}
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                    School <span className="text-rose-500">*</span>
+                  </label>
                   <select
-                    {...register('schoolId')}
-                    className="block w-full pl-9 pr-3 py-2.5 bg-slate-50/50 border border-slate-300 rounded-lg text-[#102033] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006AC7] focus:border-transparent text-xs"
+                    {...formB.register('schoolId')}
+                    className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
                   >
-                    <option value="">Select School</option>
+                    <option value="">-- Choose School --</option>
                     {schools.map((school) => (
                       <option key={school._id} value={school._id}>
-                        {school.name}
+                        {school.name} ({school.code || 'LTC'})
                       </option>
                     ))}
                   </select>
+                  {formB.formState.errors.schoolId && (
+                    <p className="mt-1 text-xs text-rose-600">{formB.formState.errors.schoolId.message}</p>
+                  )}
                 </div>
-                {errors.schoolId && <p className="mt-1 text-xs text-rose-600">{errors.schoolId.message}</p>}
-              </div>
 
-              {/* GR Number (Traceable Identifier) */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477]">
-                    GR Number
+                {/* Primary Identifier (GR Number or Global Student ID) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                      G.R. Number (General Register)
+                    </label>
+                    <input
+                      {...formB.register('grNumber')}
+                      type="text"
+                      placeholder="e.g. 1045 or LTC045-2026-0001"
+                      className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] font-mono focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                    />
+                    {formB.formState.errors.grNumber && (
+                      <p className="mt-1 text-xs text-rose-600">{formB.formState.errors.grNumber.message}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                      OR Global Student ID
+                    </label>
+                    <input
+                      {...formB.register('globalStudentId')}
+                      type="text"
+                      placeholder="e.g. MMHA-0001"
+                      className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] font-mono uppercase focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                {/* 2nd Factor: Date of Birth (Anti-Enumeration Guard) */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477]">
+                      Student Date of Birth <span className="text-rose-500">*</span>
+                    </label>
+                    <span className="text-[10px] text-[#006AC7] font-semibold">2nd Factor Verification</span>
+                  </div>
+                  <div className="relative">
+                    <Calendar className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                    <input
+                      {...formB.register('dateOfBirth')}
+                      type="date"
+                      className="block w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                    />
+                  </div>
+                  {formB.formState.errors.dateOfBirth && (
+                    <p className="mt-1 text-xs text-rose-600">{formB.formState.errors.dateOfBirth.message}</p>
+                  )}
+                  <p className="mt-1 text-[11px] text-slate-400">
+                    Must match the student's physical admission record on file in the school register.
+                  </p>
+                </div>
+
+                {/* Portal Email */}
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                    Your Portal Login Email <span className="text-rose-500">*</span>
                   </label>
-                  <span className="text-[10px] text-[#006AC7] font-semibold">Official Student Tracking ID</span>
-                </div>
-                <div className="relative rounded-lg shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#8094A8]">
-                    <Hash className="w-4 h-4" />
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                    <input
+                      {...formB.register('email')}
+                      type="email"
+                      placeholder="parent@example.com"
+                      className="block w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                    />
                   </div>
-                  <input
-                    {...register('grNumber')}
-                    type="text"
-                    placeholder="e.g. 1045 or GR-1045"
-                    className="block w-full pl-9 pr-3 py-2.5 bg-slate-50/50 border border-slate-300 rounded-lg text-[#102033] placeholder-[#8094A8] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006AC7] focus:border-transparent text-xs font-mono"
-                  />
+                  {formB.formState.errors.email && (
+                    <p className="mt-1 text-xs text-rose-600">{formB.formState.errors.email.message}</p>
+                  )}
                 </div>
-                {errors.grNumber && <p className="mt-1 text-xs text-rose-600">{errors.grNumber.message}</p>}
-              </div>
 
-              {/* Account Password */}
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
-                  Account Password
-                </label>
-                <div className="relative rounded-lg shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#8094A8]">
-                    <Lock className="w-4 h-4" />
+                {/* Passwords */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                      New Password <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                      <input
+                        {...formB.register('password')}
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="••••••••••••"
+                        className="block w-full pl-9 pr-9 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                    {formB.formState.errors.password && (
+                      <p className="mt-1 text-xs text-rose-600">{formB.formState.errors.password.message}</p>
+                    )}
                   </div>
-                  <input
-                    {...register('password')}
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="••••••••••••"
-                    className="block w-full pl-9 pr-10 py-2.5 bg-slate-50/50 border border-slate-300 rounded-lg text-[#102033] placeholder-[#8094A8] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006AC7] focus:border-transparent text-xs"
-                  />
+
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                      Confirm Password <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                      <input
+                        {...formB.register('confirmPassword')}
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        placeholder="Re-enter password"
+                        className="block w-full pl-9 pr-9 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword((prev) => !prev)}
+                        className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600"
+                      >
+                        {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                    {formB.formState.errors.confirmPassword && (
+                      <p className="mt-1 text-xs text-rose-600">{formB.formState.errors.confirmPassword.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="pt-3">
                   <button
-                    type="button"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#8094A8] hover:text-[#102033] transition-colors cursor-pointer"
-                    tabIndex="-1"
-                    title={showPassword ? 'Hide password' : 'Show password'}
+                    type="submit"
+                    disabled={loading}
+                    className="w-full flex justify-center items-center gap-2 py-2.5 px-4 rounded-xl text-xs font-semibold text-white bg-[#006AC7] hover:bg-[#00529B] shadow-sm transition-all disabled:opacity-50"
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {loading ? 'Dispatching OTP...' : 'Verify Email & Activate Portal Account'}
+                    {!loading && <ArrowRight className="w-4 h-4" />}
                   </button>
                 </div>
-                {errors.password && <p className="mt-1 text-xs text-rose-600">{errors.password.message}</p>}
-              </div>
+              </form>
+            </div>
+          )}
 
-              {/* Retype Account Password */}
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
-                  Retype Account Password
-                </label>
-                <div className="relative rounded-lg shadow-sm">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#8094A8]">
-                    <Lock className="w-4 h-4" />
-                  </div>
-                  <input
-                    {...register('confirmPassword')}
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    placeholder="Re-enter your password"
-                    className="block w-full pl-9 pr-10 py-2.5 bg-slate-50/50 border border-slate-300 rounded-lg text-[#102033] placeholder-[#8094A8] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#006AC7] focus:border-transparent text-xs"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword((prev) => !prev)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#8094A8] hover:text-[#102033] transition-colors cursor-pointer"
-                    tabIndex="-1"
-                    title={showConfirmPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-                {errors.confirmPassword && (
-                  <p className="mt-1 text-xs text-rose-600">{errors.confirmPassword.message}</p>
-                )}
-              </div>
-
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full flex justify-center items-center gap-2 py-2.5 px-4 rounded-xl text-xs font-semibold text-white bg-[#006AC7] hover:bg-[#00529B] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#006AC7] shadow-sm transition-all disabled:opacity-50"
-                >
-                  {loading ? 'Submitting Registration...' : 'Register Student Account'}
-                  {!loading && <ArrowRight className="w-4 h-4" />}
-                </button>
-              </div>
-
-              <div className="mt-6 border-t border-slate-200/80 pt-4 text-center text-xs text-[#526477]">
-                Already registered?{' '}
-                <Link to="/login" className="text-[#006AC7] hover:underline font-semibold">
-                  Sign in here
-                </Link>
-              </div>
-            </form>
+          {/* Already have account footer */}
+          {!submissionSuccess && (
+            <div className="mt-6 border-t border-slate-200/80 pt-4 text-center text-xs text-[#526477]">
+              Already have an activated account?{' '}
+              <Link to="/login" className="text-[#006AC7] hover:underline font-semibold">
+                Sign in here
+              </Link>
+            </div>
           )}
         </div>
 
         {/* Security badge footer */}
         <div className="mt-4 flex items-center justify-center gap-2 text-[11px] text-[#8094A8]">
           <ShieldCheck className="w-3.5 h-3.5 text-[#4B7F3A]" />
-          <span>Official Student Identity Portal • DMC Liaquatabad</span>
+          <span>Official Student Identity Portal • DMC Liaquatabad Town Centre</span>
         </div>
       </div>
+
+      {/* Cryptographic OTP Verification Modal */}
+      <OtpVerificationModal
+        isOpen={showOtpModal}
+        onClose={() => setShowOtpModal(false)}
+        email={otpTargetEmail}
+        devOtp={devOtp}
+        purpose="REGISTRATION"
+        onVerified={handleOtpVerified}
+      />
+
+      {/* HM Add Student Modal (When triggered by logged-in Head Master) */}
+      {showHmModal && (
+        <HmAddStudentModal
+          isOpen={showHmModal}
+          onClose={() => setShowHmModal(false)}
+          schoolId={user?.schoolId}
+          onSuccess={() => {
+            setShowHmModal(false);
+            toast.success('Student record enrolled in school register!');
+          }}
+        />
+      )}
     </div>
   );
 };
