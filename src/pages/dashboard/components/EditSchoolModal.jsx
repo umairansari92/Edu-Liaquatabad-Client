@@ -10,6 +10,7 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
     emisCode: '',
     schoolType: 'SECONDARY',
     genderType: 'BOYS',
+    supportedMediums: ['URDU', 'ENGLISH'],
     address: '',
     contactPhone: '',
     contactEmail: '',
@@ -26,6 +27,7 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
         emisCode: school.emisCode || '',
         schoolType: school.schoolType || 'SECONDARY',
         genderType: school.genderType || 'BOYS',
+        supportedMediums: school.supportedMediums && school.supportedMediums.length > 0 ? school.supportedMediums : ['URDU', 'ENGLISH'],
         address: school.address || '',
         contactPhone: school.contactPhone || '',
         contactEmail: school.contactEmail || '',
@@ -47,6 +49,7 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
         emisCode: formData.emisCode ? formData.emisCode.trim() : undefined,
         schoolType: formData.schoolType,
         genderType: formData.genderType,
+        supportedMediums: formData.supportedMediums && formData.supportedMediums.length > 0 ? formData.supportedMediums : ['URDU', 'ENGLISH'],
         address: formData.address.trim(),
         contactPhone: formData.contactPhone.trim() || undefined,
         contactEmail: formData.contactEmail.trim() || '',
@@ -162,8 +165,10 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
                 onChange={(selectChangeEvent) => setFormData({ ...formData, schoolType: selectChangeEvent.target.value })}
                 className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-[#102033] focus:border-[#006AC7] focus:outline-none"
               >
-                <option value="PRIMARY">PRIMARY (Grades 1-5)</option>
-                <option value="ELEMENTARY">ELEMENTARY (Grades 1-8)</option>
+                <option value="ECE">ECE (Nursery - KG-2)</option>
+                <option value="PRIMARY">PRIMARY (Grades KG-1 to 5)</option>
+                <option value="MIDDLE">MIDDLE (Grades KG-1 to 8)</option>
+                <option value="ELEMENTARY">ELEMENTARY (Grades KG-1 to 8)</option>
                 <option value="SECONDARY">SECONDARY (Grades 6-10 / Matric)</option>
                 <option value="HIGHER_SECONDARY">HIGHER_SECONDARY (Grades 11-12 / Inter)</option>
               </select>
@@ -180,6 +185,35 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
                 <option value="GIRLS">GIRLS</option>
                 <option value="CO_EDUCATION">CO-EDUCATION</option>
               </select>
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="block font-semibold text-[#526477] mb-1">Instruction Mediums Offered *</label>
+              <div className="flex items-center gap-4 p-2.5 rounded-lg border border-slate-200 bg-slate-50">
+                {[
+                  { id: 'URDU', label: 'Urdu Medium' },
+                  { id: 'ENGLISH', label: 'English Medium' },
+                  { id: 'SINDHI', label: 'Sindhi Medium' },
+                ].map((med) => {
+                  const isChecked = formData.supportedMediums?.includes(med.id);
+                  return (
+                    <label key={med.id} className="inline-flex items-center gap-1.5 cursor-pointer font-medium">
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={(e) => {
+                          const next = e.target.checked
+                            ? [...(formData.supportedMediums || []), med.id]
+                            : (formData.supportedMediums || []).filter((m) => m !== med.id);
+                          setFormData({ ...formData, supportedMediums: next.length > 0 ? next : ['URDU'] });
+                        }}
+                        className="rounded border-slate-300 text-[#006AC7] focus:ring-[#006AC7]"
+                      />
+                      <span>{med.label}</span>
+                    </label>
+                  );
+                })}
+              </div>
             </div>
 
             <div>

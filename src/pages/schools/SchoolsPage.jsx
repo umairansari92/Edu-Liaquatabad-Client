@@ -37,6 +37,7 @@ export const SchoolsPage = () => {
     emisCode: '',
     schoolType: 'SECONDARY',
     genderType: 'BOYS',
+    supportedMediums: ['URDU', 'ENGLISH'],
     address: '',
     contactPhone: '',
     contactEmail: '',
@@ -71,21 +72,23 @@ export const SchoolsPage = () => {
     fetchSchools();
   }, [fetchSchools]);
 
-  // Handle School Registration
-  const handleRegisterSubmit = async (submissionEvent) => {
-    submissionEvent.preventDefault();
-    if (!formData.name.trim() || !formData.schoolCode.trim()) {
-      toast.error('School name and code are required.');
+  // Handle Form Submission
+  const handleRegisterSchool = async (submitEvent) => {
+    submitEvent.preventDefault();
+    if (!formData.name.trim()) {
+      toast.error('School name is required.');
       return;
     }
+
     setIsSubmitting(true);
     try {
       const response = await apiClient.post('/schools', {
         name: formData.name.trim(),
-        schoolCode: formData.schoolCode.trim().toUpperCase(),
-        emisCode: formData.emisCode.trim(),
+        schoolCode: formData.schoolCode.toUpperCase().trim() || undefined,
+        emisCode: formData.emisCode.trim() || undefined,
         schoolType: formData.schoolType,
         genderType: formData.genderType,
+        supportedMediums: formData.supportedMediums && formData.supportedMediums.length > 0 ? formData.supportedMediums : ['URDU', 'ENGLISH'],
         address: formData.address.trim(),
         contactPhone: formData.contactPhone.trim(),
         contactEmail: formData.contactEmail.trim().toLowerCase(),
@@ -99,6 +102,7 @@ export const SchoolsPage = () => {
           emisCode: '',
           schoolType: 'SECONDARY',
           genderType: 'BOYS',
+          supportedMediums: ['URDU', 'ENGLISH'],
           address: '',
           contactPhone: '',
           contactEmail: '',
@@ -174,10 +178,12 @@ export const SchoolsPage = () => {
               className="rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-bold text-[#526477] focus:border-[#006AC7] focus:bg-white focus:outline-none"
             >
               <option value="">All Categories</option>
-              <option value="SECONDARY">Secondary</option>
-              <option value="PRIMARY">Primary</option>
-              <option value="ELEMENTARY">Elementary</option>
-              <option value="HIGHER_SECONDARY">Higher Secondary</option>
+              <option value="ECE">ECE (Nursery - KG-2)</option>
+              <option value="PRIMARY">Primary (KG-1 - 5th)</option>
+              <option value="MIDDLE">Middle (KG-1 - 8th)</option>
+              <option value="ELEMENTARY">Elementary (KG-1 - 8th)</option>
+              <option value="SECONDARY">Secondary (6th - 10th)</option>
+              <option value="HIGHER_SECONDARY">Higher Secondary (11th - 12th)</option>
             </select>
 
             <select
@@ -399,10 +405,12 @@ export const SchoolsPage = () => {
                       onChange={(selectChangeEvent) => setFormData({ ...formData, schoolType: selectChangeEvent.target.value })}
                       className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-[#102033] focus:border-[#006AC7] focus:outline-none"
                     >
-                      <option value="SECONDARY">Secondary</option>
-                      <option value="PRIMARY">Primary</option>
-                      <option value="ELEMENTARY">Elementary</option>
-                      <option value="HIGHER_SECONDARY">Higher Secondary</option>
+                      <option value="ECE">Early Childhood Education (ECE: Nursery - KG-2)</option>
+                      <option value="PRIMARY">Primary (KG-1 - 5th)</option>
+                      <option value="MIDDLE">Middle (KG-1 - 8th)</option>
+                      <option value="ELEMENTARY">Elementary (KG-1 - 8th)</option>
+                      <option value="SECONDARY">Secondary (6th - 10th)</option>
+                      <option value="HIGHER_SECONDARY">Higher Secondary (11th - 12th)</option>
                     </select>
                   </div>
                   <div>
@@ -416,6 +424,35 @@ export const SchoolsPage = () => {
                       <option value="GIRLS">Girls</option>
                       <option value="CO_EDUCATION">Co-Education</option>
                     </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#526477] mb-1.5">Instruction Mediums Offered *</label>
+                  <div className="flex items-center gap-4 p-2.5 rounded-xl border border-slate-200 bg-slate-50/50">
+                    {[
+                      { id: 'URDU', label: 'Urdu Medium (اردو)' },
+                      { id: 'ENGLISH', label: 'English Medium (انگلش)' },
+                      { id: 'SINDHI', label: 'Sindhi Medium (سندھی)' },
+                    ].map((med) => {
+                      const isChecked = formData.supportedMediums?.includes(med.id);
+                      return (
+                        <label key={med.id} className="inline-flex items-center gap-1.5 text-xs text-[#102033] cursor-pointer font-medium">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={(e) => {
+                              const next = e.target.checked
+                                ? [...(formData.supportedMediums || []), med.id]
+                                : (formData.supportedMediums || []).filter((m) => m !== med.id);
+                              setFormData({ ...formData, supportedMediums: next.length > 0 ? next : ['URDU'] });
+                            }}
+                            className="rounded border-slate-300 text-[#006AC7] focus:ring-[#006AC7]"
+                          />
+                          <span>{med.label}</span>
+                        </label>
+                      );
+                    })}
                   </div>
                 </div>
 

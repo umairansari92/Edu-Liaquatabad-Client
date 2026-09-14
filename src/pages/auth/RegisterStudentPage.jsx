@@ -36,22 +36,100 @@ import {
 } from '../../validations/authSchemas.js';
 import { convertDateToWords } from '../../utils/dateToWords.js';
 
-const ADMISSION_CLASSES = [
-  'Early Childhood Education (ECE)',
-  'Kindergarten / Prep',
-  'Class 1',
-  'Class 2',
-  'Class 3',
-  'Class 4',
-  'Class 5',
-  'Class 6',
-  'Class 7',
-  'Class 8',
-  'Class 9 (Science)',
-  'Class 9 (General)',
-  'Class 10 (Science)',
-  'Class 10 (General)',
-];
+export const GRADE_TIERS = {
+  ECE: [
+    'Nursery',
+    'KG-1',
+    'KG-2',
+  ],
+  PRIMARY: [
+    'Nursery',
+    'KG-1',
+    'KG-2',
+    'Class 1',
+    'Class 2',
+    'Class 3',
+    'Class 4',
+    'Class 5',
+  ],
+  ELEMENTARY: [
+    'KG-1',
+    'KG-2',
+    'Class 1',
+    'Class 2',
+    'Class 3',
+    'Class 4',
+    'Class 5',
+    'Class 6',
+    'Class 7',
+    'Class 8',
+  ],
+  MIDDLE: [
+    'KG-1',
+    'KG-2',
+    'Class 1',
+    'Class 2',
+    'Class 3',
+    'Class 4',
+    'Class 5',
+    'Class 6',
+    'Class 7',
+    'Class 8',
+  ],
+  SECONDARY: [
+    'Class 6',
+    'Class 7',
+    'Class 8',
+    'Class 9 (Science)',
+    'Class 9 (General)',
+    'Class 10 (Science)',
+    'Class 10 (General)',
+  ],
+  HIGHER_SECONDARY: [
+    'Class 11 (Pre-Medical)',
+    'Class 11 (Pre-Engineering)',
+    'Class 11 (Commerce)',
+    'Class 11 (Arts / Humanities)',
+    'Class 12 (Pre-Medical)',
+    'Class 12 (Pre-Engineering)',
+    'Class 12 (Commerce)',
+    'Class 12 (Arts / Humanities)',
+  ],
+  ALL: [
+    'Nursery',
+    'KG-1',
+    'KG-2',
+    'Class 1',
+    'Class 2',
+    'Class 3',
+    'Class 4',
+    'Class 5',
+    'Class 6',
+    'Class 7',
+    'Class 8',
+    'Class 9 (Science)',
+    'Class 9 (General)',
+    'Class 10 (Science)',
+    'Class 10 (General)',
+    'Class 11 (Pre-Medical)',
+    'Class 11 (Pre-Engineering)',
+    'Class 11 (Commerce)',
+    'Class 11 (Arts / Humanities)',
+    'Class 12 (Pre-Medical)',
+    'Class 12 (Pre-Engineering)',
+    'Class 12 (Commerce)',
+    'Class 12 (Arts / Humanities)',
+  ],
+};
+
+export const SCHOOL_TYPE_LABELS = {
+  ECE: 'ECE (Nursery - KG-2)',
+  PRIMARY: 'Primary (KG-1 - 5th)',
+  ELEMENTARY: 'Elementary (KG-1 - 8th)',
+  MIDDLE: 'Middle (KG-1 - 8th)',
+  SECONDARY: 'Secondary (6th - 10th)',
+  HIGHER_SECONDARY: 'Higher Secondary (11th - 12th)',
+};
 
 export const RegisterStudentPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -90,6 +168,7 @@ export const RegisterStudentPage = () => {
     resolver: zodResolver(studentAdmissionWizardSchema),
     defaultValues: {
       studentFullName: '',
+      bFormNumber: '',
       gender: 'MALE',
       dateOfBirth: '',
       dateOfBirthInWords: '',
@@ -109,6 +188,7 @@ export const RegisterStudentPage = () => {
       residencePhoneNumber: '',
       businessPhoneNumber: '',
       schoolId: '',
+      mediumRequested: 'URDU',
       admissionClassRequested: 'Class 1',
       lastSchoolAttended: '',
       admissionDate: new Date().toISOString().slice(0, 10),
@@ -142,7 +222,23 @@ export const RegisterStudentPage = () => {
   // Watchers for dynamic behavior
   const watchedDob = formA.watch('dateOfBirth');
   const watchedDobWords = formA.watch('dateOfBirthInWords');
+  const watchedSchoolId = formA.watch('schoolId');
   const watchedFormAValues = formA.watch();
+
+  const selectedSchool = schools.find((s) => String(s._id) === String(watchedSchoolId));
+  const availableGrades = (selectedSchool?.schoolType && GRADE_TIERS[selectedSchool.schoolType])
+    ? GRADE_TIERS[selectedSchool.schoolType]
+    : GRADE_TIERS.ALL;
+
+  // Auto-align admissionClassRequested when school changes
+  useEffect(() => {
+    if (selectedSchool) {
+      const currentClass = formA.getValues('admissionClassRequested');
+      if (!availableGrades.includes(currentClass)) {
+        formA.setValue('admissionClassRequested', availableGrades[0] || 'Class 1', { shouldValidate: true });
+      }
+    }
+  }, [watchedSchoolId, selectedSchool, availableGrades, formA]);
 
   // Auto-derive DOB in words when DOB figures change
   useEffect(() => {
@@ -180,7 +276,7 @@ export const RegisterStudentPage = () => {
   const validateCurrentStep = async () => {
     setErrorMessage('');
     if (wizardStep === 1) {
-      const valid = await formA.trigger(['studentFullName', 'gender', 'dateOfBirth']);
+      const valid = await formA.trigger(['studentFullName', 'bFormNumber', 'gender', 'dateOfBirth']);
       return valid;
     }
     if (wizardStep === 2) {
@@ -195,7 +291,7 @@ export const RegisterStudentPage = () => {
       return valid;
     }
     if (wizardStep === 3) {
-      const valid = await formA.trigger(['schoolId', 'admissionClassRequested']);
+      const valid = await formA.trigger(['schoolId', 'mediumRequested', 'admissionClassRequested']);
       return valid;
     }
     if (wizardStep === 4) {
@@ -527,6 +623,26 @@ export const RegisterStudentPage = () => {
                         )}
                       </div>
 
+                      {/* Student B-Form Number (ب فارم نمبر) */}
+                      <div className="sm:col-span-2">
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                          Student B-Form # (ب فارم نمبر / CRC)
+                          <span className="ml-1.5 text-[10px] text-slate-400 font-normal lowercase">(Optional: NADRA Child Registration Certificate e.g. 42101-1234567-1)</span>
+                        </label>
+                        <div className="relative">
+                          <CreditCard className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                          <input
+                            {...formA.register('bFormNumber')}
+                            type="text"
+                            placeholder="42101-1234567-1"
+                            className="block w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none font-mono"
+                          />
+                        </div>
+                        {formA.formState.errors.bFormNumber && (
+                          <p className="mt-1 text-xs text-rose-600">{formA.formState.errors.bFormNumber.message}</p>
+                        )}
+                      </div>
+
                       {/* Gender */}
                       <div>
                         <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
@@ -760,35 +876,103 @@ export const RegisterStudentPage = () => {
                         </label>
                         <select
                           {...formA.register('schoolId')}
-                          className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                          className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none font-medium"
                         >
                           <option value="">-- Choose Government School in Town --</option>
                           {schools.map((school) => (
                             <option key={school._id} value={school._id}>
-                              {school.name} ({school.code || 'LTC'})
+                              {school.name} ({school.schoolCode || school.code || 'LTC'}) — {SCHOOL_TYPE_LABELS[school.schoolType] || school.schoolType || 'General'}
                             </option>
                           ))}
                         </select>
                         {formA.formState.errors.schoolId && (
                           <p className="mt-1 text-xs text-rose-600">{formA.formState.errors.schoolId.message}</p>
                         )}
+
+                        {/* Selected School Info Badge */}
+                        {selectedSchool && (
+                          <div className="mt-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-wrap items-center justify-between gap-2 text-xs">
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-[#102033]">{selectedSchool.name}</span>
+                              <span className="px-2 py-0.5 rounded-md bg-blue-50 text-[#006AC7] font-bold text-[10px] border border-blue-200">
+                                {SCHOOL_TYPE_LABELS[selectedSchool.schoolType] || selectedSchool.schoolType}
+                              </span>
+                            </div>
+                            <div className="text-[11px] text-slate-500 flex items-center gap-1.5">
+                              <span>Instruction Mediums:</span>
+                              <span className="font-semibold text-slate-700">
+                                {(selectedSchool.supportedMediums || ['URDU', 'ENGLISH']).join(', ')}
+                              </span>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
-                      {/* Class Required */}
+                      {/* Medium of Instruction (تعلیم کا ذریعہ) */}
+                      <div className="sm:col-span-2">
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                          Medium of Instruction (تعلیم کا ذریعہ) <span className="text-rose-500">*</span>
+                        </label>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                          {[
+                            { id: 'URDU', name: 'Urdu Medium', urdu: 'اردو میڈیم', desc: 'Syllabus & instruction in Urdu' },
+                            { id: 'ENGLISH', name: 'English Medium', urdu: 'انگلش میڈیم', desc: 'English medium curriculum' },
+                            { id: 'SINDHI', name: 'Sindhi Medium', urdu: 'سندھی میڈیم', desc: 'Sindhi language instruction' },
+                          ].map((med) => {
+                            const isSelected = formA.watch('mediumRequested') === med.id;
+                            const isSupported = !selectedSchool?.supportedMediums || selectedSchool.supportedMediums.includes(med.id);
+                            return (
+                              <button
+                                key={med.id}
+                                type="button"
+                                onClick={() => formA.setValue('mediumRequested', med.id, { shouldValidate: true })}
+                                className={`p-3 rounded-xl border text-left transition-all relative ${
+                                  isSelected
+                                    ? 'border-[#006AC7] bg-blue-50/70 text-[#006AC7] ring-2 ring-[#006AC7]/20 shadow-sm'
+                                    : 'border-slate-200 bg-white hover:border-slate-300 text-slate-700'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-xs font-bold">{med.name}</span>
+                                  <span className="text-xs font-urdu font-medium text-slate-500">{med.urdu}</span>
+                                </div>
+                                <p className="text-[10px] text-slate-400">{med.desc}</p>
+                                {selectedSchool && (
+                                  <span className={`inline-block mt-1.5 text-[9px] font-semibold px-1.5 py-0.5 rounded ${
+                                    isSupported ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500'
+                                  }`}>
+                                    {isSupported ? 'Offered at School' : 'General Request'}
+                                  </span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        {formA.formState.errors.mediumRequested && (
+                          <p className="mt-1 text-xs text-rose-600">{formA.formState.errors.mediumRequested.message}</p>
+                        )}
+                      </div>
+
+                      {/* Class Required (Dynamically filtered by School Type) */}
                       <div>
                         <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
                           Admission Class Required <span className="text-rose-500">*</span>
                         </label>
                         <select
                           {...formA.register('admissionClassRequested')}
-                          className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                          className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none font-medium"
                         >
-                          {ADMISSION_CLASSES.map((cls) => (
+                          {availableGrades.map((cls) => (
                             <option key={cls} value={cls}>
                               {cls}
                             </option>
                           ))}
                         </select>
+                        {selectedSchool && (
+                          <p className="mt-1 text-[10px] text-slate-400">
+                            Available grades aligned with {SCHOOL_TYPE_LABELS[selectedSchool.schoolType] || selectedSchool.schoolType} structure.
+                          </p>
+                        )}
                       </div>
 
                       {/* Date of Admission */}
@@ -933,6 +1117,12 @@ export const RegisterStudentPage = () => {
                         <span className="text-slate-500">Student Name:</span>
                         <span className="font-bold text-[#102033]">{watchedFormAValues.studentFullName}</span>
                       </div>
+                      {watchedFormAValues.bFormNumber && (
+                        <div className="flex justify-between border-b border-slate-200/60 pb-2">
+                          <span className="text-slate-500">Student B-Form #:</span>
+                          <span className="font-mono font-semibold text-[#102033]">{watchedFormAValues.bFormNumber}</span>
+                        </div>
+                      )}
                       <div className="flex justify-between border-b border-slate-200/60 pb-2">
                         <span className="text-slate-500">Gender & DOB:</span>
                         <span className="font-medium text-[#102033]">
@@ -950,13 +1140,24 @@ export const RegisterStudentPage = () => {
                         <span className="font-medium text-[#102033]">{watchedFormAValues.guardianCellNumber}</span>
                       </div>
                       <div className="flex justify-between border-b border-slate-200/60 pb-2">
+                        <span className="text-slate-500">Medium of Instruction:</span>
+                        <span className="font-bold text-[#4B7F3A]">
+                          {watchedFormAValues.mediumRequested === 'ENGLISH'
+                            ? 'English Medium (انگلش میڈیم)'
+                            : watchedFormAValues.mediumRequested === 'SINDHI'
+                            ? 'Sindhi Medium (سندھی میڈیم)'
+                            : 'Urdu Medium (اردو میڈیم)'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between border-b border-slate-200/60 pb-2">
                         <span className="text-slate-500">Admission Grade:</span>
                         <span className="font-bold text-[#006AC7]">{watchedFormAValues.admissionClassRequested}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-slate-500">Target School:</span>
                         <span className="font-medium text-[#102033]">
-                          {schools.find((s) => s._id === watchedFormAValues.schoolId)?.name || 'Selected School'}
+                          {selectedSchool?.name || schools.find((s) => s._id === watchedFormAValues.schoolId)?.name || 'Selected School'}
+                          {selectedSchool?.schoolType && ` (${SCHOOL_TYPE_LABELS[selectedSchool.schoolType] || selectedSchool.schoolType})`}
                         </span>
                       </div>
                     </div>

@@ -232,6 +232,13 @@ const HmAddStudentModal = ({ isOpen, onClose, schoolId, classes = [], onSuccess 
                 {errors.fullName && <p className="hm-field-error">{errors.fullName.message}</p>}
               </div>
 
+              {/* B-Form Number */}
+              <div className="hm-field-group">
+                <label className="hm-label">Student B-Form # (ب فارم نمبر / CRC)</label>
+                <input {...register('bFormNumber')} className="hm-input" placeholder="42101-1234567-1 (Optional)" />
+                {errors.bFormNumber && <p className="hm-field-error">{errors.bFormNumber.message}</p>}
+              </div>
+
               {/* Gender + Date of Birth */}
               <div className="hm-row-2">
                 <div className="hm-field-group">
@@ -247,6 +254,17 @@ const HmAddStudentModal = ({ isOpen, onClose, schoolId, classes = [], onSuccess 
                   <label className="hm-label">Date of Birth</label>
                   <input type="date" {...register('dateOfBirth')} className="hm-input" />
                 </div>
+              </div>
+
+              {/* Medium of Instruction */}
+              <div className="hm-field-group">
+                <label className="hm-label">Medium of Instruction (تعلیم کا ذریعہ)</label>
+                <select {...register('mediumOfInstruction')} className="hm-input" defaultValue="URDU">
+                  <option value="URDU">Urdu Medium (اردو میڈیم)</option>
+                  <option value="ENGLISH">English Medium (انگلش میڈیم)</option>
+                  <option value="SINDHI">Sindhi Medium (سندھی میڈیم)</option>
+                </select>
+                {errors.mediumOfInstruction && <p className="hm-field-error">{errors.mediumOfInstruction.message}</p>}
               </div>
 
               {/* Guardian */}

@@ -121,6 +121,12 @@ export const studentAdmissionWizardSchema = z
   .object({
     // Step 1: Student Personal Identity
     studentFullName: nameField('Student Full Name'),
+    bFormNumber: z
+      .string()
+      .trim()
+      .regex(/^\d{5}-\d{7}-\d{1}$/, 'B-Form must follow format: XXXXX-XXXXXXX-X (e.g., 42101-1234567-1)')
+      .optional()
+      .or(z.literal('')),
     gender: z.enum(['MALE', 'FEMALE', 'OTHER'], {
       errorMap: () => ({ message: 'Please select gender' }),
     }),
@@ -152,6 +158,9 @@ export const studentAdmissionWizardSchema = z
     // Step 3: School & Academic Details
     schoolId: z.string().trim().min(1, 'Please select target school'),
     admissionClassRequested: z.string().trim().min(1, 'Please select admission grade/class'),
+    mediumRequested: z.enum(['URDU', 'ENGLISH', 'SINDHI'], {
+      errorMap: () => ({ message: 'Please select medium of instruction' }),
+    }).default('URDU'),
     lastSchoolAttended: safeString(150, 0).optional(),
     admissionDate: z.string().optional(),
     admissionRemarks: safeString(500, 0).optional(),

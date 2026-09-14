@@ -46,6 +46,8 @@ export const enrollStudentFormSchema = z
     fullName: nameField('Full Name'),
     dateOfBirth: z.string().trim().optional(),
     gender: z.enum(['MALE', 'FEMALE', 'OTHER']).optional(),
+    bFormNumber: z.string().trim().regex(/^\d{5}-\d{7}-\d{1}$/, 'B-Form must follow format: XXXXX-XXXXXXX-X').optional().or(z.literal('')),
+    mediumOfInstruction: z.enum(['URDU', 'ENGLISH', 'SINDHI']).default('URDU'),
 
     guardianName: nameField('Father/Guardian Name'),
     guardianContact: phoneField,
