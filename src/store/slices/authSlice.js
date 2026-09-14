@@ -1,4 +1,17 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import authService from '../../services/authService.js';
+
+export const logoutUser = createAsyncThunk(
+  'auth/logoutUser',
+  async (_, { rejectWithValue }) => {
+    try {
+      await authService.logout();
+      return true;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Logout failed');
+    }
+  }
+);
 
 const initialState = {
   user: null,
@@ -51,6 +64,26 @@ const authSlice = createSlice({
       state.error = null;
     },
   },
+  extraReducers: (builder) => {
+    builder
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.user = null;
+        state.accessToken = null;
+        state.isAuthenticated = false;
+        state.isLoading = false;
+        state.sessionChecked = true;
+        state.error = null;
+      })
+      .addCase(logoutUser.rejected, (state) => {
+        // Even if server call fails, reset local auth state
+        state.user = null;
+        state.accessToken = null;
+        state.isAuthenticated = false;
+        state.isLoading = false;
+        state.sessionChecked = true;
+        state.error = null;
+      });
+  },
 });
 
 export const {
@@ -64,3 +97,4 @@ export const {
 } = authSlice.actions;
 
 export default authSlice.reducer;
+

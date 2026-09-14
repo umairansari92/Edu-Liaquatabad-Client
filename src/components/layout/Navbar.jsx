@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { logout } from '../../store/slices/authSlice.js';
+import { logoutUser } from '../../store/slices/authSlice.js';
 import { Bell, User, LogOut, School, Loader2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import apiClient from '../../services/apiClient.js';
 import toast from 'react-hot-toast';
+import NotificationDropdown from '../notifications/NotificationDropdown.jsx';
 
 export const Navbar = () => {
   const { user, isAuthenticated } = useSelector((state) => state.auth);
@@ -12,17 +12,16 @@ export const Navbar = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [loggingOut, setLoggingOut] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   const handleLogout = async () => {
     setLoggingOut(true);
     try {
-      // Call backend to clear the HttpOnly refresh cookie
-      await apiClient.post('/auth/logout');
-    } catch {
-      // Even if backend fails, clear local state
-    } finally {
-      dispatch(logout());
+      await dispatch(logoutUser()).unwrap();
       toast.success('Signed out successfully.');
+    } catch {
+      toast.success('Signed out.');
+    } finally {
       navigate('/login');
       setLoggingOut(false);
     }
@@ -53,17 +52,25 @@ export const Navbar = () => {
         <div className="flex items-center space-x-4">
           {isAuthenticated && user ? (
             <>
-              {/* Notification Indicator */}
-              <button
-                className="relative p-2 text-[#526477] hover:text-[#006AC7] rounded-xl hover:bg-slate-100 transition-colors"
-                title="Notifications"
-                aria-label="View notifications"
-              >
-                <Bell className="w-5 h-5" />
-                {unreadCount > 0 && (
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#006AC7] ring-2 ring-white" />
-                )}
-              </button>
+              {/* Notification Indicator & Dropdown */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowNotifications((prev) => !prev)}
+                  className="relative p-2 text-[#526477] hover:text-[#006AC7] rounded-xl hover:bg-slate-100 transition-colors"
+                  title="Notifications"
+                  aria-label="View notifications"
+                >
+                  <Bell className="w-5 h-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#006AC7] ring-2 ring-white" />
+                  )}
+                </button>
+
+                <NotificationDropdown
+                  isOpen={showNotifications}
+                  onClose={() => setShowNotifications(false)}
+                />
+              </div>
 
               {/* User Profile Pill */}
               <div className="flex items-center space-x-3 pl-3 border-l border-slate-200">
