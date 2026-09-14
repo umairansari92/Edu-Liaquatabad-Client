@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import RootAdminDashboard from './RootAdminDashboard.jsx';
+import SuperAdminDashboard from './SuperAdminDashboard.jsx';
+import AdminDashboard from './AdminDashboard.jsx';
 import TeacherDashboard from './TeacherDashboard.jsx';
 import HmDashboard from './HmDashboard.jsx';
 import StudentDashboard from './StudentDashboard.jsx';
@@ -51,9 +53,19 @@ export const DashboardRouter = () => {
 
   if (!user) return null;
 
-  // Supreme Governance & High Operational Admin Dashboard
-  if (user.role === 'ROOT_ADMIN' || user.role === 'SUPER_ADMIN') {
+  // Supreme Governance Platform Architect Dashboard
+  if (user.role === 'ROOT_ADMIN') {
     return <RootAdminDashboard />;
+  }
+
+  // Primary Operational Super Admin Command Center
+  if (user.role === 'SUPER_ADMIN') {
+    return <SuperAdminDashboard />;
+  }
+
+  // Municipal Town Admin Workspace
+  if (user.role === 'ADMIN') {
+    return <AdminDashboard />;
   }
 
   // Teacher Operational Workspace

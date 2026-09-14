@@ -88,6 +88,8 @@ export const TeacherTransferTab = ({ schoolsList = [], teachersList = [] }) => {
     setIsSubmitting(true);
     try {
       const response = await apiClient.post('/transfers', {
+        teacherUserId: formData.teacherId,
+        targetSchoolId: formData.destinationSchoolId,
         teacherId: formData.teacherId,
         destinationSchoolId: formData.destinationSchoolId,
         reason: formData.reason.trim(),
@@ -109,9 +111,9 @@ export const TeacherTransferTab = ({ schoolsList = [], teachersList = [] }) => {
 
   // Filter transfers
   const filteredTransfers = transfers.filter((transferRecord) => {
-    const teacherName = transferRecord.userId?.fullName || '';
-    const fromName = transferRecord.currentSchoolId?.name || '';
-    const toName = transferRecord.destinationSchoolId?.name || '';
+    const teacherName = transferRecord.teacherUserId?.fullName || transferRecord.userId?.fullName || '';
+    const fromName = transferRecord.fromSchoolId?.name || transferRecord.currentSchoolId?.name || '';
+    const toName = transferRecord.toSchoolId?.name || transferRecord.destinationSchoolId?.name || '';
     const query = searchQuery.toLowerCase();
     return (
       teacherName.toLowerCase().includes(query) ||
@@ -215,43 +217,48 @@ export const TeacherTransferTab = ({ schoolsList = [], teachersList = [] }) => {
                 </td>
               </tr>
             ) : (
-              filteredTransfers.map((item) => (
-                <tr key={item._id} className="transition hover:bg-blue-50/40">
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-2.5">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 font-bold text-[#006AC7]">
-                        {item.userId?.fullName?.charAt(0) || 'T'}
-                      </div>
-                      <div>
-                        <p className="font-bold text-[#102033]">{item.userId?.fullName || 'Faculty Member'}</p>
-                        <p className="text-[11px] text-[#8094A8] font-mono">{item.userId?.email || 'N/A'}</p>
-                      </div>
-                    </div>
-                  </td>
+              filteredTransfers.map((item) => {
+                const teacherObj = item.teacherUserId || item.userId;
+                const fromSchoolObj = item.fromSchoolId || item.currentSchoolId;
+                const toSchoolObj = item.toSchoolId || item.destinationSchoolId;
 
-                  <td className="px-4 py-4 text-[#526477]">
-                    <div className="flex items-center gap-1.5">
-                      <Building2 className="h-3.5 w-3.5 text-slate-400" />
-                      <span className="font-medium text-[#102033]">{item.currentSchoolId?.name || 'Previous School'}</span>
-                    </div>
-                    {item.currentSchoolId?.schoolCode && (
-                      <span className="text-[10px] text-[#8094A8] font-mono ml-5">
-                        Code: {item.currentSchoolId.schoolCode}
-                      </span>
-                    )}
-                  </td>
+                return (
+                  <tr key={item._id} className="transition hover:bg-blue-50/40">
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-2.5">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 font-bold text-[#006AC7]">
+                          {teacherObj?.fullName?.charAt(0) || 'T'}
+                        </div>
+                        <div>
+                          <p className="font-bold text-[#102033]">{teacherObj?.fullName || 'Faculty Member'}</p>
+                          <p className="text-[11px] text-[#8094A8] font-mono">{teacherObj?.email || 'N/A'}</p>
+                        </div>
+                      </div>
+                    </td>
 
-                  <td className="px-4 py-4 text-[#006AC7]">
-                    <div className="flex items-center gap-1.5">
-                      <Building2 className="h-3.5 w-3.5 text-[#006AC7]" />
-                      <span className="font-semibold text-[#006AC7]">{item.destinationSchoolId?.name || 'Target School'}</span>
-                    </div>
-                    {item.destinationSchoolId?.schoolCode && (
-                      <span className="text-[10px] text-blue-500 font-mono ml-5">
-                        Code: {item.destinationSchoolId.schoolCode}
-                      </span>
-                    )}
-                  </td>
+                    <td className="px-4 py-4 text-[#526477]">
+                      <div className="flex items-center gap-1.5">
+                        <Building2 className="h-3.5 w-3.5 text-slate-400" />
+                        <span className="font-medium text-[#102033]">{fromSchoolObj?.name || 'Previous School'}</span>
+                      </div>
+                      {fromSchoolObj?.schoolCode && (
+                        <span className="text-[10px] text-[#8094A8] font-mono ml-5">
+                          Code: {fromSchoolObj.schoolCode}
+                        </span>
+                      )}
+                    </td>
+
+                    <td className="px-4 py-4 text-[#006AC7]">
+                      <div className="flex items-center gap-1.5">
+                        <Building2 className="h-3.5 w-3.5 text-[#006AC7]" />
+                        <span className="font-semibold text-[#006AC7]">{toSchoolObj?.name || 'Target School'}</span>
+                      </div>
+                      {toSchoolObj?.schoolCode && (
+                        <span className="text-[10px] text-blue-500 font-mono ml-5">
+                          Code: {toSchoolObj.schoolCode}
+                        </span>
+                      )}
+                    </td>
 
                   <td className="px-4 py-4">
                     <span
@@ -277,8 +284,9 @@ export const TeacherTransferTab = ({ schoolsList = [], teachersList = [] }) => {
                   <td className="px-4 py-4 text-right text-[#8094A8] font-mono text-[11px]">
                     {new Date(item.createdAt).toLocaleDateString()}
                   </td>
-                </tr>
-              ))
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
