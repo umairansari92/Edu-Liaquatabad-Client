@@ -784,10 +784,10 @@ export const RegisterStudentPage = () => {
                         )}
                       </div>
 
-                      {/* Father's Qualification & Occupation */}
+                      {/* Father's Qualification & Mother's Qualification (Field 8 on physical form) */}
                       <div>
                         <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
-                          Father's Qualification
+                          Father's Qualification <span className="font-urdu text-[11px] font-normal">(والد کی تعلیم)</span>
                         </label>
                         <input
                           {...formA.register('fatherQualification')}
@@ -799,49 +799,75 @@ export const RegisterStudentPage = () => {
 
                       <div>
                         <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
-                          Father's Occupation
+                          Mother's Qualification <span className="font-urdu text-[11px] font-normal">(والدہ کی تعلیم)</span>
                         </label>
                         <input
-                          {...formA.register('fatherOccupation')}
+                          {...formA.register('motherQualification')}
                           type="text"
-                          placeholder="e.g. Government Service / Business"
+                          placeholder="e.g. Intermediate / Graduate"
                           className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
                         />
                       </div>
 
-                      {/* Guardian Mobile / Cell */}
+                      {/* Father's Occupation (Field 9 on physical form) */}
+                      <div className="sm:col-span-2">
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                          Father's Occupation <span className="font-urdu text-[11px] font-normal">(والد کا پیشہ / ملازمت)</span>
+                        </label>
+                        <input
+                          {...formA.register('fatherOccupation')}
+                          type="text"
+                          placeholder="e.g. Government Service / Business / Private"
+                          className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                        />
+                      </div>
+
+                      {/* Guardian Mobile / Cell (Field 15 on physical form) */}
                       <div>
                         <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
-                          Guardian Mobile Number <span className="text-rose-500">*</span>
+                          Cell / Mobile Number <span className="font-urdu text-[11px] font-normal">(موبائل نمبر)</span> <span className="text-rose-500">*</span>
                         </label>
                         <input
                           {...formA.register('guardianCellNumber')}
                           type="tel"
                           placeholder="03001234567"
-                          className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                          className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] font-mono focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
                         />
                         {formA.formState.errors.guardianCellNumber && (
                           <p className="mt-1 text-xs text-rose-600">{formA.formState.errors.guardianCellNumber.message}</p>
                         )}
                       </div>
 
-                      {/* Residence Phone */}
+                      {/* Residence Phone (Field 14 on physical form) */}
                       <div>
                         <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
-                          Residence Phone (Optional)
+                          Phone No. Residence <span className="font-urdu text-[11px] font-normal">(رہائشی فون نمبر - اختیاری)</span>
                         </label>
                         <input
                           {...formA.register('residencePhoneNumber')}
                           type="tel"
                           placeholder="02134567890"
-                          className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                          className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] font-mono focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
                         />
                       </div>
 
-                      {/* Permanent Residential Address */}
+                      {/* Business Phone (Field 14 on physical form) */}
                       <div className="sm:col-span-2">
                         <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
-                          Permanent Residential Address <span className="text-rose-500">*</span>
+                          Phone No. Business <span className="font-urdu text-[11px] font-normal">(کاروباری فون نمبر - اختیاری)</span>
+                        </label>
+                        <input
+                          {...formA.register('businessPhoneNumber')}
+                          type="tel"
+                          placeholder="02134567890"
+                          className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] font-mono focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                        />
+                      </div>
+
+                      {/* Permanent Residential Address (Field 12 on physical form) */}
+                      <div className="sm:col-span-2">
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                          Permanent Residential Address <span className="font-urdu text-[11px] font-normal">(مستقل رہائشی پتہ)</span> <span className="text-rose-500">*</span>
                         </label>
                         <textarea
                           {...formA.register('permanentResidentialAddress')}
@@ -852,6 +878,19 @@ export const RegisterStudentPage = () => {
                         {formA.formState.errors.permanentResidentialAddress && (
                           <p className="mt-1 text-xs text-rose-600">{formA.formState.errors.permanentResidentialAddress.message}</p>
                         )}
+                      </div>
+
+                      {/* Office Address (Field 13 on physical form) */}
+                      <div className="sm:col-span-2">
+                        <label className="block text-xs font-semibold uppercase tracking-wider text-[#526477] mb-1.5">
+                          Office / Work Address <span className="font-urdu text-[11px] font-normal">(دفتر یا ملازمت کا پتہ - اختیاری)</span>
+                        </label>
+                        <textarea
+                          {...formA.register('parentOfficeAddress')}
+                          rows={2}
+                          placeholder="Office / Business address in Karachi (Optional)"
+                          className="block w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-xs text-[#102033] focus:bg-white focus:ring-2 focus:ring-[#006AC7] focus:outline-none"
+                        />
                       </div>
                     </div>
                   </div>
@@ -1130,11 +1169,30 @@ export const RegisterStudentPage = () => {
                         <span className="text-slate-500">Father's Name & CNIC:</span>
                         <span className="font-medium text-[#102033]">
                           {watchedFormAValues.fatherFullName} ({watchedFormAValues.guardianCnicNumber})
+                          {watchedFormAValues.fatherQualification && ` • ${watchedFormAValues.fatherQualification}`}
+                        </span>
+                      </div>
+                      {watchedFormAValues.motherFullName && (
+                        <div className="flex justify-between border-b border-slate-200/60 pb-2">
+                          <span className="text-slate-500">Mother's Name:</span>
+                          <span className="font-medium text-[#102033]">
+                            {watchedFormAValues.motherFullName}
+                            {watchedFormAValues.motherQualification && ` • ${watchedFormAValues.motherQualification}`}
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex justify-between border-b border-slate-200/60 pb-2">
+                        <span className="text-slate-500">Residential Address:</span>
+                        <span className="font-medium text-[#102033] max-w-xs text-right truncate">
+                          {watchedFormAValues.permanentResidentialAddress}
                         </span>
                       </div>
                       <div className="flex justify-between border-b border-slate-200/60 pb-2">
                         <span className="text-slate-500">Guardian Contact:</span>
-                        <span className="font-medium text-[#102033]">{watchedFormAValues.guardianCellNumber}</span>
+                        <span className="font-medium text-[#102033]">
+                          {watchedFormAValues.guardianCellNumber}
+                          {watchedFormAValues.residencePhoneNumber && ` • Res: ${watchedFormAValues.residencePhoneNumber}`}
+                        </span>
                       </div>
                       <div className="flex justify-between border-b border-slate-200/60 pb-2">
                         <span className="text-slate-500">Medium of Instruction:</span>
