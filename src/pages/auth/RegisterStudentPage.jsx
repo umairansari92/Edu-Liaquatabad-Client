@@ -64,18 +64,6 @@ export const GRADE_TIERS = {
     'Class 7',
     'Class 8',
   ],
-  MIDDLE: [
-    'KG-1',
-    'KG-2',
-    'Class 1',
-    'Class 2',
-    'Class 3',
-    'Class 4',
-    'Class 5',
-    'Class 6',
-    'Class 7',
-    'Class 8',
-  ],
   SECONDARY: [
     'Class 6',
     'Class 7',
@@ -84,16 +72,6 @@ export const GRADE_TIERS = {
     'Class 9 (General)',
     'Class 10 (Science)',
     'Class 10 (General)',
-  ],
-  HIGHER_SECONDARY: [
-    'Class 11 (Pre-Medical)',
-    'Class 11 (Pre-Engineering)',
-    'Class 11 (Commerce)',
-    'Class 11 (Arts / Humanities)',
-    'Class 12 (Pre-Medical)',
-    'Class 12 (Pre-Engineering)',
-    'Class 12 (Commerce)',
-    'Class 12 (Arts / Humanities)',
   ],
   ALL: [
     'Nursery',
@@ -111,14 +89,6 @@ export const GRADE_TIERS = {
     'Class 9 (General)',
     'Class 10 (Science)',
     'Class 10 (General)',
-    'Class 11 (Pre-Medical)',
-    'Class 11 (Pre-Engineering)',
-    'Class 11 (Commerce)',
-    'Class 11 (Arts / Humanities)',
-    'Class 12 (Pre-Medical)',
-    'Class 12 (Pre-Engineering)',
-    'Class 12 (Commerce)',
-    'Class 12 (Arts / Humanities)',
   ],
 };
 
@@ -126,9 +96,7 @@ export const SCHOOL_TYPE_LABELS = {
   ECE: 'ECE (Nursery - KG-2)',
   PRIMARY: 'Primary (KG-1 - 5th)',
   ELEMENTARY: 'Elementary (KG-1 - 8th)',
-  MIDDLE: 'Middle (KG-1 - 8th)',
   SECONDARY: 'Secondary (6th - 10th)',
-  HIGHER_SECONDARY: 'Higher Secondary (11th - 12th)',
 };
 
 export const RegisterStudentPage = () => {
@@ -917,7 +885,7 @@ export const RegisterStudentPage = () => {
                           {[
                             { id: 'URDU', name: 'Urdu Medium', urdu: 'اردو میڈیم', desc: 'Syllabus & instruction in Urdu' },
                             { id: 'ENGLISH', name: 'English Medium', urdu: 'انگلش میڈیم', desc: 'English medium curriculum' },
-                            { id: 'SINDHI', name: 'Sindhi Medium', urdu: 'سندھی میڈیم', desc: 'Sindhi language instruction' },
+                            { id: 'SINDHI', name: 'Sindhi Medium', urdu: 'سنڌي ميڊيم', desc: 'Sindhi language instruction' },
                           ].map((med) => {
                             const isSelected = formA.watch('mediumRequested') === med.id;
                             const isSupported = !selectedSchool?.supportedMediums || selectedSchool.supportedMediums.includes(med.id);
@@ -1145,7 +1113,7 @@ export const RegisterStudentPage = () => {
                           {watchedFormAValues.mediumRequested === 'ENGLISH'
                             ? 'English Medium (انگلش میڈیم)'
                             : watchedFormAValues.mediumRequested === 'SINDHI'
-                            ? 'Sindhi Medium (سندھی میڈیم)'
+                            ? 'Sindhi Medium (سنڌي ميڊيم)'
                             : 'Urdu Medium (اردو میڈیم)'}
                         </span>
                       </div>

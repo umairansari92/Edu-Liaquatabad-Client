@@ -1294,10 +1294,10 @@ export const RootAdminDashboard = () => {
                   className="rounded-lg border border-slate-200 bg-[#F8FBFD] px-3 py-2 text-xs text-[#102033] focus:border-[#006AC7] focus:bg-white focus:outline-none"
                 >
                   <option value="">All Categories</option>
-                  <option value="SECONDARY">Secondary</option>
+                  <option value="ECE">ECE (Nursery - KG-2)</option>
                   <option value="PRIMARY">Primary</option>
                   <option value="ELEMENTARY">Elementary</option>
-                  <option value="HIGHER_SECONDARY">Higher Secondary</option>
+                  <option value="SECONDARY">Secondary</option>
                 </select>
 
                 <select
@@ -2172,10 +2172,10 @@ export const RootAdminDashboard = () => {
                                           onChange={(eventObject) => setRegisterSchoolFormData({ ...registerSchoolFormData, schoolType: eventObject.target.value })}
                                           className="mt-1 w-full rounded-lg border border-slate-200 bg-[#F8FBFD] px-3 py-2 text-xs text-[#102033] focus:border-[#006AC7] focus:bg-white focus:outline-none"
                                         >
+                                          <option value="ECE">ECE (Nursery - KG-2)</option>
+                                          <option value="PRIMARY">Primary (KG-1 - 5th)</option>
+                                          <option value="ELEMENTARY">Elementary (KG-1 - 8th)</option>
                                           <option value="SECONDARY">Secondary (Class 6–10)</option>
-                                          <option value="PRIMARY">Primary (Class 1–5)</option>
-                                          <option value="ELEMENTARY">Elementary (Class 1–8)</option>
-                                          <option value="HIGHER_SECONDARY">Higher Secondary (Class 6–12)</option>
                                         </select>
                                       </div>
 

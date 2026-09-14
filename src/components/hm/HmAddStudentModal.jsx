@@ -262,7 +262,7 @@ const HmAddStudentModal = ({ isOpen, onClose, schoolId, classes = [], onSuccess 
                 <select {...register('mediumOfInstruction')} className="hm-input" defaultValue="URDU">
                   <option value="URDU">Urdu Medium (اردو میڈیم)</option>
                   <option value="ENGLISH">English Medium (انگلش میڈیم)</option>
-                  <option value="SINDHI">Sindhi Medium (سندھی میڈیم)</option>
+                  <option value="SINDHI">Sindhi Medium (سنڌي ميڊيم)</option>
                 </select>
                 {errors.mediumOfInstruction && <p className="hm-field-error">{errors.mediumOfInstruction.message}</p>}
               </div>

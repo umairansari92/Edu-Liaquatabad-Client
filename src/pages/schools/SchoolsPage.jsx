@@ -180,10 +180,8 @@ export const SchoolsPage = () => {
               <option value="">All Categories</option>
               <option value="ECE">ECE (Nursery - KG-2)</option>
               <option value="PRIMARY">Primary (KG-1 - 5th)</option>
-              <option value="MIDDLE">Middle (KG-1 - 8th)</option>
               <option value="ELEMENTARY">Elementary (KG-1 - 8th)</option>
               <option value="SECONDARY">Secondary (6th - 10th)</option>
-              <option value="HIGHER_SECONDARY">Higher Secondary (11th - 12th)</option>
             </select>
 
             <select
@@ -407,10 +405,8 @@ export const SchoolsPage = () => {
                     >
                       <option value="ECE">Early Childhood Education (ECE: Nursery - KG-2)</option>
                       <option value="PRIMARY">Primary (KG-1 - 5th)</option>
-                      <option value="MIDDLE">Middle (KG-1 - 8th)</option>
                       <option value="ELEMENTARY">Elementary (KG-1 - 8th)</option>
                       <option value="SECONDARY">Secondary (6th - 10th)</option>
-                      <option value="HIGHER_SECONDARY">Higher Secondary (11th - 12th)</option>
                     </select>
                   </div>
                   <div>
@@ -433,7 +429,7 @@ export const SchoolsPage = () => {
                     {[
                       { id: 'URDU', label: 'Urdu Medium (اردو)' },
                       { id: 'ENGLISH', label: 'English Medium (انگلش)' },
-                      { id: 'SINDHI', label: 'Sindhi Medium (سندھی)' },
+                      { id: 'SINDHI', label: 'Sindhi Medium (سنڌي)' },
                     ].map((med) => {
                       const isChecked = formData.supportedMediums?.includes(med.id);
                       return (

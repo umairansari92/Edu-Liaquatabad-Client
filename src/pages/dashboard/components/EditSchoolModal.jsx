@@ -167,10 +167,8 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
               >
                 <option value="ECE">ECE (Nursery - KG-2)</option>
                 <option value="PRIMARY">PRIMARY (Grades KG-1 to 5)</option>
-                <option value="MIDDLE">MIDDLE (Grades KG-1 to 8)</option>
                 <option value="ELEMENTARY">ELEMENTARY (Grades KG-1 to 8)</option>
                 <option value="SECONDARY">SECONDARY (Grades 6-10 / Matric)</option>
-                <option value="HIGHER_SECONDARY">HIGHER_SECONDARY (Grades 11-12 / Inter)</option>
               </select>
             </div>
 
@@ -191,9 +189,9 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
               <label className="block font-semibold text-[#526477] mb-1">Instruction Mediums Offered *</label>
               <div className="flex items-center gap-4 p-2.5 rounded-lg border border-slate-200 bg-slate-50">
                 {[
-                  { id: 'URDU', label: 'Urdu Medium' },
-                  { id: 'ENGLISH', label: 'English Medium' },
-                  { id: 'SINDHI', label: 'Sindhi Medium' },
+                  { id: 'URDU', label: 'Urdu Medium (اردو)' },
+                  { id: 'ENGLISH', label: 'English Medium (انگلش)' },
+                  { id: 'SINDHI', label: 'Sindhi Medium (سنڌي)' },
                 ].map((med) => {
                   const isChecked = formData.supportedMediums?.includes(med.id);
                   return (
