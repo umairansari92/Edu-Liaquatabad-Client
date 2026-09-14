@@ -1,0 +1,250 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   OFFICIAL ADMISSION DOCUMENT STYLES
+   Authentic Town Municipal Corporation (TMC) Liaquatabad Education Department
+   Matches the physical admission register form with ornamental frame.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.official-admission-wrapper {
+  font-family: 'Times New Roman', Times, 'Calibri', 'Georgia', serif;
+  color: #0f172a;
+  background: #ffffff;
+}
+
+/* Screen container preview */
+.official-admission-sheet {
+  width: 100%;
+  max-width: 210mm;
+  min-height: 297mm;
+  margin: 0 auto;
+  padding: 10mm 12mm;
+  box-sizing: border-box;
+  background: #ffffff;
+  position: relative;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #cbd5e1;
+}
+
+/* Classical Ornamental Floral / Botanical Border */
+.official-ornamental-frame {
+  border: 3px double #1e293b;
+  padding: 8px 12px;
+  position: relative;
+  min-height: calc(297mm - 24mm);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.official-ornamental-frame::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  right: 3px;
+  bottom: 3px;
+  border: 1px dashed #64748b;
+  pointer-events: none;
+}
+
+/* Segmented CNIC boxes on the paper document */
+.cnic-paper-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  vertical-align: middle;
+}
+
+.cnic-paper-cell {
+  width: 17px;
+  height: 22px;
+  border: 1.2px solid #1e293b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  background-color: #ffffff;
+}
+
+.cnic-paper-divider {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 2px;
+  color: #334155;
+}
+
+/* Underline fields */
+.field-underline {
+  border-bottom: 1.2px solid #334155;
+  display: inline-block;
+  min-height: 19px;
+  padding: 0 4px;
+  font-weight: 600;
+  font-size: 12.5px;
+  color: #0f172a;
+  word-break: break-word;
+}
+
+.field-underline.empty {
+  border-bottom: 1.2px dotted #94a3b8;
+}
+
+.field-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1e293b;
+  white-space: nowrap;
+}
+
+/* Official Header Styles */
+.official-header-title-1 {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.official-header-title-2 {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.official-header-title-3 {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #1e293b;
+  line-height: 1.3;
+}
+
+.official-school-line {
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  border-bottom: 1.5px solid #0f172a;
+  display: inline-block;
+  min-width: 320px;
+  padding: 0 10px;
+  margin-top: 4px;
+}
+
+/* Form Banner Title */
+.admission-form-banner {
+  display: inline-block;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  padding: 3px 20px;
+  border: 1.5px solid #0f172a;
+  border-radius: 4px;
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+/* Photo Frame */
+.photo-affix-box {
+  width: 95px;
+  height: 115px;
+  border: 1.5px dashed #475569;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4px;
+  background-color: #f8fafc;
+  font-size: 9px;
+  font-weight: 600;
+  color: #64748b;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PRINT OPTIMIZATIONS (A4 EXACT SINGLE SHEET)
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 5mm 6mm 5mm 6mm;
+  }
+
+  /* Hide entire page outside the printable document */
+  body * {
+    visibility: hidden !important;
+  }
+
+  /* Make only the print sheet visible */
+  .official-admission-printable,
+  .official-admission-printable * {
+    visibility: visible !important;
+  }
+
+  .official-admission-printable {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    page-break-after: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .official-ornamental-frame {
+    border: 2px solid #000000 !important;
+    min-height: 282mm !important;
+    height: 282mm !important;
+    padding: 6px 10px !important;
+    box-sizing: border-box !important;
+  }
+
+  .official-ornamental-frame::before {
+    border: 1px dashed #444444 !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .cnic-paper-cell {
+    border-color: #000000 !important;
+    color: #000000 !important;
+  }
+
+  .field-underline {
+    border-bottom-color: #000000 !important;
+    color: #000000 !important;
+  }
+
+  .admission-form-banner {
+    border-color: #000000 !important;
+    color: #000000 !important;
+    background-color: transparent !important;
+  }
+
+  .photo-affix-box {
+    border: 1.2px dashed #000000 !important;
+    background: transparent !important;
+  }
+}

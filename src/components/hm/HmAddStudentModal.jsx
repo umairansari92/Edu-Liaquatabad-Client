@@ -4,11 +4,12 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X, UserPlus, Users, ClipboardList, Hash, AlertCircle,
-  CheckCircle, Loader2, ChevronRight
+  CheckCircle, Loader2, ChevronRight, Printer
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import apiClient from '../../services/apiClient.js';
 import { enrollStudentFormSchema } from '../../validations/studentSchemas.js';
+import OfficialAdmissionDocument from '../common/OfficialAdmissionDocument.jsx';
 import './HmAddStudentModal.css';
 
 /**
@@ -27,6 +28,7 @@ const HmAddStudentModal = ({ isOpen, onClose, schoolId, classes = [], onSuccess 
   const [grCheckState, setGrCheckState] = useState(null); // null | 'checking' | 'available' | 'taken'
   const [submitting, setSubmitting] = useState(false);
   const [enrolledStudent, setEnrolledStudent] = useState(null);
+  const [showPrintDoc, setShowPrintDoc] = useState(false);
 
   const {
     register,
@@ -370,9 +372,47 @@ const HmAddStudentModal = ({ isOpen, onClose, schoolId, classes = [], onSuccess 
                 These numbers are permanently assigned. The student's profile is now active.
               </p>
 
-              <button onClick={handleClose} className="hm-btn-primary" style={{ marginTop: '1.5rem' }}>
-                Done
-              </button>
+              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', marginTop: '1.5rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowPrintDoc(true)}
+                  className="hm-btn-secondary"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+                >
+                  <Printer size={16} />
+                  Print Official Form (پرنٹ فارم)
+                </button>
+                <button onClick={handleClose} className="hm-btn-primary">
+                  Done
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Official Printable Admission Document Modal */}
+          {showPrintDoc && enrolledStudent && (
+            <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4">
+              <div className="relative w-full max-w-5xl bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[96vh] flex flex-col">
+                <div className="flex-1 overflow-y-auto">
+                  <OfficialAdmissionDocument
+                    data={{
+                      studentFullName: enrolledStudent.fullName,
+                      fatherFullName: enrolledStudent.fatherName,
+                      bFormNumber: enrolledStudent.bFormNumber,
+                      guardianCnicNumber: enrolledStudent.cnicNumber,
+                      gender: enrolledStudent.gender,
+                      dateOfBirth: enrolledStudent.dateOfBirth,
+                      admissionDate: enrolledStudent.admissionDate,
+                      admissionClassRequested: enrolledStudent.classId?.name || enrolledStudent.grade,
+                      mediumRequested: enrolledStudent.mediumOfInstruction,
+                      grNumber: enrolledStudent.grNumber,
+                      admissionRegisterNumber: enrolledStudent.admissionRegisterNumber,
+                      globalStudentId: enrolledStudent.globalStudentId,
+                    }}
+                    onClose={() => setShowPrintDoc(false)}
+                  />
+                </div>
+              </div>
             </div>
           )}
         </motion.div>
