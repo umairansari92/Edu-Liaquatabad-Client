@@ -1,0 +1,158 @@
+import apiClient from './apiClient.js';
+
+/**
+ * BFF Head Master (HM) Service
+ * Mediates all school operational governance between Redux thunks and Server API.
+ * Education Department Liaquatabad Town Centre (DMC)
+ */
+export const hmService = {
+  // ─── 1. Command Center & KPI Overview ─────────────────────────────────────────
+  getSchoolSummary: async () => {
+    const response = await apiClient.get('/academic/hm-summary');
+    return response.data;
+  },
+
+  // ─── 2. Staff & Student Approvals ─────────────────────────────────────────────
+  getPendingApprovals: async (type = 'staff') => {
+    const response = await apiClient.get('/approvals/pending', { params: { type } });
+    return response.data;
+  },
+
+  getApprovalDetail: async (userId) => {
+    const response = await apiClient.get(`/approvals/${userId}/detail`);
+    return response.data;
+  },
+
+  processApprovalDecision: async (userId, payload) => {
+    const response = await apiClient.post(`/approvals/${userId}/decision`, payload);
+    return response.data;
+  },
+
+  // ─── 3. Academic Structure (Classes, Sections, Subjects) ──────────────────────
+  getClasses: async (params = {}) => {
+    const response = await apiClient.get('/academic/classes', { params });
+    return response.data;
+  },
+
+  createClass: async (data) => {
+    const response = await apiClient.post('/academic/classes', data);
+    return response.data;
+  },
+
+  updateClass: async (id, data) => {
+    const response = await apiClient.patch(`/academic/classes/${id}`, data);
+    return response.data;
+  },
+
+  getSections: async (params = {}) => {
+    const response = await apiClient.get('/academic/sections', { params });
+    return response.data;
+  },
+
+  createSection: async (data) => {
+    const response = await apiClient.post('/academic/sections', data);
+    return response.data;
+  },
+
+  updateSection: async (id, data) => {
+    const response = await apiClient.patch(`/academic/sections/${id}`, data);
+    return response.data;
+  },
+
+  getSubjects: async (params = {}) => {
+    const response = await apiClient.get('/academic/subjects', { params });
+    return response.data;
+  },
+
+  createSubject: async (data) => {
+    const response = await apiClient.post('/academic/subjects', data);
+    return response.data;
+  },
+
+  updateSubject: async (id, data) => {
+    const response = await apiClient.patch(`/academic/subjects/${id}`, data);
+    return response.data;
+  },
+
+  // ─── 4. Teaching Assignments (The Security Anchor) ────────────────────────────
+  getSchoolTeachingAssignments: async () => {
+    const response = await apiClient.get('/assignments/school');
+    return response.data;
+  },
+
+  addTeachingAssignment: async (data) => {
+    const response = await apiClient.post('/assignments', data);
+    return response.data;
+  },
+
+  endTeachingAssignment: async (id, reason) => {
+    const response = await apiClient.patch(`/assignments/${id}/end`, { reason });
+    return response.data;
+  },
+
+  // ─── 5. Attendance Verification & Operations ──────────────────────────────────
+  getSchoolAttendanceAnalytics: async () => {
+    const response = await apiClient.get('/attendance/analytics/school');
+    return response.data;
+  },
+
+  verifyAttendance: async (id, remarks = '') => {
+    const response = await apiClient.patch(`/attendance/${id}/verify`, { remarks });
+    return response.data;
+  },
+
+  uploadAttendanceSheet: async (data) => {
+    const response = await apiClient.post('/attendance/upload-sheet', data);
+    return response.data;
+  },
+
+  // ─── 6. Examinations & Results ────────────────────────────────────────────────
+  getExams: async () => {
+    const response = await apiClient.get('/exams');
+    return response.data;
+  },
+
+  createExam: async (data) => {
+    const response = await apiClient.post('/exams', data);
+    return response.data;
+  },
+
+  getExamResults: async (examId, params = {}) => {
+    const response = await apiClient.get(`/exams/${examId}/results`, { params });
+    return response.data;
+  },
+
+  verifyExamResult: async (resultId, remarks = '') => {
+    const response = await apiClient.patch(`/exams/results/${resultId}/verify`, { remarks });
+    return response.data;
+  },
+
+  publishExamResults: async (examId) => {
+    const response = await apiClient.post(`/exams/${examId}/publish`);
+    return response.data;
+  },
+
+  // ─── 7. Incoming Faculty Transfers ────────────────────────────────────────────
+  getTransfers: async (params = {}) => {
+    const response = await apiClient.get('/transfers', { params });
+    return response.data;
+  },
+
+  approveTransferJoining: async (id, payload) => {
+    const response = await apiClient.patch(`/transfers/${id}/approve-joining`, payload);
+    return response.data;
+  },
+
+  // ─── 8. School Circulars & Notices ────────────────────────────────────────────
+  getDocuments: async (params = {}) => {
+    const response = await apiClient.get('/documents', { params });
+    return response.data;
+  },
+
+  createDocument: async (data) => {
+    const response = await apiClient.post('/documents', data);
+    return response.data;
+  },
+};
+
+export default hmService;
