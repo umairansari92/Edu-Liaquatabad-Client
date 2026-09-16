@@ -32,6 +32,15 @@ export const LoginPage = () => {
   // captchaCooldown: 0 = ready to refresh, >0 = seconds until next allowed refresh
   const [captchaCooldown, setCaptchaCooldown] = useState(0);
 
+  // Functional MFA State (unblocks Root Admin mandatory 2FA)
+  const [mfaChallenge, setMfaChallenge] = useState(null); // { mfaPendingToken, requiresSetup, secret, otpAuthUri }
+  const [totpCode, setTotpCode] = useState('');
+  const [mfaLoading, setMfaLoading] = useState(false);
+  const [mfaError, setMfaError] = useState('');
+  const [recoveryMode, setRecoveryMode] = useState(false);
+  const [recoveryCode, setRecoveryCode] = useState('');
+  const [unmaskedRecoveryCodes, setUnmaskedRecoveryCodes] = useState(null);
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -131,6 +140,36 @@ export const LoginPage = () => {
       const response = await apiClient.post('/auth/login', payload);
 
       if (response.data?.success && response.data?.data) {
+        if (response.data.data.mfaRequired) {
+          const { mfaPendingToken } = response.data.data;
+          const requiresSetup = !!(response.data.data.requiresSetup || response.data.data.setupRequired);
+          setMfaError('');
+          if (requiresSetup) {
+            try {
+              const setupRes = await apiClient.post('/auth/mfa/setup', { mfaPendingToken });
+              setMfaChallenge({
+                mfaPendingToken,
+                requiresSetup: true,
+                secret: setupRes.data?.data?.secret,
+                otpAuthUri: setupRes.data?.data?.otpAuthUri,
+              });
+            } catch (setupErr) {
+              setMfaChallenge({
+                mfaPendingToken,
+                requiresSetup: true,
+                secret: null,
+              });
+              setMfaError(setupErr.response?.data?.message || 'Failed to initiate MFA setup.');
+            }
+          } else {
+            setMfaChallenge({
+              mfaPendingToken,
+              requiresSetup: false,
+            });
+          }
+          return;
+        }
+
         const { user, accessToken } = response.data.data;
         dispatch(setCredentials({ user, accessToken }));
         toast.success(`Welcome back, ${user.fullName}!`);
@@ -154,6 +193,78 @@ export const LoginPage = () => {
       fetchCaptcha(false);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleVerifyTotp = async (e) => {
+    e.preventDefault();
+    if (!totpCode || totpCode.trim().length !== 6) {
+      setMfaError('Please enter a valid 6-digit authentication code.');
+      return;
+    }
+    setMfaLoading(true);
+    setMfaError('');
+    try {
+      if (mfaChallenge.requiresSetup) {
+        const confirmRes = await apiClient.post('/auth/mfa/confirm', {
+          totpCode: totpCode.trim(),
+          mfaPendingToken: mfaChallenge.mfaPendingToken,
+        });
+        if (confirmRes.data?.success) {
+          const { user, accessToken, recoveryCodes } = confirmRes.data.data;
+          if (recoveryCodes && recoveryCodes.length > 0) {
+            setUnmaskedRecoveryCodes(recoveryCodes);
+          }
+          if (accessToken && user) {
+            dispatch(setCredentials({ user, accessToken }));
+            toast.success('MFA enrolled successfully! Welcome back.');
+            if (!recoveryCodes || recoveryCodes.length === 0) {
+              navigate('/dashboard');
+            }
+          }
+        }
+      } else {
+        const verifyRes = await apiClient.post('/auth/mfa/verify-login', {
+          totpCode: totpCode.trim(),
+          mfaPendingToken: mfaChallenge.mfaPendingToken,
+        });
+        if (verifyRes.data?.success && verifyRes.data?.data) {
+          const { user, accessToken } = verifyRes.data.data;
+          dispatch(setCredentials({ user, accessToken }));
+          toast.success(`Welcome back, ${user.fullName}!`);
+          navigate('/dashboard');
+        }
+      }
+    } catch (err) {
+      setMfaError(err.response?.data?.message || 'Verification failed. Please check your code.');
+    } finally {
+      setMfaLoading(false);
+    }
+  };
+
+  const handleVerifyRecovery = async (e) => {
+    e.preventDefault();
+    if (!recoveryCode || recoveryCode.trim().length < 16) {
+      setMfaError('Please enter a valid 16-character recovery code.');
+      return;
+    }
+    setMfaLoading(true);
+    setMfaError('');
+    try {
+      const recRes = await apiClient.post('/auth/mfa/recovery-login', {
+        recoveryCode: recoveryCode.trim(),
+        mfaPendingToken: mfaChallenge.mfaPendingToken,
+      });
+      if (recRes.data?.success && recRes.data?.data) {
+        const { user, accessToken } = recRes.data.data;
+        dispatch(setCredentials({ user, accessToken }));
+        toast.success(`Recovery successful! Welcome back, ${user.fullName}.`);
+        navigate('/dashboard');
+      }
+    } catch (err) {
+      setMfaError(err.response?.data?.message || 'Recovery code verification failed.');
+    } finally {
+      setMfaLoading(false);
     }
   };
 
@@ -206,6 +317,121 @@ export const LoginPage = () => {
             </div>
           )}
 
+          {/* ─── Functional MFA Challenge UI (Unblocks Login) ─── */}
+          {mfaChallenge ? (
+            <div className="space-y-4">
+              {unmaskedRecoveryCodes ? (
+                <div className="space-y-3">
+                  <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800">
+                    <p className="font-bold">MFA Setup Successful!</p>
+                    <p className="mt-1">Save these emergency recovery codes in a secure location:</p>
+                  </div>
+                  <pre className="p-3 bg-slate-100 rounded-xl text-xs font-mono select-all overflow-x-auto border border-slate-200">
+                    {unmaskedRecoveryCodes.join('\n')}
+                  </pre>
+                  <button
+                    type="button"
+                    onClick={() => navigate('/dashboard')}
+                    className="w-full py-2.5 px-4 bg-[#006AC7] text-white text-xs font-bold rounded-xl shadow hover:bg-[#00529B] transition"
+                  >
+                    Continue to Dashboard
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={recoveryMode ? handleVerifyRecovery : handleVerifyTotp} className="space-y-4">
+                  <div>
+                    <h3 className="text-sm font-bold text-[#102033]">
+                      {mfaChallenge.requiresSetup
+                        ? 'MFA Setup Required'
+                        : recoveryMode
+                        ? 'Emergency Recovery Login'
+                        : 'Two-Factor Authentication'}
+                    </h3>
+                    <p className="text-xs text-[#526477] mt-1">
+                      {mfaChallenge.requiresSetup
+                        ? 'Enter this secret key into your authenticator app (Google Authenticator, etc.):'
+                        : recoveryMode
+                        ? 'Enter your 16-character backup recovery code:'
+                        : 'Enter the 6-digit code from your authenticator app:'}
+                    </p>
+                  </div>
+
+                  {mfaChallenge.requiresSetup && mfaChallenge.secret && (
+                    <div className="p-2.5 bg-slate-100 border border-slate-200 rounded-xl text-center">
+                      <span className="text-xs font-mono font-bold text-[#102033] select-all tracking-wider">
+                        {mfaChallenge.secret}
+                      </span>
+                    </div>
+                  )}
+
+                  {mfaError && (
+                    <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700">
+                      {mfaError}
+                    </div>
+                  )}
+
+                  {recoveryMode ? (
+                    <div>
+                      <input
+                        type="text"
+                        placeholder="ABCD-EFGH-1234-5678"
+                        value={recoveryCode}
+                        onChange={(e) => setRecoveryCode(e.target.value)}
+                        className="block w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono text-center tracking-widest focus:bg-white focus:outline-none focus:border-[#006AC7]"
+                      />
+                    </div>
+                  ) : (
+                    <div>
+                      <input
+                        type="text"
+                        maxLength={6}
+                        placeholder="000000"
+                        value={totpCode}
+                        onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ''))}
+                        className="block w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-lg font-mono font-bold text-center tracking-widest focus:bg-white focus:outline-none focus:border-[#006AC7]"
+                      />
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={mfaLoading}
+                    className="w-full py-2.5 px-4 bg-[#006AC7] text-white text-xs font-bold rounded-xl shadow hover:bg-[#00529B] transition disabled:opacity-50"
+                  >
+                    {mfaLoading ? 'Verifying...' : mfaChallenge.requiresSetup ? 'Confirm & Enable MFA' : 'Verify & Sign In'}
+                  </button>
+
+                  <div className="flex items-center justify-between text-xs pt-1">
+                    {!mfaChallenge.requiresSetup && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setRecoveryMode(!recoveryMode);
+                          setMfaError('');
+                        }}
+                        className="text-[#006AC7] hover:underline font-medium"
+                      >
+                        {recoveryMode ? 'Use Authenticator Code' : 'Use Recovery Code'}
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMfaChallenge(null);
+                        setMfaError('');
+                        setTotpCode('');
+                        setRecoveryCode('');
+                        setRecoveryMode(false);
+                      }}
+                      className="text-slate-500 hover:text-slate-700 ml-auto"
+                    >
+                      Cancel & Return
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          ) : (
           <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
             {/* Honeypot field */}
             <input
@@ -335,6 +561,7 @@ export const LoginPage = () => {
               </button>
             </div>
           </form>
+          )}
 
           <div className="mt-6 border-t border-slate-100 pt-5 text-center text-xs text-[#526477] space-y-2 font-medium">
             <p>
