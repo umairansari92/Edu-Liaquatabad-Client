@@ -90,11 +90,14 @@ export const UserAuthorityModal = ({
     ['STUDENT', 'PARENT'].includes(targetUser.role) ||
     ['STUDENT', 'PARENT'].includes(targetUser.baseRole);
 
-  const actorLevel = currentUser?.roleLevel || AUTHORITY_LEVELS[currentUser?.role] || 0;
-  const targetLevel = AUTHORITY_LEVELS[targetUser.role] || 0;
+  const isProtectedRoot = targetUser.role === 'ROOT_ADMIN';
+  const isSelf = String(currentUser?._id) === String(targetUser._id);
 
-  // Actor cannot manage users of equal or higher authority (unless ROOT_ADMIN)
-  const canActorManageTarget = currentUser?.role === 'ROOT_ADMIN' || actorLevel > targetLevel;
+  // Actor cannot manage ROOT_ADMIN, self, or users of equal or higher authority (SEC-CRIT-01)
+  const canActorManageTarget =
+    !isProtectedRoot &&
+    !isSelf &&
+    (currentUser?.role === 'ROOT_ADMIN' || actorLevel > targetLevel);
 
   // Authorities actor is permitted to grant (strictly lower than actor's own level, excluding ROOT_ADMIN, STUDENT, PARENT)
   const assignableAuthorities = Object.keys(AUTHORITY_LEVELS).filter((authKey) => {
@@ -240,12 +243,22 @@ export const UserAuthorityModal = ({
               </div>
             </div>
           ) : !canActorManageTarget ? (
-            <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-center gap-3">
-              <ShieldAlert className="w-6 h-6 flex-shrink-0 text-rose-600" />
+            <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-start gap-3">
+              <ShieldAlert className="w-5 h-5 flex-shrink-0 text-rose-600 mt-0.5" />
               <div>
-                <p className="font-semibold">Hierarchy Guard Enforcement</p>
-                <p className="text-xs text-rose-700 mt-0.5">
-                  You cannot modify this account. Your authority level ({actorLevel}) is equal to or lower than the target account ({targetLevel}).
+                <p className="font-bold">
+                  {isProtectedRoot
+                    ? 'Supreme Root Admin Invariant Protection'
+                    : isSelf
+                    ? 'Self-Authority Modification Prohibited'
+                    : 'Hierarchy Guard Enforcement'}
+                </p>
+                <p className="text-xs text-rose-700 mt-0.5 leading-relaxed">
+                  {isProtectedRoot
+                    ? 'Supreme ROOT_ADMIN accounts are cryptographically locked and immutable via web endpoints per enterprise security policy (SEC-CRIT-01).'
+                    : isSelf
+                    ? 'Platform governance prohibits modifying or demoting your own administrative role to prevent self-lockout (SEC-CRIT-01).'
+                    : `You cannot modify this account. Your authority level (${actorLevel}) is equal to or lower than the target account (${targetLevel}).`}
                 </p>
               </div>
             </div>

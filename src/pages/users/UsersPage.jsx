@@ -18,6 +18,7 @@ import {
   Square,
   ChevronRight,
   Filter,
+  Lock,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import apiClient from '../../services/apiClient.js';
@@ -72,29 +73,46 @@ export const UsersPage = () => {
     fetchUsers();
   }, [fetchUsers]);
 
-  // Bulk Selection Handlers
-  const handleToggleSelectUser = (userId) => {
+  // Bulk Selection Handlers (Secured against Root Admin & Self mutations)
+  const isUserBulkEligible = (u) =>
+    u.role !== 'ROOT_ADMIN' && String(u._id) !== String(authenticatedUser?._id);
+
+  const handleToggleSelectUser = (userRecord) => {
+    if (!isUserBulkEligible(userRecord)) {
+      toast.error('Privileged Root Admin accounts and self-modifications are exempt from bulk actions.');
+      return;
+    }
     setSelectedUserIds((prev) =>
-      prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
+      prev.includes(userRecord._id)
+        ? prev.filter((id) => id !== userRecord._id)
+        : [...prev, userRecord._id]
     );
   };
 
   const handleSelectAllOnPage = () => {
-    if (selectedUserIds.length === usersList.length) {
+    const eligibleUsers = usersList.filter(isUserBulkEligible);
+    if (selectedUserIds.length > 0 && selectedUserIds.length >= eligibleUsers.length) {
       setSelectedUserIds([]);
     } else {
-      setSelectedUserIds(usersList.map((userItem) => userItem._id));
+      setSelectedUserIds(eligibleUsers.map((userItem) => userItem._id));
     }
   };
 
   // Bulk Lifecycle Execution
   const handleExecuteBulkAction = async (actionType) => {
-    if (selectedUserIds.length === 0) return;
+    const sanitizedUserIds = selectedUserIds.filter((id) => {
+      const matched = usersList.find((u) => String(u._id) === String(id));
+      return matched && isUserBulkEligible(matched);
+    });
+    if (sanitizedUserIds.length === 0) {
+      toast.error('No eligible users selected for bulk action.');
+      return;
+    }
     setIsBulkOperating(true);
     try {
       const response = await apiClient.post('/users/bulk', {
         action: actionType,
-        userIds: selectedUserIds,
+        userIds: sanitizedUserIds,
         reason: `Bulk ${actionType} executed by ${authenticatedUser?.role} (${authenticatedUser?.fullName})`,
       });
       if (response.data?.success) {
@@ -277,6 +295,9 @@ export const UsersPage = () => {
                   usersList.map((userRecord) => {
                     const isSelected = selectedUserIds.includes(userRecord._id);
                     const isProcessing = actionProcessingUserId === userRecord._id;
+                    const isProtectedRoot = userRecord.role === 'ROOT_ADMIN';
+                    const isSelf = String(userRecord._id) === String(authenticatedUser?._id);
+                    const isEligible = !isProtectedRoot && !isSelf;
 
                     return (
                       <tr
@@ -284,17 +305,30 @@ export const UsersPage = () => {
                         className={`transition hover:bg-blue-50/40 ${isSelected ? 'bg-blue-50/60' : ''}`}
                       >
                         <td className="px-4 py-3.5">
-                          <button
-                            type="button"
-                            onClick={() => handleToggleSelectUser(userRecord._id)}
-                            className="text-slate-400 hover:text-[#102033]"
-                          >
-                            {isSelected ? (
-                              <CheckSquare className="h-4 w-4 text-[#006AC7]" />
-                            ) : (
-                              <Square className="h-4 w-4" />
-                            )}
-                          </button>
+                          {isEligible ? (
+                            <button
+                              type="button"
+                              onClick={() => handleToggleSelectUser(userRecord)}
+                              className="text-slate-400 hover:text-[#102033]"
+                            >
+                              {isSelected ? (
+                                <CheckSquare className="h-4 w-4 text-[#006AC7]" />
+                              ) : (
+                                <Square className="h-4 w-4" />
+                              )}
+                            </button>
+                          ) : (
+                            <span
+                              className="text-slate-300 cursor-not-allowed"
+                              title={
+                                isProtectedRoot
+                                  ? 'Root Admin accounts are exempt from bulk actions'
+                                  : 'Self-selection is prohibited'
+                              }
+                            >
+                              <Square className="h-4 w-4 opacity-35" />
+                            </span>
+                          )}
                         </td>
 
                         <td className="px-4 py-3.5">
@@ -354,72 +388,91 @@ export const UsersPage = () => {
 
                         <td className="px-4 py-3.5 text-right">
                           <div className="flex items-center justify-end gap-1.5">
-                            {userRecord.status === 'PENDING_APPROVAL' && (
-                              <button
-                                type="button"
-                                disabled={isProcessing}
-                                onClick={() =>
-                                  handleProcessUserLifecycle(
-                                    userRecord._id,
-                                    'ACTIVE',
-                                    'Administrative onboarding approval'
-                                  )
-                                }
-                                className="rounded-lg p-1.5 text-[#4B7F3A] hover:bg-emerald-50"
-                                title="Approve Registration"
+                            {isProtectedRoot ? (
+                              <span
+                                className="inline-flex items-center gap-1 rounded-lg bg-rose-50 border border-rose-200 px-2.5 py-1 text-[10px] font-bold text-rose-700 select-none"
+                                title="Supreme ROOT_ADMIN accounts cannot be modified or suspended via web API (SEC-CRIT-01)"
                               >
-                                <UserCheck className="h-4 w-4" />
-                              </button>
-                            )}
+                                <Lock className="h-3 w-3" />
+                                <span>Protected Root</span>
+                              </span>
+                            ) : (
+                              <>
+                                {userRecord.status === 'PENDING_APPROVAL' && (
+                                  <button
+                                    type="button"
+                                    disabled={isProcessing}
+                                    onClick={() =>
+                                      handleProcessUserLifecycle(
+                                        userRecord._id,
+                                        'ACTIVE',
+                                        'Administrative onboarding approval'
+                                      )
+                                    }
+                                    className="rounded-lg p-1.5 text-[#4B7F3A] hover:bg-emerald-50"
+                                    title="Approve Registration"
+                                  >
+                                    <UserCheck className="h-4 w-4" />
+                                  </button>
+                                )}
 
-                            {userRecord.status === 'ACTIVE' && userRecord.role !== 'ROOT_ADMIN' && (
-                              <button
-                                type="button"
-                                disabled={isProcessing}
-                                onClick={() =>
-                                  handleProcessUserLifecycle(
-                                    userRecord._id,
-                                    'SUSPENDED',
-                                    'Administrative suspension'
-                                  )
-                                }
-                                className="rounded-lg p-1.5 text-rose-600 hover:bg-rose-50"
-                                title="Suspend Account"
-                              >
-                                <UserX className="h-4 w-4" />
-                              </button>
-                            )}
+                                {userRecord.status === 'ACTIVE' && (
+                                  <button
+                                    type="button"
+                                    disabled={isProcessing || isSelf}
+                                    onClick={() =>
+                                      handleProcessUserLifecycle(
+                                        userRecord._id,
+                                        'SUSPENDED',
+                                        'Administrative suspension'
+                                      )
+                                    }
+                                    className={`rounded-lg p-1.5 ${
+                                      isSelf
+                                        ? 'text-slate-300 cursor-not-allowed opacity-50'
+                                        : 'text-rose-600 hover:bg-rose-50'
+                                    }`}
+                                    title={isSelf ? 'Self-suspension is prohibited' : 'Suspend Account'}
+                                  >
+                                    <UserX className="h-4 w-4" />
+                                  </button>
+                                )}
 
-                            {userRecord.status === 'SUSPENDED' && userRecord.role !== 'ROOT_ADMIN' && (
-                              <button
-                                type="button"
-                                disabled={isProcessing}
-                                onClick={() =>
-                                  handleProcessUserLifecycle(
-                                    userRecord._id,
-                                    'ACTIVE',
-                                    'Reinstated by administrator'
-                                  )
-                                }
-                                className="rounded-lg p-1.5 text-[#4B7F3A] hover:bg-emerald-50"
-                                title="Reactivate Account"
-                              >
-                                <CheckCircle2 className="h-4 w-4" />
-                              </button>
-                            )}
+                                {userRecord.status === 'SUSPENDED' && (
+                                  <button
+                                    type="button"
+                                    disabled={isProcessing}
+                                    onClick={() =>
+                                      handleProcessUserLifecycle(
+                                        userRecord._id,
+                                        'ACTIVE',
+                                        'Reinstated by administrator'
+                                      )
+                                    }
+                                    className="rounded-lg p-1.5 text-[#4B7F3A] hover:bg-emerald-50"
+                                    title="Reactivate Account"
+                                  >
+                                    <CheckCircle2 className="h-4 w-4" />
+                                  </button>
+                                )}
 
-                            {userRecord.role !== 'ROOT_ADMIN' && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setSelectedUserForAuthority(userRecord);
-                                  setIsAuthorityModalOpen(true);
-                                }}
-                                className="rounded-lg p-1.5 text-slate-400 hover:text-[#102033] hover:bg-slate-100"
-                                title="Manage Designation & Authority"
-                              >
-                                <ShieldCheck className="h-4 w-4" />
-                              </button>
+                                <button
+                                  type="button"
+                                  disabled={isSelf}
+                                  onClick={() => {
+                                    setSelectedUserForAuthority(userRecord);
+                                    setIsAuthorityModalOpen(true);
+                                  }}
+                                  className={`rounded-lg p-1.5 ${
+                                    isSelf
+                                      ? 'text-slate-300 cursor-not-allowed opacity-50'
+                                      : 'text-slate-400 hover:text-[#102033] hover:bg-slate-100'
+                                  }`}
+                                  title={isSelf ? 'Self-role alteration is prohibited' : 'Manage Designation & Authority'}
+                                >
+                                  <ShieldCheck className="h-4 w-4" />
+                                </button>
+                              </>
                             )}
                           </div>
                         </td>

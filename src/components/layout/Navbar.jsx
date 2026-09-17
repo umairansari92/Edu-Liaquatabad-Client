@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { logoutUser } from '../../store/slices/authSlice.js';
-import { Bell, User, LogOut, School, Loader2 } from 'lucide-react';
+import { Bell, User, LogOut, School, Loader2, Shield } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import NotificationDropdown from '../notifications/NotificationDropdown.jsx';
+import SecuritySettingsModal from '../common/SecuritySettingsModal.jsx';
 
 export const Navbar = () => {
   const { user, isAuthenticated } = useSelector((state) => state.auth);
@@ -13,6 +14,7 @@ export const Navbar = () => {
   const navigate = useNavigate();
   const [loggingOut, setLoggingOut] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showSecurityModal, setShowSecurityModal] = useState(false);
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -72,6 +74,16 @@ export const Navbar = () => {
                 />
               </div>
 
+              {/* Account Security & Active Sessions Button */}
+              <button
+                onClick={() => setShowSecurityModal(true)}
+                className="p-2 text-[#526477] hover:text-[#006AC7] rounded-xl hover:bg-slate-100 transition-colors"
+                title="Account Security & Active Sessions"
+                aria-label="Account Security & Active Sessions"
+              >
+                <Shield className="w-5 h-5" />
+              </button>
+
               {/* User Profile Pill */}
               <div className="flex items-center space-x-3 pl-3 border-l border-slate-200">
                 <div className="text-right hidden sm:block">
@@ -101,6 +113,11 @@ export const Navbar = () => {
                   )}
                 </button>
               </div>
+
+              <SecuritySettingsModal
+                isOpen={showSecurityModal}
+                onClose={() => setShowSecurityModal(false)}
+              />
             </>
           ) : (
             <div className="flex items-center space-x-3">

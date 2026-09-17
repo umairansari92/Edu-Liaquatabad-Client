@@ -29,12 +29,14 @@ import {
   History,
   Lock,
   AlertCircle,
+  Shield,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PageContainer from '../../components/layout/PageContainer.jsx';
 import ProfilePrivacySettingsModal from '../../components/staff/ProfilePrivacySettingsModal.jsx';
 import PdfAccessRequestModal from '../../components/staff/PdfAccessRequestModal.jsx';
 import StaffAccessHistoryModal from '../../components/staff/StaffAccessHistoryModal.jsx';
+import SecuritySettingsModal from '../../components/common/SecuritySettingsModal.jsx';
 
 export const StaffProfilePage = () => {
   const { id } = useParams();
@@ -54,6 +56,7 @@ export const StaffProfilePage = () => {
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [isSecurityModalOpen, setIsSecurityModalOpen] = useState(false);
 
   useEffect(() => {
     dispatch(fetchStaffProfile(targetId));
@@ -155,6 +158,17 @@ export const StaffProfilePage = () => {
               >
                 <Settings className="w-4 h-4 text-[#006AC7]" />
                 Privacy &amp; Consent Settings
+              </button>
+            )}
+
+            {/* Account Security & Sessions Button (Owner Only) */}
+            {isOwner && (
+              <button
+                onClick={() => setIsSecurityModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-[#102033] text-xs font-semibold transition-colors shadow-xs"
+              >
+                <Shield className="w-4 h-4 text-[#006AC7]" />
+                Security &amp; Sessions
               </button>
             )}
 
@@ -493,6 +507,11 @@ export const StaffProfilePage = () => {
         onClose={() => setIsHistoryModalOpen(false)}
         targetId={targetId}
         staffName={user?.fullName}
+      />
+
+      <SecuritySettingsModal
+        isOpen={isSecurityModalOpen}
+        onClose={() => setIsSecurityModalOpen(false)}
       />
     </PageContainer>
   );
