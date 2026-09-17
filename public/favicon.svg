@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#006AC7" />
+      <stop offset="100%" stop-color="#004A8F" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#001833" flood-opacity="0.25" />
+    </filter>
+  </defs>
+
+  <!-- Background rounded squircle -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+
+  <!-- Inner border ring -->
+  <rect x="20" y="20" width="472" height="472" rx="96" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="6" />
+
+  <!-- Emblem Group with shadow -->
+  <g filter="url(#shadow)" transform="translate(0, -8)">
+    <!-- Central Pediment / Roof -->
+    <polygon points="256,110 110,180 402,180" fill="#FFFFFF" />
+    
+    <!-- Roof Base Architrave -->
+    <rect x="120" y="180" width="272" height="18" rx="4" fill="#E2E8F0" />
+
+    <!-- 4 Classical Pillars -->
+    <!-- Pillar 1 -->
+    <rect x="144" y="208" width="36" height="132" rx="6" fill="#FFFFFF" />
+    <rect x="138" y="200" width="48" height="10" rx="3" fill="#E2E8F0" />
+    <rect x="138" y="338" width="48" height="10" rx="3" fill="#E2E8F0" />
+
+    <!-- Pillar 2 -->
+    <rect x="208" y="208" width="36" height="132" rx="6" fill="#FFFFFF" />
+    <rect x="202" y="200" width="48" height="10" rx="3" fill="#E2E8F0" />
+    <rect x="202" y="338" width="48" height="10" rx="3" fill="#E2E8F0" />
+
+    <!-- Pillar 3 -->
+    <rect x="272" y="208" width="36" height="132" rx="6" fill="#FFFFFF" />
+    <rect x="266" y="200" width="48" height="10" rx="3" fill="#E2E8F0" />
+    <rect x="266" y="338" width="48" height="10" rx="3" fill="#E2E8F0" />
+
+    <!-- Pillar 4 -->
+    <rect x="336" y="208" width="36" height="132" rx="6" fill="#FFFFFF" />
+    <rect x="330" y="200" width="48" height="10" rx="3" fill="#E2E8F0" />
+    <rect x="330" y="338" width="48" height="10" rx="3" fill="#E2E8F0" />
+
+    <!-- Base Plinth / Steps -->
+    <rect x="100" y="348" width="312" height="20" rx="5" fill="#FFFFFF" />
+    <rect x="80" y="368" width="352" height="24" rx="6" fill="#CBD5E1" />
+
+    <!-- Central Emblem / Academic Star or Crest -->
+    <circle cx="256" cy="150" r="16" fill="url(#goldGrad)" />
+
+    <!-- Open Book Crest in Plinth -->
+    <g transform="translate(256, 400) scale(0.9)">
+      <!-- Left Page -->
+      <path d="M 0,-10 C -25,-25 -65,-25 -90,-15 L -90,25 C -65,15 -25,15 0,30 Z" fill="#FFFFFF" opacity="0.95" />
+      <!-- Right Page -->
+      <path d="M 0,-10 C 25,-25 65,-25 90,-15 L 90,25 C 65,15 25,15 0,30 Z" fill="#FFFFFF" opacity="0.95" />
+      <!-- Book Spine -->
+      <path d="M -3,-10 L 3,-10 L 3,32 L -3,32 Z" fill="#CBD5E1" />
+    </g>
+  </g>
+
+  <!-- Civic Ribbon Badge (DMC Liaquatabad) -->
+  <g transform="translate(256, 452)">
+    <rect x="-85" y="-18" width="170" height="36" rx="18" fill="url(#goldGrad)" />
+    <text x="0" y="6" font-family="'Plus Jakarta Sans', Inter, -apple-system, sans-serif" font-weight="800" font-size="19" fill="#FFFFFF" text-anchor="middle" letter-spacing="3">DMC</text>
+  </g>
+</svg>

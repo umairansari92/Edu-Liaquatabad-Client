@@ -49,7 +49,11 @@ apiClient.interceptors.response.use(
     const isAuthEndpoint =
       requestUrlString.includes('/auth/refresh-token') ||
       requestUrlString.includes('/auth/login') ||
-      requestUrlString.includes('/auth/logout');
+      requestUrlString.includes('/auth/logout') ||
+      requestUrlString.includes('/auth/mfa/verify-login') ||
+      requestUrlString.includes('/auth/mfa/recovery-login') ||
+      requestUrlString.includes('/auth/mfa/setup') ||
+      requestUrlString.includes('/auth/mfa/confirm');
 
     const status = error.response?.status;
 

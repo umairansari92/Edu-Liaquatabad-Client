@@ -32,8 +32,17 @@ export const UsersPage = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+
+  // Debounce search input by 300ms to prevent per-keystroke API hammering
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      setDebouncedSearch(searchQuery.trim());
+    }, 300);
+    return () => clearTimeout(debounceTimer);
+  }, [searchQuery]);
 
   // Bulk Selection State
   const [selectedUserIds, setSelectedUserIds] = useState([]);
@@ -53,7 +62,7 @@ export const UsersPage = () => {
       const queryParams = new URLSearchParams();
       if (roleFilter) queryParams.append('role', roleFilter);
       if (statusFilter) queryParams.append('status', statusFilter);
-      if (searchQuery.trim()) queryParams.append('search', searchQuery.trim());
+      if (debouncedSearch) queryParams.append('search', debouncedSearch);
       queryParams.append('limit', '50');
 
       const response = await apiClient.get(`/users?${queryParams.toString()}`);
@@ -67,7 +76,7 @@ export const UsersPage = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [roleFilter, statusFilter, searchQuery]);
+  }, [roleFilter, statusFilter, debouncedSearch]);
 
   useEffect(() => {
     fetchUsers();

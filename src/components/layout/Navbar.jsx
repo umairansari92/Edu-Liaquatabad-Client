@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { logoutUser } from '../../store/slices/authSlice.js';
-import { Bell, User, LogOut, School, Loader2, Shield } from 'lucide-react';
+import { Bell, User, LogOut, School, Loader2, Shield, Download } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import NotificationDropdown from '../notifications/NotificationDropdown.jsx';
 import SecuritySettingsModal from '../common/SecuritySettingsModal.jsx';
+import { usePwaInstall } from '../../hooks/usePwaInstall.js';
 
 export const Navbar = () => {
   const { user, isAuthenticated } = useSelector((state) => state.auth);
@@ -15,16 +16,16 @@ export const Navbar = () => {
   const [loggingOut, setLoggingOut] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showSecurityModal, setShowSecurityModal] = useState(false);
+  const { canInstallApplication, triggerInstallPrompt } = usePwaInstall();
 
   const handleLogout = async () => {
-    setLoggingOut(true);
     try {
+      setLoggingOut(true);
       await dispatch(logoutUser()).unwrap();
-      toast.success('Signed out successfully.');
-    } catch {
-      toast.success('Signed out.');
-    } finally {
       navigate('/login');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    } finally {
       setLoggingOut(false);
     }
   };
@@ -51,7 +52,20 @@ export const Navbar = () => {
         </Link>
 
         {/* Right Navigation Controls */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-3 sm:space-x-4">
+          {/* PWA Direct Installation Prompt Button (Desktop & Mobile) */}
+          {canInstallApplication && (
+            <button
+              onClick={triggerInstallPrompt}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-blue-50 text-[#006AC7] border border-[#B9DEFF] hover:bg-blue-100 transition-colors shadow-xs btn-tactile"
+              title="Install DMC Schools Application on this device"
+              aria-label="Install DMC Schools Application"
+            >
+              <Download className="w-4 h-4" />
+              <span className="hidden sm:inline">Install App</span>
+            </button>
+          )}
+
           {isAuthenticated && user ? (
             <>
               {/* Notification Indicator & Dropdown */}

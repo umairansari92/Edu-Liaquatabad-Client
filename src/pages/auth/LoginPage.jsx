@@ -103,7 +103,7 @@ export const LoginPage = () => {
       });
     }, 1000);
     return () => clearInterval(cooldownTicker);
-  }, [captchaCooldown]);
+  }, [captchaCooldown > 0]);
 
   // Live countdown ticker — runs every second when lockoutSeconds > 0
   useEffect(() => {
@@ -125,7 +125,7 @@ export const LoginPage = () => {
       });
     }, 1000);
     return () => clearInterval(ticker);
-  }, [lockoutSeconds]);
+  }, [lockoutSeconds > 0]);
 
   // Format seconds into MM:SS display
   const formatCountdown = (totalSeconds) => {
