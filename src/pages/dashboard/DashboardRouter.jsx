@@ -32,7 +32,15 @@ export const DashboardRouter = () => {
   });
   const [isStatsLoading, setIsStatsLoading] = useState(true);
 
+  const isDedicatedRole = user && ['ROOT_ADMIN', 'SUPER_ADMIN', 'ADMIN', 'TEACHER', 'HM', 'STUDENT'].includes(user.role);
+
   useEffect(() => {
+    // Only fetch live stats if the user falls into the unmapped fallback dashboard view
+    if (!user || isDedicatedRole) {
+      setIsStatsLoading(false);
+      return;
+    }
+
     let isMounted = true;
     const fetchLiveStats = async () => {
       try {
@@ -49,7 +57,7 @@ export const DashboardRouter = () => {
 
     fetchLiveStats();
     return () => { isMounted = false; };
-  }, []);
+  }, [user, isDedicatedRole]);
 
   if (!user) return null;
 

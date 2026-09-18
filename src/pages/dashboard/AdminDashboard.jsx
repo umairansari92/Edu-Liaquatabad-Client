@@ -293,7 +293,7 @@ export const AdminDashboard = () => {
       {/* ─── TAB 2: MUNICIPAL SCHOOLS ──────────────────────────────────────── */}
       {activeTab === 'schools' && (
         <div className="space-y-6">
-          <AcademicManagementTab />
+          <AcademicManagementTab schoolsList={schoolsList} />
         </div>
       )}
 
@@ -430,14 +430,17 @@ export const AdminDashboard = () => {
       {/* ─── TAB 4: TEACHER TRANSFERS ──────────────────────────────────────── */}
       {activeTab === 'transfers' && (
         <div className="space-y-6">
-          <TeacherTransferTab />
+          <TeacherTransferTab
+            schoolsList={schoolsList}
+            teachersList={personnelList.filter((u) => u.role === 'TEACHER')}
+          />
         </div>
       )}
 
       {/* ─── TAB 5: ACADEMIC OPERATIONS ────────────────────────────────────── */}
       {activeTab === 'academic' && (
         <div className="space-y-6">
-          <AcademicManagementTab />
+          <AcademicManagementTab schoolsList={schoolsList} />
         </div>
       )}
 

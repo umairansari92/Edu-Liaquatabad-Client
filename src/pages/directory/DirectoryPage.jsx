@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
   Users, GraduationCap, Heart, Search, Download, RefreshCw,
@@ -172,15 +172,23 @@ const StaffDirectoryTab = ({ municipalSchoolsList }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [selectedSchoolId, setSelectedSchoolId] = useState('');
   const [selectedRole, setSelectedRole] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
 
   const fetchStaffData = useCallback(async () => {
     setIsLoading(true);
     try {
       const queryParameters = new URLSearchParams({ limit: '200' });
-      if (searchQuery.trim()) queryParameters.append('search', searchQuery.trim());
+      if (debouncedSearchQuery.trim()) queryParameters.append('search', debouncedSearchQuery.trim());
       if (selectedSchoolId) queryParameters.append('schoolId', selectedSchoolId);
       if (selectedRole) queryParameters.append('role', selectedRole);
       if (selectedStatus) queryParameters.append('status', selectedStatus);
@@ -198,7 +206,7 @@ const StaffDirectoryTab = ({ municipalSchoolsList }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [searchQuery, selectedSchoolId, selectedRole, selectedStatus]);
+  }, [debouncedSearchQuery, selectedSchoolId, selectedRole, selectedStatus]);
 
   useEffect(() => {
     fetchStaffData();
@@ -337,8 +345,7 @@ const StaffDirectoryTab = ({ municipalSchoolsList }) => {
 // ── Tab 2: Students Directory ─────────────────────────────────────────────────
 
 const StudentsDirectoryTab = ({ municipalSchoolsList }) => {
-  const [studentRecords, setStudentRecords] = useState([]);
-  const [totalCount, setTotalCount] = useState(0);
+  const [rawStudents, setRawStudents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -354,28 +361,30 @@ const StudentsDirectoryTab = ({ municipalSchoolsList }) => {
 
       const response = await apiClient.get(`/users?${queryParameters.toString()}`);
       if (response.data?.success) {
-        let studentsList = response.data.data?.users || [];
-        if (searchQuery.trim()) {
-          const lowerQuery = searchQuery.trim().toLowerCase();
-          studentsList = studentsList.filter(
-            (student) =>
-              (student.fullName || '').toLowerCase().includes(lowerQuery) ||
-              (student.email || '').toLowerCase().includes(lowerQuery)
-          );
-        }
-        setStudentRecords(studentsList);
-        setTotalCount(studentsList.length);
+        setRawStudents(response.data.data?.users || []);
       }
     } catch (fetchError) {
       toast.error('Failed to retrieve students directory records.');
     } finally {
       setIsLoading(false);
     }
-  }, [searchQuery, selectedSchoolId, selectedStatus]);
+  }, [selectedSchoolId, selectedStatus]);
 
   useEffect(() => {
     fetchStudentsData();
   }, [fetchStudentsData]);
+
+  const filteredStudents = useMemo(() => {
+    if (!searchQuery.trim()) return rawStudents;
+    const lowerQuery = searchQuery.trim().toLowerCase();
+    return rawStudents.filter(
+      (student) =>
+        (student.fullName || '').toLowerCase().includes(lowerQuery) ||
+        (student.email || '').toLowerCase().includes(lowerQuery) ||
+        (student.grNumber || '').toLowerCase().includes(lowerQuery) ||
+        (student.globalStudentId || '').toLowerCase().includes(lowerQuery)
+    );
+  }, [rawStudents, searchQuery]);
 
   const handleExportStudentsCsv = () => {
     const exportParameters = {};
@@ -389,7 +398,7 @@ const StudentsDirectoryTab = ({ municipalSchoolsList }) => {
   return (
     <div className="space-y-4">
       <DirectoryFilterToolbar
-        totalRecordsCount={totalCount}
+        totalRecordsCount={filteredStudents.length}
         entityLabelSingular="students"
         onRefreshTriggered={fetchStudentsData}
         isLoadingData={isLoading}
@@ -444,10 +453,10 @@ const StudentsDirectoryTab = ({ municipalSchoolsList }) => {
             <tbody className="divide-y divide-slate-100">
               {isLoading ? (
                 <LoadingSkeletonRow columnsCount={9} />
-              ) : studentRecords.length === 0 ? (
+              ) : filteredStudents.length === 0 ? (
                 <EmptyStateRow columnsCount={9} />
               ) : (
-                studentRecords.map((studentAccount, index) => (
+                filteredStudents.map((studentAccount, index) => (
                   <tr key={studentAccount._id || index} className="hover:bg-blue-50/40 transition">
                     <TableCell>
                       <div className="font-bold text-[#102033]">{studentAccount.fullName || '—'}</div>
@@ -539,8 +548,7 @@ const StudentsDirectoryTab = ({ municipalSchoolsList }) => {
 // ── Tab 3: Guardians Directory ────────────────────────────────────────────────
 
 const GuardiansDirectoryTab = () => {
-  const [guardianRecords, setGuardianRecords] = useState([]);
-  const [totalCount, setTotalCount] = useState(0);
+  const [rawGuardians, setRawGuardians] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -554,29 +562,29 @@ const GuardiansDirectoryTab = () => {
 
       const response = await apiClient.get(`/users?${queryParameters.toString()}`);
       if (response.data?.success) {
-        let guardiansList = response.data.data?.users || [];
-        if (searchQuery.trim()) {
-          const lowerQuery = searchQuery.trim().toLowerCase();
-          guardiansList = guardiansList.filter(
-            (guardian) =>
-              (guardian.fullName || '').toLowerCase().includes(lowerQuery) ||
-              (guardian.email || '').toLowerCase().includes(lowerQuery) ||
-              (guardian.phoneNumber || '').includes(searchQuery.trim())
-          );
-        }
-        setGuardianRecords(guardiansList);
-        setTotalCount(guardiansList.length);
+        setRawGuardians(response.data.data?.users || []);
       }
     } catch (fetchError) {
       toast.error('Failed to retrieve guardians directory records.');
     } finally {
       setIsLoading(false);
     }
-  }, [searchQuery, selectedStatus]);
+  }, [selectedStatus]);
 
   useEffect(() => {
     fetchGuardiansData();
   }, [fetchGuardiansData]);
+
+  const filteredGuardians = useMemo(() => {
+    if (!searchQuery.trim()) return rawGuardians;
+    const lowerQuery = searchQuery.trim().toLowerCase();
+    return rawGuardians.filter(
+      (guardian) =>
+        (guardian.fullName || '').toLowerCase().includes(lowerQuery) ||
+        (guardian.email || '').toLowerCase().includes(lowerQuery) ||
+        (guardian.phoneNumber || '').includes(searchQuery.trim())
+    );
+  }, [rawGuardians, searchQuery]);
 
   const handleExportGuardiansCsv = () => {
     const exportParameters = {};
@@ -589,7 +597,7 @@ const GuardiansDirectoryTab = () => {
   return (
     <div className="space-y-4">
       <DirectoryFilterToolbar
-        totalRecordsCount={totalCount}
+        totalRecordsCount={filteredGuardians.length}
         entityLabelSingular="guardians"
         onRefreshTriggered={fetchGuardiansData}
         isLoadingData={isLoading}
@@ -630,10 +638,10 @@ const GuardiansDirectoryTab = () => {
             <tbody className="divide-y divide-slate-100">
               {isLoading ? (
                 <LoadingSkeletonRow columnsCount={6} />
-              ) : guardianRecords.length === 0 ? (
+              ) : filteredGuardians.length === 0 ? (
                 <EmptyStateRow columnsCount={6} />
               ) : (
-                guardianRecords.map((guardianAccount) => (
+                filteredGuardians.map((guardianAccount) => (
                   <tr key={guardianAccount._id} className="hover:bg-blue-50/40 transition">
                     <TableCell>
                       <div className="font-bold text-[#102033]">{guardianAccount.fullName}</div>

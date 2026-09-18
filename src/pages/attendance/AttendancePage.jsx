@@ -474,14 +474,8 @@ const TeacherAttendanceWorkspace = ({ user }) => {
   );
 };
 
-export const AttendancePage = () => {
-  const { user } = useSelector((state) => state.auth);
-
-  // If user is TEACHER, show dedicated operational teacher workspace
-  if (user?.role === 'TEACHER') {
-    return <TeacherAttendanceWorkspace user={user} />;
-  }
-
+// ─── Admin / Authority Attendance Telemetry Workspace ────────────────────────
+const AdminAttendanceWorkspace = ({ user }) => {
   const [schoolsList, setSchoolsList] = useState([]);
   const [selectedSchoolId, setSelectedSchoolId] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -644,6 +638,18 @@ export const AttendancePage = () => {
       </div>
     </PageContainer>
   );
+};
+
+export const AttendancePage = () => {
+  const { user } = useSelector((state) => state.auth);
+
+  // If user is TEACHER, render dedicated operational teacher workspace
+  if (user?.role === 'TEACHER') {
+    return <TeacherAttendanceWorkspace user={user} />;
+  }
+
+  // Otherwise render municipal / institutional authority attendance workspace
+  return <AdminAttendanceWorkspace user={user} />;
 };
 
 export default AttendancePage;

@@ -139,6 +139,26 @@ export const RootAdminDashboard = () => {
   const [auditSearchQuery, setAuditSearchQuery] = useState('');
   const [auditResultFilter, setAuditResultFilter] = useState('');
 
+  // Debounced Search States (300ms to prevent request amplification on keystrokes)
+  const [debouncedSchoolSearch, setDebouncedSchoolSearch] = useState(schoolSearchQuery);
+  const [debouncedUserSearch, setDebouncedUserSearch] = useState(userSearchQuery);
+  const [debouncedAuditSearch, setDebouncedAuditSearch] = useState(auditSearchQuery);
+
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedSchoolSearch(schoolSearchQuery), 300);
+    return () => clearTimeout(handler);
+  }, [schoolSearchQuery]);
+
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedUserSearch(userSearchQuery), 300);
+    return () => clearTimeout(handler);
+  }, [userSearchQuery]);
+
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedAuditSearch(auditSearchQuery), 300);
+    return () => clearTimeout(handler);
+  }, [auditSearchQuery]);
+
   // Register School Modal State
   const [isRegisterSchoolModalOpen, setIsRegisterSchoolModalOpen] = useState(false);
   const [registerSchoolFormData, setRegisterSchoolFormData] = useState({
@@ -337,7 +357,7 @@ export const RootAdminDashboard = () => {
     setIsSchoolsLoading(true);
     try {
       const queryParameters = new URLSearchParams();
-      if (schoolSearchQuery) queryParameters.append('search', schoolSearchQuery);
+      if (debouncedSchoolSearch) queryParameters.append('search', debouncedSchoolSearch);
       if (schoolTypeFilter) queryParameters.append('schoolType', schoolTypeFilter);
       if (schoolGenderFilter) queryParameters.append('genderType', schoolGenderFilter);
 
@@ -350,14 +370,14 @@ export const RootAdminDashboard = () => {
     } finally {
       setIsSchoolsLoading(false);
     }
-  }, [schoolSearchQuery, schoolTypeFilter, schoolGenderFilter]);
+  }, [debouncedSchoolSearch, schoolTypeFilter, schoolGenderFilter]);
 
   // Fetch Global Users Directory (8 Roles)
   const fetchGlobalUsers = useCallback(async () => {
     setIsUsersLoading(true);
     try {
       const queryParameters = new URLSearchParams();
-      if (userSearchQuery) queryParameters.append('search', userSearchQuery);
+      if (debouncedUserSearch) queryParameters.append('search', debouncedUserSearch);
       if (userRoleFilter) queryParameters.append('role', userRoleFilter);
       if (userStatusFilter) queryParameters.append('status', userStatusFilter);
 
@@ -371,7 +391,7 @@ export const RootAdminDashboard = () => {
     } finally {
       setIsUsersLoading(false);
     }
-  }, [userSearchQuery, userRoleFilter, userStatusFilter]);
+  }, [debouncedUserSearch, userRoleFilter, userStatusFilter]);
 
   // Fetch Super Admins List
   const fetchSuperAdmins = useCallback(async () => {
@@ -408,7 +428,7 @@ export const RootAdminDashboard = () => {
     setIsAuditLogsLoading(true);
     try {
       const queryParameters = new URLSearchParams();
-      if (auditSearchQuery) queryParameters.append('action', auditSearchQuery);
+      if (debouncedAuditSearch) queryParameters.append('action', debouncedAuditSearch);
       if (auditResultFilter) queryParameters.append('result', auditResultFilter);
 
       const response = await apiClient.get(`/admin/super-admins/audit-logs?${queryParameters.toString()}`);
@@ -420,7 +440,7 @@ export const RootAdminDashboard = () => {
     } finally {
       setIsAuditLogsLoading(false);
     }
-  }, [auditSearchQuery, auditResultFilter]);
+  }, [debouncedAuditSearch, auditResultFilter]);
 
   // Synchronize All Telemetry
   const synchronizeAllTelemetry = useCallback(() => {
@@ -444,23 +464,43 @@ export const RootAdminDashboard = () => {
     fetchKillSwitchStatus,
   ]);
 
-  // Initial Load
+  // Initial Global Telemetry Load (Municipal schools fetched via its own dedicated activeTab effect below)
   useEffect(() => {
     fetchPlatformOverview();
     fetchPlatformAnalytics();
-    fetchMunicipalSchools();
     fetchKillSwitchStatus();
-  }, [fetchPlatformOverview, fetchPlatformAnalytics, fetchMunicipalSchools, fetchKillSwitchStatus]);
+  }, [fetchPlatformOverview, fetchPlatformAnalytics, fetchKillSwitchStatus]);
 
-  // Lazy tab loader
+  // Dedicated Tab Data Loaders (decoupled so one tab's query changes do not re-trigger other tabs)
   useEffect(() => {
-    if (activeTab === 'schools') fetchMunicipalSchools();
-    if (activeTab === 'users') fetchGlobalUsers();
-    if (activeTab === 'governance') fetchSuperAdmins();
-    if (activeTab === 'approvals') fetchPendingUsers();
-    if (activeTab === 'audit') fetchAuditLogs();
-    if (activeTab === 'analytics') fetchPlatformAnalytics();
-  }, [activeTab, fetchMunicipalSchools, fetchGlobalUsers, fetchSuperAdmins, fetchPendingUsers, fetchAuditLogs, fetchPlatformAnalytics]);
+    if (activeTab === 'schools') {
+      fetchMunicipalSchools();
+    }
+  }, [activeTab, fetchMunicipalSchools]);
+
+  useEffect(() => {
+    if (activeTab === 'users') {
+      fetchGlobalUsers();
+    }
+  }, [activeTab, fetchGlobalUsers]);
+
+  useEffect(() => {
+    if (activeTab === 'governance') {
+      fetchSuperAdmins();
+    }
+  }, [activeTab, fetchSuperAdmins]);
+
+  useEffect(() => {
+    if (activeTab === 'approvals') {
+      fetchPendingUsers();
+    }
+  }, [activeTab, fetchPendingUsers]);
+
+  useEffect(() => {
+    if (activeTab === 'audit') {
+      fetchAuditLogs();
+    }
+  }, [activeTab, fetchAuditLogs]);
 
   // ─── Actions & Mutation Handlers ───────────────────────────────────────────
 
