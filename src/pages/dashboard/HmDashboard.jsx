@@ -65,7 +65,11 @@ import {
   publishSchoolNotice,
   fetchSchoolStudents,
   updateSchoolCode,
+  fetchSchoolFaculty,
+  fetchTeacherDailyAttendance,
+  saveTeacherDailyAttendance,
 } from '../../store/slices/hmSlice.js';
+
 
 // ─── Stat Card Component ──────────────────────────────────────────────────────
 const StatCard = ({ icon: Icon, label, value, subtext, color = 'emerald', loading }) => {
@@ -142,6 +146,11 @@ export const HmDashboard = () => {
     transfersLoading,
     notices,
     noticesLoading,
+    faculty,
+    facultyLoading,
+    teacherAttendance,
+    teacherAttendanceLoading,
+    teacherAttendanceSaving,
   } = useSelector((state) => state.hm);
 
   const [activeTab, setActiveTab] = useState('overview');
@@ -157,6 +166,15 @@ export const HmDashboard = () => {
   const [addStudentModalOpen, setAddStudentModalOpen] = useState(false);
   const [schoolCodeModalOpen, setSchoolCodeModalOpen] = useState(false);
   const [newSchoolCodeInput, setNewSchoolCodeInput] = useState('');
+
+  // Faculty Directory State
+  const [facultySearchQuery, setFacultySearchQuery] = useState('');
+  const [facultyStatusFilter, setFacultyStatusFilter] = useState('');
+
+  // Daily Teacher Attendance State
+  const [attendanceSubTab, setAttendanceSubTab] = useState('faculty'); // 'faculty' | 'analytics'
+  const [teacherAttendanceDate, setTeacherAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
+  const [teacherAttendanceRecords, setTeacherAttendanceRecords] = useState([]);
 
   // Stale-request & race-condition cancellation refs
   const studentSearchAbortRef = useRef(null);
@@ -220,7 +238,24 @@ export const HmDashboard = () => {
   // Initial load
   useEffect(() => {
     dispatch(fetchHmSummary());
+    dispatch(fetchSchoolFaculty());
   }, [dispatch]);
+
+  // Sync Redux teacher attendance with local interactive state
+  useEffect(() => {
+    if (teacherAttendance?.roster) {
+      setTeacherAttendanceRecords(
+        teacherAttendance.roster.map((item) => ({
+          userId: item.userId,
+          fullName: item.fullName,
+          employeeId: item.employeeId,
+          designation: item.designation,
+          status: item.status,
+          remarks: item.remarks || '',
+        }))
+      );
+    }
+  }, [teacherAttendance]);
 
   // Tab-specific data loading via Redux thunks
   useEffect(() => {
@@ -228,6 +263,8 @@ export const HmDashboard = () => {
       dispatch(fetchAcademicClasses());
       dispatch(fetchAcademicSections());
       loadStudents({ page: 1 });
+    } else if (activeTab === 'faculty') {
+      dispatch(fetchSchoolFaculty());
     } else if (activeTab === 'approvals') {
       dispatch(fetchPendingApprovals('staff'));
       dispatch(fetchPendingApprovals('student'));
@@ -237,10 +274,12 @@ export const HmDashboard = () => {
       dispatch(fetchAcademicSubjects());
     } else if (activeTab === 'assignments') {
       dispatch(fetchTeachingAssignments());
+      dispatch(fetchSchoolFaculty());
       dispatch(fetchAcademicClasses());
       dispatch(fetchAcademicSections());
       dispatch(fetchAcademicSubjects());
     } else if (activeTab === 'attendance') {
+      dispatch(fetchTeacherDailyAttendance({ date: teacherAttendanceDate }));
       dispatch(fetchAttendanceAnalytics());
     } else if (activeTab === 'exams') {
       dispatch(fetchExamsList());
@@ -249,7 +288,14 @@ export const HmDashboard = () => {
     } else if (activeTab === 'notices') {
       dispatch(fetchSchoolNotices());
     }
-  }, [activeTab, dispatch]);
+  }, [activeTab, dispatch, teacherAttendanceDate]);
+
+  // Teacher attendance date change trigger
+  useEffect(() => {
+    if (activeTab === 'attendance') {
+      dispatch(fetchTeacherDailyAttendance({ date: teacherAttendanceDate }));
+    }
+  }, [teacherAttendanceDate, activeTab, dispatch]);
 
   // Debounced search trigger with cancellation for students tab
   useEffect(() => {
@@ -261,6 +307,21 @@ export const HmDashboard = () => {
 
     return () => clearTimeout(debounceTimer);
   }, [studentSearchQuery, studentClassFilter, studentSectionFilter, studentGenderFilter, studentStatusFilter]);
+
+  // Debounced search trigger for faculty tab
+  useEffect(() => {
+    if (activeTab !== 'faculty') return;
+    const debounceTimer = setTimeout(() => {
+      dispatch(
+        fetchSchoolFaculty({
+          search: facultySearchQuery.trim() || undefined,
+          status: facultyStatusFilter || undefined,
+        })
+      );
+    }, 350);
+
+    return () => clearTimeout(debounceTimer);
+  }, [facultySearchQuery, facultyStatusFilter, activeTab, dispatch]);
 
   const handleUpdateSchoolCodeSubmit = async (e) => {
     e.preventDefault();
@@ -278,8 +339,58 @@ export const HmDashboard = () => {
     }
   };
 
+  const handleTeacherStatusChange = (userId, status) => {
+    setTeacherAttendanceRecords((prev) =>
+      prev.map((rec) => (rec.userId === userId ? { ...rec, status } : rec))
+    );
+  };
+
+  const handleTeacherRemarksChange = (userId, remarks) => {
+    setTeacherAttendanceRecords((prev) =>
+      prev.map((rec) => (rec.userId === userId ? { ...rec, remarks } : rec))
+    );
+  };
+
+  const handleMarkAllTeachersPresent = () => {
+    setTeacherAttendanceRecords((prev) =>
+      prev.map((rec) => ({ ...rec, status: 'PRESENT' }))
+    );
+    toast.success('All faculty members marked Present.');
+  };
+
+  const handleSaveTeacherAttendanceSubmit = async () => {
+    if (teacherAttendanceRecords.length === 0) {
+      toast.error('No faculty records available to record attendance.');
+      return;
+    }
+    try {
+      await dispatch(
+        saveTeacherDailyAttendance({
+          date: teacherAttendanceDate,
+          records: teacherAttendanceRecords.map((r) => ({
+            userId: r.userId,
+            status: r.status,
+            remarks: r.remarks,
+          })),
+        })
+      ).unwrap();
+      toast.success('Teacher daily attendance recorded & verified successfully.');
+    } catch (err) {
+      toast.error(err || 'Failed to record teacher attendance');
+    }
+  };
+
+  const handleOpenAssignDutyForTeacher = (teacherId) => {
+    setDutyData((prev) => ({ ...prev, teacherId }));
+    setAssignDutyModal(true);
+  };
+
   const handleRefreshAll = () => {
     dispatch(fetchHmSummary());
+    dispatch(fetchSchoolFaculty());
+    if (activeTab === 'attendance') {
+      dispatch(fetchTeacherDailyAttendance({ date: teacherAttendanceDate }));
+    }
     toast.success('School command center updated.');
   };
 
@@ -494,6 +605,7 @@ export const HmDashboard = () => {
       <div className="flex flex-wrap gap-2 mb-6 pb-2 border-b border-slate-200/60">
         <TabBtn label="Command Center" active={activeTab === 'overview'} onClick={() => setActiveTab('overview')} icon={School} />
         <TabBtn label="Student Directory" active={activeTab === 'students'} onClick={() => setActiveTab('students')} badge={studentsPagination?.totalRecords ?? summary?.metrics?.totalStudents} icon={GraduationCap} />
+        <TabBtn label="Faculty Roster" active={activeTab === 'faculty'} onClick={() => setActiveTab('faculty')} badge={faculty?.length || summary?.metrics?.teachingStaff} icon={Users} />
         <TabBtn label="Approvals" active={activeTab === 'approvals'} onClick={() => setActiveTab('approvals')} badge={totalPendingCount} icon={UserCheck} />
         <TabBtn label="Academic Setup" active={activeTab === 'academics'} onClick={() => setActiveTab('academics')} icon={BookMarked} />
         <TabBtn label="Teaching Duties" active={activeTab === 'assignments'} onClick={() => setActiveTab('assignments')} icon={BookOpen} />
@@ -502,6 +614,7 @@ export const HmDashboard = () => {
         <TabBtn label="Incoming Transfers" active={activeTab === 'transfers'} onClick={() => setActiveTab('transfers')} badge={transfers?.length || 0} icon={ArrowLeftRight} />
         <TabBtn label="School Circulars" active={activeTab === 'notices'} onClick={() => setActiveTab('notices')} icon={FileText} />
       </div>
+
 
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* TAB 1: COMMAND CENTER (OVERVIEW)                                    */}
@@ -950,9 +1063,195 @@ export const HmDashboard = () => {
       )}
 
       {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* TAB: FACULTY ROSTER (MUNICIPAL TEACHING CORPS)                      */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {activeTab === 'faculty' && (
+        <div className="space-y-6">
+          {/* Header & Controls */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
+                <Users className="w-5 h-5 text-[#006AC7]" />
+                Institutional Faculty Roster
+              </h3>
+              <p className="text-xs text-[#526477] mt-0.5">
+                Official service records, government employee IDs, BPS scales, and teaching allocations.
+              </p>
+            </div>
+            <button
+              id="hm-faculty-allocate-duty-btn"
+              onClick={() => {
+                setDutyData({ teacherId: '', classId: '', sectionId: '', subjectId: '', academicSession: '2025-2026' });
+                setAssignDutyModal(true);
+              }}
+              className="px-4 py-2 rounded-xl text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+            >
+              <PlusCircle className="w-4 h-4" /> Allocate Teaching Assignment
+            </button>
+          </div>
+
+          {/* Search & Status Filters */}
+          <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 text-[#8094A8] absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                id="hm-faculty-search-input"
+                type="text"
+                placeholder="Search faculty by name, employee ID, or email..."
+                value={facultySearchQuery}
+                onChange={(e) => setFacultySearchQuery(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 rounded-xl text-xs border border-slate-200/80 bg-slate-50/50 focus:outline-none focus:ring-1 focus:ring-[#006AC7] focus:bg-white transition"
+              />
+            </div>
+            <div className="flex gap-2">
+              <select
+                id="hm-faculty-status-filter"
+                value={facultyStatusFilter}
+                onChange={(e) => setFacultyStatusFilter(e.target.value)}
+                className="px-3 py-2 rounded-xl text-xs border border-slate-200/80 bg-slate-50/50 text-[#102033] focus:outline-none focus:ring-1 focus:ring-[#006AC7] transition"
+              >
+                <option value="">All Account Statuses</option>
+                <option value="ACTIVE">Active</option>
+                <option value="PENDING_APPROVAL">Pending Approval</option>
+                <option value="TRANSFERRED">Transferred</option>
+                <option value="SUSPENDED">Suspended</option>
+              </select>
+              <button
+                onClick={() => {
+                  setFacultySearchQuery('');
+                  setFacultyStatusFilter('');
+                  dispatch(fetchSchoolFaculty());
+                }}
+                className="px-3 py-2 rounded-xl text-xs font-semibold text-[#526477] bg-white border border-slate-200/80 hover:bg-slate-50 transition shadow-sm cursor-pointer"
+              >
+                Reset
+              </button>
+            </div>
+          </div>
+
+          {/* Faculty Roster Table */}
+          <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-bold uppercase text-[#8094A8] tracking-wider">
+                Assigned Faculty Members ({faculty?.length || 0})
+              </h4>
+              {facultyLoading && (
+                <div className="flex items-center gap-1.5 text-xs text-[#006AC7]">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" /> Updating roster...
+                </div>
+              )}
+            </div>
+
+            {facultyLoading && faculty.length === 0 ? (
+              <div className="py-12 flex flex-col items-center justify-center gap-2 text-[#8094A8]">
+                <Loader2 className="w-6 h-6 animate-spin text-[#006AC7]" />
+                <span className="text-xs">Loading faculty service records...</span>
+              </div>
+            ) : faculty.length === 0 ? (
+              <div className="p-8 text-center text-sm text-[#8094A8] bg-slate-50 rounded-xl">
+                No faculty members match your query. Teachers approved for this school will appear here.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-200/80 text-[#8094A8] uppercase text-[11px] font-bold">
+                      <th className="py-3 px-3">Faculty Teacher</th>
+                      <th className="py-3 px-3">Employee ID / Scale</th>
+                      <th className="py-3 px-3">Civil Designation</th>
+                      <th className="py-3 px-3">CNIC (Protected)</th>
+                      <th className="py-3 px-3">Qualification</th>
+                      <th className="py-3 px-3">Active Teaching Duties</th>
+                      <th className="py-3 px-3">Account Status</th>
+                      <th className="py-3 px-3 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {faculty.map((member) => (
+                      <tr key={member.userId} className="hover:bg-slate-50/70 transition">
+                        <td className="py-3.5 px-3">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full bg-blue-100 text-[#006AC7] font-bold text-xs flex items-center justify-center">
+                              {member.fullName?.charAt(0) || 'T'}
+                            </div>
+                            <div>
+                              <p className="font-bold text-[#102033]">{member.fullName}</p>
+                              <p className="text-[11px] text-[#8094A8]">{member.email}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-3 font-mono">
+                          <span className="font-bold text-[#102033]">{member.employeeId || 'ID-PENDING'}</span>
+                          <span className="block text-[10px] text-[#526477] font-sans">{member.bpsScale}</span>
+                        </td>
+                        <td className="py-3.5 px-3 font-semibold text-[#526477]">
+                          {member.designation}
+                        </td>
+                        <td className="py-3.5 px-3 font-mono text-[11px] text-slate-600">
+                          {member.cnicMasked || '*****-*******-*'}
+                        </td>
+                        <td className="py-3.5 px-3 text-[#526477]">
+                          {member.qualification || 'B.Ed / Master'}
+                        </td>
+                        <td className="py-3.5 px-3">
+                          <div className="flex flex-col gap-1">
+                            <span className="inline-flex items-center gap-1 font-bold text-[#006AC7]">
+                              <BookOpen className="w-3.5 h-3.5" />
+                              {member.activeDutyCount} Active {member.activeDutyCount === 1 ? 'Duty' : 'Duties'}
+                            </span>
+                            {member.activeAssignments?.length > 0 && (
+                              <div className="text-[10px] text-[#8094A8] space-y-0.5">
+                                {member.activeAssignments.slice(0, 2).map((duty, idx) => (
+                                  <span key={idx} className="block truncate max-w-[180px]">
+                                    {duty.className} ({duty.sectionName}) • {duty.subjectName}
+                                  </span>
+                                ))}
+                                {member.activeAssignments.length > 2 && (
+                                  <span className="text-[#006AC7] font-medium">
+                                    +{member.activeAssignments.length - 2} more...
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-3">
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              member.status === 'ACTIVE'
+                                ? 'bg-emerald-50 text-[#4B7F3A] border border-emerald-200'
+                                : member.status === 'PENDING_APPROVAL'
+                                ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                : 'bg-slate-100 text-[#526477]'
+                            }`}
+                          >
+                            {member.status}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-3 text-right">
+                          <button
+                            id={`assign-duty-btn-${member.userId}`}
+                            onClick={() => handleOpenAssignDutyForTeacher(member.userId)}
+                            className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-blue-50 text-[#006AC7] hover:bg-blue-100 border border-blue-200 transition cursor-pointer"
+                          >
+                            Assign Duty
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* TAB 3: ACADEMIC SETUP                                               */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {activeTab === 'academics' && (
+
         <div className="space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h3 className="text-base font-bold text-[#102033]">School Academic Structure</h3>
@@ -1087,44 +1386,295 @@ export const HmDashboard = () => {
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {activeTab === 'attendance' && (
         <div className="space-y-6">
-          <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-4">
-            <div className="flex items-center justify-between">
+          {/* Header & Sub-Navigation Toggle */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
               <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
                 <ClipboardCheck className="w-5 h-5 text-[#4B7F3A]" />
-                Daily Attendance Verification & Intelligence
+                School Attendance Governance Portal
               </h3>
-              <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-50 text-[#4B7F3A] border border-emerald-200 font-bold">
-                Level 50 Authority
-              </span>
+              <p className="text-xs text-[#526477] mt-0.5">
+                Daily faculty physical register sign-off and student section attendance analytics.
+              </p>
             </div>
+            <div className="flex p-1 bg-slate-100 rounded-xl border border-slate-200/80 self-start sm:self-auto">
+              <button
+                id="attendance-subtab-faculty-btn"
+                onClick={() => setAttendanceSubTab('faculty')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  attendanceSubTab === 'faculty'
+                    ? 'bg-white text-[#006AC7] shadow-sm'
+                    : 'text-[#526477] hover:text-[#102033]'
+                }`}
+              >
+                Faculty Daily Register
+              </button>
+              <button
+                id="attendance-subtab-analytics-btn"
+                onClick={() => setAttendanceSubTab('analytics')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                  attendanceSubTab === 'analytics'
+                    ? 'bg-white text-[#006AC7] shadow-sm'
+                    : 'text-[#526477] hover:text-[#102033]'
+                }`}
+              >
+                Student Section Analytics
+              </button>
+            </div>
+          </div>
 
-            {attendanceLoading ? (
-              <div className="flex items-center gap-2 text-sm text-[#526477]"><Loader2 className="w-4 h-4 animate-spin text-[#006AC7]" /> Loading attendance analytics...</div>
-            ) : (
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60">
-                    <span className="text-xs text-[#8094A8] font-bold uppercase block">Current Month Aggregate</span>
-                    <span className="text-2xl font-black text-[#006AC7]">{attendanceAnalytics?.aggregates?.currentMonthPct ?? '—'}%</span>
+          {/* Sub-Tab 1: Faculty Daily Register */}
+          {attendanceSubTab === 'faculty' && (
+            <div className="space-y-6">
+              {/* Date Control & Summary KPI Pills */}
+              <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                  <div className="flex items-center gap-3">
+                    <label className="text-xs font-bold text-[#102033] flex items-center gap-1.5">
+                      <Calendar className="w-4 h-4 text-[#006AC7]" /> Attendance Date:
+                    </label>
+                    <input
+                      id="hm-teacher-attendance-date-picker"
+                      type="date"
+                      value={teacherAttendanceDate}
+                      max={new Date().toISOString().split('T')[0]}
+                      onChange={(e) => setTeacherAttendanceDate(e.target.value)}
+                      className="text-xs font-semibold px-3 py-1.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                    />
+                    <button
+                      onClick={() => setTeacherAttendanceDate(new Date().toISOString().split('T')[0])}
+                      className="text-[11px] px-2.5 py-1 rounded-lg bg-slate-100 text-[#526477] hover:bg-slate-200 font-semibold transition cursor-pointer"
+                    >
+                      Today
+                    </button>
                   </div>
-                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60">
-                    <span className="text-xs text-[#8094A8] font-bold uppercase block">Last Month Benchmark</span>
-                    <span className="text-2xl font-black text-purple-700">{attendanceAnalytics?.aggregates?.lastMonthPct ?? '—'}%</span>
-                  </div>
-                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60">
-                    <span className="text-xs text-[#8094A8] font-bold uppercase block">Academic Session Avg</span>
-                    <span className="text-2xl font-black text-amber-700">{attendanceAnalytics?.aggregates?.overallSessionPct ?? '—'}%</span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      id="hm-teacher-attendance-mark-all-btn"
+                      onClick={handleMarkAllTeachersPresent}
+                      className="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-50 text-[#4B7F3A] hover:bg-emerald-100 border border-emerald-200 transition cursor-pointer"
+                    >
+                      Mark All Present
+                    </button>
+                    <button
+                      id="hm-teacher-attendance-save-btn"
+                      disabled={teacherAttendanceSaving || teacherAttendanceRecords.length === 0}
+                      onClick={handleSaveTeacherAttendanceSubmit}
+                      className="px-4 py-1.5 rounded-xl text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white shadow-sm flex items-center gap-1.5 transition disabled:opacity-50 cursor-pointer"
+                    >
+                      {teacherAttendanceSaving ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" /> Saving...
+                        </>
+                      ) : (
+                        <>
+                          <ShieldCheck className="w-3.5 h-3.5" /> Save & Verify Register
+                        </>
+                      )}
+                    </button>
                   </div>
                 </div>
 
-                <p className="text-xs text-[#526477] leading-relaxed">
-                  Head Masters verify paper-register uploads, evaluate late justification thresholds, and conduct institutional oversight. Daily classroom marking remains delegated to teachers with valid TeachingAssignments.
-                </p>
+                {/* Summary KPI Pills */}
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/60">
+                    <span className="text-[11px] font-bold text-[#8094A8] uppercase block">Total Faculty</span>
+                    <span className="text-xl font-black text-[#102033]">{teacherAttendanceRecords.length}</span>
+                  </div>
+                  <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200">
+                    <span className="text-[11px] font-bold text-[#4B7F3A] uppercase block">Present</span>
+                    <span className="text-xl font-black text-[#4B7F3A]">
+                      {teacherAttendanceRecords.filter((r) => r.status === 'PRESENT').length}
+                    </span>
+                  </div>
+                  <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200">
+                    <span className="text-[11px] font-bold text-rose-700 uppercase block">Absent</span>
+                    <span className="text-xl font-black text-rose-700">
+                      {teacherAttendanceRecords.filter((r) => r.status === 'ABSENT').length}
+                    </span>
+                  </div>
+                  <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200">
+                    <span className="text-[11px] font-bold text-amber-700 uppercase block">Leave</span>
+                    <span className="text-xl font-black text-amber-700">
+                      {teacherAttendanceRecords.filter((r) => r.status === 'LEAVE').length}
+                    </span>
+                  </div>
+                  <div className="p-3.5 rounded-xl bg-purple-50 border border-purple-200">
+                    <span className="text-[11px] font-bold text-purple-700 uppercase block">Late</span>
+                    <span className="text-xl font-black text-purple-700">
+                      {teacherAttendanceRecords.filter((r) => r.status === 'LATE').length}
+                    </span>
+                  </div>
+                </div>
+
+                {teacherAttendance?.alreadySubmitted && (
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-50/70 border border-emerald-200 text-xs text-[#4B7F3A]">
+                    <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                    <span>
+                      Daily teacher register is verified by Head Master for {teacherAttendance.date}. Changes can be made and re-saved below.
+                    </span>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+
+              {/* Interactive Teacher Roster Table */}
+              <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold uppercase text-[#8094A8] tracking-wider">
+                    Faculty Attendance Roster ({teacherAttendanceRecords.length})
+                  </h4>
+                  {teacherAttendanceLoading && (
+                    <div className="flex items-center gap-1.5 text-xs text-[#006AC7]">
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" /> Loading register...
+                    </div>
+                  )}
+                </div>
+
+                {teacherAttendanceLoading && teacherAttendanceRecords.length === 0 ? (
+                  <div className="py-12 flex flex-col items-center justify-center gap-2 text-[#8094A8]">
+                    <Loader2 className="w-6 h-6 animate-spin text-[#006AC7]" />
+                    <span className="text-xs">Loading faculty attendance records...</span>
+                  </div>
+                ) : teacherAttendanceRecords.length === 0 ? (
+                  <div className="p-8 text-center text-sm text-[#8094A8] bg-slate-50 rounded-xl">
+                    No active faculty members found in school registry to mark attendance for.
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="border-b border-slate-200/80 text-[#8094A8] uppercase text-[11px] font-bold">
+                          <th className="py-3 px-3">Faculty Member</th>
+                          <th className="py-3 px-3">Employee ID</th>
+                          <th className="py-3 px-3">Attendance Status</th>
+                          <th className="py-3 px-3">Reason / Remarks</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {teacherAttendanceRecords.map((recordItem) => (
+                          <tr key={recordItem.userId} className="hover:bg-slate-50/70 transition">
+                            <td className="py-3.5 px-3">
+                              <p className="font-bold text-[#102033]">{recordItem.fullName}</p>
+                              <p className="text-[11px] text-[#8094A8]">{recordItem.designation || 'Teacher'}</p>
+                            </td>
+                            <td className="py-3.5 px-3 font-mono text-slate-700">
+                              {recordItem.employeeId || 'ID-PENDING'}
+                            </td>
+                            <td className="py-3.5 px-3">
+                              <div className="inline-flex rounded-xl p-1 bg-slate-100 border border-slate-200/70 gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => handleTeacherStatusChange(recordItem.userId, 'PRESENT')}
+                                  className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                                    recordItem.status === 'PRESENT'
+                                      ? 'bg-emerald-600 text-white shadow-xs'
+                                      : 'text-[#526477] hover:text-[#102033]'
+                                  }`}
+                                >
+                                  Present
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleTeacherStatusChange(recordItem.userId, 'ABSENT')}
+                                  className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                                    recordItem.status === 'ABSENT'
+                                      ? 'bg-rose-600 text-white shadow-xs'
+                                      : 'text-[#526477] hover:text-[#102033]'
+                                  }`}
+                                >
+                                  Absent
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleTeacherStatusChange(recordItem.userId, 'LEAVE')}
+                                  className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                                    recordItem.status === 'LEAVE'
+                                      ? 'bg-amber-600 text-white shadow-xs'
+                                      : 'text-[#526477] hover:text-[#102033]'
+                                  }`}
+                                >
+                                  Leave
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleTeacherStatusChange(recordItem.userId, 'LATE')}
+                                  className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                                    recordItem.status === 'LATE'
+                                      ? 'bg-purple-600 text-white shadow-xs'
+                                      : 'text-[#526477] hover:text-[#102033]'
+                                  }`}
+                                >
+                                  Late
+                                </button>
+                              </div>
+                            </td>
+                            <td className="py-3.5 px-3">
+                              <input
+                                type="text"
+                                value={recordItem.remarks}
+                                onChange={(e) => handleTeacherRemarksChange(recordItem.userId, e.target.value)}
+                                placeholder={
+                                  recordItem.status === 'LEAVE'
+                                    ? 'Casual / Medical / Official leave reason...'
+                                    : recordItem.status === 'LATE'
+                                    ? 'Arrival delay reason / transit...'
+                                    : 'Optional administrative remark...'
+                                }
+                                className="w-full max-w-sm px-3 py-1.5 rounded-lg text-xs border border-slate-200/80 bg-slate-50/50 focus:outline-none focus:ring-1 focus:ring-[#006AC7] focus:bg-white transition"
+                              />
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Sub-Tab 2: Student Section Analytics */}
+          {attendanceSubTab === 'analytics' && (
+            <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
+                  <ClipboardCheck className="w-5 h-5 text-[#4B7F3A]" />
+                  Classroom Section Attendance Intelligence
+                </h3>
+                <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-50 text-[#4B7F3A] border border-emerald-200 font-bold">
+                  Level 50 Authority
+                </span>
+              </div>
+
+              {attendanceLoading ? (
+                <div className="flex items-center gap-2 text-sm text-[#526477]"><Loader2 className="w-4 h-4 animate-spin text-[#006AC7]" /> Loading attendance analytics...</div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60">
+                      <span className="text-xs text-[#8094A8] font-bold uppercase block">Current Month Aggregate</span>
+                      <span className="text-2xl font-black text-[#006AC7]">{attendanceAnalytics?.aggregates?.currentMonthPct ?? '—'}%</span>
+                    </div>
+                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60">
+                      <span className="text-xs text-[#8094A8] font-bold uppercase block">Last Month Benchmark</span>
+                      <span className="text-2xl font-black text-purple-700">{attendanceAnalytics?.aggregates?.lastMonthPct ?? '—'}%</span>
+                    </div>
+                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60">
+                      <span className="text-xs text-[#8094A8] font-bold uppercase block">Academic Session Avg</span>
+                      <span className="text-2xl font-black text-amber-700">{attendanceAnalytics?.aggregates?.overallSessionPct ?? '—'}%</span>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-[#526477] leading-relaxed">
+                    Head Masters verify paper-register uploads, evaluate late justification thresholds, and conduct institutional oversight. Daily classroom marking remains delegated to teachers with valid TeachingAssignments.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
+
 
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* TAB 6: EXAMINATIONS & GAZETTE                                       */}
@@ -1537,16 +2087,23 @@ export const HmDashboard = () => {
               </select>
             </div>
             <div>
-              <label className="text-xs font-bold text-[#102033] block mb-1">Teacher User ID</label>
-              <input
-                type="text"
+              <label className="text-xs font-bold text-[#102033] block mb-1">Select Teaching Faculty Member</label>
+              <select
+                id="hm-assign-duty-teacher-select"
                 value={dutyData.teacherId}
                 onChange={(e) => setDutyData({ ...dutyData, teacherId: e.target.value })}
-                placeholder="24-character Teacher ObjectId"
                 required
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 font-mono"
-              />
+                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+              >
+                <option value="">-- Choose Faculty Teacher --</option>
+                {faculty.map((teacher) => (
+                  <option key={teacher.userId} value={teacher.userId}>
+                    {teacher.fullName} ({teacher.employeeId || 'ID Pending'}) — {teacher.designation || 'Teacher'}
+                  </option>
+                ))}
+              </select>
             </div>
+
             <div className="flex justify-end gap-2 pt-2">
               <button type="button" onClick={() => setAssignDutyModal(false)} className="px-3 py-1.5 rounded-lg text-xs font-semibold text-[#526477]">Cancel</button>
               <button type="submit" className="px-4 py-1.5 rounded-lg text-xs font-bold bg-[#006AC7] text-white">Confirm Assignment</button>

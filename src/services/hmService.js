@@ -168,6 +168,26 @@ export const hmService = {
     const response = await apiClient.patch(`/students/schools/${schoolId}/code`, { schoolCode });
     return response.data;
   },
+
+  // ─── 10. Teaching Faculty & Daily Staff Attendance ───────────────────────────
+  getSchoolFaculty: async (params = {}, options = {}) => {
+    const response = await apiClient.get('/staff/school', {
+      params,
+      signal: options.signal,
+    });
+    return response.data;
+  },
+
+  getTeacherDailyAttendance: async (params = {}) => {
+    const response = await apiClient.get('/attendance/teachers/daily', { params });
+    return response.data;
+  },
+
+  saveTeacherDailyAttendance: async (payload) => {
+    const response = await apiClient.post('/attendance/teachers/daily', payload);
+    return response.data;
+  },
 };
 
 export default hmService;
+

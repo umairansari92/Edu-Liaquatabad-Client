@@ -324,6 +324,44 @@ export const updateSchoolCode = createAsyncThunk(
   }
 );
 
+export const fetchSchoolFaculty = createAsyncThunk(
+  'hm/fetchSchoolFaculty',
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const response = await hmService.getSchoolFaculty(params);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch faculty roster');
+    }
+  }
+);
+
+export const fetchTeacherDailyAttendance = createAsyncThunk(
+  'hm/fetchTeacherDailyAttendance',
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const response = await hmService.getTeacherDailyAttendance(params);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch teacher daily attendance');
+    }
+  }
+);
+
+export const saveTeacherDailyAttendance = createAsyncThunk(
+  'hm/saveTeacherDailyAttendance',
+  async (payload, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await hmService.saveTeacherDailyAttendance(payload);
+      dispatch(fetchTeacherDailyAttendance({ date: payload.date }));
+      dispatch(fetchHmSummary());
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to record teacher attendance');
+    }
+  }
+);
+
 // ─── HM Redux Slice ───────────────────────────────────────────────────────────
 
 const initialState = {
@@ -344,6 +382,19 @@ const initialState = {
     hasPreviousPage: false,
   },
   studentsLoading: false,
+
+  faculty: [],
+  facultyPagination: {
+    currentPage: 1,
+    pageSize: 50,
+    totalRecords: 0,
+    totalPages: 0,
+  },
+  facultyLoading: false,
+
+  teacherAttendance: null,
+  teacherAttendanceLoading: false,
+  teacherAttendanceSaving: false,
 
   classes: [],
   sections: [],
@@ -368,6 +419,7 @@ const initialState = {
 
   actionError: null,
 };
+
 
 const hmSlice = createSlice({
   name: 'hm',
@@ -502,7 +554,52 @@ const hmSlice = createSlice({
           state.studentsLoading = false;
           state.actionError = action.payload;
         }
+      })
+
+      // Faculty Directory
+      .addCase(fetchSchoolFaculty.pending, (state) => {
+        state.facultyLoading = true;
+      })
+      .addCase(fetchSchoolFaculty.fulfilled, (state, action) => {
+        state.facultyLoading = false;
+        state.faculty = action.payload?.faculty || [];
+        state.facultyPagination = {
+          currentPage: action.payload?.currentPage || 1,
+          pageSize: action.payload?.pageSize || 50,
+          totalRecords: action.payload?.totalRecords || 0,
+          totalPages: action.payload?.totalPages || 1,
+        };
+      })
+      .addCase(fetchSchoolFaculty.rejected, (state, action) => {
+        state.facultyLoading = false;
+        state.actionError = action.payload;
+      })
+
+      // Teacher Daily Attendance
+      .addCase(fetchTeacherDailyAttendance.pending, (state) => {
+        state.teacherAttendanceLoading = true;
+      })
+      .addCase(fetchTeacherDailyAttendance.fulfilled, (state, action) => {
+        state.teacherAttendanceLoading = false;
+        state.teacherAttendance = action.payload;
+      })
+      .addCase(fetchTeacherDailyAttendance.rejected, (state, action) => {
+        state.teacherAttendanceLoading = false;
+        state.actionError = action.payload;
+      })
+
+      // Save Teacher Daily Attendance
+      .addCase(saveTeacherDailyAttendance.pending, (state) => {
+        state.teacherAttendanceSaving = true;
+      })
+      .addCase(saveTeacherDailyAttendance.fulfilled, (state) => {
+        state.teacherAttendanceSaving = false;
+      })
+      .addCase(saveTeacherDailyAttendance.rejected, (state, action) => {
+        state.teacherAttendanceSaving = false;
+        state.actionError = action.payload;
       });
+
   },
 });
 
