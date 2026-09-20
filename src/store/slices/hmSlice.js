@@ -296,6 +296,34 @@ export const publishSchoolNotice = createAsyncThunk(
   }
 );
 
+export const fetchSchoolStudents = createAsyncThunk(
+  'hm/fetchSchoolStudents',
+  async (params = {}, { rejectWithValue, signal }) => {
+    try {
+      const response = await hmService.getSchoolStudents(params, { signal });
+      return response.data;
+    } catch (error) {
+      if (error.name === 'CanceledError' || error.name === 'AbortError' || error.code === 'ERR_CANCELED') {
+        return rejectWithValue('REQUEST_ABORTED');
+      }
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch student directory');
+    }
+  }
+);
+
+export const updateSchoolCode = createAsyncThunk(
+  'hm/updateSchoolCode',
+  async ({ schoolId, schoolCode }, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await hmService.setSchoolCode(schoolId, schoolCode);
+      dispatch(fetchHmSummary());
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to update school code');
+    }
+  }
+);
+
 // ─── HM Redux Slice ───────────────────────────────────────────────────────────
 
 const initialState = {
@@ -305,6 +333,17 @@ const initialState = {
   staffApprovals: [],
   studentApprovals: [],
   approvalsLoading: false,
+
+  students: [],
+  studentsPagination: {
+    currentPage: 1,
+    pageSize: 20,
+    totalRecords: 0,
+    totalPages: 0,
+    hasNextPage: false,
+    hasPreviousPage: false,
+  },
+  studentsLoading: false,
 
   classes: [],
   sections: [],
@@ -447,6 +486,22 @@ const hmSlice = createSlice({
       .addCase(fetchSchoolNotices.rejected, (state, action) => {
         state.noticesLoading = false;
         state.actionError = action.payload;
+      })
+
+      // Student Directory
+      .addCase(fetchSchoolStudents.pending, (state) => {
+        state.studentsLoading = true;
+      })
+      .addCase(fetchSchoolStudents.fulfilled, (state, action) => {
+        state.studentsLoading = false;
+        state.students = action.payload?.students || [];
+        state.studentsPagination = action.payload?.pagination || state.studentsPagination;
+      })
+      .addCase(fetchSchoolStudents.rejected, (state, action) => {
+        if (action.payload !== 'REQUEST_ABORTED') {
+          state.studentsLoading = false;
+          state.actionError = action.payload;
+        }
       });
   },
 });

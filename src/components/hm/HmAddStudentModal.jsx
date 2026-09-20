@@ -22,7 +22,7 @@ import './HmAddStudentModal.css';
  *
  * Global Student ID (e.g. MMHA-0001) is ALWAYS system-generated — never shown in form.
  */
-const HmAddStudentModal = ({ isOpen, onClose, schoolId, classes = [], onSuccess }) => {
+const HmAddStudentModal = ({ isOpen, onClose, schoolId, classes = [], sections = [], onSuccess }) => {
   const [step, setStep] = useState(1); // 1: Type select, 2: Fill form, 3: Success
   const [nextGrPreview, setNextGrPreview] = useState(null);
   const [grCheckState, setGrCheckState] = useState(null); // null | 'checking' | 'available' | 'taken'
@@ -45,6 +45,16 @@ const HmAddStudentModal = ({ isOpen, onClose, schoolId, classes = [], onSuccess 
   const admissionType = watch('admissionType');
   const manualGrNumber = watch('manualGrNumber');
   const selectedClassId = watch('classId');
+
+  // Dynamically resolve sections from either nested class.sections or flat sections array
+  const availableSections = (
+    classes.find((classCandidate) => String(classCandidate._id) === String(selectedClassId))?.sections?.length > 0
+      ? classes.find((classCandidate) => String(classCandidate._id) === String(selectedClassId)).sections
+      : sections.filter((sectionItem) => {
+          const sectionClassId = sectionItem.classId?._id || sectionItem.classId;
+          return String(sectionClassId) === String(selectedClassId);
+        })
+  ) || [];
 
   // Fetch next GR preview when modal opens
   useEffect(() => {
@@ -82,7 +92,12 @@ const HmAddStudentModal = ({ isOpen, onClose, schoolId, classes = [], onSuccess 
     }
     setSubmitting(true);
     try {
-      const enrollmentResponse = await apiClient.post('/students/enroll', enrollmentFormData);
+      const payload = {
+        ...enrollmentFormData,
+        schoolId: schoolId || undefined,
+        manualGrNumber: enrollmentFormData.manualGrNumber ? Number(enrollmentFormData.manualGrNumber) : undefined,
+      };
+      const enrollmentResponse = await apiClient.post('/students/enroll', payload);
       setEnrolledStudent(enrollmentResponse.data?.data);
       setStep(3);
       toast.success('Student enrolled successfully!');
@@ -298,11 +313,9 @@ const HmAddStudentModal = ({ isOpen, onClose, schoolId, classes = [], onSuccess 
                   <label className="hm-label">Section <span className="req">*</span></label>
                   <select {...register('sectionId')} className="hm-input">
                     <option value="">Select Section</option>
-                    {classes
-                      .find((classCandidate) => classCandidate._id === selectedClassId)
-                      ?.sections?.map((sectionItem) => (
-                        <option key={sectionItem._id} value={sectionItem._id}>{sectionItem.name}</option>
-                      ))}
+                    {availableSections.map((sectionItem) => (
+                      <option key={sectionItem._id} value={sectionItem._id}>{sectionItem.name}</option>
+                    ))}
                   </select>
                   {errors.sectionId && <p className="hm-field-error">{errors.sectionId.message}</p>}
                 </div>

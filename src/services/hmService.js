@@ -1,3 +1,4 @@
+
 import apiClient from './apiClient.js';
 
 /**
@@ -151,6 +152,20 @@ export const hmService = {
 
   createDocument: async (data) => {
     const response = await apiClient.post('/documents', data);
+    return response.data;
+  },
+
+  // ─── 9. Student Directory & Identity Management ──────────────────────────────
+  getSchoolStudents: async (params = {}, options = {}) => {
+    const response = await apiClient.get('/students/school', {
+      params,
+      signal: options.signal,
+    });
+    return response.data;
+  },
+
+  setSchoolCode: async (schoolId, schoolCode) => {
+    const response = await apiClient.patch(`/students/schools/${schoolId}/code`, { schoolCode });
     return response.data;
   },
 };

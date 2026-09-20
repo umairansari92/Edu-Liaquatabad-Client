@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   School,
@@ -27,9 +27,18 @@ import {
   X,
   Building,
   Calendar,
+  Search,
+  Filter,
+  UserPlus,
+  ChevronLeft,
+  ChevronRight,
+  Hash,
+  QrCode,
+  IdCard,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PageContainer from '../../components/layout/PageContainer.jsx';
+import HmAddStudentModal from '../../components/hm/HmAddStudentModal.jsx';
 import {
   fetchHmSummary,
   fetchPendingApprovals,
@@ -54,6 +63,8 @@ import {
   approveTransferJoining,
   fetchSchoolNotices,
   publishSchoolNotice,
+  fetchSchoolStudents,
+  updateSchoolCode,
 } from '../../store/slices/hmSlice.js';
 
 // ─── Stat Card Component ──────────────────────────────────────────────────────
@@ -114,6 +125,9 @@ export const HmDashboard = () => {
     staffApprovals,
     studentApprovals,
     approvalsLoading,
+    students,
+    studentsLoading,
+    studentsPagination,
     classes,
     sections,
     subjects,
@@ -131,6 +145,58 @@ export const HmDashboard = () => {
   } = useSelector((state) => state.hm);
 
   const [activeTab, setActiveTab] = useState('overview');
+
+  // Student Directory State
+  const [studentSearchQuery, setStudentSearchQuery] = useState('');
+  const [studentClassFilter, setStudentClassFilter] = useState('');
+  const [studentSectionFilter, setStudentSectionFilter] = useState('');
+  const [studentGenderFilter, setStudentGenderFilter] = useState('');
+  const [studentStatusFilter, setStudentStatusFilter] = useState('');
+  const [studentPage, setStudentPage] = useState(1);
+  const [studentLimit, setStudentLimit] = useState(20);
+  const [addStudentModalOpen, setAddStudentModalOpen] = useState(false);
+  const [schoolCodeModalOpen, setSchoolCodeModalOpen] = useState(false);
+  const [newSchoolCodeInput, setNewSchoolCodeInput] = useState('');
+
+  // Stale-request & race-condition cancellation refs
+  const studentSearchAbortRef = useRef(null);
+  const studentRequestIdRef = useRef(0);
+
+  const loadStudents = useCallback((paramsOverride = {}) => {
+    if (studentSearchAbortRef.current) {
+      studentSearchAbortRef.current.abort();
+    }
+    const abortController = new AbortController();
+    studentSearchAbortRef.current = abortController;
+    const currentRequestId = ++studentRequestIdRef.current;
+
+    const targetPage = paramsOverride.page !== undefined ? paramsOverride.page : studentPage;
+    const targetLimit = paramsOverride.limit !== undefined ? paramsOverride.limit : studentLimit;
+    const targetSearch = (paramsOverride.search !== undefined ? paramsOverride.search : studentSearchQuery).trim();
+    const targetClass = paramsOverride.classId !== undefined ? paramsOverride.classId : studentClassFilter;
+    const targetSection = paramsOverride.sectionId !== undefined ? paramsOverride.sectionId : studentSectionFilter;
+    const targetGender = paramsOverride.gender !== undefined ? paramsOverride.gender : studentGenderFilter;
+    const targetStatus = paramsOverride.lifecycleStatus !== undefined ? paramsOverride.lifecycleStatus : studentStatusFilter;
+
+    const queryParams = {
+      page: targetPage,
+      limit: targetLimit,
+      search: targetSearch || undefined,
+      classId: targetClass || undefined,
+      sectionId: targetSection || undefined,
+      gender: targetGender || undefined,
+      lifecycleStatus: targetStatus || undefined,
+    };
+
+    dispatch(fetchSchoolStudents({ ...queryParams, signal: abortController.signal }))
+      .unwrap()
+      .then(() => {
+        if (currentRequestId !== studentRequestIdRef.current) return;
+      })
+      .catch((err) => {
+        if (err === 'REQUEST_ABORTED') return;
+      });
+  }, [dispatch, studentPage, studentLimit, studentSearchQuery, studentClassFilter, studentSectionFilter, studentGenderFilter, studentStatusFilter]);
 
   // Modal States
   const [approvalModal, setApprovalModal] = useState({ open: false, user: null, type: 'staff' });
@@ -158,7 +224,11 @@ export const HmDashboard = () => {
 
   // Tab-specific data loading via Redux thunks
   useEffect(() => {
-    if (activeTab === 'approvals') {
+    if (activeTab === 'students') {
+      dispatch(fetchAcademicClasses());
+      dispatch(fetchAcademicSections());
+      loadStudents({ page: 1 });
+    } else if (activeTab === 'approvals') {
       dispatch(fetchPendingApprovals('staff'));
       dispatch(fetchPendingApprovals('student'));
     } else if (activeTab === 'academics') {
@@ -180,6 +250,33 @@ export const HmDashboard = () => {
       dispatch(fetchSchoolNotices());
     }
   }, [activeTab, dispatch]);
+
+  // Debounced search trigger with cancellation for students tab
+  useEffect(() => {
+    if (activeTab !== 'students') return;
+    const debounceTimer = setTimeout(() => {
+      loadStudents({ page: 1 });
+      setStudentPage(1);
+    }, 350);
+
+    return () => clearTimeout(debounceTimer);
+  }, [studentSearchQuery, studentClassFilter, studentSectionFilter, studentGenderFilter, studentStatusFilter]);
+
+  const handleUpdateSchoolCodeSubmit = async (e) => {
+    e.preventDefault();
+    if (!newSchoolCodeInput.trim()) return;
+    const effectiveSchoolId = user?.schoolId?._id || user?.schoolId;
+    try {
+      await dispatch(updateSchoolCode({ schoolId: effectiveSchoolId, schoolCode: newSchoolCodeInput.trim().toUpperCase() })).unwrap();
+      toast.success(`School code '${newSchoolCodeInput.trim().toUpperCase()}' set & student IDs updated.`);
+      setSchoolCodeModalOpen(false);
+      setNewSchoolCodeInput('');
+      loadStudents({ page: 1 });
+      dispatch(fetchHmSummary());
+    } catch (err) {
+      toast.error(err || 'Failed to update school code');
+    }
+  };
 
   const handleRefreshAll = () => {
     dispatch(fetchHmSummary());
@@ -396,6 +493,7 @@ export const HmDashboard = () => {
       {/* ── Tabs Navigation ──────────────────────────────────────────────── */}
       <div className="flex flex-wrap gap-2 mb-6 pb-2 border-b border-slate-200/60">
         <TabBtn label="Command Center" active={activeTab === 'overview'} onClick={() => setActiveTab('overview')} icon={School} />
+        <TabBtn label="Student Directory" active={activeTab === 'students'} onClick={() => setActiveTab('students')} badge={studentsPagination?.totalRecords ?? summary?.metrics?.totalStudents} icon={GraduationCap} />
         <TabBtn label="Approvals" active={activeTab === 'approvals'} onClick={() => setActiveTab('approvals')} badge={totalPendingCount} icon={UserCheck} />
         <TabBtn label="Academic Setup" active={activeTab === 'academics'} onClick={() => setActiveTab('academics')} icon={BookMarked} />
         <TabBtn label="Teaching Duties" active={activeTab === 'assignments'} onClick={() => setActiveTab('assignments')} icon={BookOpen} />
@@ -515,7 +613,279 @@ export const HmDashboard = () => {
       )}
 
       {/* ═══════════════════════════════════════════════════════════════════ */}
-      {/* TAB 2: STAFF & STUDENT APPROVALS                                    */}
+      {/* TAB 2: STUDENT DIRECTORY & ENROLLMENT (HM STEP 1)                   */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {activeTab === 'students' && (
+        <div className="space-y-6">
+          {/* Header Card with Stats & Action */}
+          <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-200 text-[#006AC7]">
+                  <GraduationCap className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-[#102033]">
+                    Official Student Directory (طالب علم ڈائریکٹری)
+                  </h3>
+                  <p className="text-xs text-[#526477]">
+                    Authoritative school register • Dual GR & lifelong Global Student ID tracking
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2.5">
+              {/* School Code Badge / Action */}
+              <button
+                onClick={() => {
+                  setNewSchoolCodeInput(user?.schoolId?.schoolCode || user?.schoolId?.code || '');
+                  setSchoolCodeModalOpen(true);
+                }}
+                className="px-3.5 py-2 rounded-xl text-xs font-bold border border-slate-200/80 bg-slate-50 hover:bg-slate-100 text-[#102033] transition flex items-center gap-1.5 cursor-pointer"
+                title="Configure school code prefix for Global Student IDs"
+              >
+                <QrCode className="w-3.5 h-3.5 text-[#006AC7]" />
+                <span>Code: <strong>{user?.schoolId?.schoolCode || user?.schoolId?.code || 'Not Set'}</strong></span>
+              </button>
+
+              {/* Enroll Student Button */}
+              <button
+                onClick={() => setAddStudentModalOpen(true)}
+                className="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-[#006AC7] hover:bg-[#005299] text-white transition shadow-sm flex items-center gap-2 cursor-pointer"
+              >
+                <UserPlus className="w-4 h-4" />
+                Enroll Student (نئی داخلہ)
+              </button>
+            </div>
+          </div>
+
+          {/* Search and Filters Bar */}
+          <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+              {/* Live Search Input with Debounce & Stale Protection */}
+              <div className="lg:col-span-2 relative">
+                <Search className="w-4 h-4 text-[#8094A8] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  value={studentSearchQuery}
+                  onChange={(e) => setStudentSearchQuery(e.target.value)}
+                  placeholder="Search by GR No, Global ID (LMGA-0001), or Name..."
+                  className="w-full pl-10 pr-9 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#006AC7]/20 focus:border-[#006AC7]"
+                />
+                {studentSearchQuery && (
+                  <button
+                    onClick={() => setStudentSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8094A8] hover:text-[#102033] cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
+              {/* Class Filter */}
+              <div>
+                <select
+                  value={studentClassFilter}
+                  onChange={(e) => {
+                    setStudentClassFilter(e.target.value);
+                    setStudentSectionFilter('');
+                  }}
+                  className="w-full py-2 px-3 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#006AC7]/20 focus:border-[#006AC7]"
+                >
+                  <option value="">All Classes</option>
+                  {classes.map((classItem) => (
+                    <option key={classItem._id} value={classItem._id}>{classItem.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Section Filter */}
+              <div>
+                <select
+                  value={studentSectionFilter}
+                  onChange={(e) => setStudentSectionFilter(e.target.value)}
+                  className="w-full py-2 px-3 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#006AC7]/20 focus:border-[#006AC7]"
+                >
+                  <option value="">All Sections</option>
+                  {sections
+                    .filter((sectionItem) => !studentClassFilter || String(sectionItem.classId?._id || sectionItem.classId) === String(studentClassFilter))
+                    .map((sectionItem) => (
+                      <option key={sectionItem._id} value={sectionItem._id}>{sectionItem.name}</option>
+                    ))}
+                </select>
+              </div>
+
+              {/* Status Filter */}
+              <div>
+                <select
+                  value={studentStatusFilter}
+                  onChange={(e) => setStudentStatusFilter(e.target.value)}
+                  className="w-full py-2 px-3 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#006AC7]/20 focus:border-[#006AC7]"
+                >
+                  <option value="">All Statuses</option>
+                  <option value="ACTIVE">Active (فعال)</option>
+                  <option value="PENDING_APPROVAL">Pending Approval</option>
+                  <option value="TRANSFERRED">Transferred</option>
+                  <option value="SUSPENDED">Suspended</option>
+                  <option value="WITHDRAWN">Withdrawn</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Active Filter Summary & Reset */}
+            {(studentSearchQuery || studentClassFilter || studentSectionFilter || studentStatusFilter) && (
+              <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs text-[#526477]">
+                <span>
+                  Filtering active • Found {studentsPagination?.totalRecords ?? students.length} matching students
+                </span>
+                <button
+                  onClick={() => {
+                    setStudentSearchQuery('');
+                    setStudentClassFilter('');
+                    setStudentSectionFilter('');
+                    setStudentGenderFilter('');
+                    setStudentStatusFilter('');
+                  }}
+                  className="text-[#006AC7] hover:underline font-semibold cursor-pointer"
+                >
+                  Reset all filters
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Students Directory Table */}
+          <div className="rounded-2xl bg-white border border-slate-200/80 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs sm:text-sm">
+                <thead>
+                  <tr className="border-b border-slate-200/80 bg-slate-50/75 text-[11px] font-bold uppercase text-[#8094A8] tracking-wider">
+                    <th className="py-3.5 px-4">GR No</th>
+                    <th className="py-3.5 px-4">Global Student ID</th>
+                    <th className="py-3.5 px-4">Student Name</th>
+                    <th className="py-3.5 px-4">Class & Section</th>
+                    <th className="py-3.5 px-4">Gender</th>
+                    <th className="py-3.5 px-4">Father / Guardian</th>
+                    <th className="py-3.5 px-4">Guardian Phone</th>
+                    <th className="py-3.5 px-4">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200/60">
+                  {studentsLoading ? (
+                    <tr>
+                      <td colSpan={8} className="py-12 text-center text-[#526477]">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <Loader2 className="w-6 h-6 animate-spin text-[#006AC7]" />
+                          <span className="text-xs font-semibold">Loading student records...</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : students.length === 0 ? (
+                    <tr>
+                      <td colSpan={8} className="py-12 text-center text-[#8094A8]">
+                        <div className="max-w-sm mx-auto flex flex-col items-center gap-2">
+                          <GraduationCap className="w-10 h-10 text-slate-300" />
+                          <p className="font-bold text-[#102033] text-sm">No students found</p>
+                          <p className="text-xs text-[#526477]">
+                            {studentSearchQuery || studentClassFilter
+                              ? 'No students matched your search criteria. Try adjusting your filters.'
+                              : 'No students have been enrolled in this school yet. Click "Enroll Student" to get started.'}
+                          </p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    students.map((studentItem) => (
+                      <tr key={studentItem._id} className="hover:bg-slate-50/60 transition">
+                        <td className="py-3.5 px-4 font-mono font-bold text-[#006AC7]">
+                          {studentItem.grNumber}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="px-2 py-0.5 rounded-md font-mono text-xs font-semibold bg-blue-50 text-[#006AC7] border border-blue-200">
+                            {studentItem.globalStudentId}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 font-bold text-[#102033]">
+                          {studentItem.studentName}
+                        </td>
+                        <td className="py-3.5 px-4 text-[#526477]">
+                          <span className="font-semibold text-[#102033]">{studentItem.className}</span>
+                          {studentItem.sectionName !== '—' && (
+                            <span className="ml-1 text-xs text-[#8094A8]">({studentItem.sectionName})</span>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-4 text-[#526477]">
+                          <span className="text-xs capitalize font-medium">{studentItem.gender?.toLowerCase()}</span>
+                        </td>
+                        <td className="py-3.5 px-4 text-[#526477]">
+                          {studentItem.guardianName}
+                        </td>
+                        <td className="py-3.5 px-4 font-mono text-xs text-[#526477]">
+                          {studentItem.guardianContact}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                            studentItem.lifecycleStatus === 'ACTIVE'
+                              ? 'bg-emerald-50 text-[#4B7F3A] border border-emerald-200'
+                              : studentItem.lifecycleStatus === 'PENDING_APPROVAL'
+                              ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                              : 'bg-slate-100 text-[#526477] border border-slate-200'
+                          }`}>
+                            {studentItem.lifecycleStatus}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination Controls */}
+            {studentsPagination && studentsPagination.totalRecords > 0 && (
+              <div className="p-4 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#526477]">
+                <div>
+                  Showing {Math.min((studentsPagination.currentPage - 1) * studentsPagination.pageSize + 1, studentsPagination.totalRecords)} to {Math.min(studentsPagination.currentPage * studentsPagination.pageSize, studentsPagination.totalRecords)} of {studentsPagination.totalRecords} students
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => {
+                      const newPage = Math.max(1, studentPage - 1);
+                      setStudentPage(newPage);
+                      loadStudents({ page: newPage });
+                    }}
+                    disabled={!studentsPagination.hasPreviousPage || studentsLoading}
+                    className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+
+                  <span className="px-2 font-semibold text-[#102033]">
+                    Page {studentsPagination.currentPage} of {studentsPagination.totalPages || 1}
+                  </span>
+
+                  <button
+                    onClick={() => {
+                      const newPage = studentPage + 1;
+                      setStudentPage(newPage);
+                      loadStudents({ page: newPage });
+                    }}
+                    disabled={!studentsPagination.hasNextPage || studentsLoading}
+                    className="p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* TAB 3: STAFF & STUDENT APPROVALS                                    */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {activeTab === 'approvals' && (
         <div className="space-y-6">
@@ -1322,6 +1692,68 @@ export const HmDashboard = () => {
               <button type="submit" className="px-4 py-1.5 rounded-lg text-xs font-bold bg-[#006AC7] text-white">Publish Circular</button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* ── Add Student Modal ──────────────────────────────────────────────── */}
+      <HmAddStudentModal
+        isOpen={addStudentModalOpen}
+        onClose={() => setAddStudentModalOpen(false)}
+        schoolId={user?.schoolId?._id || user?.schoolId}
+        classes={classes}
+        sections={sections}
+        onSuccess={() => {
+          loadStudents({ page: 1 });
+          dispatch(fetchHmSummary());
+        }}
+      />
+
+      {/* ── Set School Code Modal ──────────────────────────────────────────── */}
+      {schoolCodeModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
+                <QrCode className="w-5 h-5 text-[#006AC7]" />
+                Configure School Code
+              </h3>
+              <button onClick={() => setSchoolCodeModalOpen(false)} className="text-[#8094A8] hover:text-[#102033] cursor-pointer">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <p className="text-xs text-[#526477]">
+              Setting the school code establishes the authoritative prefix for Global Student IDs (e.g. <strong>LMGA-0001</strong>). Existing enrolled students will be automatically assigned their sequential ID.
+            </p>
+            <form onSubmit={handleUpdateSchoolCodeSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-[#102033] mb-1">School Code (2-10 Uppercase Alphanumeric)</label>
+                <input
+                  type="text"
+                  value={newSchoolCodeInput}
+                  onChange={(e) => setNewSchoolCodeInput(e.target.value.toUpperCase())}
+                  placeholder="e.g. LMGA"
+                  maxLength={10}
+                  className="w-full p-2.5 rounded-xl border border-slate-200 font-mono uppercase text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#006AC7]/20 focus:border-[#006AC7]"
+                  required
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setSchoolCodeModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold border border-slate-200 text-[#526477] hover:bg-slate-50 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white transition cursor-pointer"
+                >
+                  Save & Backfill IDs
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </PageContainer>
