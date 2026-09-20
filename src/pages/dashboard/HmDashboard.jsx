@@ -35,6 +35,7 @@ import {
   Hash,
   QrCode,
   IdCard,
+  Lock,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PageContainer from '../../components/layout/PageContainer.jsx';
@@ -58,6 +59,7 @@ import {
   scheduleExam,
   fetchExamResults,
   verifyStudentResult,
+  batchVerifyStudentResults,
   publishExamGazette,
   fetchIncomingTransfers,
   approveTransferJoining,
@@ -231,6 +233,8 @@ export const HmDashboard = () => {
   const [newExamModal, setNewExamModal] = useState(false);
   const [examData, setExamData] = useState({ title: '', examType: 'MID_TERM', academicYear: '2025-2026', startDate: '', endDate: '' });
   const [selectedExamId, setSelectedExamId] = useState('');
+  const [examClassFilter, setExamClassFilter] = useState('');
+  const [examSectionFilter, setExamSectionFilter] = useState('');
   const [joiningModal, setJoiningModal] = useState({ open: false, transfer: null, remarks: '', joiningDate: '' });
   const [newNoticeModal, setNewNoticeModal] = useState(false);
   const [noticeData, setNoticeData] = useState({ title: '', documentType: 'CIRCULAR', fileUrl: '', description: '', targetAudience: ['TEACHERS', 'STUDENTS', 'PARENTS'] });
@@ -283,6 +287,8 @@ export const HmDashboard = () => {
       dispatch(fetchAttendanceAnalytics());
     } else if (activeTab === 'exams') {
       dispatch(fetchExamsList());
+      dispatch(fetchAcademicClasses());
+      dispatch(fetchAcademicSections());
     } else if (activeTab === 'transfers') {
       dispatch(fetchIncomingTransfers());
     } else if (activeTab === 'notices') {
@@ -539,7 +545,25 @@ export const HmDashboard = () => {
 
   const handleSelectExam = (examId) => {
     setSelectedExamId(examId);
+    setExamClassFilter('');
+    setExamSectionFilter('');
     dispatch(fetchExamResults({ examId }));
+  };
+
+  const handleExamFilterChange = (newClassId, newSectionId) => {
+    setExamClassFilter(newClassId);
+    setExamSectionFilter(newSectionId);
+    if (selectedExamId) {
+      dispatch(
+        fetchExamResults({
+          examId: selectedExamId,
+          params: {
+            classId: newClassId || undefined,
+            sectionId: newSectionId || undefined,
+          },
+        })
+      );
+    }
   };
 
   const handleVerifyMarks = async (resultId) => {
@@ -548,6 +572,23 @@ export const HmDashboard = () => {
       toast.success('Marks verified.');
     } catch (err) {
       toast.error(err || 'Failed to verify marks.');
+    }
+  };
+
+  const handleBatchVerifyMarks = async () => {
+    if (!selectedExamId) return;
+    try {
+      const response = await dispatch(
+        batchVerifyStudentResults({
+          examId: selectedExamId,
+          classId: examClassFilter || undefined,
+          sectionId: examSectionFilter || undefined,
+          remarks: 'Batch verified by HM',
+        })
+      ).unwrap();
+      toast.success(response?.message || 'Batch verification completed successfully.');
+    } catch (err) {
+      toast.error(err || 'Failed to batch verify results.');
     }
   };
 
@@ -1720,73 +1761,190 @@ export const HmDashboard = () => {
             </div>
 
             {/* Results Review Table */}
-            <div className="lg:col-span-2 p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="text-xs font-bold uppercase text-[#8094A8] tracking-wider">
-                  Exam Results {activeExamResults?.exam?.title ? `— ${activeExamResults.exam.title}` : ''}
-                </h4>
-                {selectedExamId && (
-                  <button
-                    onClick={() => handlePublishGazette(selectedExamId)}
-                    className="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#4B7F3A] hover:bg-[#3d682f] text-white transition cursor-pointer"
-                  >
-                    Publish Gazette
-                  </button>
-                )}
-              </div>
+            {(() => {
+              const selectedExam = exams.find((ex) => String(ex._id) === String(selectedExamId));
+              const examResultsList = activeExamResults?.results || [];
+              const totalCandidates = examResultsList.length;
+              const passedCandidates = examResultsList.filter((res) => res.grade !== 'F').length;
+              const failedCandidates = totalCandidates - passedCandidates;
+              const passRate = totalCandidates > 0 ? ((passedCandidates / totalCandidates) * 100).toFixed(1) : '0.0';
+              const avgScore = totalCandidates > 0
+                ? (examResultsList.reduce((acc, res) => acc + (res.percentage || 0), 0) / totalCandidates).toFixed(1)
+                : '0.0';
+              const unverifiedCount = examResultsList.filter((res) => res.status === 'SUBMITTED').length;
 
-              {!selectedExamId ? (
-                <div className="p-8 text-center text-sm text-[#8094A8]">Select an examination on the left to review student marks.</div>
-              ) : (activeExamResults?.results?.length || 0) === 0 ? (
-                <div className="p-8 text-center text-sm text-[#8094A8]">No submitted student marks found for this examination.</div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead>
-                      <tr className="border-b border-slate-200/80 text-[#8094A8] uppercase text-[10px] font-bold">
-                        <th className="py-2 px-2">Student</th>
-                        <th className="py-2 px-2">Class</th>
-                        <th className="py-2 px-2">Obtained / Total</th>
-                        <th className="py-2 px-2">Percentage</th>
-                        <th className="py-2 px-2">Grade</th>
-                        <th className="py-2 px-2">Status</th>
-                        <th className="py-2 px-2 text-right">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {activeExamResults.results.map((res) => (
-                        <tr key={res._id} className="hover:bg-slate-50/60">
-                          <td className="py-2 px-2 font-bold text-[#102033]">{res.studentId?.fullName}</td>
-                          <td className="py-2 px-2">{res.classId?.name}</td>
-                          <td className="py-2 px-2 font-mono">{res.totalObtainedMarks} / {res.totalMaxMarks}</td>
-                          <td className="py-2 px-2 font-bold text-[#006AC7]">{res.percentage}%</td>
-                          <td className="py-2 px-2 font-mono font-bold">{res.grade}</td>
-                          <td className="py-2 px-2">
-                            <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${
-                              res.status === 'PUBLISHED' ? 'bg-emerald-50 text-[#4B7F3A]' :
-                              res.status === 'VERIFIED_BY_HM' ? 'bg-blue-50 text-[#006AC7]' :
-                              'bg-amber-50 text-amber-700'
-                            }`}>
-                              {res.status}
-                            </span>
-                          </td>
-                          <td className="py-2 px-2 text-right">
-                            {res.status !== 'VERIFIED_BY_HM' && res.status !== 'PUBLISHED' && (
-                              <button
-                                onClick={() => handleVerifyMarks(res._id)}
-                                className="px-2 py-1 rounded bg-[#006AC7] text-white text-[10px] font-bold hover:bg-[#005299] transition cursor-pointer"
-                              >
-                                Verify
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+              return (
+                <div className="lg:col-span-2 p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <h4 className="text-xs font-bold uppercase text-[#8094A8] tracking-wider">
+                        Exam Results {activeExamResults?.exam?.title ? `— ${activeExamResults.exam.title}` : ''}
+                      </h4>
+                      {selectedExam && (
+                        <p className="text-[11px] text-[#526477] mt-0.5">
+                          Session: <span className="font-semibold text-[#102033]">{selectedExam.academicYear}</span> • Type: <span className="font-semibold text-[#102033]">{selectedExam.examType}</span>
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {selectedExam?.status === 'PUBLISHED' ? (
+                        <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          <Lock className="w-3.5 h-3.5" /> Sealed & Published
+                        </span>
+                      ) : (
+                        <>
+                          {unverifiedCount > 0 && (
+                            <button
+                              onClick={handleBatchVerifyMarks}
+                              className="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white transition cursor-pointer flex items-center gap-1.5 shadow-sm"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" /> Batch Verify ({unverifiedCount})
+                            </button>
+                          )}
+                          {selectedExamId && (
+                            <button
+                              onClick={() => handlePublishGazette(selectedExamId)}
+                              className="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#4B7F3A] hover:bg-[#3d682f] text-white transition cursor-pointer flex items-center gap-1.5 shadow-sm"
+                            >
+                              <Award className="w-3.5 h-3.5" /> Publish Gazette
+                            </button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  {selectedExamId && totalCandidates > 0 && (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 bg-slate-50/80 rounded-xl border border-slate-200/60">
+                      <div className="bg-white p-2.5 rounded-lg border border-slate-200/50 shadow-xs">
+                        <span className="text-[10px] uppercase font-bold text-[#8094A8] block">Candidates</span>
+                        <span className="text-sm font-bold text-[#102033]">{totalCandidates}</span>
+                      </div>
+                      <div className="bg-white p-2.5 rounded-lg border border-slate-200/50 shadow-xs">
+                        <span className="text-[10px] uppercase font-bold text-[#8094A8] block">Pass Rate</span>
+                        <span className="text-sm font-bold text-emerald-600">{passRate}% <span className="text-[10px] font-normal text-[#526477]">({passedCandidates})</span></span>
+                      </div>
+                      <div className="bg-white p-2.5 rounded-lg border border-slate-200/50 shadow-xs">
+                        <span className="text-[10px] uppercase font-bold text-[#8094A8] block">Failed</span>
+                        <span className="text-sm font-bold text-rose-600">{failedCandidates}</span>
+                      </div>
+                      <div className="bg-white p-2.5 rounded-lg border border-slate-200/50 shadow-xs">
+                        <span className="text-[10px] uppercase font-bold text-[#8094A8] block">Avg Score</span>
+                        <span className="text-sm font-bold text-[#006AC7]">{avgScore}%</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedExamId && (
+                    <div className="flex flex-wrap items-center justify-between gap-3 p-2.5 bg-slate-50 rounded-xl border border-slate-200/60 text-xs">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[11px] font-bold text-[#526477]">Class:</span>
+                          <select
+                            value={examClassFilter}
+                            onChange={(e) => handleExamFilterChange(e.target.value, examSectionFilter)}
+                            className="text-xs p-1.5 rounded-lg border border-slate-200 bg-white"
+                          >
+                            <option value="">All Classes</option>
+                            {classes.map((cls) => (
+                              <option key={cls._id} value={cls._id}>{cls.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[11px] font-bold text-[#526477]">Section:</span>
+                          <select
+                            value={examSectionFilter}
+                            onChange={(e) => handleExamFilterChange(examClassFilter, e.target.value)}
+                            className="text-xs p-1.5 rounded-lg border border-slate-200 bg-white"
+                          >
+                            <option value="">All Sections</option>
+                            {sections
+                              .filter((sec) => !examClassFilter || String(sec.classId?._id || sec.classId) === String(examClassFilter))
+                              .map((sec) => (
+                                <option key={sec._id} value={sec._id}>{sec.name}</option>
+                              ))}
+                          </select>
+                        </div>
+                        {(examClassFilter || examSectionFilter) && (
+                          <button
+                            onClick={() => handleExamFilterChange('', '')}
+                            className="text-[11px] text-[#006AC7] font-semibold hover:underline cursor-pointer"
+                          >
+                            Clear Filters
+                          </button>
+                        )}
+                      </div>
+                      <span className="text-[11px] text-[#8094A8]">
+                        Showing {examResultsList.length} of {activeExamResults?.totalCount || examResultsList.length} results
+                      </span>
+                    </div>
+                  )}
+
+                  {!selectedExamId ? (
+                    <div className="p-8 text-center text-sm text-[#8094A8]">Select an examination on the left to review student marks.</div>
+                  ) : examResultsList.length === 0 ? (
+                    <div className="p-8 text-center text-sm text-[#8094A8]">No submitted student marks found for this examination.</div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead>
+                          <tr className="border-b border-slate-200/80 text-[#8094A8] uppercase text-[10px] font-bold">
+                            <th className="py-2 px-2">Student</th>
+                            <th className="py-2 px-2">Class</th>
+                            <th className="py-2 px-2">Obtained / Total</th>
+                            <th className="py-2 px-2">Percentage</th>
+                            <th className="py-2 px-2">Grade</th>
+                            <th className="py-2 px-2">Status</th>
+                            <th className="py-2 px-2 text-right">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {examResultsList.map((res) => (
+                            <tr key={res._id} className="hover:bg-slate-50/60">
+                              <td className="py-2 px-2">
+                                <span className="font-bold text-[#102033] block">{res.studentId?.fullName}</span>
+                                {res.studentId?.rollNumber ? (
+                                  <span className="text-[10px] text-[#8094A8] font-mono">Roll #{res.studentId.rollNumber}</span>
+                                ) : null}
+                              </td>
+                              <td className="py-2 px-2">
+                                <span>{res.classId?.name}</span>
+                                {res.sectionId?.name ? (
+                                  <span className="text-[#8094A8] text-[11px] ml-1">({res.sectionId.name})</span>
+                                ) : null}
+                              </td>
+                              <td className="py-2 px-2 font-mono">{res.totalObtainedMarks} / {res.totalMaxMarks}</td>
+                              <td className="py-2 px-2 font-bold text-[#006AC7]">{res.percentage}%</td>
+                              <td className="py-2 px-2 font-mono font-bold">{res.grade}</td>
+                              <td className="py-2 px-2">
+                                <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${
+                                  res.status === 'PUBLISHED' ? 'bg-emerald-50 text-[#4B7F3A]' :
+                                  res.status === 'VERIFIED_BY_HM' ? 'bg-blue-50 text-[#006AC7]' :
+                                  'bg-amber-50 text-amber-700'
+                                }`}>
+                                  {res.status}
+                                </span>
+                              </td>
+                              <td className="py-2 px-2 text-right">
+                                {res.status === 'SUBMITTED' && selectedExam?.status !== 'PUBLISHED' && (
+                                  <button
+                                    onClick={() => handleVerifyMarks(res._id)}
+                                    className="px-2 py-1 rounded bg-[#006AC7] text-white text-[10px] font-bold hover:bg-[#005299] transition cursor-pointer"
+                                  >
+                                    Verify
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
+              );
+            })()}
           </div>
         </div>
       )}
@@ -2127,6 +2285,19 @@ export const HmDashboard = () => {
                 required
                 className="w-full text-xs p-2.5 rounded-xl border border-slate-200"
               />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-[#102033] block mb-1">Academic Year</label>
+              <select
+                value={examData.academicYear}
+                onChange={(e) => setExamData({ ...examData, academicYear: e.target.value })}
+                className="w-full text-xs p-2.5 rounded-xl border border-slate-200"
+              >
+                <option value="2024-2025">2024-2025</option>
+                <option value="2025-2026">2025-2026</option>
+                <option value="2026-2027">2026-2027</option>
+                <option value="2027-2028">2027-2028</option>
+              </select>
             </div>
             <div>
               <label className="text-xs font-bold text-[#102033] block mb-1">Exam Type</label>

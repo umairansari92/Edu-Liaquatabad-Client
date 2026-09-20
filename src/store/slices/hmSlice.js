@@ -231,6 +231,32 @@ export const verifyStudentResult = createAsyncThunk(
   }
 );
 
+export const batchVerifyStudentResults = createAsyncThunk(
+  'hm/batchVerifyStudentResults',
+  async ({ examId, classId, sectionId, remarks }, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await hmService.batchVerifyExamResults(examId, { classId, sectionId, remarks });
+      if (examId) dispatch(fetchExamResults({ examId, params: { classId, sectionId } }));
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to batch verify student results');
+    }
+  }
+);
+
+export const submitStudentMarksAction = createAsyncThunk(
+  'hm/submitStudentMarksAction',
+  async ({ examId, payload }, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await hmService.submitStudentMarks(examId, payload);
+      if (examId) dispatch(fetchExamResults({ examId }));
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to submit student marks');
+    }
+  }
+);
+
 export const publishExamGazette = createAsyncThunk(
   'hm/publishExamGazette',
   async (examId, { rejectWithValue, dispatch }) => {

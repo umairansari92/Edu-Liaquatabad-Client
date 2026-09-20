@@ -123,8 +123,18 @@ export const hmService = {
     return response.data;
   },
 
+  submitStudentMarks: async (examId, data) => {
+    const response = await apiClient.post(`/exams/${examId}/results`, data);
+    return response.data;
+  },
+
   verifyExamResult: async (resultId, remarks = '') => {
     const response = await apiClient.patch(`/exams/results/${resultId}/verify`, { remarks });
+    return response.data;
+  },
+
+  batchVerifyExamResults: async (examId, data = {}) => {
+    const response = await apiClient.post(`/exams/${examId}/results/batch-verify`, data);
     return response.data;
   },
 
