@@ -143,6 +143,46 @@ export const hmService = {
     return response.data;
   },
 
+  downloadStudentMarksheetPdf: async (examId, studentId) => {
+    const response = await apiClient.get(`/exams/${examId}/results/${studentId}/marksheet`, {
+      responseType: 'blob',
+    });
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const blobUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = `Marksheet_${studentId}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(blobUrl);
+    return true;
+  },
+
+  downloadClassTabulationPdf: async (examId, classId, sectionId) => {
+    const params = { classId };
+    if (sectionId) params.sectionId = sectionId;
+    const response = await apiClient.get(`/exams/${examId}/tabulation-sheet`, {
+      params,
+      responseType: 'blob',
+    });
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const blobUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = `TabulationSheet_${classId}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(blobUrl);
+    return true;
+  },
+
+  getClassTabulationData: async (examId, params = {}) => {
+    const response = await apiClient.get(`/exams/${examId}/tabulation-data`, { params });
+    return response.data;
+  },
+
   // ─── 7. Faculty Transfers & Postings ─────────────────────────────────────────
   getTransfers: async (params = {}) => {
     const response = await apiClient.get('/transfers', { params });

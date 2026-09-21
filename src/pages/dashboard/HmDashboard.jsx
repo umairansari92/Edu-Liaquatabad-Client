@@ -41,6 +41,9 @@ import {
   Archive,
   ExternalLink,
   Paperclip,
+  Download,
+  Printer,
+  FileSpreadsheet,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PageContainer from '../../components/layout/PageContainer.jsx';
@@ -245,6 +248,10 @@ export const HmDashboard = () => {
   const [selectedExamId, setSelectedExamId] = useState('');
   const [examClassFilter, setExamClassFilter] = useState('');
   const [examSectionFilter, setExamSectionFilter] = useState('');
+  const [examViewMode, setExamViewMode] = useState('list'); // 'list' | 'tabulation'
+  const [tabulationData, setTabulationData] = useState(null);
+  const [tabulationLoading, setTabulationLoading] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [joiningModal, setJoiningModal] = useState({ open: false, transfer: null, remarks: '', joiningDate: '' });
   const [transferViewDirection, setTransferViewDirection] = useState('incoming'); // 'incoming' | 'outgoing' | 'history'
   const [relieveModal, setRelieveModal] = useState({
@@ -658,10 +665,31 @@ export const HmDashboard = () => {
     }
   };
 
+  const loadTabulationSheetData = useCallback(async (examId, classId, sectionId) => {
+    if (!examId || !classId) {
+      setTabulationData(null);
+      return;
+    }
+    try {
+      setTabulationLoading(true);
+      const params = { classId };
+      if (sectionId) params.sectionId = sectionId;
+      const response = await hmService.getClassTabulationData(examId, params);
+      setTabulationData(response?.data || response);
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || 'Failed to load tabulation data.';
+      toast.error(msg);
+      setTabulationData(null);
+    } finally {
+      setTabulationLoading(false);
+    }
+  }, []);
+
   const handleSelectExam = (examId) => {
     setSelectedExamId(examId);
     setExamClassFilter('');
     setExamSectionFilter('');
+    setTabulationData(null);
     dispatch(fetchExamResults({ examId }));
   };
 
@@ -678,6 +706,41 @@ export const HmDashboard = () => {
           },
         })
       );
+      if (examViewMode === 'tabulation' && newClassId) {
+        loadTabulationSheetData(selectedExamId, newClassId, newSectionId);
+      }
+    }
+  };
+
+  const handleDownloadStudentMarksheet = async (examId, studentId, studentName = 'Student') => {
+    try {
+      setDownloadingPdf(true);
+      toast.loading(`Generating Official DMC Marksheet for ${studentName}...`, { id: 'marksheet-dl' });
+      await hmService.downloadStudentMarksheetPdf(examId, studentId);
+      toast.success('Marksheet downloaded successfully.', { id: 'marksheet-dl' });
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || 'Failed to download marksheet.';
+      toast.error(msg, { id: 'marksheet-dl' });
+    } finally {
+      setDownloadingPdf(false);
+    }
+  };
+
+  const handleDownloadClassTabulationSheet = async (examId, classId, sectionId) => {
+    if (!examId || !classId) {
+      toast.error('Please select an exam and a class to download the Tabulation Sheet.');
+      return;
+    }
+    try {
+      setDownloadingPdf(true);
+      toast.loading('Generating Official Elementary Board Tabulation Sheet (Legal Landscape)...', { id: 'tab-dl' });
+      await hmService.downloadClassTabulationPdf(examId, classId, sectionId);
+      toast.success('Official Legal Tabulation Sheet downloaded successfully.', { id: 'tab-dl' });
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || 'Failed to download tabulation sheet.';
+      toast.error(msg, { id: 'tab-dl' });
+    } finally {
+      setDownloadingPdf(false);
     }
   };
 
@@ -2069,72 +2132,371 @@ export const HmDashboard = () => {
                           </button>
                         )}
                       </div>
-                      <span className="text-[11px] text-[#8094A8]">
-                        Showing {examResultsList.length} of {activeExamResults?.totalCount || examResultsList.length} results
-                      </span>
+
+                      {/* View Mode Toggle */}
+                      <div className="flex items-center bg-white p-1 rounded-xl border border-slate-200 shadow-xs">
+                        <button
+                          onClick={() => setExamViewMode('list')}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                            examViewMode === 'list'
+                              ? 'bg-[#006AC7] text-white shadow-xs'
+                              : 'text-[#526477] hover:text-[#102033]'
+                          }`}
+                        >
+                          <FileText className="w-3.5 h-3.5" /> Candidate Gazette
+                        </button>
+                        <button
+                          onClick={() => {
+                            setExamViewMode('tabulation');
+                            if (selectedExamId && examClassFilter) {
+                              loadTabulationSheetData(selectedExamId, examClassFilter, examSectionFilter);
+                            }
+                          }}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                            examViewMode === 'tabulation'
+                              ? 'bg-[#15803d] text-white shadow-xs'
+                              : 'text-[#526477] hover:text-[#102033]'
+                          }`}
+                        >
+                          <FileSpreadsheet className="w-3.5 h-3.5" /> Tabulation Sheet (Legal Excel)
+                        </button>
+                      </div>
                     </div>
                   )}
 
                   {!selectedExamId ? (
                     <div className="p-8 text-center text-sm text-[#8094A8]">Select an examination on the left to review student marks.</div>
-                  ) : examResultsList.length === 0 ? (
-                    <div className="p-8 text-center text-sm text-[#8094A8]">No submitted student marks found for this examination.</div>
-                  ) : (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left text-xs">
-                        <thead>
-                          <tr className="border-b border-slate-200/80 text-[#8094A8] uppercase text-[10px] font-bold">
-                            <th className="py-2 px-2">Student</th>
-                            <th className="py-2 px-2">Class</th>
-                            <th className="py-2 px-2">Obtained / Total</th>
-                            <th className="py-2 px-2">Percentage</th>
-                            <th className="py-2 px-2">Grade</th>
-                            <th className="py-2 px-2">Status</th>
-                            <th className="py-2 px-2 text-right">Action</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                          {examResultsList.map((res) => (
-                            <tr key={res._id} className="hover:bg-slate-50/60">
-                              <td className="py-2 px-2">
-                                <span className="font-bold text-[#102033] block">{res.studentId?.fullName}</span>
-                                {res.studentId?.rollNumber ? (
-                                  <span className="text-[10px] text-[#8094A8] font-mono">Roll #{res.studentId.rollNumber}</span>
-                                ) : null}
-                              </td>
-                              <td className="py-2 px-2">
-                                <span>{res.classId?.name}</span>
-                                {res.sectionId?.name ? (
-                                  <span className="text-[#8094A8] text-[11px] ml-1">({res.sectionId.name})</span>
-                                ) : null}
-                              </td>
-                              <td className="py-2 px-2 font-mono">{res.totalObtainedMarks} / {res.totalMaxMarks}</td>
-                              <td className="py-2 px-2 font-bold text-[#006AC7]">{res.percentage}%</td>
-                              <td className="py-2 px-2 font-mono font-bold">{res.grade}</td>
-                              <td className="py-2 px-2">
-                                <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${
-                                  res.status === 'PUBLISHED' ? 'bg-emerald-50 text-[#4B7F3A]' :
-                                  res.status === 'VERIFIED_BY_HM' ? 'bg-blue-50 text-[#006AC7]' :
-                                  'bg-amber-50 text-amber-700'
-                                }`}>
-                                  {res.status}
-                                </span>
-                              </td>
-                              <td className="py-2 px-2 text-right">
-                                {res.status === 'SUBMITTED' && selectedExam?.status !== 'PUBLISHED' && (
-                                  <button
-                                    onClick={() => handleVerifyMarks(res._id)}
-                                    className="px-2 py-1 rounded bg-[#006AC7] text-white text-[10px] font-bold hover:bg-[#005299] transition cursor-pointer"
-                                  >
-                                    Verify
-                                  </button>
-                                )}
-                              </td>
+                  ) : examViewMode === 'list' ? (
+                    examResultsList.length === 0 ? (
+                      <div className="p-8 text-center text-sm text-[#8094A8]">No submitted student marks found for this examination.</div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs">
+                          <thead>
+                            <tr className="border-b border-slate-200/80 text-[#8094A8] uppercase text-[10px] font-bold">
+                              <th className="py-2 px-2">Student</th>
+                              <th className="py-2 px-2">Class</th>
+                              <th className="py-2 px-2">Obtained / Total</th>
+                              <th className="py-2 px-2">Percentage</th>
+                              <th className="py-2 px-2">Grade</th>
+                              <th className="py-2 px-2">Status</th>
+                              <th className="py-2 px-2 text-right">Actions</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100">
+                            {examResultsList.map((res) => (
+                              <tr key={res._id} className="hover:bg-slate-50/60">
+                                <td className="py-2 px-2">
+                                  <span className="font-bold text-[#102033] block">{res.studentId?.fullName}</span>
+                                  {res.studentId?.rollNumber ? (
+                                    <span className="text-[10px] text-[#8094A8] font-mono">Roll #{res.studentId.rollNumber}</span>
+                                  ) : null}
+                                </td>
+                                <td className="py-2 px-2">
+                                  <span>{res.classId?.name}</span>
+                                  {res.sectionId?.name ? (
+                                    <span className="text-[#8094A8] text-[11px] ml-1">({res.sectionId.name})</span>
+                                  ) : null}
+                                </td>
+                                <td className="py-2 px-2 font-mono">{res.totalObtainedMarks} / {res.totalMaxMarks}</td>
+                                <td className="py-2 px-2 font-bold text-[#006AC7]">{res.percentage}%</td>
+                                <td className="py-2 px-2 font-mono font-bold">{res.grade}</td>
+                                <td className="py-2 px-2">
+                                  <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${
+                                    res.status === 'PUBLISHED' ? 'bg-emerald-50 text-[#4B7F3A]' :
+                                    res.status === 'VERIFIED_BY_HM' ? 'bg-blue-50 text-[#006AC7]' :
+                                    'bg-amber-50 text-amber-700'
+                                  }`}>
+                                    {res.status}
+                                  </span>
+                                </td>
+                                <td className="py-2 px-2 text-right">
+                                  <div className="flex items-center justify-end gap-1.5">
+                                    {['VERIFIED_BY_HM', 'PUBLISHED'].includes(res.status) && (
+                                      <button
+                                        onClick={() => handleDownloadStudentMarksheet(selectedExamId, res.studentId?._id || res.studentId, res.studentId?.fullName)}
+                                        disabled={downloadingPdf}
+                                        title="Download Official A4 Marksheet PDF (Image 1 Replica)"
+                                        className="px-2 py-1 rounded bg-emerald-50 text-[#15803d] border border-emerald-200 text-[10px] font-bold hover:bg-emerald-100 transition cursor-pointer flex items-center gap-1"
+                                      >
+                                        <Download className="w-3 h-3" /> Marksheet
+                                      </button>
+                                    )}
+                                    {res.status === 'SUBMITTED' && selectedExam?.status !== 'PUBLISHED' && (
+                                      <button
+                                        onClick={() => handleVerifyMarks(res._id)}
+                                        className="px-2 py-1 rounded bg-[#006AC7] text-white text-[10px] font-bold hover:bg-[#005299] transition cursor-pointer"
+                                      >
+                                        Verify
+                                      </button>
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )
+                  ) : (
+                    /* ═══ TABULATION SPREADSHEET VIEW (IMAGE 2 REPLICA) ═══ */
+                    !examClassFilter ? (
+                      <div className="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-300 space-y-2">
+                        <FileSpreadsheet className="w-10 h-10 text-[#006AC7] mx-auto" />
+                        <h4 className="text-sm font-bold text-[#102033]">Select a Class to Compile the Elementary Board Tabulation Sheet</h4>
+                        <p className="text-xs text-[#526477] max-w-md mx-auto">
+                          Centralized Elementary Board Tabulation Sheets are compiled class-wise in <strong>Legal Landscape format (14" × 8.5")</strong> with Islamiat sub-components (Nazra & Written), Drawing letter grade, auto-calculated percentage, Sindh Board grades, class rankings, and municipal statistics.
+                        </p>
+                      </div>
+                    ) : tabulationLoading ? (
+                      <div className="p-12 text-center text-sm text-[#526477] flex items-center justify-center gap-2">
+                        <Loader2 className="w-5 h-5 animate-spin text-[#006AC7]" /> Compiling Elementary Board Tabulation Sheet...
+                      </div>
+                    ) : !tabulationData || (tabulationData.rankedResults || []).length === 0 ? (
+                      <div className="p-8 text-center text-sm text-[#8094A8] space-y-2">
+                        <p>No student results recorded for this class in this examination.</p>
+                        <button
+                          onClick={() => loadTabulationSheetData(selectedExamId, examClassFilter, examSectionFilter)}
+                          className="text-xs text-[#006AC7] font-semibold hover:underline cursor-pointer inline-flex items-center gap-1"
+                        >
+                          <RefreshCw className="w-3.5 h-3.5" /> Retry Loading
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {/* Tabulation Sheet Header & Export Bar */}
+                        <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-wrap items-center justify-between gap-3">
+                          <div>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#15803d] block">
+                              Elementary Board District Municipal Corporation Karachi (Central)
+                            </span>
+                            <h4 className="text-sm font-black text-[#102033]">
+                              Tabulation Sheet of {tabulationData.exam?.title || selectedExam?.title} ({tabulationData.exam?.academicYear || selectedExam?.academicYear})
+                            </h4>
+                            <p className="text-xs text-[#526477]">
+                              Class: <span className="font-bold text-[#102033]">{classes.find((c) => String(c._id) === String(examClassFilter))?.name}</span>
+                              {examSectionFilter && (
+                                <span> • Section: <span className="font-bold text-[#102033]">{sections.find((s) => String(s._id) === String(examSectionFilter))?.name}</span></span>
+                              )}
+                              <span> • Candidates: <span className="font-bold text-[#102033]">{tabulationData.rankedResults?.length || 0}</span></span>
+                            </p>
+                          </div>
+
+                          <button
+                            onClick={() => handleDownloadClassTabulationSheet(selectedExamId, examClassFilter, examSectionFilter)}
+                            disabled={downloadingPdf}
+                            className="px-4 py-2.5 rounded-xl text-xs font-bold bg-[#15803d] hover:bg-[#166534] text-white transition flex items-center gap-2 shadow-sm cursor-pointer"
+                          >
+                            <Download className="w-4 h-4" />
+                            Download Legal Tabulation Sheet (PDF)
+                            <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded font-mono">14" × 8.5"</span>
+                          </button>
+                        </div>
+
+                        {/* Interactive Spreadsheet Grid matching Image 2 */}
+                        <div className="overflow-x-auto border border-slate-200 rounded-xl shadow-xs">
+                          <table className="w-full text-center text-[11px] border-collapse bg-white">
+                            <thead>
+                              <tr className="bg-slate-100 text-[#102033] font-bold border-b border-slate-300 text-[10px]">
+                                <th rowSpan={2} className="py-2 px-1.5 border-r border-slate-300 w-10">S.NO</th>
+                                <th rowSpan={2} className="py-2 px-1.5 border-r border-slate-300 w-14">GR. NO</th>
+                                <th rowSpan={2} className="py-2 px-3 border-r border-slate-300 text-left min-w-[140px]">NAME OF STUDENTS</th>
+                                <th rowSpan={2} className="py-2 px-3 border-r border-slate-300 text-left min-w-[130px]">FATHER'S NAME</th>
+                                <th colSpan={3} className="py-1 px-1 border-r border-slate-300 bg-amber-50/70 text-amber-900">ISLAMIAT</th>
+                                <th rowSpan={2} className="py-2 px-1.5 border-r border-slate-300">S.St<br/><span className="text-[9px] font-normal text-slate-500">100</span></th>
+                                <th rowSpan={2} className="py-2 px-1.5 border-r border-slate-300">SINDHI<br/><span className="text-[9px] font-normal text-slate-500">100</span></th>
+                                <th rowSpan={2} className="py-2 px-1.5 border-r border-slate-300">ENGLISH<br/><span className="text-[9px] font-normal text-slate-500">100</span></th>
+                                <th rowSpan={2} className="py-2 px-1.5 border-r border-slate-300">SCIENCE<br/><span className="text-[9px] font-normal text-slate-500">100</span></th>
+                                <th rowSpan={2} className="py-2 px-1.5 border-r border-slate-300">MATH<br/><span className="text-[9px] font-normal text-slate-500">100</span></th>
+                                <th rowSpan={2} className="py-2 px-1.5 border-r border-slate-300">URDU<br/><span className="text-[9px] font-normal text-slate-500">100</span></th>
+                                <th rowSpan={2} className="py-2 px-1.5 border-r border-slate-300 bg-purple-50/70 text-purple-900">DRAWING<br/><span className="text-[9px] font-normal">GRADE</span></th>
+                                <th rowSpan={2} className="py-2 px-1.5 border-r border-slate-300 font-black">Grand Total<br/><span className="text-[9px] font-normal text-slate-500">700</span></th>
+                                <th rowSpan={2} className="py-2 px-1.5 border-r border-slate-300 font-bold">% AGE</th>
+                                <th rowSpan={2} className="py-2 px-2 border-r border-slate-300 font-bold">Overall Result</th>
+                                <th rowSpan={2} className="py-2 px-1.5 border-r border-slate-300 font-bold">GRADE</th>
+                                <th rowSpan={2} className="py-2 px-1.5 border-r border-slate-300 font-bold text-emerald-700">Rank</th>
+                                <th rowSpan={2} className="py-2 px-2 text-right">Marksheet</th>
+                              </tr>
+                              <tr className="bg-amber-50/50 text-[#102033] font-semibold border-b border-slate-300 text-[9px]">
+                                <th className="py-1 px-1 border-r border-slate-300">Nazra<br/>20</th>
+                                <th className="py-1 px-1 border-r border-slate-300">Written<br/>80</th>
+                                <th className="py-1 px-1 border-r border-slate-300 font-bold">Total<br/>100</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-200">
+                              {(tabulationData.rankedResults || []).map((row, idx) => {
+                                const subjects = row.subjectMarks || [];
+                                const findSubj = (name) => subjects.find((s) => (s.subjectName || '').toLowerCase().includes(name));
+
+                                const isl = findSubj('islamiat');
+                                const isNaz = isl?.subComponents ? isl.subComponents.nazra : Math.round((isl?.obtainedMarks || 0) * 0.2);
+                                const isWri = isl?.subComponents ? isl.subComponents.written : ((isl?.obtainedMarks || 0) - isNaz);
+                                const isTot = isl?.obtainedMarks || 0;
+
+                                const sst = findSubj('social') || findSubj('s.st');
+                                const sindhi = findSubj('sindhi');
+                                const eng = findSubj('english');
+                                const sci = findSubj('science');
+                                const math = findSubj('math');
+                                const urdu = findSubj('urdu');
+                                const draw = findSubj('drawing');
+
+                                const studentProf = row.studentProfile || {};
+                                const studentUsr = row.studentId || {};
+                                const studentName = studentProf.studentFullName || studentUsr.fullName || 'Student';
+                                const fatherName = studentProf.fatherFullName || studentProf.fatherOrGuardianName || '-';
+                                const grNum = studentProf.grNumber || studentProf.rollNumber || (idx + 1);
+
+                                const isPassed = row.isOverallPassed;
+
+                                return (
+                                  <tr key={row._id || idx} className={`hover:bg-slate-50 transition ${idx % 2 === 1 ? 'bg-slate-50/40' : 'bg-white'}`}>
+                                    <td className="py-2 px-1 border-r border-slate-200 text-slate-500 font-mono text-[10px]">{idx + 1}</td>
+                                    <td className="py-2 px-1 border-r border-slate-200 font-mono font-bold text-[#102033]">{grNum}</td>
+                                    <td className="py-2 px-2.5 border-r border-slate-200 text-left font-bold text-[#102033]">{studentName}</td>
+                                    <td className="py-2 px-2.5 border-r border-slate-200 text-left text-slate-600">{fatherName}</td>
+
+                                    {/* Islamiat Nazra, Written, Total with Red styling for failing */}
+                                    <td className={`py-2 px-1 border-r border-slate-200 font-mono ${isNaz < 7 ? 'text-rose-600 font-bold' : ''}`}>{isNaz}</td>
+                                    <td className={`py-2 px-1 border-r border-slate-200 font-mono ${isWri < 27 ? 'text-rose-600 font-bold' : ''}`}>{isWri}</td>
+                                    <td className={`py-2 px-1 border-r border-slate-200 font-mono font-bold ${isTot < 33 ? 'text-rose-600' : ''}`}>{isTot}</td>
+
+                                    {/* Standard Subjects (Red if < 33) */}
+                                    <td className={`py-2 px-1 border-r border-slate-200 font-mono ${(sst?.obtainedMarks ?? 0) < 33 ? 'text-rose-600 font-bold' : ''}`}>{sst?.obtainedMarks ?? '-'}</td>
+                                    <td className={`py-2 px-1 border-r border-slate-200 font-mono ${(sindhi?.obtainedMarks ?? 0) < 33 ? 'text-rose-600 font-bold' : ''}`}>{sindhi?.obtainedMarks ?? '-'}</td>
+                                    <td className={`py-2 px-1 border-r border-slate-200 font-mono ${(eng?.obtainedMarks ?? 0) < 33 ? 'text-rose-600 font-bold' : ''}`}>{eng?.obtainedMarks ?? '-'}</td>
+                                    <td className={`py-2 px-1 border-r border-slate-200 font-mono ${(sci?.obtainedMarks ?? 0) < 33 ? 'text-rose-600 font-bold' : ''}`}>{sci?.obtainedMarks ?? '-'}</td>
+                                    <td className={`py-2 px-1 border-r border-slate-200 font-mono ${(math?.obtainedMarks ?? 0) < 33 ? 'text-rose-600 font-bold' : ''}`}>{math?.obtainedMarks ?? '-'}</td>
+                                    <td className={`py-2 px-1 border-r border-slate-200 font-mono ${(urdu?.obtainedMarks ?? 0) < 33 ? 'text-rose-600 font-bold' : ''}`}>{urdu?.obtainedMarks ?? '-'}</td>
+
+                                    {/* Drawing (Letter Grade) */}
+                                    <td className="py-2 px-1 border-r border-slate-200 font-bold text-purple-700 bg-purple-50/20">{draw?.letterGrade || 'A'}</td>
+
+                                    {/* Grand Total (out of 700) */}
+                                    <td className={`py-2 px-1 border-r border-slate-200 font-mono font-black ${row.totalObtainedMarks < 231 ? 'text-rose-600' : 'text-[#102033]'}`}>
+                                      {row.totalObtainedMarks ?? 0}
+                                    </td>
+
+                                    {/* % AGE */}
+                                    <td className="py-2 px-1 border-r border-slate-200 font-bold text-[#006AC7]">
+                                      {row.percentage}%
+                                    </td>
+
+                                    {/* Overall Result */}
+                                    <td className="py-2 px-1.5 border-r border-slate-200 font-bold">
+                                      <span className={`px-2 py-0.5 rounded text-[10px] ${isPassed ? 'bg-emerald-50 text-[#15803d]' : 'bg-rose-50 text-rose-700 font-bold'}`}>
+                                        {isPassed ? 'PASSED' : 'FAILED'}
+                                      </span>
+                                    </td>
+
+                                    {/* GRADE */}
+                                    <td className={`py-2 px-1 border-r border-slate-200 font-black ${isPassed ? 'text-[#102033]' : 'text-rose-600'}`}>
+                                      {row.grade || (isPassed ? 'D' : 'FAIL')}
+                                    </td>
+
+                                    {/* Rank */}
+                                    <td className="py-2 px-1 border-r border-slate-200 font-bold">
+                                      {isPassed ? (
+                                        <span className="bg-emerald-50 text-emerald-700 font-black px-1.5 py-0.5 rounded text-[10px]">
+                                          {row.rankFormatted || `${row.rank}th`}
+                                        </span>
+                                      ) : (
+                                        <span className="text-slate-400 font-normal">-</span>
+                                      )}
+                                    </td>
+
+                                    {/* Individual Marksheet PDF Download */}
+                                    <td className="py-2 px-2 text-right">
+                                      {['VERIFIED_BY_HM', 'PUBLISHED'].includes(row.status) ? (
+                                        <button
+                                          onClick={() => handleDownloadStudentMarksheet(selectedExamId, row.studentId?._id || row.studentId, studentName)}
+                                          disabled={downloadingPdf}
+                                          title="Download Official A4 Marksheet PDF"
+                                          className="px-2 py-1 rounded bg-emerald-50 text-[#15803d] border border-emerald-200 text-[10px] font-bold hover:bg-emerald-100 transition cursor-pointer inline-flex items-center gap-1"
+                                        >
+                                          <Download className="w-3 h-3" /> Marksheet
+                                        </button>
+                                      ) : (
+                                        <span className="text-[10px] text-amber-600 italic">Verify First</span>
+                                      )}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+
+                        {/* Bottom Municipal Statistics Box matching Image 2 */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200/80">
+                          <div>
+                            <h5 className="text-[11px] font-bold uppercase tracking-wider text-[#8094A8] mb-2">
+                              Official Municipal Examination Statistics
+                            </h5>
+                            <div className="border border-slate-300 rounded-lg overflow-hidden text-xs">
+                              <div className="grid grid-cols-2 border-b border-slate-300 bg-white">
+                                <div className="p-2 border-r border-slate-300 flex justify-between">
+                                  <span className="text-slate-500 font-semibold">No. of Students:</span>
+                                  <span className="font-bold text-[#102033]">{tabulationData.classStatistics?.totalEnrolled || 0}</span>
+                                </div>
+                                <div className="p-2 flex justify-between">
+                                  <span className="text-slate-500 font-semibold">No. Appeared:</span>
+                                  <span className="font-bold text-[#102033]">{tabulationData.classStatistics?.appearedCount || 0}</span>
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-2 border-b border-slate-300 bg-white">
+                                <div className="p-2 border-r border-slate-300 flex justify-between">
+                                  <span className="text-slate-500 font-semibold">No. of Absentees:</span>
+                                  <span className="font-bold text-[#102033]">{tabulationData.classStatistics?.absenteesCount || 0}</span>
+                                </div>
+                                <div className="p-2 flex justify-between">
+                                  <span className="text-slate-500 font-semibold">Passing %Age:</span>
+                                  <span className="font-bold text-emerald-600">{tabulationData.classStatistics?.passingPercentage || 0}%</span>
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-2 bg-white">
+                                <div className="p-2 border-r border-slate-300 flex justify-between">
+                                  <span className="text-slate-500 font-semibold">Students Passed:</span>
+                                  <span className="font-bold text-emerald-600">{tabulationData.classStatistics?.passedCount || 0}</span>
+                                </div>
+                                <div className="p-2 flex justify-between">
+                                  <span className="text-slate-500 font-semibold">Students Failed:</span>
+                                  <span className="font-bold text-rose-600">{tabulationData.classStatistics?.failedCount || 0}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col justify-between p-3 rounded-lg bg-white border border-slate-200">
+                            <div>
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-[#8094A8] block">
+                                Municipal Certification & Official Signatures
+                              </span>
+                              <p className="text-xs text-[#526477] mt-1">
+                                Consolidated Elementary Board Tabulation Sheet conforms to the official 4-tier municipal authority certification:
+                              </p>
+                              <div className="grid grid-cols-2 gap-2 mt-3 text-[11px] text-[#102033]">
+                                <div className="p-2 rounded bg-slate-50 border border-slate-100 font-semibold">
+                                  1. Signature of H.M / Principal
+                                </div>
+                                <div className="p-2 rounded bg-slate-50 border border-slate-100 font-semibold">
+                                  2. Signature of Deputy Controller
+                                </div>
+                                <div className="p-2 rounded bg-slate-50 border border-slate-100 font-semibold">
+                                  3. Signature of Supervisor
+                                </div>
+                                <div className="p-2 rounded bg-slate-50 border border-slate-100 font-semibold">
+                                  4. Signature of Deputy Director Education
+                                </div>
+                              </div>
+                            </div>
+                            <p className="text-[10px] text-slate-400 mt-2 text-right italic">
+                              Generated automatically via Elementary Board DMC Liaquatabad / Karachi Central Engine
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )
                   )}
                 </div>
               );
