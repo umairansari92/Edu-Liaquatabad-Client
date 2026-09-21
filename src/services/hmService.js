@@ -161,7 +161,26 @@ export const hmService = {
   },
 
   createDocument: async (data) => {
-    const response = await apiClient.post('/documents', data);
+    // Automatically handles FormData (multipart/form-data) or JSON payload
+    const isFormData = typeof FormData !== 'undefined' && data instanceof FormData;
+    const response = await apiClient.post('/documents', data, {
+      headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {},
+    });
+    return response.data;
+  },
+
+  archiveDocument: async (id) => {
+    const response = await apiClient.patch(`/documents/${id}/archive`);
+    return response.data;
+  },
+
+  deleteDocument: async (id, reason = '') => {
+    const response = await apiClient.delete(`/documents/${id}`, { data: { reason } });
+    return response.data;
+  },
+
+  getViewDocumentUrl: async (id) => {
+    const response = await apiClient.get(`/documents/${id}/view`);
     return response.data;
   },
 

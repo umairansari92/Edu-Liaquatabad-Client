@@ -322,6 +322,34 @@ export const publishSchoolNotice = createAsyncThunk(
   }
 );
 
+export const archiveSchoolNotice = createAsyncThunk(
+  'hm/archiveSchoolNotice',
+  async (documentId, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await hmService.archiveDocument(documentId);
+      dispatch(fetchSchoolNotices());
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to archive circular');
+    }
+  }
+);
+
+export const deleteSchoolNotice = createAsyncThunk(
+  'hm/deleteSchoolNotice',
+  async (payload, { rejectWithValue, dispatch }) => {
+    try {
+      const id = typeof payload === 'string' ? payload : payload?.id;
+      const reason = typeof payload === 'object' ? payload?.reason : '';
+      const response = await hmService.deleteDocument(id, reason);
+      dispatch(fetchSchoolNotices());
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to delete circular');
+    }
+  }
+);
+
 export const fetchSchoolStudents = createAsyncThunk(
   'hm/fetchSchoolStudents',
   async (params = {}, { rejectWithValue, signal }) => {

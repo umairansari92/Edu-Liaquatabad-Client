@@ -36,6 +36,11 @@ import {
   QrCode,
   IdCard,
   Lock,
+  Pin,
+  Trash2,
+  Archive,
+  ExternalLink,
+  Paperclip,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PageContainer from '../../components/layout/PageContainer.jsx';
@@ -65,12 +70,15 @@ import {
   approveTransferJoining,
   fetchSchoolNotices,
   publishSchoolNotice,
+  archiveSchoolNotice,
+  deleteSchoolNotice,
   fetchSchoolStudents,
   updateSchoolCode,
   fetchSchoolFaculty,
   fetchTeacherDailyAttendance,
   saveTeacherDailyAttendance,
 } from '../../store/slices/hmSlice.js';
+import hmService from '../../services/hmService.js';
 
 
 // ─── Stat Card Component ──────────────────────────────────────────────────────
@@ -236,8 +244,31 @@ export const HmDashboard = () => {
   const [examClassFilter, setExamClassFilter] = useState('');
   const [examSectionFilter, setExamSectionFilter] = useState('');
   const [joiningModal, setJoiningModal] = useState({ open: false, transfer: null, remarks: '', joiningDate: '' });
+
+  // School Circulars & Official Notice Board State
   const [newNoticeModal, setNewNoticeModal] = useState(false);
-  const [noticeData, setNoticeData] = useState({ title: '', documentType: 'CIRCULAR', fileUrl: '', description: '', targetAudience: ['TEACHERS', 'STUDENTS', 'PARENTS'] });
+  const [noticeCategoryFilter, setNoticeCategoryFilter] = useState('all'); // 'all' | 'school' | 'department'
+  const [noticeTypeFilter, setNoticeTypeFilter] = useState('');
+  const [noticeSearchQuery, setNoticeSearchQuery] = useState('');
+  const [selectedNoticeFile, setSelectedNoticeFile] = useState(null);
+  const [noticeData, setNoticeData] = useState({
+    title: '',
+    referenceNumber: '',
+    documentType: 'CIRCULAR',
+    priority: 'NORMAL',
+    description: '',
+    targetAudience: ['TEACHERS', 'STUDENTS', 'PARENTS'],
+  });
+
+  const loadNotices = useCallback(() => {
+    dispatch(
+      fetchSchoolNotices({
+        scopeCategory: noticeCategoryFilter,
+        documentType: noticeTypeFilter || undefined,
+        search: noticeSearchQuery.trim() || undefined,
+      })
+    );
+  }, [dispatch, noticeCategoryFilter, noticeTypeFilter, noticeSearchQuery]);
 
   // Initial load
   useEffect(() => {
@@ -292,9 +323,9 @@ export const HmDashboard = () => {
     } else if (activeTab === 'transfers') {
       dispatch(fetchIncomingTransfers());
     } else if (activeTab === 'notices') {
-      dispatch(fetchSchoolNotices());
+      loadNotices();
     }
-  }, [activeTab, dispatch, teacherAttendanceDate]);
+  }, [activeTab, dispatch, teacherAttendanceDate, loadNotices]);
 
   // Teacher attendance date change trigger
   useEffect(() => {
@@ -328,6 +359,16 @@ export const HmDashboard = () => {
 
     return () => clearTimeout(debounceTimer);
   }, [facultySearchQuery, facultyStatusFilter, activeTab, dispatch]);
+
+  // Debounced search trigger for notices tab
+  useEffect(() => {
+    if (activeTab !== 'notices') return;
+    const debounceTimer = setTimeout(() => {
+      loadNotices();
+    }, 300);
+
+    return () => clearTimeout(debounceTimer);
+  }, [activeTab, noticeCategoryFilter, noticeTypeFilter, noticeSearchQuery, loadNotices]);
 
   const handleUpdateSchoolCodeSubmit = async (e) => {
     e.preventDefault();
@@ -396,6 +437,9 @@ export const HmDashboard = () => {
     dispatch(fetchSchoolFaculty());
     if (activeTab === 'attendance') {
       dispatch(fetchTeacherDailyAttendance({ date: teacherAttendanceDate }));
+    }
+    if (activeTab === 'notices') {
+      loadNotices();
     }
     toast.success('School command center updated.');
   };
@@ -602,21 +646,100 @@ export const HmDashboard = () => {
     }
   };
 
-  // ─── Notice Publishing Handler ──────────────────────────────────────────────
+  // ─── Notice Board Handlers ──────────────────────────────────────────────────
   const handlePublishNoticeSubmit = async (e) => {
     e.preventDefault();
+    if (!noticeData.title.trim()) {
+      toast.error('Notice title is required.');
+      return;
+    }
+    if (!noticeData.targetAudience || noticeData.targetAudience.length === 0) {
+      toast.error('Select at least one audience group.');
+      return;
+    }
+
     try {
-      await dispatch(
-        publishSchoolNotice({
-          schoolId: user?.schoolId?._id || user?.schoolId,
-          ...noticeData,
-        })
-      ).unwrap();
-      toast.success('School circular published.');
+      const effectiveSchoolId = user?.schoolId?._id || user?.schoolId;
+      const formData = new FormData();
+      formData.append('title', noticeData.title.trim());
+      if (noticeData.referenceNumber?.trim()) {
+        formData.append('referenceNumber', noticeData.referenceNumber.trim());
+      }
+      formData.append('documentType', noticeData.documentType);
+      formData.append('priority', noticeData.priority);
+      if (noticeData.description?.trim()) {
+        formData.append('description', noticeData.description.trim());
+      }
+      formData.append('schoolId', effectiveSchoolId);
+      noticeData.targetAudience.forEach((aud) => formData.append('targetAudience[]', aud));
+      if (selectedNoticeFile) {
+        formData.append('file', selectedNoticeFile);
+      }
+
+      await dispatch(publishSchoolNotice(formData)).unwrap();
+      toast.success('School circular published successfully.');
       setNewNoticeModal(false);
+      setNoticeData({
+        title: '',
+        referenceNumber: '',
+        documentType: 'CIRCULAR',
+        priority: 'NORMAL',
+        description: '',
+        targetAudience: ['TEACHERS', 'STUDENTS', 'PARENTS'],
+      });
+      setSelectedNoticeFile(null);
+      loadNotices();
     } catch (err) {
       toast.error(err || 'Failed to publish circular.');
     }
+  };
+
+  const handleArchiveNoticeSubmit = async (docId) => {
+    if (!window.confirm('Archive this circular? It will be moved to archived records.')) return;
+    try {
+      await dispatch(archiveSchoolNotice(docId)).unwrap();
+      toast.success('Circular moved to archive.');
+      loadNotices();
+    } catch (err) {
+      toast.error(err || 'Failed to archive circular.');
+    }
+  };
+
+  const handleDeleteNoticeSubmit = async (docId) => {
+    if (!window.confirm('Permanently delete this circular? This will purge the document and any attached files. An audit record will be preserved.')) return;
+    try {
+      await dispatch(deleteSchoolNotice(docId)).unwrap();
+      toast.success('Circular permanently deleted.');
+      loadNotices();
+    } catch (err) {
+      toast.error(err || 'Failed to delete circular.');
+    }
+  };
+
+  const handleViewNoticeAttachment = async (docId) => {
+    try {
+      const res = await hmService.getViewDocumentUrl(docId);
+      const fileUrl = res?.data?.viewUrl || res?.viewUrl;
+      if (fileUrl) {
+        window.open(fileUrl, '_blank', 'noopener,noreferrer');
+      } else {
+        toast.error('Document file URL is not available.');
+      }
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.message || 'Access denied or document not found.');
+    }
+  };
+
+  const handleToggleAudience = (audienceRole) => {
+    setNoticeData((prev) => {
+      const exists = prev.targetAudience.includes(audienceRole);
+      return {
+        ...prev,
+        targetAudience: exists
+          ? prev.targetAudience.filter((r) => r !== audienceRole)
+          : [...prev.targetAudience, audienceRole],
+      };
+    });
   };
 
   const totalPendingCount =
@@ -2003,39 +2126,248 @@ export const HmDashboard = () => {
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {activeTab === 'notices' && (
         <div className="space-y-6">
+          {/* Header & Publish Button */}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h3 className="text-base font-bold text-[#102033]">School Internal Notices & Circulars</h3>
-              <p className="text-xs text-[#526477]">Restricted strictly to your school's Teachers, Students, and Parents.</p>
+              <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
+                <FileText className="w-5 h-5 text-[#006AC7]" />
+                School Circulars & Official Notice Board
+              </h3>
+              <p className="text-xs text-[#526477]">
+                Authoritative internal circulars, operational notices, and municipality directives for your school.
+              </p>
             </div>
             <button
               onClick={() => setNewNoticeModal(true)}
-              className="px-4 py-2 rounded-xl text-xs font-bold bg-[#006AC7] text-white flex items-center gap-1.5 shadow-sm cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white flex items-center gap-1.5 shadow-sm transition cursor-pointer"
             >
               <PlusCircle className="w-4 h-4" /> Publish Circular
             </button>
           </div>
 
-          <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-3">
-            <h4 className="text-xs font-bold uppercase text-[#8094A8] tracking-wider">Active Circulars ({notices.length})</h4>
+          {/* Filter Bar */}
+          <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+            {/* Scope Category Filter Pills */}
+            <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl">
+              <button
+                onClick={() => setNoticeCategoryFilter('all')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                  noticeCategoryFilter === 'all'
+                    ? 'bg-white text-[#006AC7] shadow-sm'
+                    : 'text-[#526477] hover:text-[#102033]'
+                }`}
+              >
+                All Communications
+              </button>
+              <button
+                onClick={() => setNoticeCategoryFilter('school')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                  noticeCategoryFilter === 'school'
+                    ? 'bg-white text-[#4B7F3A] shadow-sm'
+                    : 'text-[#526477] hover:text-[#102033]'
+                }`}
+              >
+                School Notices
+              </button>
+              <button
+                onClick={() => setNoticeCategoryFilter('department')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                  noticeCategoryFilter === 'department'
+                    ? 'bg-white text-indigo-700 shadow-sm'
+                    : 'text-[#526477] hover:text-[#102033]'
+                }`}
+              >
+                Department Directives
+              </button>
+            </div>
+
+            {/* Document Type Filter & Search Bar */}
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-1.5">
+                <Filter className="w-3.5 h-3.5 text-[#8094A8]" />
+                <select
+                  value={noticeTypeFilter}
+                  onChange={(e) => setNoticeTypeFilter(e.target.value)}
+                  className="text-xs p-2 rounded-xl border border-slate-200 bg-white font-medium text-[#102033] focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                >
+                  <option value="">All Document Types</option>
+                  <option value="CIRCULAR">Circulars</option>
+                  <option value="NOTIFICATION">Notifications</option>
+                  <option value="POLICY">Policies</option>
+                  <option value="EVENT_NOTICE">Event Notices</option>
+                </select>
+              </div>
+
+              <div className="relative min-w-[200px] flex-1">
+                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#8094A8]" />
+                <input
+                  type="text"
+                  value={noticeSearchQuery}
+                  onChange={(e) => setNoticeSearchQuery(e.target.value)}
+                  placeholder="Search notices..."
+                  maxLength={100}
+                  className="w-full text-xs pl-8 pr-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Active Notices List */}
+          <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-bold uppercase text-[#8094A8] tracking-wider">
+                Official Documents & Notices ({notices.length})
+              </h4>
+            </div>
+
             {noticesLoading ? (
-              <div className="flex items-center gap-2 text-sm text-[#526477]"><Loader2 className="w-4 h-4 animate-spin text-[#006AC7]" /> Loading circulars...</div>
+              <div className="flex items-center justify-center py-12 gap-2 text-sm text-[#526477]">
+                <Loader2 className="w-5 h-5 animate-spin text-[#006AC7]" /> Loading official notice board...
+              </div>
             ) : notices.length === 0 ? (
-              <div className="p-8 text-center text-sm text-[#8094A8] bg-slate-50 rounded-xl">No circulars published for your school yet.</div>
+              <div className="p-12 text-center text-sm text-[#8094A8] bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                <FileText className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                No notices found matching the selected scope and criteria.
+              </div>
             ) : (
               <div className="space-y-3">
-                {notices.map((doc) => (
-                  <div key={doc._id} className="p-4 rounded-xl border border-slate-200/80 hover:bg-slate-50/60 transition flex items-start justify-between">
-                    <div>
-                      <p className="font-bold text-[#102033] text-sm">{doc.title}</p>
-                      <p className="text-xs text-[#526477] mt-0.5">{doc.documentType} • Audience: {doc.targetAudience?.join(', ')}</p>
-                      {doc.description && <p className="text-xs text-[#8094A8] mt-1">{doc.description}</p>}
+                {notices.map((doc) => {
+                  const isSchoolNotice = doc.scope === 'SCHOOL' || String(doc.schoolId?._id || doc.schoolId) === String(user?.schoolId?._id || user?.schoolId);
+                  const isPinned = doc.isPinned || doc.priority === 'URGENT';
+                  const isArchived = doc.status === 'ARCHIVED';
+
+                  return (
+                    <div
+                      key={doc._id}
+                      className={`p-5 rounded-2xl border transition hover:shadow-sm ${
+                        isPinned
+                          ? 'border-amber-300 bg-amber-50/20'
+                          : isSchoolNotice
+                          ? 'border-slate-200/90 bg-white hover:bg-slate-50/40'
+                          : 'border-indigo-200 bg-indigo-50/20'
+                      }`}
+                    >
+                      {/* Top Meta Bar: Badges & Date */}
+                      <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {isPinned && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1">
+                              <Pin className="w-3 h-3 text-amber-700" /> PINNED / URGENT
+                            </span>
+                          )}
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              doc.scope === 'GLOBAL'
+                                ? 'bg-purple-100 text-purple-800 border border-purple-200'
+                                : doc.scope === 'TOWN'
+                                ? 'bg-indigo-100 text-indigo-800 border border-indigo-200'
+                                : 'bg-emerald-100 text-[#4B7F3A] border border-emerald-200'
+                            }`}
+                          >
+                            {doc.scope === 'GLOBAL'
+                              ? 'GLOBAL DIRECTIVE'
+                              : doc.scope === 'TOWN'
+                              ? 'DEPARTMENT DIRECTIVE'
+                              : 'SCHOOL CIRCULAR'}
+                          </span>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                            {doc.documentType}
+                          </span>
+                          {isArchived && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 text-slate-700">
+                              ARCHIVED
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[11px] font-semibold text-[#8094A8]">
+                          {new Date(doc.createdAt).toLocaleDateString('en-PK', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                          })}
+                        </span>
+                      </div>
+
+                      {/* Title & Reference Number */}
+                      <div className="mb-2">
+                        <h5 className="font-bold text-[#102033] text-sm sm:text-base flex items-center gap-2">
+                          {doc.title}
+                          {doc.referenceNumber && (
+                            <span className="font-mono text-xs font-semibold text-[#006AC7] bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">
+                              Ref: {doc.referenceNumber}
+                            </span>
+                          )}
+                        </h5>
+                        {doc.description && (
+                          <p className="text-xs text-[#526477] mt-1 leading-relaxed">{doc.description}</p>
+                        )}
+                      </div>
+
+                      {/* Detail Metadata & Actions Footer */}
+                      <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex flex-wrap items-center gap-3 text-xs text-[#8094A8]">
+                          <span>
+                            Audience:{' '}
+                            <strong className="text-[#102033]">
+                              {Array.isArray(doc.targetAudience) ? doc.targetAudience.join(', ') : doc.targetAudience || 'ALL'}
+                            </strong>
+                          </span>
+                          {doc.publishedBy?.fullName && (
+                            <span>
+                              By: <strong className="text-[#102033]">{doc.publishedBy.fullName}</strong>
+                            </span>
+                          )}
+                          {doc.fileSizeBytes && (
+                            <span className="flex items-center gap-1">
+                              <Paperclip className="w-3 h-3 text-[#006AC7]" />
+                              {(doc.fileSizeBytes / 1024).toFixed(0)} KB
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex items-center gap-2">
+                          {/* View Attachment Button */}
+                          {(doc.fileUrl || doc.fileMimeType) && (
+                            <button
+                              onClick={() => handleViewNoticeAttachment(doc._id)}
+                              className="px-3 py-1.5 rounded-xl text-xs font-bold text-[#006AC7] bg-blue-50 hover:bg-blue-100 border border-blue-200 flex items-center gap-1.5 transition cursor-pointer"
+                              title="Securely view verified document attachment"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" /> View File
+                            </button>
+                          )}
+
+                          {/* HM Administrative Actions for Own School Notices */}
+                          {isSchoolNotice ? (
+                            <>
+                              {!isArchived && (
+                                <button
+                                  onClick={() => handleArchiveNoticeSubmit(doc._id)}
+                                  className="px-3 py-1.5 rounded-xl text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 flex items-center gap-1.5 transition cursor-pointer"
+                                  title="Archive circular"
+                                >
+                                  <Archive className="w-3.5 h-3.5" /> Archive
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handleDeleteNoticeSubmit(doc._id)}
+                                className="px-3 py-1.5 rounded-xl text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 flex items-center gap-1.5 transition cursor-pointer"
+                                title="Permanently delete circular & attachment"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" /> Delete
+                              </button>
+                            </>
+                          ) : (
+                            <span className="text-[11px] text-[#8094A8] flex items-center gap-1 px-2 py-1 bg-slate-50 rounded-lg border border-slate-200">
+                              <Lock className="w-3 h-3 text-slate-400" /> Municipality Directive (Read-Only)
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-blue-50 text-[#006AC7] font-bold">
-                      {new Date(doc.createdAt).toLocaleDateString('en-PK')}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -2381,43 +2713,146 @@ export const HmDashboard = () => {
 
       {/* Publish Notice Modal */}
       {newNoticeModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-          <form onSubmit={handlePublishNoticeSubmit} className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4">
-            <h3 className="text-base font-bold text-[#102033]">Publish School Circular</h3>
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+          <form onSubmit={handlePublishNoticeSubmit} className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4 border border-slate-200">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
+                <FileText className="w-5 h-5 text-[#006AC7]" />
+                Publish School Circular
+              </h3>
+              <button
+                type="button"
+                onClick={() => setNewNoticeModal(false)}
+                className="text-slate-400 hover:text-slate-600 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
             <div>
-              <label className="text-xs font-bold text-[#102033] block mb-1">Circular Title</label>
+              <label className="text-xs font-bold text-[#102033] block mb-1">
+                Circular / Notice Title <span className="text-rose-500">*</span>
+              </label>
               <input
                 type="text"
                 value={noticeData.title}
                 onChange={(e) => setNoticeData({ ...noticeData, title: e.target.value })}
-                placeholder="e.g. Winter Schedule Notice"
+                placeholder="e.g. Annual Sports Day Schedule 2026"
                 required
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200"
+                maxLength={200}
+                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
               />
             </div>
-            <div>
-              <label className="text-xs font-bold text-[#102033] block mb-1">Document Link / URL</label>
-              <input
-                type="url"
-                value={noticeData.fileUrl}
-                onChange={(e) => setNoticeData({ ...noticeData, fileUrl: e.target.value })}
-                placeholder="https://..."
-                required
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200"
-              />
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-bold text-[#102033] block mb-1">Reference Number</label>
+                <input
+                  type="text"
+                  value={noticeData.referenceNumber}
+                  onChange={(e) => setNoticeData({ ...noticeData, referenceNumber: e.target.value })}
+                  placeholder="e.g. HM/CIR/2026/01"
+                  maxLength={50}
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-200 font-mono focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-[#102033] block mb-1">Document Type</label>
+                <select
+                  value={noticeData.documentType}
+                  onChange={(e) => setNoticeData({ ...noticeData, documentType: e.target.value })}
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-white font-medium text-[#102033] focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                >
+                  <option value="CIRCULAR">Circular</option>
+                  <option value="NOTIFICATION">Notification</option>
+                  <option value="POLICY">Policy</option>
+                  <option value="EVENT_NOTICE">Event Notice</option>
+                </select>
+              </div>
             </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-bold text-[#102033] block mb-1">Priority</label>
+                <select
+                  value={noticeData.priority}
+                  onChange={(e) => setNoticeData({ ...noticeData, priority: e.target.value })}
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-white font-medium text-[#102033] focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                >
+                  <option value="NORMAL">Normal Priority</option>
+                  <option value="URGENT">Urgent (Pins Notice)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-[#102033] block mb-1">Jurisdiction Scope</label>
+                <div className="text-xs p-2.5 rounded-xl bg-slate-50 border border-slate-200 font-mono font-bold text-[#4B7F3A]">
+                  SCHOOL (Locked)
+                </div>
+              </div>
+            </div>
+
+            {/* Target Audience Multi-Checkboxes */}
             <div>
-              <label className="text-xs font-bold text-[#102033] block mb-1">Description (Optional)</label>
+              <label className="text-xs font-bold text-[#102033] block mb-1.5">
+                Target Audience <span className="text-rose-500">*</span>
+              </label>
+              <div className="flex items-center gap-3">
+                {['TEACHERS', 'STUDENTS', 'PARENTS'].map((role) => (
+                  <label key={role} className="flex items-center gap-1.5 text-xs text-[#526477] cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={noticeData.targetAudience.includes(role)}
+                      onChange={() => handleToggleAudience(role)}
+                      className="rounded text-[#006AC7] focus:ring-[#006AC7]"
+                    />
+                    <span className="font-semibold capitalize">{role.toLowerCase()}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-[#102033] block mb-1">Notice Description / Remarks</label>
               <textarea
                 value={noticeData.description}
                 onChange={(e) => setNoticeData({ ...noticeData, description: e.target.value })}
-                rows={2}
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200"
+                rows={3}
+                placeholder="Detailed instructions or description..."
+                maxLength={2000}
+                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
               />
             </div>
-            <div className="flex justify-end gap-2 pt-2">
-              <button type="button" onClick={() => setNewNoticeModal(false)} className="px-3 py-1.5 rounded-lg text-xs font-semibold text-[#526477]">Cancel</button>
-              <button type="submit" className="px-4 py-1.5 rounded-lg text-xs font-bold bg-[#006AC7] text-white">Publish Circular</button>
+
+            {/* File Attachment Upload */}
+            <div>
+              <label className="text-xs font-bold text-[#102033] block mb-1">Document Attachment (Optional)</label>
+              <input
+                type="file"
+                accept=".pdf,image/jpeg,image/png,image/webp"
+                onChange={(e) => setSelectedNoticeFile(e.target.files?.[0] || null)}
+                className="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-[#006AC7] hover:file:bg-blue-100 cursor-pointer"
+              />
+              <p className="text-[10px] text-[#8094A8] mt-1">
+                Supported: PDF, JPEG, PNG, WebP (Max: 10MB). Magic bytes validation active.
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setNewNoticeModal(false)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-[#526477] hover:bg-slate-100 transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-5 py-2 rounded-xl text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white shadow-sm transition cursor-pointer"
+              >
+                Publish Circular
+              </button>
             </div>
           </form>
         </div>
