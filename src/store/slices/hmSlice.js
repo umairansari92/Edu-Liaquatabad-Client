@@ -297,6 +297,39 @@ export const approveTransferJoining = createAsyncThunk(
   }
 );
 
+export const relieveTransferFaculty = createAsyncThunk(
+  'hm/relieveTransferFaculty',
+  async ({ id, relievingDate, relievingRemarks, relievingOrderNumber, clearanceCertified }, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await hmService.relieveTransferFaculty(id, {
+        relievingDate,
+        relievingRemarks,
+        relievingOrderNumber,
+        clearanceCertified,
+      });
+      dispatch(fetchIncomingTransfers());
+      dispatch(fetchHmSummary());
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to relieve faculty member');
+    }
+  }
+);
+
+export const rejectTransferJoining = createAsyncThunk(
+  'hm/rejectTransferJoining',
+  async ({ id, rejectionReason }, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await hmService.rejectTransferJoining(id, { rejectionReason });
+      dispatch(fetchIncomingTransfers());
+      dispatch(fetchHmSummary());
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to reject faculty joining');
+    }
+  }
+);
+
 export const fetchSchoolNotices = createAsyncThunk(
   'hm/fetchSchoolNotices',
   async (params = {}, { rejectWithValue }) => {

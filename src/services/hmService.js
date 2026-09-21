@@ -143,14 +143,29 @@ export const hmService = {
     return response.data;
   },
 
-  // ─── 7. Incoming Faculty Transfers ────────────────────────────────────────────
+  // ─── 7. Faculty Transfers & Postings ─────────────────────────────────────────
   getTransfers: async (params = {}) => {
     const response = await apiClient.get('/transfers', { params });
     return response.data;
   },
 
+  getTransferById: async (id) => {
+    const response = await apiClient.get(`/transfers/${id}`);
+    return response.data;
+  },
+
+  relieveTransferFaculty: async (id, payload) => {
+    const response = await apiClient.patch(`/transfers/${id}/relieve`, payload);
+    return response.data;
+  },
+
   approveTransferJoining: async (id, payload) => {
     const response = await apiClient.patch(`/transfers/${id}/approve-joining`, payload);
+    return response.data;
+  },
+
+  rejectTransferJoining: async (id, payload) => {
+    const response = await apiClient.patch(`/transfers/${id}/reject`, payload);
     return response.data;
   },
 

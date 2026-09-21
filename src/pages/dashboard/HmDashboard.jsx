@@ -68,6 +68,8 @@ import {
   publishExamGazette,
   fetchIncomingTransfers,
   approveTransferJoining,
+  relieveTransferFaculty,
+  rejectTransferJoining,
   fetchSchoolNotices,
   publishSchoolNotice,
   archiveSchoolNotice,
@@ -244,6 +246,20 @@ export const HmDashboard = () => {
   const [examClassFilter, setExamClassFilter] = useState('');
   const [examSectionFilter, setExamSectionFilter] = useState('');
   const [joiningModal, setJoiningModal] = useState({ open: false, transfer: null, remarks: '', joiningDate: '' });
+  const [transferViewDirection, setTransferViewDirection] = useState('incoming'); // 'incoming' | 'outgoing' | 'history'
+  const [relieveModal, setRelieveModal] = useState({
+    open: false,
+    transfer: null,
+    relievingDate: new Date().toISOString().split('T')[0],
+    relievingRemarks: '',
+    relievingOrderNumber: '',
+    clearanceCertified: false,
+  });
+  const [rejectJoiningModal, setRejectJoiningModal] = useState({
+    open: false,
+    transfer: null,
+    rejectionReason: '',
+  });
 
   // School Circulars & Official Notice Board State
   const [newNoticeModal, setNewNoticeModal] = useState(false);
@@ -321,11 +337,11 @@ export const HmDashboard = () => {
       dispatch(fetchAcademicClasses());
       dispatch(fetchAcademicSections());
     } else if (activeTab === 'transfers') {
-      dispatch(fetchIncomingTransfers());
+      dispatch(fetchIncomingTransfers({ direction: transferViewDirection }));
     } else if (activeTab === 'notices') {
       loadNotices();
     }
-  }, [activeTab, dispatch, teacherAttendanceDate, loadNotices]);
+  }, [activeTab, dispatch, teacherAttendanceDate, loadNotices, transferViewDirection]);
 
   // Teacher attendance date change trigger
   useEffect(() => {
@@ -565,8 +581,63 @@ export const HmDashboard = () => {
       ).unwrap();
       toast.success('Faculty physical joining verified and approved.');
       setJoiningModal({ open: false, transfer: null, remarks: '', joiningDate: '' });
+      dispatch(fetchIncomingTransfers({ direction: transferViewDirection }));
     } catch (err) {
       toast.error(err || 'Failed to approve joining.');
+    }
+  };
+
+  // ─── Transfer Relieving Handler ─────────────────────────────────────────────
+  const handleConfirmRelieving = async () => {
+    if (!relieveModal.transfer) return;
+    if (!relieveModal.clearanceCertified) {
+      toast.error('You must certify institutional clearance before relieving faculty.');
+      return;
+    }
+    try {
+      await dispatch(
+        relieveTransferFaculty({
+          id: relieveModal.transfer._id,
+          relievingDate: relieveModal.relievingDate || new Date().toISOString(),
+          relievingRemarks: relieveModal.relievingRemarks.trim(),
+          relievingOrderNumber: relieveModal.relievingOrderNumber.trim(),
+          clearanceCertified: true,
+        })
+      ).unwrap();
+      toast.success('Faculty member formally relieved. Old school assignments expired.');
+      setRelieveModal({
+        open: false,
+        transfer: null,
+        relievingDate: new Date().toISOString().split('T')[0],
+        relievingRemarks: '',
+        relievingOrderNumber: '',
+        clearanceCertified: false,
+      });
+      dispatch(fetchIncomingTransfers({ direction: transferViewDirection }));
+    } catch (err) {
+      toast.error(err || 'Failed to relieve faculty member.');
+    }
+  };
+
+  // ─── Transfer Rejection Handler ─────────────────────────────────────────────
+  const handleConfirmRejectJoining = async () => {
+    if (!rejectJoiningModal.transfer) return;
+    if (!rejectJoiningModal.rejectionReason || rejectJoiningModal.rejectionReason.trim().length < 10) {
+      toast.error('A detailed rejection reason of at least 10 characters is required.');
+      return;
+    }
+    try {
+      await dispatch(
+        rejectTransferJoining({
+          id: rejectJoiningModal.transfer._id,
+          rejectionReason: rejectJoiningModal.rejectionReason.trim(),
+        })
+      ).unwrap();
+      toast.success('Faculty arrival rejected. Referred for municipal administrative review.');
+      setRejectJoiningModal({ open: false, transfer: null, rejectionReason: '' });
+      dispatch(fetchIncomingTransfers({ direction: transferViewDirection }));
+    } catch (err) {
+      toast.error(err || 'Failed to reject joining.');
     }
   };
 
@@ -2073,48 +2144,220 @@ export const HmDashboard = () => {
       )}
 
       {/* ═══════════════════════════════════════════════════════════════════ */}
-      {/* TAB 7: INCOMING TRANSFERS                                           */}
+      {/* TAB 7: FACULTY TRANSFERS & INSTITUTIONAL MOVEMENT LEDGER            */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {activeTab === 'transfers' && (
         <div className="space-y-6">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
+                <ArrowLeftRight className="w-5 h-5 text-[#006AC7]" />
+                Faculty Transfer Lifecycle & Institutional Movement Ledger
+              </h3>
+              <p className="text-xs text-[#526477] mt-0.5">
+                Official DMC Liaquatabad Town transfer governance: certify asset clearance for departures and verify physical arrivals for joining.
+              </p>
+            </div>
+            <button
+              onClick={() => dispatch(fetchIncomingTransfers({ direction: transferViewDirection }))}
+              className="self-start sm:self-auto px-3.5 py-1.5 rounded-xl border border-slate-200 bg-white text-xs font-bold text-[#526477] hover:text-[#102033] hover:bg-slate-50 transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${transfersLoading ? 'animate-spin' : ''}`} />
+              Refresh
+            </button>
+          </div>
+
+          {/* Direction Navigation Pills */}
+          <div className="flex items-center gap-2 p-1.5 bg-slate-100 rounded-2xl w-fit">
+            <button
+              onClick={() => setTransferViewDirection('incoming')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-2 ${
+                transferViewDirection === 'incoming'
+                  ? 'bg-white text-[#006AC7] shadow-sm'
+                  : 'text-[#526477] hover:text-[#102033]'
+              }`}
+            >
+              <span>Incoming Faculty (Arrivals)</span>
+              {summary?.metrics?.pendingQueues?.incomingTransfers > 0 && (
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-100 text-amber-800">
+                  {summary.metrics.pendingQueues.incomingTransfers}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setTransferViewDirection('outgoing')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-2 ${
+                transferViewDirection === 'outgoing'
+                  ? 'bg-white text-[#006AC7] shadow-sm'
+                  : 'text-[#526477] hover:text-[#102033]'
+              }`}
+            >
+              <span>Outgoing Faculty (Clearance & Relieving)</span>
+            </button>
+            <button
+              onClick={() => setTransferViewDirection('history')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-2 ${
+                transferViewDirection === 'history'
+                  ? 'bg-white text-[#006AC7] shadow-sm'
+                  : 'text-[#526477] hover:text-[#102033]'
+              }`}
+            >
+              <span>Movement History & Archival Ledger</span>
+            </button>
+          </div>
+
+          {/* Transfer List Container */}
           <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
-                  <ArrowLeftRight className="w-5 h-5 text-[#006AC7]" />
-                  Incoming Faculty Transfers Awaiting Physical Arrival
-                </h3>
-                <p className="text-xs text-[#526477] mt-0.5">
-                  Only the Destination Head Master can certify physical arrival and approve joining. Old teaching assignments expire automatically.
+            {transfersLoading ? (
+              <div className="py-12 text-center text-sm text-[#526477] flex items-center justify-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin text-[#006AC7]" />
+                Querying institutional transfer directive ledger...
+              </div>
+            ) : transfers.length === 0 ? (
+              <div className="p-12 text-center text-sm text-[#8094A8] bg-slate-50 rounded-2xl space-y-2">
+                <ArrowLeftRight className="w-8 h-8 text-slate-300 mx-auto" />
+                <p className="font-semibold text-[#102033]">
+                  {transferViewDirection === 'incoming'
+                    ? 'No incoming faculty transfers awaiting arrival for your school.'
+                    : transferViewDirection === 'outgoing'
+                    ? 'No departing faculty members currently scheduled for relieving.'
+                    : 'No historical transfer movement records found for your school.'}
+                </p>
+                <p className="text-xs text-[#8094A8]">
+                  Official transfer orders issued by Town Administration will appear in this registry.
                 </p>
               </div>
-            </div>
-
-            {transfersLoading ? (
-              <div className="flex items-center gap-2 text-sm text-[#526477]"><Loader2 className="w-4 h-4 animate-spin text-[#006AC7]" /> Loading transfer directives...</div>
-            ) : transfers.length === 0 ? (
-              <div className="p-8 text-center text-sm text-[#8094A8] bg-slate-50 rounded-xl">No pending incoming faculty transfers for your school.</div>
             ) : (
               <div className="space-y-3">
-                {transfers.map((tr) => (
-                  <div key={tr._id} className="p-4 rounded-xl border border-slate-200/80 hover:bg-slate-50/60 transition flex items-center justify-between">
-                    <div>
-                      <p className="font-bold text-[#102033] text-sm">{tr.teacherUserId?.fullName}</p>
-                      <p className="text-xs text-[#526477] mt-0.5">
-                        From: <span className="font-semibold">{tr.fromSchoolId?.name}</span> → Destination: <span className="font-semibold text-[#006AC7]">{tr.toSchoolId?.name}</span>
-                      </p>
-                      <p className="text-xs text-[#8094A8] mt-1">Reason: {tr.reason} • Status: <span className="font-mono font-bold text-amber-700">{tr.status}</span></p>
+                {transfers.map((tr) => {
+                  const isIncoming = String(tr.toSchoolId?._id || tr.toSchoolId) === String(user?.schoolId?._id || user?.schoolId);
+                  const isOutgoing = String(tr.fromSchoolId?._id || tr.fromSchoolId) === String(user?.schoolId?._id || user?.schoolId);
+
+                  const canRelieve = isOutgoing && ['APPROVED', 'INITIATED', 'TRANSFER_REQUESTED'].includes(tr.status);
+                  const canJoin = isIncoming && ['RELIEVED', 'AWAITING_DESTINATION_HM'].includes(tr.status);
+                  const canReject = isIncoming && ['RELIEVED', 'AWAITING_DESTINATION_HM'].includes(tr.status);
+
+                  return (
+                    <div
+                      key={tr._id}
+                      className="p-5 rounded-2xl border border-slate-200/80 hover:bg-slate-50/50 transition flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm"
+                    >
+                      <div className="space-y-2 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-[#102033] text-sm">
+                            {tr.teacherUserId?.fullName || 'Faculty Member'}
+                          </span>
+                          {tr.teacherUserId?.designation && (
+                            <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-[#526477]">
+                              {tr.teacherUserId.designation}
+                            </span>
+                          )}
+                          {tr.officialOrderNumber && (
+                            <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-blue-50 text-[#006AC7] border border-blue-200">
+                              Order #{tr.officialOrderNumber}
+                            </span>
+                          )}
+                          <span
+                            className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
+                              tr.status === 'JOINED' || tr.status === 'JOINING_APPROVED'
+                                ? 'bg-emerald-50 text-[#4B7F3A] border-emerald-200'
+                                : tr.status === 'RELIEVED' || tr.status === 'AWAITING_DESTINATION_HM'
+                                ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                                : tr.status === 'APPROVED'
+                                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                                : tr.status === 'REJECTED_BY_HM'
+                                ? 'bg-rose-50 text-rose-700 border-rose-200'
+                                : 'bg-slate-50 text-slate-700 border-slate-200'
+                            }`}
+                          >
+                            {tr.status}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2 text-xs text-[#526477]">
+                          <span className="font-medium text-[#102033]">
+                            {tr.fromSchoolId?.name || 'Previous School'}
+                          </span>
+                          <ArrowLeftRight className="w-3.5 h-3.5 text-slate-400" />
+                          <span className="font-semibold text-[#006AC7]">
+                            {tr.toSchoolId?.name || 'Destination School'}
+                          </span>
+                        </div>
+
+                        <p className="text-xs text-[#8094A8]">
+                          <span className="font-semibold text-[#526477]">Reason:</span> {tr.reason}
+                        </p>
+
+                        {tr.relievingDetails?.relievedAt && (
+                          <p className="text-[11px] text-[#526477]">
+                            <span className="font-semibold">Relieved:</span> {new Date(tr.relievingDetails.relievedAt).toLocaleDateString()}
+                            {tr.relievingDetails.relievingOrderNumber ? ` • Ref: ${tr.relievingDetails.relievingOrderNumber}` : ''}
+                          </p>
+                        )}
+
+                        {tr.destinationHMReview?.joiningDateConfirmed && (
+                          <p className="text-[11px] text-[#4B7F3A]">
+                            <span className="font-semibold">Joined:</span> {new Date(tr.destinationHMReview.joiningDateConfirmed).toLocaleDateString()}
+                            {tr.destinationHMReview.hmRemarks ? ` • "${tr.destinationHMReview.hmRemarks}"` : ''}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex items-center gap-2 self-end md:self-center">
+                        {canRelieve && (
+                          <button
+                            onClick={() =>
+                              setRelieveModal({
+                                open: true,
+                                transfer: tr,
+                                relievingDate: new Date().toISOString().split('T')[0],
+                                relievingRemarks: '',
+                                relievingOrderNumber: tr.officialOrderNumber || '',
+                                clearanceCertified: false,
+                              })
+                            }
+                            className="px-4 py-2 rounded-xl text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white transition cursor-pointer shadow-sm"
+                          >
+                            Certify Clearance & Relieve
+                          </button>
+                        )}
+
+                        {canJoin && (
+                          <button
+                            onClick={() =>
+                              setJoiningModal({
+                                open: true,
+                                transfer: tr,
+                                remarks: '',
+                                joiningDate: new Date().toISOString().split('T')[0],
+                              })
+                            }
+                            className="px-4 py-2 rounded-xl text-xs font-bold bg-[#4B7F3A] hover:bg-[#3d682f] text-white transition cursor-pointer shadow-sm"
+                          >
+                            Approve Physical Joining
+                          </button>
+                        )}
+
+                        {canReject && (
+                          <button
+                            onClick={() =>
+                              setRejectJoiningModal({
+                                open: true,
+                                transfer: tr,
+                                rejectionReason: '',
+                              })
+                            }
+                            className="px-3.5 py-2 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 transition cursor-pointer border border-rose-200"
+                          >
+                            Reject Arrival
+                          </button>
+                        )}
+                      </div>
                     </div>
-                    {tr.status === 'AWAITING_DESTINATION_HM' && (
-                      <button
-                        onClick={() => setJoiningModal({ open: true, transfer: tr, remarks: '', joiningDate: new Date().toISOString().split('T')[0] })}
-                        className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#4B7F3A] hover:bg-[#3d682f] text-white transition cursor-pointer shadow-sm"
-                      >
-                        Approve Physical Joining
-                      </button>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -2706,6 +2949,136 @@ export const HmDashboard = () => {
             <div className="flex justify-end gap-2 pt-2">
               <button onClick={() => setJoiningModal({ open: false, transfer: null, remarks: '', joiningDate: '' })} className="px-3 py-1.5 rounded-lg text-xs font-semibold text-[#526477]">Cancel</button>
               <button onClick={handleConfirmJoining} className="px-4 py-1.5 rounded-lg text-xs font-bold bg-[#4B7F3A] text-white">Approve Joining</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Transfer Relieving Modal */}
+      {relieveModal.open && relieveModal.transfer && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4 border border-slate-200">
+            <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
+              <ArrowLeftRight className="w-5 h-5 text-[#006AC7]" />
+              Issue Official Relieving Order
+            </h3>
+            <div className="text-xs text-[#526477] bg-slate-50 p-3 rounded-xl border space-y-1">
+              <p><span className="font-semibold text-[#102033]">Departing Teacher:</span> {relieveModal.transfer.teacherUserId?.fullName}</p>
+              <p><span className="font-semibold text-[#102033]">Source School:</span> {relieveModal.transfer.fromSchoolId?.name}</p>
+              <p><span className="font-semibold text-[#102033]">Target School:</span> {relieveModal.transfer.toSchoolId?.name}</p>
+              {relieveModal.transfer.officialOrderNumber && (
+                <p><span className="font-semibold text-[#102033]">Town Order Ref:</span> #{relieveModal.transfer.officialOrderNumber}</p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-bold text-[#102033] block mb-1">Relieving Date</label>
+                <input
+                  type="date"
+                  value={relieveModal.relievingDate}
+                  onChange={(e) => setRelieveModal({ ...relieveModal, relievingDate: e.target.value })}
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-200"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-[#102033] block mb-1">Relieving Order #</label>
+                <input
+                  type="text"
+                  placeholder="e.g. REL/2026/042"
+                  value={relieveModal.relievingOrderNumber}
+                  onChange={(e) => setRelieveModal({ ...relieveModal, relievingOrderNumber: e.target.value })}
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-200 font-mono"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-[#102033] block mb-1">Handover & Relieving Remarks</label>
+              <textarea
+                rows={2}
+                value={relieveModal.relievingRemarks}
+                onChange={(e) => setRelieveModal({ ...relieveModal, relievingRemarks: e.target.value })}
+                placeholder="Certified all gradebooks, examination registers, and municipal assets handed over."
+                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+              />
+            </div>
+
+            <div className="p-3 bg-amber-50 rounded-xl border border-amber-200">
+              <label className="flex items-start gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={relieveModal.clearanceCertified}
+                  onChange={(e) => setRelieveModal({ ...relieveModal, clearanceCertified: e.target.checked })}
+                  className="mt-0.5 rounded text-[#006AC7] focus:ring-[#006AC7]"
+                />
+                <span className="text-xs font-semibold text-amber-900 leading-tight">
+                  I formally certify that this faculty member has completed all institutional clearances, returned school keys/registers, and has no pending disciplinary holds.
+                </span>
+              </label>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                onClick={() => setRelieveModal({ open: false, transfer: null, relievingDate: '', relievingRemarks: '', relievingOrderNumber: '', clearanceCertified: false })}
+                className="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-[#526477] hover:bg-slate-100 transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmRelieving}
+                disabled={!relieveModal.clearanceCertified}
+                className="px-4 py-1.5 rounded-lg text-xs font-bold bg-[#006AC7] hover:bg-[#005299] disabled:bg-slate-300 text-white transition shadow-sm cursor-pointer"
+              >
+                Issue Relieving Order
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Transfer Rejection Modal */}
+      {rejectJoiningModal.open && rejectJoiningModal.transfer && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4 border border-slate-200">
+            <h3 className="text-base font-bold text-rose-700 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-rose-600" />
+              Reject Faculty Physical Arrival
+            </h3>
+            <p className="text-xs text-[#526477]">
+              State the exact institutional, documentation, or procedural discrepancies observed. The transfer directive will be referred to Town Administration for formal inquiry.
+            </p>
+            <div className="text-xs text-[#526477] bg-slate-50 p-3 rounded-xl border space-y-1">
+              <p><span className="font-semibold text-[#102033]">Candidate:</span> {rejectJoiningModal.transfer.teacherUserId?.fullName}</p>
+              <p><span className="font-semibold text-[#102033]">Origin School:</span> {rejectJoiningModal.transfer.fromSchoolId?.name}</p>
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-[#102033] block mb-1">
+                Detailed Rejection Reason <span className="text-rose-500">* (Min 10 chars)</span>
+              </label>
+              <textarea
+                rows={3}
+                value={rejectJoiningModal.rejectionReason}
+                onChange={(e) => setRejectJoiningModal({ ...rejectJoiningModal, rejectionReason: e.target.value })}
+                placeholder="e.g. Discrepancy in relieving order credentials; subject quota full; identity mismatch."
+                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-rose-500"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                onClick={() => setRejectJoiningModal({ open: false, transfer: null, rejectionReason: '' })}
+                className="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-[#526477] hover:bg-slate-100 transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmRejectJoining}
+                className="px-4 py-1.5 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white transition shadow-sm cursor-pointer"
+              >
+                Confirm Rejection & Refer
+              </button>
             </div>
           </div>
         </div>
