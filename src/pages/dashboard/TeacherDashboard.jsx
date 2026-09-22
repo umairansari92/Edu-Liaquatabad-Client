@@ -1238,19 +1238,19 @@ export const TeacherDashboard = () => {
               <div className="grid grid-cols-3 gap-3 my-5">
                 <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-center">
                   <p className="text-xl font-black text-emerald-700">
-                    {selfAttendance?.summary?.presentDays ?? 0}
+                    {selfAttendance?.summary?.presentCount ?? selfAttendance?.summary?.presentDays ?? 0}
                   </p>
                   <p className="text-xs text-[#526477] font-semibold mt-0.5">Days Present</p>
                 </div>
                 <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-center">
                   <p className="text-xl font-black text-rose-700">
-                    {selfAttendance?.summary?.absentDays ?? 0}
+                    {selfAttendance?.summary?.absentCount ?? selfAttendance?.summary?.absentDays ?? 0}
                   </p>
                   <p className="text-xs text-[#526477] font-semibold mt-0.5">Days Absent</p>
                 </div>
                 <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-center">
                   <p className="text-xl font-black text-amber-700">
-                    {selfAttendance?.summary?.leaveDays ?? 0}
+                    {selfAttendance?.summary?.leaveCount ?? selfAttendance?.summary?.leaveDays ?? 0}
                   </p>
                   <p className="text-xs text-[#526477] font-semibold mt-0.5">Approved Leave</p>
                 </div>
