@@ -4,6 +4,7 @@ import notificationReducer from './slices/notificationSlice.js';
 import staffProfileReducer from './slices/staffProfileSlice.js';
 import adminReducer from './slices/adminSlice.js';
 import hmReducer from './slices/hmSlice.js';
+import teacherReducer from './slices/teacherSlice.js';
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
     staffProfile: staffProfileReducer,
     admin: adminReducer,
     hm: hmReducer,
+    teacher: teacherReducer,
   },
   devTools: process.env.NODE_ENV !== 'production',
 });
