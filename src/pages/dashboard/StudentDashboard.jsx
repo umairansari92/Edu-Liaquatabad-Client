@@ -1275,11 +1275,19 @@ export const StudentDashboard = () => {
               {/* Sub-Header / School Identification */}
               <div className="bg-[#F0F8FF] px-4 py-2 border-b border-blue-100 text-center">
                 <p className="text-xs font-black text-[#006AC7] uppercase truncate">
-                  {studentProfileData?.school?.name || user?.schoolId?.name || 'Municipal Model School'}
+                  {studentProfileData?.school?.name || user?.schoolId?.name || 'School Name Not Available'}
                 </p>
-                {studentProfileData?.school?.code && (
+                {studentProfileData?.school?.emisCode ? (
                   <p className="text-[10px] font-mono text-[#526477]">
-                    School Code: {studentProfileData.school.code}
+                    BEMIS / EMIS Code: {studentProfileData.school.emisCode}
+                  </p>
+                ) : studentProfileData?.school?.schoolCode || studentProfileData?.school?.code ? (
+                  <p className="text-[10px] font-mono text-[#526477]">
+                    School Code: {studentProfileData.school.schoolCode || studentProfileData.school.code}
+                  </p>
+                ) : (
+                  <p className="text-[10px] font-mono text-[#8094A8] italic">
+                    School Code: Not Available
                   </p>
                 )}
               </div>
@@ -1310,7 +1318,7 @@ export const StudentDashboard = () => {
                         Student Full Name
                       </span>
                       <p className="text-sm font-black text-[#102033] truncate">
-                        {studentProfileData?.studentFullName || user?.fullName || 'Student'}
+                        {studentProfileData?.studentFullName || user?.fullName || 'Not Available'}
                       </p>
                     </div>
 
@@ -1318,13 +1326,13 @@ export const StudentDashboard = () => {
                       <div>
                         <span className="text-[9px] text-[#8094A8] font-bold uppercase tracking-wider block">GR #</span>
                         <p className="text-xs font-mono font-black text-[#006AC7]">
-                          {studentProfileData?.grNumber || '—'}
+                          {studentProfileData?.grNumber ? String(studentProfileData.grNumber) : 'Not Available'}
                         </p>
                       </div>
                       <div>
                         <span className="text-[9px] text-[#8094A8] font-bold uppercase tracking-wider block">Roll #</span>
                         <p className="text-xs font-mono font-bold text-[#102033]">
-                          {studentProfileData?.rollNumber || studentProfileData?.grNumber || '—'}
+                          {studentProfileData?.rollNumber || (studentProfileData?.grNumber ? String(studentProfileData.grNumber) : 'Not Available')}
                         </p>
                       </div>
                     </div>
@@ -1333,13 +1341,13 @@ export const StudentDashboard = () => {
                       <div>
                         <span className="text-[9px] text-[#8094A8] font-bold uppercase tracking-wider block">Class</span>
                         <p className="text-xs font-bold text-[#102033]">
-                          {studentProfileData?.class?.name || 'Class'}
+                          {studentProfileData?.class?.name || 'Not Available'}
                         </p>
                       </div>
                       <div>
                         <span className="text-[9px] text-[#8094A8] font-bold uppercase tracking-wider block">Section</span>
                         <p className="text-xs font-bold text-[#102033]">
-                          {studentProfileData?.section?.name || 'Section'}
+                          {studentProfileData?.section?.name || 'Not Available'}
                         </p>
                       </div>
                     </div>
@@ -1351,19 +1359,19 @@ export const StudentDashboard = () => {
                   <div className="flex justify-between">
                     <span className="text-[#8094A8] font-medium">Father / Guardian:</span>
                     <span className="font-bold text-[#102033] truncate max-w-[200px]">
-                      {studentProfileData?.guardian?.fullName || '—'}
+                      {studentProfileData?.guardian?.fullName || 'Not Available'}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#8094A8] font-medium">Emergency Contact:</span>
                     <span className="font-mono font-bold text-[#102033]">
-                      {studentProfileData?.guardian?.cellNumber || '—'}
+                      {studentProfileData?.guardian?.cellNumber || 'Not Available'}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#8094A8] font-medium">Global Student ID:</span>
                     <span className="font-mono text-[#006AC7] font-bold">
-                      {studentProfileData?.globalStudentId || `LTC-${studentProfileData?.grNumber || '000'}`}
+                      {studentProfileData?.globalStudentId || 'Not Available'}
                     </span>
                   </div>
                 </div>
@@ -1372,11 +1380,12 @@ export const StudentDashboard = () => {
                 <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between text-[9px] text-[#8094A8]">
                   <div>
                     <span>Valid for Academic Session</span>
-                    <p className="font-bold text-[#102033]">2025 – 2026</p>
+                    <p className="font-bold text-[#102033]">{activeAcademicSession}</p>
                   </div>
                   <div className="text-right">
-                    <div className="font-bold text-[#006AC7] uppercase">Headmaster Signature</div>
-                    <span className="italic">Authorized Signatory</span>
+                    <div className="font-bold text-[#006AC7] uppercase">Institutional Verification</div>
+                    <span className="italic text-[#526477]">Digital Record — Town Centre System</span>
+                    <span className="text-[8px] text-[#8094A8] block">Physical stamp required for offline validity</span>
                   </div>
                 </div>
               </div>
