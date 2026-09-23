@@ -32,6 +32,8 @@ import {
   Eye,
   Trash2,
   Download,
+  RotateCcw,
+  Filter,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PageContainer from '../../components/layout/PageContainer.jsx';
@@ -141,6 +143,8 @@ export const TeacherDashboard = () => {
   const [selectedAttendanceSectionId, setSelectedAttendanceSectionId] = useState('');
   const [attendanceDate, setAttendanceDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [localAttendanceRecords, setLocalAttendanceRecords] = useState([]);
+  const [attendanceSearchQuery, setAttendanceSearchQuery] = useState('');
+  const [attendanceStatusFilter, setAttendanceStatusFilter] = useState('ALL'); // ALL, EXCEPTIONS, PRESENT, ABSENT, LEAVE
 
   // Examination Form Local State
   const [selectedExamId, setSelectedExamId] = useState('');
@@ -223,11 +227,39 @@ export const TeacherDashboard = () => {
     }
   }, [examRosterData]);
 
+  // ─── Live Attendance Derivations ──────────────────────────────────────────
+  const totalStudentsCount = localAttendanceRecords.length;
+  const absentStudentsCount = localAttendanceRecords.filter((r) => r.status === 'ABSENT').length;
+  const leaveStudentsCount = localAttendanceRecords.filter((r) => r.status === 'LEAVE').length;
+  const presentStudentsCount = Math.max(0, totalStudentsCount - absentStudentsCount - leaveStudentsCount);
+
+  // Memoized filtered attendance records for fast client search & filter
+  const filteredAttendanceRecords = useMemo(() => {
+    return localAttendanceRecords.filter((rec) => {
+      // 1. Status Filter
+      if (attendanceStatusFilter === 'EXCEPTIONS' && rec.status === 'PRESENT') return false;
+      if (attendanceStatusFilter === 'PRESENT' && rec.status !== 'PRESENT') return false;
+      if (attendanceStatusFilter === 'ABSENT' && rec.status !== 'ABSENT') return false;
+      if (attendanceStatusFilter === 'LEAVE' && rec.status !== 'LEAVE') return false;
+
+      // 2. Search Query (GR #, Roll #, or Student Name)
+      if (attendanceSearchQuery.trim()) {
+        const query = attendanceSearchQuery.trim().toLowerCase();
+        const nameMatch = (rec.fullName || '').toLowerCase().includes(query);
+        const grMatch = String(rec.grNumber || '').toLowerCase().includes(query);
+        const rollMatch = String(rec.rollNumber || '').toLowerCase().includes(query);
+        return nameMatch || grMatch || rollMatch;
+      }
+      return true;
+    });
+  }, [localAttendanceRecords, attendanceStatusFilter, attendanceSearchQuery]);
+
   // ─── Handlers: Attendance ──────────────────────────────────────────────────
-  const handleMarkAllAttendance = (targetStatus) => {
+  const handleResetAllToPresent = () => {
     setLocalAttendanceRecords((prev) =>
-      prev.map((rec) => ({ ...rec, status: targetStatus }))
+      prev.map((rec) => ({ ...rec, status: 'PRESENT' }))
     );
+    toast.success('All students reset to Present.');
   };
 
   const handleUpdateRecordStatus = (studentProfileId, newStatus) => {
@@ -253,17 +285,30 @@ export const TeacherDashboard = () => {
     }
 
     try {
+      const absentStudentProfileIds = localAttendanceRecords
+        .filter((r) => r.status === 'ABSENT')
+        .map((r) => r.studentProfileId);
+      const leaveStudentProfileIds = localAttendanceRecords
+        .filter((r) => r.status === 'LEAVE')
+        .map((r) => r.studentProfileId);
+      const recordsWithRemarks = localAttendanceRecords
+        .filter((r) => r.remarks && r.remarks.trim().length > 0)
+        .map((r) => ({
+          studentProfileId: r.studentProfileId,
+          status: r.status,
+          remarks: r.remarks.trim(),
+        }));
+
+      // Lightweight exception payload: server derives PRESENT for all other active students
       const payload = {
         sectionId: selectedAttendanceSectionId,
         date: attendanceDate,
-        records: localAttendanceRecords.map((r) => ({
-          studentProfileId: r.studentProfileId,
-          status: r.status,
-          remarks: r.remarks || '',
-        })),
+        absentStudentProfileIds,
+        leaveStudentProfileIds,
+        records: recordsWithRemarks,
       };
       await dispatch(submitStudentAttendance(payload)).unwrap();
-      toast.success('Attendance submitted successfully.');
+      toast.success(`Attendance submitted: ${presentStudentsCount} Present, ${absentStudentsCount} Absent, ${leaveStudentsCount} Leave.`);
       dispatch(fetchTeacherSummary());
     } catch (err) {
       toast.error(err || 'Failed to submit attendance.');
@@ -613,22 +658,23 @@ export const TeacherDashboard = () => {
         </div>
       )}
 
-      {/* ─── TAB 2: ATTENDANCE ───────────────────────────────────────────────── */}
+      {/* ─── TAB 2: ATTENDANCE (SMART ATTENDANCE / MINIMUM WORKLOAD) ───────── */}
       {activeTab === 'ATTENDANCE' && (
         <div className="space-y-6">
           <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
+            {/* Header & Controls */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
               <div>
                 <h2 className="text-lg font-bold text-[#102033] flex items-center gap-2">
                   <ClipboardList className="w-5 h-5 text-[#006AC7]" />
-                  Classroom Daily Attendance
+                  Smart Classroom Attendance
                 </h2>
-                <p className="text-xs text-[#526477]">
-                  Record student presence, absence, and authorized leave with individual remarks
+                <p className="text-xs text-[#526477] mt-0.5">
+                  Minimum Workload: All active enrolled students default to <strong className="text-emerald-700 font-bold">Present (P)</strong>. Mark only <strong className="text-rose-700 font-bold">Absent (A)</strong> or <strong className="text-amber-700 font-bold">Leave (L)</strong> exceptions.
                 </p>
               </div>
 
-              {/* Controls */}
+              {/* Controls: Section & Date */}
               <div className="flex flex-wrap items-center gap-3">
                 <div>
                   <label className="block text-xs font-bold text-[#526477] mb-1">Section</label>
@@ -657,37 +703,86 @@ export const TeacherDashboard = () => {
               </div>
             </div>
 
-            {/* Attendance Top Action Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 py-4 border-b border-slate-100">
-              <div className="flex items-center gap-4 text-xs font-bold">
-                <span className="text-emerald-700">
-                  ✓ {localAttendanceRecords.filter((r) => r.status === 'PRESENT').length} Present
-                </span>
-                <span className="text-rose-700">
-                  ✗ {localAttendanceRecords.filter((r) => r.status === 'ABSENT').length} Absent
-                </span>
-                <span className="text-amber-700">
-                  ◌ {localAttendanceRecords.filter((r) => r.status === 'LEAVE').length} Leave
-                </span>
+            {/* Live Exception Counters */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 my-5">
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-center">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#526477]">Total Roster</span>
+                <p className="text-2xl font-black text-[#102033] mt-0.5">{totalStudentsCount}</p>
+                <span className="text-[11px] text-[#8094A8] font-medium">Enrolled Students</span>
+              </div>
+              <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-center">
+                <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">Present (P)</span>
+                <p className="text-2xl font-black text-emerald-700 mt-0.5">{presentStudentsCount}</p>
+                <span className="text-[11px] text-emerald-600 font-medium">Default Auto-Derived</span>
+              </div>
+              <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-center">
+                <span className="text-xs font-bold uppercase tracking-wider text-rose-800">Absent (A)</span>
+                <p className="text-2xl font-black text-rose-700 mt-0.5">{absentStudentsCount}</p>
+                <span className="text-[11px] text-rose-600 font-medium">Exception Marked</span>
+              </div>
+              <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-center">
+                <span className="text-xs font-bold uppercase tracking-wider text-amber-800">Leave (L)</span>
+                <p className="text-2xl font-black text-amber-700 mt-0.5">{leaveStudentsCount}</p>
+                <span className="text-[11px] text-amber-600 font-medium">Approved Leave</span>
+              </div>
+            </div>
+
+            {/* Search Bar & Exception Filters */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 py-3 border-y border-slate-100">
+              {/* Search Box */}
+              <div className="relative flex-1 max-w-md">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Search by GR #, Roll # or Student Name…"
+                  value={attendanceSearchQuery}
+                  onChange={(e) => setAttendanceSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-8 py-2 rounded-xl border border-slate-200 text-xs font-medium text-[#102033] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
+                />
+                {attendanceSearchQuery && (
+                  <button
+                    onClick={() => setAttendanceSearchQuery('')}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    title="Clear search"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
 
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-[#8094A8] font-bold uppercase tracking-wider mr-1">
-                  1-Click Action:
-                </span>
+              {/* Status Filter Tabs & Reset Action */}
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="flex items-center p-1 rounded-xl bg-slate-100 border border-slate-200 text-xs font-bold">
+                  {[
+                    { id: 'ALL', label: `All (${totalStudentsCount})` },
+                    { id: 'EXCEPTIONS', label: `Exceptions (${absentStudentsCount + leaveStudentsCount})` },
+                    { id: 'PRESENT', label: `P (${presentStudentsCount})` },
+                    { id: 'ABSENT', label: `A (${absentStudentsCount})` },
+                    { id: 'LEAVE', label: `L (${leaveStudentsCount})` },
+                  ].map((filterTab) => (
+                    <button
+                      key={filterTab.id}
+                      type="button"
+                      onClick={() => setAttendanceStatusFilter(filterTab.id)}
+                      className={`px-2.5 py-1 rounded-lg transition-all ${
+                        attendanceStatusFilter === filterTab.id
+                          ? 'bg-white text-[#006AC7] shadow-xs'
+                          : 'text-[#526477] hover:text-[#102033]'
+                      }`}
+                    >
+                      {filterTab.label}
+                    </button>
+                  ))}
+                </div>
+
                 <button
                   type="button"
-                  onClick={() => handleMarkAllAttendance('PRESENT')}
-                  className="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold transition"
+                  onClick={handleResetAllToPresent}
+                  className="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold transition flex items-center gap-1.5"
+                  title="Clear all A/L exceptions and reset everyone to Present"
                 >
-                  Mark All Present
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleMarkAllAttendance('ABSENT')}
-                  className="px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition"
-                >
-                  Mark All Absent
+                  <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
+                  Reset to P
                 </button>
               </div>
             </div>
@@ -698,19 +793,22 @@ export const TeacherDashboard = () => {
                 <Loader2 className="w-8 h-8 animate-spin text-[#006AC7]" />
                 <p className="text-xs font-medium">Loading classroom attendance roster…</p>
               </div>
-            ) : localAttendanceRecords.length === 0 ? (
+            ) : filteredAttendanceRecords.length === 0 ? (
               <div className="py-12 text-center text-[#8094A8] text-sm">
-                No active students enrolled in this section.
+                {attendanceSearchQuery || attendanceStatusFilter !== 'ALL'
+                  ? 'No students found matching your search / filter criteria.'
+                  : 'No active students enrolled in this section.'}
               </div>
             ) : (
-              <div className="mt-4 divide-y divide-slate-100">
-                {localAttendanceRecords.map((student, idx) => (
+              <div className="mt-3 divide-y divide-slate-100">
+                {filteredAttendanceRecords.map((student, idx) => (
                   <div
                     key={String(student.studentProfileId)}
-                    className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/60 px-2 rounded-xl transition"
+                    className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/80 px-2 rounded-xl transition"
                   >
+                    {/* Student Identity */}
                     <div className="flex items-center gap-3">
-                      <span className="w-6 text-xs font-mono font-bold text-[#8094A8]">
+                      <span className="w-8 text-center text-xs font-mono font-bold text-[#8094A8] bg-slate-100 py-1 rounded-lg">
                         #{student.rollNumber || idx + 1}
                       </span>
                       <div>
@@ -719,34 +817,57 @@ export const TeacherDashboard = () => {
                       </div>
                     </div>
 
+                    {/* Exceptions Control (P / A / L) & Remarks */}
                     <div className="flex flex-wrap items-center gap-3">
-                      {/* Status Pills */}
-                      <div className="flex items-center gap-1.5">
-                        {['PRESENT', 'ABSENT', 'LEAVE', 'LATE'].map((st) => (
-                          <button
-                            key={st}
-                            type="button"
-                            onClick={() => handleUpdateRecordStatus(student.studentProfileId, st)}
-                            className={`px-3 py-1 rounded-lg text-xs font-bold border transition ${
-                              student.status === st
-                                ? getStatusBadge(st) + ' ring-2 ring-offset-1 ring-slate-400'
-                                : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100'
-                            }`}
-                          >
-                            {st}
-                          </button>
-                        ))}
+                      {/* Compact 3-State Controls */}
+                      <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200">
+                        <button
+                          type="button"
+                          onClick={() => handleUpdateRecordStatus(student.studentProfileId, 'PRESENT')}
+                          className={`px-3 py-1 rounded-lg text-xs font-black transition-all ${
+                            student.status === 'PRESENT'
+                              ? 'bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-400 ring-offset-1'
+                              : 'text-slate-600 hover:bg-emerald-50 hover:text-emerald-700'
+                          }`}
+                          title="Mark Present (Default)"
+                        >
+                          P
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleUpdateRecordStatus(student.studentProfileId, 'ABSENT')}
+                          className={`px-3 py-1 rounded-lg text-xs font-black transition-all ${
+                            student.status === 'ABSENT'
+                              ? 'bg-rose-600 text-white shadow-sm ring-2 ring-rose-400 ring-offset-1'
+                              : 'text-slate-600 hover:bg-rose-50 hover:text-rose-700'
+                          }`}
+                          title="Mark Absent"
+                        >
+                          A
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleUpdateRecordStatus(student.studentProfileId, 'LEAVE')}
+                          className={`px-3 py-1 rounded-lg text-xs font-black transition-all ${
+                            student.status === 'LEAVE'
+                              ? 'bg-amber-500 text-white shadow-sm ring-2 ring-amber-400 ring-offset-1'
+                              : 'text-slate-600 hover:bg-amber-50 hover:text-amber-700'
+                          }`}
+                          title="Mark Approved Leave"
+                        >
+                          L
+                        </button>
                       </div>
 
                       {/* Remarks Input */}
                       <input
                         type="text"
-                        placeholder="Optional remarks (e.g. sick leave)"
+                        placeholder="Remarks (e.g. sick leave, late)"
                         value={student.remarks}
                         onChange={(e) =>
                           handleUpdateRecordRemarks(student.studentProfileId, e.target.value)
                         }
-                        className="px-3 py-1 text-xs rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7] w-48 text-[#102033]"
+                        className="px-3 py-1.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#006AC7] w-48 sm:w-56 text-[#102033]"
                       />
                     </div>
                   </div>
@@ -754,23 +875,25 @@ export const TeacherDashboard = () => {
               </div>
             )}
 
-            {/* Submit Attendance Button */}
-            <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
-              <span className="text-xs text-[#8094A8]">
-                {localAttendanceRecords.length} students ready for submission
-              </span>
+            {/* Submit Attendance Bar */}
+            <div className="mt-6 pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="text-xs text-[#526477]">
+                Ready to submit: <strong className="text-emerald-700 font-bold">{presentStudentsCount} Present</strong>, <strong className="text-rose-700 font-bold">{absentStudentsCount} Absent</strong>, <strong className="text-amber-700 font-bold">{leaveStudentsCount} Leave</strong>
+              </div>
               <button
                 type="button"
                 onClick={handleSubmitAttendanceForm}
                 disabled={attendanceSubmitting || localAttendanceRecords.length === 0}
-                className="px-6 py-2.5 rounded-xl bg-[#4B7F3A] hover:bg-[#3D692F] disabled:opacity-50 text-white text-xs font-bold transition flex items-center gap-2 shadow-sm"
+                className="px-6 py-2.5 rounded-xl bg-[#4B7F3A] hover:bg-[#3D692F] disabled:opacity-50 text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm"
               >
                 {attendanceSubmitting ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
                   <CheckCircle2 className="w-4 h-4" />
                 )}
-                {attendanceSubmitting ? 'Submitting…' : 'Submit Daily Attendance'}
+                {attendanceSubmitting
+                  ? 'Submitting…'
+                  : `Submit Daily Attendance (${presentStudentsCount} P, ${absentStudentsCount} A, ${leaveStudentsCount} L)`}
               </button>
             </div>
           </div>
