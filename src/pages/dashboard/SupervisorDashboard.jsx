@@ -984,7 +984,9 @@ export const SupervisorDashboard = () => {
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block font-semibold text-slate-600 mb-1">Overall Inspection Grade</label>
+                    <label className="block font-semibold text-slate-600 mb-1">
+                      Overall Inspection Grade <span className="text-[10px] text-amber-600 font-mono font-normal">(Thresholds TBD per Article I)</span>
+                    </label>
                     <select
                       value={newInspectionForm.overallGrade}
                       onChange={(e) =>
@@ -992,10 +994,10 @@ export const SupervisorDashboard = () => {
                       }
                       className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold"
                     >
-                      <option value="A">Grade A • Exemplary (85%+)</option>
-                      <option value="B">Grade B • Satisfactory (70% - 84%)</option>
-                      <option value="C">Grade C • Needs Improvement (50% - 69%)</option>
-                      <option value="D">Grade D • Deficient / Escalated (&lt; 50%)</option>
+                      <option value="A">Grade A • Exemplary (&gt;= 85% - TBD)</option>
+                      <option value="B">Grade B • Satisfactory (70% - 84% - TBD)</option>
+                      <option value="C">Grade C • Needs Improvement (50% - 69% - TBD)</option>
+                      <option value="D">Grade D • Deficient / Action Required (&lt; 50% - TBD)</option>
                     </select>
                   </div>
 
