@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
+import { Navigate } from 'react-router-dom';
 import {
   ClipboardCheck,
   Calendar,
@@ -642,6 +643,11 @@ const AdminAttendanceWorkspace = ({ user }) => {
 
 export const AttendancePage = () => {
   const { user } = useSelector((state) => state.auth);
+
+  // If user is STUDENT, redirect to dedicated student attendance intelligence tab
+  if (user?.role === 'STUDENT') {
+    return <Navigate to="/dashboard?tab=attendance" replace />;
+  }
 
   // If user is TEACHER, render dedicated operational teacher workspace
   if (user?.role === 'TEACHER') {

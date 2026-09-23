@@ -22,31 +22,42 @@ export const Sidebar = () => {
 
   if (!user) return null;
 
+  const isStudent = user.role === 'STUDENT';
   const isTeacher = user.role === 'TEACHER';
 
-  const navigationItems = isTeacher
-    ? [
-        { label: 'Workspace', path: '/dashboard', icon: LayoutDashboard },
-        { label: 'Institutional Approvals Queue', path: '/approvals', icon: ShieldCheck },
-        { label: 'Attendance', path: '/attendance', icon: ClipboardCheck },
-        { label: 'Holidays & Calendar', path: '/holidays', icon: Calendar },
-        { label: 'Exams & Results', path: '/exams', icon: Award },
-        { label: 'My Service Record', path: '/profile', icon: IdCard },
-        { label: 'Circulars & Docs', path: '/documents', icon: FileText },
-      ]
-    : [
-        { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-        { label: 'Institutional Approvals Queue', path: '/approvals', icon: ShieldCheck },
-        { label: 'Schools & Classes', path: '/schools', icon: Building2 },
-        { label: 'Faculty & Users', path: '/users', icon: Users },
-        { label: 'Directory & Export', path: '/directory', icon: BookUser },
-        { label: 'Attendance', path: '/attendance', icon: ClipboardCheck },
-        { label: 'Holidays & Calendar', path: '/holidays', icon: Calendar },
-        { label: 'Exams & Results', path: '/exams', icon: Award },
-        { label: 'Transfers', path: '/transfers', icon: ArrowLeftRight },
-        { label: 'My Profile', path: '/profile', icon: IdCard },
-        { label: 'Circulars & Docs', path: '/documents', icon: FileText },
-      ];
+  let navigationItems = [];
+  if (isStudent) {
+    navigationItems = [
+      { label: 'Student Workspace', path: '/dashboard', icon: LayoutDashboard },
+      { label: 'Attendance', path: '/attendance', icon: ClipboardCheck },
+      { label: 'Holidays & Calendar', path: '/holidays', icon: Calendar },
+      { label: 'Official Circulars', path: '/documents', icon: FileText },
+    ];
+  } else if (isTeacher) {
+    navigationItems = [
+      { label: 'Workspace', path: '/dashboard', icon: LayoutDashboard },
+      { label: 'Institutional Approvals Queue', path: '/approvals', icon: ShieldCheck },
+      { label: 'Attendance', path: '/attendance', icon: ClipboardCheck },
+      { label: 'Holidays & Calendar', path: '/holidays', icon: Calendar },
+      { label: 'Exams & Results', path: '/exams', icon: Award },
+      { label: 'My Service Record', path: '/profile', icon: IdCard },
+      { label: 'Circulars & Docs', path: '/documents', icon: FileText },
+    ];
+  } else {
+    navigationItems = [
+      { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+      { label: 'Institutional Approvals Queue', path: '/approvals', icon: ShieldCheck },
+      { label: 'Schools & Classes', path: '/schools', icon: Building2 },
+      { label: 'Faculty & Users', path: '/users', icon: Users },
+      { label: 'Directory & Export', path: '/directory', icon: BookUser },
+      { label: 'Attendance', path: '/attendance', icon: ClipboardCheck },
+      { label: 'Holidays & Calendar', path: '/holidays', icon: Calendar },
+      { label: 'Exams & Results', path: '/exams', icon: Award },
+      { label: 'Transfers', path: '/transfers', icon: ArrowLeftRight },
+      { label: 'My Profile', path: '/profile', icon: IdCard },
+      { label: 'Circulars & Docs', path: '/documents', icon: FileText },
+    ];
+  }
 
   // Super Admin & Root Admin additional items
   if (['ROOT_ADMIN', 'SUPER_ADMIN'].includes(user.role)) {
