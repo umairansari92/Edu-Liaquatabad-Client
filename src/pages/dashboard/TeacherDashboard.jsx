@@ -801,7 +801,7 @@ export const TeacherDashboard = () => {
               </div>
             ) : (
               <div className="mt-3 divide-y divide-slate-100">
-                {filteredAttendanceRecords.map((student, idx) => (
+                {filteredAttendanceRecords.map((student, studentIndex) => (
                   <div
                     key={String(student.studentProfileId)}
                     className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/80 px-2 rounded-xl transition"
@@ -809,7 +809,7 @@ export const TeacherDashboard = () => {
                     {/* Student Identity */}
                     <div className="flex items-center gap-3">
                       <span className="w-8 text-center text-xs font-mono font-bold text-[#8094A8] bg-slate-100 py-1 rounded-lg">
-                        #{student.rollNumber || idx + 1}
+                        #{student.rollNumber || studentIndex + 1}
                       </span>
                       <div>
                         <p className="text-sm font-bold text-[#102033]">{student.fullName}</p>
@@ -864,8 +864,8 @@ export const TeacherDashboard = () => {
                         type="text"
                         placeholder="Remarks (e.g. sick leave, late)"
                         value={student.remarks}
-                        onChange={(e) =>
-                          handleUpdateRecordRemarks(student.studentProfileId, e.target.value)
+                        onChange={(changeEvent) =>
+                          handleUpdateRecordRemarks(student.studentProfileId, changeEvent.target.value)
                         }
                         className="px-3 py-1.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#006AC7] w-48 sm:w-56 text-[#102033]"
                       />
