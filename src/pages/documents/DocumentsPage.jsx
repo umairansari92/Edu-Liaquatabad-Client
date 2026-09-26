@@ -13,6 +13,11 @@ export const DocumentsPage = () => {
     return <Navigate to="/dashboard?tab=notices" replace />;
   }
 
+  // If user is PARENT, redirect to dedicated parent circulars tab
+  if (user?.role === 'PARENT') {
+    return <Navigate to="/dashboard?tab=circulars" replace />;
+  }
+
   return (
     <PageContainer
       title="Municipal Circulars, Documents & Reporting Exports"

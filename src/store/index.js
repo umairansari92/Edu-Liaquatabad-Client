@@ -7,6 +7,7 @@ import hmReducer from './slices/hmSlice.js';
 import teacherReducer from './slices/teacherSlice.js';
 import studentReducer from './slices/studentSlice.js';
 import supervisorReducer from './slices/supervisorSlice.js';
+import parentReducer from './slices/parentSlice.js';
 
 export const store = configureStore({
   reducer: {
@@ -18,6 +19,7 @@ export const store = configureStore({
     teacher: teacherReducer,
     student: studentReducer,
     supervisor: supervisorReducer,
+    parent: parentReducer,
   },
   devTools: process.env.NODE_ENV !== 'production',
 });

@@ -24,6 +24,7 @@ export const Sidebar = () => {
 
   const isStudent = user.role === 'STUDENT';
   const isTeacher = user.role === 'TEACHER';
+  const isParent = user.role === 'PARENT';
 
   let navigationItems = [];
   if (isStudent) {
@@ -42,6 +43,14 @@ export const Sidebar = () => {
       { label: 'Exams & Results', path: '/exams', icon: Award },
       { label: 'My Service Record', path: '/profile', icon: IdCard },
       { label: 'Circulars & Docs', path: '/documents', icon: FileText },
+    ];
+  } else if (isParent) {
+    navigationItems = [
+      { label: 'Parent Workspace', path: '/dashboard', icon: LayoutDashboard },
+      { label: 'Ward Attendance', path: '/attendance', icon: ClipboardCheck },
+      { label: 'Academic Results', path: '/exams', icon: Award },
+      { label: 'Holidays & Calendar', path: '/holidays', icon: Calendar },
+      { label: 'Official Circulars', path: '/documents', icon: FileText },
     ];
   } else {
     navigationItems = [

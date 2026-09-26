@@ -7,6 +7,7 @@ import TeacherDashboard from './TeacherDashboard.jsx';
 import HmDashboard from './HmDashboard.jsx';
 import StudentDashboard from './StudentDashboard.jsx';
 import SupervisorDashboard from './SupervisorDashboard.jsx';
+import ParentDashboard from './ParentDashboard.jsx';
 import PageContainer from '../../components/layout/PageContainer.jsx';
 import apiClient from '../../services/apiClient.js';
 import {
@@ -33,7 +34,7 @@ export const DashboardRouter = () => {
   });
   const [isStatsLoading, setIsStatsLoading] = useState(true);
 
-  const isDedicatedRole = user && ['ROOT_ADMIN', 'SUPER_ADMIN', 'ADMIN', 'TEACHER', 'HM', 'STUDENT', 'SUPERVISOR'].includes(user.role);
+  const isDedicatedRole = user && ['ROOT_ADMIN', 'SUPER_ADMIN', 'ADMIN', 'TEACHER', 'HM', 'STUDENT', 'SUPERVISOR', 'PARENT'].includes(user.role);
 
   useEffect(() => {
     // Only fetch live stats if the user falls into the unmapped fallback dashboard view
@@ -95,6 +96,11 @@ export const DashboardRouter = () => {
   // SUPERVISOR: Cluster Oversight & School Inspections
   if (user.role === 'SUPERVISOR') {
     return <SupervisorDashboard />;
+  }
+
+  // PARENT: Comprehensive child tracking workspace
+  if (user.role === 'PARENT') {
+    return <ParentDashboard />;
   }
 
   // HM / ADMIN / SUPERVISOR — General scoped dashboard (placeholder until dedicated dashboards are built)

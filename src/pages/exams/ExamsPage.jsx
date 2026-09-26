@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
+import { Navigate } from 'react-router-dom';
 import {
   Award,
   Calendar,
@@ -13,7 +15,15 @@ import {
 import PageContainer from '../../components/layout/PageContainer.jsx';
 
 export const ExamsPage = () => {
+  const { user } = useSelector((state) => state.auth);
   const [activeTerm, setActiveTerm] = useState('ANNUAL_2026');
+
+  if (user?.role === 'STUDENT') {
+    return <Navigate to="/dashboard?tab=exams" replace />;
+  }
+  if (user?.role === 'PARENT') {
+    return <Navigate to="/dashboard?tab=marksheets" replace />;
+  }
 
   const terms = [
     { id: 'ANNUAL_2026', label: 'Annual Board Assessment 2026', status: 'UPCOMING', date: 'March 2026' },
