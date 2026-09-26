@@ -2,21 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Mail, CheckCircle2, RefreshCw, AlertCircle, X } from 'lucide-react';
 import apiClient from '../../services/apiClient.js';
 
-export const OtpVerificationModal = ({ isOpen, onClose, email, onVerified, purpose = 'REGISTRATION', devOtp = '' }) => {
+export const OtpVerificationModal = ({ isOpen, onClose, email, onVerified, purpose = 'REGISTRATION' }) => {
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [timer, setTimer] = useState(60);
   const [canResend, setCanResend] = useState(false);
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [activeDevOtp, setActiveDevOtp] = useState(devOtp);
   const inputRefs = useRef([]);
-
-  useEffect(() => {
-    if (devOtp) {
-      setActiveDevOtp(devOtp);
-    }
-  }, [devOtp]);
 
   useEffect(() => {
     let interval;
@@ -61,13 +54,6 @@ export const OtpVerificationModal = ({ isOpen, onClose, email, onVerified, purpo
     }
   };
 
-  const handleAutoFill = () => {
-    if (activeDevOtp && activeDevOtp.length === 6) {
-      setOtp(activeDevOtp.split(''));
-      inputRefs.current[5]?.focus();
-    }
-  };
-
   const handleVerify = async () => {
     const code = otp.join('');
     if (code.length !== 6) {
@@ -92,13 +78,10 @@ export const OtpVerificationModal = ({ isOpen, onClose, email, onVerified, purpo
     setResending(true);
     setErrorMessage('');
     try {
-      const response = await apiClient.post('/auth/send-otp', {
+      await apiClient.post('/auth/send-otp', {
         email,
         purpose,
       });
-      if (response.data?.data?.devOtp) {
-        setActiveDevOtp(response.data.data.devOtp);
-      }
       setTimer(60);
       setCanResend(false);
       setOtp(['', '', '', '', '', '']);
@@ -129,25 +112,6 @@ export const OtpVerificationModal = ({ isOpen, onClose, email, onVerified, purpo
             <span className="font-semibold text-[#006AC7] font-mono">{email}</span>
           </p>
         </div>
-
-        {/* Development Mode Quick Code Helper */}
-        {activeDevOtp && (
-          <div className="mt-4 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="font-medium text-amber-700">Dev Code:</span>
-              <span className="font-mono font-bold text-sm tracking-wider text-amber-900 bg-white px-2.5 py-0.5 rounded border border-amber-300">
-                {activeDevOtp}
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={handleAutoFill}
-              className="px-2.5 py-1 text-xs font-semibold bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-lg transition-colors border border-amber-300"
-            >
-              Auto-fill
-            </button>
-          </div>
-        )}
 
         {errorMessage && (
           <div className="mt-4 p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">

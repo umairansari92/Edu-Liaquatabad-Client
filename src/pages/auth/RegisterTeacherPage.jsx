@@ -34,7 +34,6 @@ export const RegisterTeacherPage = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [pendingFormData, setPendingFormData] = useState(null);
   const [showOtpModal, setShowOtpModal] = useState(false);
-  const [devOtp, setDevOtp] = useState('');
   const [schools, setSchools] = useState([]);
   const [schoolStructure, setSchoolStructure] = useState({ classes: [], sections: [], subjects: [] });
   const [activeStep, setActiveStep] = useState(1);
@@ -102,13 +101,10 @@ export const RegisterTeacherPage = () => {
     setErrorMessage('');
     try {
       // Step 1: Send OTP to official email
-      const response = await apiClient.post('/auth/send-otp', {
+      await apiClient.post('/auth/send-otp', {
         email: formData.email,
         purpose: 'REGISTRATION',
       });
-      if (response.data?.data?.devOtp) {
-        setDevOtp(response.data.data.devOtp);
-      }
       setPendingFormData(formData);
       setShowOtpModal(true);
     } catch (dispatchError) {
@@ -733,7 +729,6 @@ export const RegisterTeacherPage = () => {
           onClose={() => setShowOtpModal(false)}
           email={pendingFormData?.email}
           purpose="REGISTRATION"
-          devOtp={devOtp}
           onVerified={handleOtpVerified}
         />
       )}

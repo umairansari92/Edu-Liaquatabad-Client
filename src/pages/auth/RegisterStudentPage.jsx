@@ -126,7 +126,6 @@ export const RegisterStudentPage = () => {
 
   // OTP Modal state
   const [showOtpModal, setShowOtpModal] = useState(false);
-  const [devOtp, setDevOtp] = useState('');
   const [pendingSubmissionPayload, setPendingSubmissionPayload] = useState(null);
   const [otpTargetEmail, setOtpTargetEmail] = useState('');
 
@@ -292,13 +291,10 @@ export const RegisterStudentPage = () => {
     setErrorMessage('');
     try {
       // Step 1: Dispatch OTP to guardian email
-      const otpResponse = await apiClient.post('/auth/send-otp', {
+      await apiClient.post('/auth/send-otp', {
         email: formData.guardianEmail,
         purpose: 'REGISTRATION',
       });
-      if (otpResponse.data?.data?.devOtp) {
-        setDevOtp(otpResponse.data.data.devOtp);
-      }
       setOtpTargetEmail(formData.guardianEmail);
       setPendingSubmissionPayload({ type: 'FLOW_A', data: formData });
       setShowOtpModal(true);
@@ -316,13 +312,10 @@ export const RegisterStudentPage = () => {
     setLoading(true);
     setErrorMessage('');
     try {
-      const otpResponse = await apiClient.post('/auth/send-otp', {
+      await apiClient.post('/auth/send-otp', {
         email: formData.email,
         purpose: 'REGISTRATION',
       });
-      if (otpResponse.data?.data?.devOtp) {
-        setDevOtp(otpResponse.data.data.devOtp);
-      }
       setOtpTargetEmail(formData.email);
       setPendingSubmissionPayload({ type: 'FLOW_B', data: formData });
       setShowOtpModal(true);
@@ -1489,7 +1482,6 @@ export const RegisterStudentPage = () => {
         isOpen={showOtpModal}
         onClose={() => setShowOtpModal(false)}
         email={otpTargetEmail}
-        devOtp={devOtp}
         purpose="REGISTRATION"
         onVerified={handleOtpVerified}
       />
