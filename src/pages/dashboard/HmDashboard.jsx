@@ -82,6 +82,10 @@ import {
   fetchSchoolFaculty,
   fetchTeacherDailyAttendance,
   saveTeacherDailyAttendance,
+  fetchHmParentLinks,
+  verifyHmParentLink,
+  rejectHmParentLink,
+  revokeHmParentLink,
 } from '../../store/slices/hmSlice.js';
 import hmService from '../../services/hmService.js';
 
@@ -166,6 +170,9 @@ export const HmDashboard = () => {
     teacherAttendance,
     teacherAttendanceLoading,
     teacherAttendanceSaving,
+    parentClaims,
+    parentClaimsLoading,
+    parentClaimsPagination,
   } = useSelector((state) => state.hm);
 
   const [activeTab, setActiveTab] = useState('overview');
@@ -234,6 +241,19 @@ export const HmDashboard = () => {
   // Modal States
   const [approvalModal, setApprovalModal] = useState({ open: false, user: null, type: 'staff' });
   const [approvalRemarks, setApprovalRemarks] = useState('');
+
+  // Parent Ward Link Verification Queue State
+  const [parentClaimsFilter, setParentClaimsFilter] = useState('PENDING_HM_APPROVAL');
+  const [parentLinkModal, setParentLinkModal] = useState({
+    open: false,
+    claim: null,
+    action: 'verify',
+    bFormVerified: false,
+    guardianCnicVerified: false,
+    remarks: '',
+    reason: '',
+  });
+  const [processingParentLink, setProcessingParentLink] = useState(false);
   const [newClassModal, setNewClassModal] = useState(false);
   const [newClassName, setNewClassName] = useState('');
   const [newClassGrade, setNewClassGrade] = useState('');
@@ -326,6 +346,7 @@ export const HmDashboard = () => {
     } else if (activeTab === 'approvals') {
       dispatch(fetchPendingApprovals('staff'));
       dispatch(fetchPendingApprovals('student'));
+      dispatch(fetchHmParentLinks({ status: parentClaimsFilter }));
     } else if (activeTab === 'academics') {
       dispatch(fetchAcademicClasses());
       dispatch(fetchAcademicSections());
@@ -348,7 +369,7 @@ export const HmDashboard = () => {
     } else if (activeTab === 'notices') {
       loadNotices();
     }
-  }, [activeTab, dispatch, teacherAttendanceDate, loadNotices, transferViewDirection]);
+  }, [activeTab, dispatch, teacherAttendanceDate, loadNotices, transferViewDirection, parentClaimsFilter]);
 
   // Teacher attendance date change trigger
   useEffect(() => {
@@ -464,6 +485,11 @@ export const HmDashboard = () => {
     if (activeTab === 'notices') {
       loadNotices();
     }
+    if (activeTab === 'approvals') {
+      dispatch(fetchPendingApprovals('staff'));
+      dispatch(fetchPendingApprovals('student'));
+      dispatch(fetchHmParentLinks({ status: parentClaimsFilter }));
+    }
     toast.success('School command center updated.');
   };
 
@@ -489,6 +515,115 @@ export const HmDashboard = () => {
       setApprovalRemarks('');
     } catch (err) {
       toast.error(err || 'Failed to process decision.');
+    }
+  };
+
+  // ─── Parent Ward Link Decision Handlers ─────────────────────────────────────
+  const handleOpenVerifyModal = (claimItem) => {
+    setParentLinkModal({
+      open: true,
+      claim: claimItem,
+      action: 'verify',
+      bFormVerified: false,
+      guardianCnicVerified: false,
+      remarks: '',
+      reason: '',
+    });
+  };
+
+  const handleOpenRejectModal = (claimItem) => {
+    setParentLinkModal({
+      open: true,
+      claim: claimItem,
+      action: 'reject',
+      bFormVerified: false,
+      guardianCnicVerified: false,
+      remarks: '',
+      reason: '',
+    });
+  };
+
+  const handleOpenRevokeModal = (claimItem) => {
+    setParentLinkModal({
+      open: true,
+      claim: claimItem,
+      action: 'revoke',
+      bFormVerified: false,
+      guardianCnicVerified: false,
+      remarks: '',
+      reason: '',
+    });
+  };
+
+  const handleSubmitParentLinkAction = async () => {
+    const selectedClaim = parentLinkModal.claim;
+    if (!selectedClaim) return;
+
+    if (parentLinkModal.action === 'verify') {
+      if (!parentLinkModal.bFormVerified || !parentLinkModal.guardianCnicVerified) {
+        toast.error('Both B-Form and Guardian CNIC verification checkpoints must be confirmed.');
+        return;
+      }
+
+      setProcessingParentLink(true);
+      try {
+        await dispatch(
+          verifyHmParentLink({
+            linkId: selectedClaim._id,
+            remarks: parentLinkModal.remarks.trim(),
+          })
+        ).unwrap();
+        toast.success(`Parent claim for ${selectedClaim.studentProfileId?.studentFullName || 'student'} verified successfully!`);
+        setParentLinkModal({ open: false, claim: null, action: 'verify', bFormVerified: false, guardianCnicVerified: false, remarks: '', reason: '' });
+      } catch (errorMessage) {
+        toast.error(errorMessage || 'Failed to verify parent claim.');
+      } finally {
+        setProcessingParentLink(false);
+      }
+    } else if (parentLinkModal.action === 'reject') {
+      const trimmedReason = parentLinkModal.reason.trim();
+      if (!trimmedReason || trimmedReason.length < 10) {
+        toast.error('Rejection reason must be at least 10 characters.');
+        return;
+      }
+
+      setProcessingParentLink(true);
+      try {
+        await dispatch(
+          rejectHmParentLink({
+            linkId: selectedClaim._id,
+            rejectionReason: trimmedReason,
+          })
+        ).unwrap();
+        toast.success('Parent claim has been rejected.');
+        setParentLinkModal({ open: false, claim: null, action: 'reject', bFormVerified: false, guardianCnicVerified: false, remarks: '', reason: '' });
+      } catch (errorMessage) {
+        toast.error(errorMessage || 'Failed to reject parent claim.');
+      } finally {
+        setProcessingParentLink(false);
+      }
+    } else if (parentLinkModal.action === 'revoke') {
+      const trimmedReason = parentLinkModal.reason.trim();
+      if (!trimmedReason || trimmedReason.length < 10) {
+        toast.error('Revocation reason must be at least 10 characters.');
+        return;
+      }
+
+      setProcessingParentLink(true);
+      try {
+        await dispatch(
+          revokeHmParentLink({
+            linkId: selectedClaim._id,
+            revocationReason: trimmedReason,
+          })
+        ).unwrap();
+        toast.success('Parent-student link revoked.');
+        setParentLinkModal({ open: false, claim: null, action: 'revoke', bFormVerified: false, guardianCnicVerified: false, remarks: '', reason: '' });
+      } catch (errorMessage) {
+        toast.error(errorMessage || 'Failed to revoke parent link.');
+      } finally {
+        setProcessingParentLink(false);
+      }
     }
   };
 
@@ -878,7 +1013,7 @@ export const HmDashboard = () => {
 
   const totalPendingCount =
     (summary?.metrics?.pendingQueues?.totalPendingActions) ||
-    ((staffApprovals?.length || 0) + (studentApprovals?.length || 0) + (transfers?.length || 0));
+    ((staffApprovals?.length || 0) + (studentApprovals?.length || 0) + (parentClaims?.length || 0) + (transfers?.length || 0));
 
   return (
     <PageContainer
@@ -1354,6 +1489,165 @@ export const HmDashboard = () => {
                     </button>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+
+          {/* ─── 3. Parent Ward Link Verification Queue ─── */}
+          <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+              <div>
+                <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
+                  <ShieldCheck className="w-5 h-5 text-[#006AC7]" />
+                  Parent Ward Link Verification Queue
+                </h3>
+                <p className="text-xs text-[#526477] mt-0.5">
+                  Physical B-Form & Guardian CNIC validation for verified parent portal access under DMC municipal oversight.
+                </p>
+              </div>
+
+              {/* Status Filter Selector */}
+              <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
+                {[
+                  { id: 'PENDING_HM_APPROVAL', label: 'Pending Approval' },
+                  { id: 'VERIFIED', label: 'Verified' },
+                  { id: 'REJECTED', label: 'Rejected' },
+                  { id: 'ALL', label: 'All Records' },
+                ].map((statusTab) => (
+                  <button
+                    key={statusTab.id}
+                    onClick={() => setParentClaimsFilter(statusTab.id)}
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                      parentClaimsFilter === statusTab.id
+                        ? 'bg-white text-[#006AC7] shadow-xs font-bold'
+                        : 'text-[#526477] hover:text-[#102033]'
+                    }`}
+                  >
+                    {statusTab.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {parentClaimsLoading ? (
+              <div className="flex items-center gap-2 p-8 text-sm text-[#526477] justify-center">
+                <Loader2 className="w-4 h-4 animate-spin text-[#006AC7]" />
+                Loading parent verification claims...
+              </div>
+            ) : parentClaims.length === 0 ? (
+              <div className="p-8 text-center text-sm text-[#8094A8] bg-slate-50 rounded-xl border border-slate-200/60">
+                {parentClaimsFilter === 'PENDING_HM_APPROVAL'
+                  ? 'No pending parent-student relationship claims awaiting Head Master verification.'
+                  : `No parent relationship records found matching '${parentClaimsFilter}'.`}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {parentClaims.map((claimItem) => {
+                  const studentRecord = claimItem.studentProfileId;
+                  const parentRecord = claimItem.parentId;
+                  const isPending = claimItem.verificationStatus === 'PENDING_HM_APPROVAL' || claimItem.verificationStatus === 'PENDING_OTP';
+                  const isVerified = claimItem.verificationStatus === 'VERIFIED';
+
+                  return (
+                    <div
+                      key={claimItem._id}
+                      className="p-4 rounded-xl border border-slate-200/80 hover:bg-slate-50/60 transition flex flex-col md:flex-row md:items-center justify-between gap-4"
+                    >
+                      <div className="space-y-1.5 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-bold text-[#102033] text-sm">
+                            {parentRecord?.fullName || 'Parent / Guardian'}
+                          </span>
+                          <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-50 text-[#006AC7] border border-blue-200/60 uppercase">
+                            {claimItem.relationship || 'Guardian'}
+                          </span>
+                          <span
+                            className={`px-2 py-0.5 rounded text-[11px] font-bold uppercase ${
+                              claimItem.verificationStatus === 'VERIFIED'
+                                ? 'bg-emerald-50 text-[#4B7F3A] border border-emerald-200'
+                                : claimItem.verificationStatus === 'REJECTED'
+                                ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                                : claimItem.verificationStatus === 'REVOKED'
+                                ? 'bg-slate-100 text-slate-700 border border-slate-300'
+                                : 'bg-amber-50 text-amber-700 border border-amber-200'
+                            }`}
+                          >
+                            {claimItem.verificationStatus?.replace(/_/g, ' ')}
+                          </span>
+                        </div>
+
+                        {/* Ward & Parent Detail Matrix */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-xs text-[#526477] pt-1">
+                          <div>
+                            <span className="font-semibold text-[#102033]">Ward:</span>{' '}
+                            {studentRecord?.studentFullName || 'Unknown Student'}
+                          </div>
+                          <div>
+                            <span className="font-semibold text-[#102033]">GR No:</span>{' '}
+                            {studentRecord?.grNumber || 'N/A'}
+                          </div>
+                          <div>
+                            <span className="font-semibold text-[#102033]">Class / Section:</span>{' '}
+                            {studentRecord?.classId?.name || 'Class'} - {studentRecord?.sectionId?.name || 'Section'}
+                          </div>
+                          <div>
+                            <span className="font-semibold text-[#102033]">Parent Contact:</span>{' '}
+                            {parentRecord?.phoneNumber || parentRecord?.email || 'N/A'}
+                          </div>
+                          <div>
+                            <span className="font-semibold text-[#102033]">Guardian CNIC (Record):</span>{' '}
+                            {studentRecord?.guardianCnicNumber ? studentRecord.guardianCnicNumber.replace(/(\d{5})(\d{7})(\d)/, '$1-*******-$3') : 'Not on record'}
+                          </div>
+                          <div>
+                            <span className="font-semibold text-[#102033]">Claim Date:</span>{' '}
+                            {claimItem.createdAt ? new Date(claimItem.createdAt).toLocaleDateString('en-GB') : 'N/A'}
+                          </div>
+                        </div>
+
+                        {claimItem.rejectionReason && (
+                          <p className="text-xs text-rose-600 bg-rose-50/70 p-2 rounded border border-rose-200/50 mt-1">
+                            <span className="font-semibold">Rejection Reason:</span> {claimItem.rejectionReason}
+                          </p>
+                        )}
+                        {claimItem.revocationReason && (
+                          <p className="text-xs text-slate-600 bg-slate-100 p-2 rounded border border-slate-200 mt-1">
+                            <span className="font-semibold">Revocation Reason:</span> {claimItem.revocationReason}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex items-center gap-2 shrink-0">
+                        {isPending && (
+                          <>
+                            <button
+                              onClick={() => handleOpenRejectModal(claimItem)}
+                              className="px-3 py-1.5 rounded-lg text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition cursor-pointer"
+                            >
+                              Reject
+                            </button>
+                            <button
+                              onClick={() => handleOpenVerifyModal(claimItem)}
+                              className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white shadow-xs transition cursor-pointer flex items-center gap-1.5"
+                            >
+                              <ShieldCheck className="w-3.5 h-3.5" />
+                              Verify Claim
+                            </button>
+                          </>
+                        )}
+
+                        {isVerified && (
+                          <button
+                            onClick={() => handleOpenRevokeModal(claimItem)}
+                            className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-rose-700 bg-slate-50 hover:bg-rose-50 border border-slate-200 hover:border-rose-200 transition cursor-pointer"
+                          >
+                            Revoke Link
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -3024,6 +3318,216 @@ export const HmDashboard = () => {
               >
                 Approve
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Parent Ward Link Decision Modal ─── */}
+      {parentLinkModal.open && parentLinkModal.claim && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+              <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
+                {parentLinkModal.action === 'verify' && (
+                  <>
+                    <ShieldCheck className="w-5 h-5 text-[#006AC7]" />
+                    Verify Parent-Student Relationship
+                  </>
+                )}
+                {parentLinkModal.action === 'reject' && (
+                  <>
+                    <XCircle className="w-5 h-5 text-rose-600" />
+                    Reject Ward Relationship Claim
+                  </>
+                )}
+                {parentLinkModal.action === 'revoke' && (
+                  <>
+                    <AlertTriangle className="w-5 h-5 text-amber-600" />
+                    Revoke Verified Ward Relationship
+                  </>
+                )}
+              </h3>
+              <button
+                onClick={() => setParentLinkModal({ open: false, claim: null, action: 'verify', bFormVerified: false, guardianCnicVerified: false, remarks: '', reason: '' })}
+                className="text-[#8094A8] hover:text-[#102033] p-1 rounded-lg"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Claim Summary Box */}
+            <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 space-y-2 text-xs">
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-[#102033]">Applicant Parent:</span>
+                <span className="font-bold text-[#006AC7]">{parentLinkModal.claim.parentId?.fullName}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-[#102033]">Claimed Relationship:</span>
+                <span className="font-medium text-[#102033]">{parentLinkModal.claim.relationship}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-[#102033]">Candidate Student:</span>
+                <span className="font-bold text-[#102033]">{parentLinkModal.claim.studentProfileId?.studentFullName}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="font-semibold text-[#102033]">GR Number / Register:</span>
+                <span className="font-mono text-[#526477]">{parentLinkModal.claim.studentProfileId?.grNumber || 'N/A'}</span>
+              </div>
+            </div>
+
+            {/* Action = VERIFY: Mandatory Physical Checklist */}
+            {parentLinkModal.action === 'verify' && (
+              <div className="space-y-4">
+                <div className="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200/70 text-xs text-amber-900 space-y-2">
+                  <div className="font-bold flex items-center gap-1.5 text-amber-950">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                    Mandatory Physical Document Verification Gate
+                  </div>
+                  <p className="text-[11px] text-amber-800">
+                    Per Education Department policy, Head Masters must physically inspect original documentation before authorizing portal access to sensitive student records.
+                  </p>
+                </div>
+
+                <div className="space-y-2.5 bg-slate-50/80 p-3.5 rounded-xl border border-slate-200">
+                  <label className="flex items-start gap-2.5 text-xs text-[#102033] cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={parentLinkModal.bFormVerified}
+                      onChange={(event) =>
+                        setParentLinkModal((prev) => ({ ...prev, bFormVerified: event.target.checked }))
+                      }
+                      className="mt-0.5 rounded border-slate-300 text-[#006AC7] focus:ring-[#006AC7] cursor-pointer"
+                    />
+                    <span>
+                      <strong className="block text-[#102033]">Physical NADRA B-Form / Birth Record Inspected</strong>
+                      <span className="text-[#526477] text-[11px]">
+                        Matches candidate student&apos;s full name, father&apos;s name, and date of birth in municipal register.
+                      </span>
+                    </span>
+                  </label>
+
+                  <label className="flex items-start gap-2.5 text-xs text-[#102033] cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={parentLinkModal.guardianCnicVerified}
+                      onChange={(event) =>
+                        setParentLinkModal((prev) => ({ ...prev, guardianCnicVerified: event.target.checked }))
+                      }
+                      className="mt-0.5 rounded border-slate-300 text-[#006AC7] focus:ring-[#006AC7] cursor-pointer"
+                    />
+                    <span>
+                      <strong className="block text-[#102033]">Physical Parent / Guardian CNIC Verified</strong>
+                      <span className="text-[#526477] text-[11px]">
+                        Matches official school admission record and applicant identity.
+                      </span>
+                    </span>
+                  </label>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-[#102033] block mb-1">
+                    Administrative Verification Remarks (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={parentLinkModal.remarks}
+                    onChange={(event) =>
+                      setParentLinkModal((prev) => ({ ...prev, remarks: event.target.value }))
+                    }
+                    placeholder="e.g., Original NADRA B-Form & Father CNIC inspected in office."
+                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Action = REJECT or REVOKE: Mandatory Reason */}
+            {(parentLinkModal.action === 'reject' || parentLinkModal.action === 'revoke') && (
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <label className="text-xs font-bold text-[#102033]">
+                    {parentLinkModal.action === 'reject' ? 'Rejection Reason' : 'Revocation Justification'}
+                    <span className="text-rose-600 ml-1">*</span>
+                  </label>
+                  <span className={`text-[11px] font-mono ${parentLinkModal.reason.trim().length >= 10 ? 'text-[#4B7F3A]' : 'text-rose-600'}`}>
+                    {parentLinkModal.reason.trim().length}/10 chars min
+                  </span>
+                </div>
+                <textarea
+                  value={parentLinkModal.reason}
+                  onChange={(event) =>
+                    setParentLinkModal((prev) => ({ ...prev, reason: event.target.value }))
+                  }
+                  placeholder={
+                    parentLinkModal.action === 'reject'
+                      ? 'Specify clear institutional reason (e.g., Guardian CNIC does not match admission file records).'
+                      : 'Specify reason for revocation of previously verified relationship.'
+                  }
+                  rows={3}
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                />
+              </div>
+            )}
+
+            {/* Modal Footer Controls */}
+            <div className="flex justify-end items-center gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setParentLinkModal({ open: false, claim: null, action: 'verify', bFormVerified: false, guardianCnicVerified: false, remarks: '', reason: '' })}
+                className="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-[#526477] hover:bg-slate-100 transition cursor-pointer"
+                disabled={processingParentLink}
+              >
+                Cancel
+              </button>
+
+              {parentLinkModal.action === 'verify' && (
+                <button
+                  type="button"
+                  onClick={handleSubmitParentLinkAction}
+                  disabled={!parentLinkModal.bFormVerified || !parentLinkModal.guardianCnicVerified || processingParentLink}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold text-white transition flex items-center gap-1.5 cursor-pointer ${
+                    !parentLinkModal.bFormVerified || !parentLinkModal.guardianCnicVerified || processingParentLink
+                      ? 'bg-slate-300 cursor-not-allowed'
+                      : 'bg-[#4B7F3A] hover:bg-[#3d682f]'
+                  }`}
+                >
+                  {processingParentLink ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <ShieldCheck className="w-3.5 h-3.5" />}
+                  Confirm Verification & Approve
+                </button>
+              )}
+
+              {parentLinkModal.action === 'reject' && (
+                <button
+                  type="button"
+                  onClick={handleSubmitParentLinkAction}
+                  disabled={parentLinkModal.reason.trim().length < 10 || processingParentLink}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold text-white transition flex items-center gap-1.5 cursor-pointer ${
+                    parentLinkModal.reason.trim().length < 10 || processingParentLink
+                      ? 'bg-slate-300 cursor-not-allowed'
+                      : 'bg-rose-600 hover:bg-rose-700'
+                  }`}
+                >
+                  {processingParentLink ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <XCircle className="w-3.5 h-3.5" />}
+                  Confirm Rejection
+                </button>
+              )}
+
+              {parentLinkModal.action === 'revoke' && (
+                <button
+                  type="button"
+                  onClick={handleSubmitParentLinkAction}
+                  disabled={parentLinkModal.reason.trim().length < 10 || processingParentLink}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold text-white transition flex items-center gap-1.5 cursor-pointer ${
+                    parentLinkModal.reason.trim().length < 10 || processingParentLink
+                      ? 'bg-slate-300 cursor-not-allowed'
+                      : 'bg-slate-800 hover:bg-slate-900'
+                  }`}
+                >
+                  {processingParentLink ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <AlertTriangle className="w-3.5 h-3.5" />}
+                  Confirm Revocation
+                </button>
+              )}
             </div>
           </div>
         </div>

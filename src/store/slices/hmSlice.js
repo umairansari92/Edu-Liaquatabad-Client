@@ -449,6 +449,60 @@ export const saveTeacherDailyAttendance = createAsyncThunk(
   }
 );
 
+export const fetchHmParentLinks = createAsyncThunk(
+  'hm/fetchParentLinks',
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const response = await hmService.getParentLinks(params);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch parent link verification queue');
+    }
+  }
+);
+
+export const verifyHmParentLink = createAsyncThunk(
+  'hm/verifyParentLink',
+  async ({ linkId, remarks = '' }, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await hmService.verifyParentLink(linkId, remarks);
+      dispatch(fetchHmParentLinks());
+      dispatch(fetchHmSummary());
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to verify parent-student link');
+    }
+  }
+);
+
+export const rejectHmParentLink = createAsyncThunk(
+  'hm/rejectParentLink',
+  async ({ linkId, rejectionReason }, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await hmService.rejectParentLink(linkId, rejectionReason);
+      dispatch(fetchHmParentLinks());
+      dispatch(fetchHmSummary());
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to reject parent claim');
+    }
+  }
+);
+
+export const revokeHmParentLink = createAsyncThunk(
+  'hm/revokeParentLink',
+  async ({ linkId, revocationReason }, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await hmService.revokeParentLink(linkId, revocationReason);
+      dispatch(fetchHmParentLinks());
+      dispatch(fetchHmSummary());
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to revoke parent link');
+    }
+  }
+);
+
 // ─── HM Redux Slice ───────────────────────────────────────────────────────────
 
 const initialState = {
@@ -503,6 +557,15 @@ const initialState = {
 
   notices: [],
   noticesLoading: false,
+
+  parentClaims: [],
+  parentClaimsPagination: {
+    totalCount: 0,
+    page: 1,
+    limit: 20,
+    totalPages: 1,
+  },
+  parentClaimsLoading: false,
 
   actionError: null,
 };
@@ -684,6 +747,20 @@ const hmSlice = createSlice({
       })
       .addCase(saveTeacherDailyAttendance.rejected, (state, action) => {
         state.teacherAttendanceSaving = false;
+        state.actionError = action.payload;
+      })
+
+      // Parent Student Link Claims Queue
+      .addCase(fetchHmParentLinks.pending, (state) => {
+        state.parentClaimsLoading = true;
+      })
+      .addCase(fetchHmParentLinks.fulfilled, (state, action) => {
+        state.parentClaimsLoading = false;
+        state.parentClaims = action.payload?.claims || [];
+        state.parentClaimsPagination = action.payload?.pagination || state.parentClaimsPagination;
+      })
+      .addCase(fetchHmParentLinks.rejected, (state, action) => {
+        state.parentClaimsLoading = false;
         state.actionError = action.payload;
       });
 

@@ -271,6 +271,27 @@ export const hmService = {
     const response = await apiClient.post('/attendance/teachers/daily', payload);
     return response.data;
   },
+
+  // ─── 11. Parent-Student Ward Link Verification ───────────────────────────────
+  getParentLinks: async (params = {}) => {
+    const response = await apiClient.get('/hm/parent-links', { params });
+    return response.data;
+  },
+
+  verifyParentLink: async (linkId, remarks = '') => {
+    const response = await apiClient.post(`/hm/parent-links/${linkId}/verify`, { remarks });
+    return response.data;
+  },
+
+  rejectParentLink: async (linkId, rejectionReason) => {
+    const response = await apiClient.post(`/hm/parent-links/${linkId}/reject`, { rejectionReason });
+    return response.data;
+  },
+
+  revokeParentLink: async (linkId, revocationReason) => {
+    const response = await apiClient.post(`/hm/parent-links/${linkId}/revoke`, { revocationReason });
+    return response.data;
+  },
 };
 
 export default hmService;
