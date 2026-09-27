@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PageContainer from '../../components/layout/PageContainer.jsx';
+import TownLiveMonitorView from '../../components/timetable/TownLiveMonitorView.jsx';
 import AcademicManagementTab from './components/AcademicManagementTab.jsx';
 import TeacherTransferTab from './components/TeacherTransferTab.jsx';
 import ReportingHealthTab from './components/ReportingHealthTab.jsx';
@@ -185,6 +186,7 @@ export const AdminDashboard = () => {
           { id: 'schools', label: 'Municipal Schools', icon: Building2 },
           { id: 'users', label: 'Faculty & Staff', icon: Users },
           { id: 'transfers', label: 'Teacher Transfers', icon: ArrowRightLeft },
+          { id: 'live_monitor', label: 'Live Class Monitor', icon: Clock },
           { id: 'academic', label: 'Academic Operations', icon: GraduationCap },
           { id: 'reports', label: 'Reports & Circulars', icon: Layers },
         ].map((tab) => {
@@ -448,6 +450,13 @@ export const AdminDashboard = () => {
       {activeTab === 'reports' && (
         <div className="space-y-6">
           <ReportingHealthTab />
+        </div>
+      )}
+
+      {/* ─── TAB 7: LIVE CLASS MONITOR ──────────────────────────────────────── */}
+      {activeTab === 'live_monitor' && (
+        <div className="space-y-6">
+          <TownLiveMonitorView />
         </div>
       )}
     </PageContainer>

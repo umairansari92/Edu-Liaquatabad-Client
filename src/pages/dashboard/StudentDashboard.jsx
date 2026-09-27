@@ -30,6 +30,7 @@ import {
 import { useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import PageContainer from '../../components/layout/PageContainer.jsx';
+import PersonalScheduleView from '../../components/timetable/PersonalScheduleView.jsx';
 import {
   fetchStudentProfile,
   fetchStudentExamResults,
@@ -108,7 +109,7 @@ export const StudentDashboard = () => {
 
   const [searchParams, setSearchParams] = useSearchParams();
   const urlTabKey = searchParams.get('tab');
-  const validTabKeys = ['overview', 'exams', 'homework', 'attendance', 'notices', 'id_card'];
+  const validTabKeys = ['overview', 'timetable', 'exams', 'homework', 'attendance', 'notices', 'id_card'];
 
   const [activeTabKey, setActiveTabKey] = useState(
     urlTabKey && validTabKeys.includes(urlTabKey) ? urlTabKey : 'overview'
@@ -357,6 +358,12 @@ export const StudentDashboard = () => {
           onClick={() => handleTabChange('overview')}
         />
         <NavigationTabButton
+          label="Class Timetable"
+          icon={CalendarDays}
+          active={activeTabKey === 'timetable'}
+          onClick={() => handleTabChange('timetable')}
+        />
+        <NavigationTabButton
           label="Exams & Marksheet"
           icon={Award}
           active={activeTabKey === 'exams'}
@@ -588,6 +595,13 @@ export const StudentDashboard = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════════════
+          TAB: CLASS TIMETABLE
+         ════════════════════════════════════════════════════════════════════════ */}
+      {activeTabKey === 'timetable' && (
+        <PersonalScheduleView role="STUDENT" />
       )}
 
       {/* ════════════════════════════════════════════════════════════════════════

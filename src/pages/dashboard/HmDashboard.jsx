@@ -48,6 +48,7 @@ import {
 import toast from 'react-hot-toast';
 import PageContainer from '../../components/layout/PageContainer.jsx';
 import HmAddStudentModal from '../../components/hm/HmAddStudentModal.jsx';
+import HmTimetableBuilder from '../../components/timetable/HmTimetableBuilder.jsx';
 import {
   fetchHmSummary,
   fetchPendingApprovals,
@@ -1046,6 +1047,7 @@ export const HmDashboard = () => {
         <TabBtn label="Exams & Gazette" active={activeTab === 'exams'} onClick={() => setActiveTab('exams')} icon={Award} />
         <TabBtn label="Incoming Transfers" active={activeTab === 'transfers'} onClick={() => setActiveTab('transfers')} badge={transfers?.length || 0} icon={ArrowLeftRight} />
         <TabBtn label="School Circulars" active={activeTab === 'notices'} onClick={() => setActiveTab('notices')} icon={FileText} />
+        <TabBtn label="Timetable & Live Monitor" active={activeTab === 'timetable'} onClick={() => setActiveTab('timetable')} icon={CalendarDays} />
       </div>
 
 
@@ -3271,6 +3273,20 @@ export const HmDashboard = () => {
             )}
           </div>
         </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* TAB 9: TIMETABLE & LIVE MONITOR                                     */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {activeTab === 'timetable' && (
+        <HmTimetableBuilder
+          schoolId={user?.schoolId?._id || user?.schoolId}
+          classes={classes}
+          sections={sections}
+          subjects={subjects}
+          assignments={assignments}
+          faculty={faculty}
+        />
       )}
 
       {/* ═══════════════════════════════════════════════════════════════════ */}

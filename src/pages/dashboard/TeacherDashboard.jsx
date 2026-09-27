@@ -37,6 +37,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PageContainer from '../../components/layout/PageContainer.jsx';
+import PersonalScheduleView from '../../components/timetable/PersonalScheduleView.jsx';
 import {
   fetchTeacherSummary,
   fetchTeachingAssignments,
@@ -515,6 +516,7 @@ export const TeacherDashboard = () => {
           { id: 'ATTENDANCE', label: 'Classroom Attendance', icon: ClipboardList },
           { id: 'EXAMS', label: 'Internal Examination', icon: Award },
           { id: 'HOMEWORK', label: 'Homework Workspace', icon: FileText },
+          { id: 'TIMETABLE', label: 'My Timetable', icon: CalendarDays },
           { id: 'CIRCULARS', label: 'Official Circulars', icon: FileSpreadsheet },
           { id: 'SERVICE', label: 'My Service Record', icon: IdCard },
         ].map((tab) => {
@@ -1391,6 +1393,11 @@ export const TeacherDashboard = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ─── TAB: MY TIMETABLE ──────────────────────────────────────────────── */}
+      {activeTab === 'TIMETABLE' && (
+        <PersonalScheduleView role="TEACHER" />
       )}
 
       {/* ─── MODAL: VIEW SECTION STUDENT ROSTER ─────────────────────────────── */}

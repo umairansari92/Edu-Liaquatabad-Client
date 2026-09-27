@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PageContainer from '../../components/layout/PageContainer.jsx';
+import TownLiveMonitorView from '../../components/timetable/TownLiveMonitorView.jsx';
 import {
   fetchAssignedSchools,
   fetchSchoolDetails,
@@ -376,6 +377,7 @@ export const SupervisorDashboard = () => {
           { id: 'attendance', label: 'Cluster Attendance', icon: TrendingUp },
           { id: 'faculty', label: 'Faculty Directory', icon: Users, count: facultyRoster.length },
           { id: 'transfers', label: 'Transfer Oversight', icon: ArrowLeftRight, count: transfers.length },
+          { id: 'live_monitor', label: 'Town Live Class Monitor', icon: Clock },
         ].map((tabItem) => {
           const Icon = tabItem.icon;
           const isActive = activeTab === tabItem.id;
@@ -920,6 +922,13 @@ export const SupervisorDashboard = () => {
             )}
           </div>
         </div>
+      )}
+
+      {/* ═════════════════════════════════════════════════════════════════════ */}
+      {/* TAB 6: TOWN LIVE CLASS MONITOR                                      */}
+      {/* ═════════════════════════════════════════════════════════════════════ */}
+      {activeTab === 'live_monitor' && (
+        <TownLiveMonitorView />
       )}
 
       {/* ═════════════════════════════════════════════════════════════════════ */}
