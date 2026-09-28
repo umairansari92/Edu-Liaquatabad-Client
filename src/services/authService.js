@@ -65,12 +65,16 @@ export const authService = {
   },
 
   disableMfa: async (currentPassword) => {
-    const response = await apiClient.post('/auth/mfa/disable', { currentPassword });
+    const response = await apiClient.post('/auth/mfa/disable', {
+      password: currentPassword,
+      currentPassword,
+    });
     return response.data;
   },
 
   regenerateRecoveryCodes: async (currentPassword) => {
     const response = await apiClient.post('/auth/mfa/regenerate-recovery-codes', {
+      password: currentPassword,
       currentPassword,
     });
     return response.data;

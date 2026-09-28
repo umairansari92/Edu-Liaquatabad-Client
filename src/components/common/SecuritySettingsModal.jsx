@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { setAccessToken } from '../../store/slices/authSlice.js';
 import {
   Shield,
   ShieldCheck,
@@ -23,6 +24,7 @@ import toast from 'react-hot-toast';
 import { authService } from '../../services/authService.js';
 
 export const SecuritySettingsModal = ({ isOpen, onClose }) => {
+  const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
 
   const [activeTab, setActiveTab] = useState('sessions'); // 'sessions' | 'mfa'
@@ -146,12 +148,15 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
 
   // Regenerate Recovery Codes (Requires step-up password)
   const handleRegenerateCodes = async () => {
-    const password = prompt('Enter your current account password to regenerate emergency recovery codes:');
+    const password = prompt('Enter your account login password to regenerate emergency recovery codes (NOT a 6-digit TOTP code):');
     if (!password) return;
     setLoading(true);
     try {
       const res = await authService.regenerateRecoveryCodes(password);
       if (res.success && res.data) {
+        if (res.data.accessToken) {
+          dispatch(setAccessToken(res.data.accessToken));
+        }
         setFreshRecoveryCodes(res.data.recoveryCodes || []);
         toast.success('New emergency recovery codes generated.');
         await loadMfaStatus();
@@ -169,7 +174,7 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
       toast.error('MFA is mandatory for your role level and cannot be disabled.');
       return;
     }
-    const password = prompt('Enter your current account password to disable Two-Factor Authentication:');
+    const password = prompt('Enter your account login password to disable Two-Factor Authentication:');
     if (!password) return;
     setLoading(true);
     try {
