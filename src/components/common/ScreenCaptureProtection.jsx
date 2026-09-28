@@ -9,6 +9,9 @@ const PRIVILEGED_ROLES = ['ROOT_ADMIN', 'SUPER_ADMIN', 'ADMIN'];
 export const ScreenCaptureProtection = ({ children }) => {
   const { user } = useSelector((state) => state.auth);
   const isPrivileged = user && PRIVILEGED_ROLES.includes(user.role);
+  const isDev = Boolean(import.meta.env.DEV);
+  const isPublicOrGuest = !user;
+  const shouldBypass = isDev || isPrivileged || isPublicOrGuest;
 
   const [isWindowBlurred, setIsWindowBlurred] = useState(false);
   const [showCaptureWarning, setShowCaptureWarning] = useState(false);
@@ -22,27 +25,24 @@ export const ScreenCaptureProtection = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    // If user is ROOT_ADMIN, SUPER_ADMIN, or ADMIN, bypass all capture guards
-    if (isPrivileged) {
+    // If bypassed (DEV mode, privileged admin, or public/guest login page), remove all guards
+    if (shouldBypass) {
       document.body.classList.remove('screen-protected');
       setIsWindowBlurred(false);
       return;
     }
 
-    // Apply CSS-level protections to body
+    // Apply CSS-level protections to body for sensitive authenticated municipal records
     document.body.classList.add('screen-protected');
 
-    // 1. Intercept PrintScreen and Screenshot Hotkeys
+    // 1. Intercept PrintScreen and Screenshot Hotkeys (DevTools shortcuts allowed for inspection)
     const handleKeyDown = (event) => {
       const isPrintScreen = event.key === 'PrintScreen' || event.keyCode === 44;
       const isPrintShortcut = (event.ctrlKey || event.metaKey) && event.key?.toLowerCase() === 'p';
       const isSnippingShortcut = (event.ctrlKey || event.metaKey) && event.shiftKey && event.key?.toLowerCase() === 's';
       const isSaveShortcut = (event.ctrlKey || event.metaKey) && event.key?.toLowerCase() === 's';
-      const isDevToolsShortcut =
-        event.key === 'F12' ||
-        ((event.ctrlKey || event.metaKey) && event.shiftKey && ['i', 'c', 'j'].includes(event.key?.toLowerCase()));
 
-      if (isPrintScreen || isPrintShortcut || isSnippingShortcut || isSaveShortcut || isDevToolsShortcut) {
+      if (isPrintScreen || isPrintShortcut || isSnippingShortcut || isSaveShortcut) {
         event.preventDefault();
         event.stopPropagation();
 
@@ -127,10 +127,10 @@ export const ScreenCaptureProtection = ({ children }) => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       document.removeEventListener('contextmenu', handleContextMenu);
     };
-  }, [isPrivileged, notifyCaptureBlocked]);
+  }, [shouldBypass, notifyCaptureBlocked]);
 
-  // Privileged actors experience completely normal, unobstructed UI
-  if (isPrivileged) {
+  // Privileged actors, DEV mode, and public/guest views experience completely normal, unobstructed UI
+  if (shouldBypass) {
     return <>{children}</>;
   }
 
