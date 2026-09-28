@@ -46,6 +46,15 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
   const [hasCopiedRecovery, setHasCopiedRecovery] = useState(false);
   const [actionError, setActionError] = useState('');
 
+  // Device Rotation State
+  const [isRotatingDevice, setIsRotatingDevice] = useState(false);
+  const [rotateStep, setRotateStep] = useState(1); // 1: Password step-up, 2: Scan QR & verify
+  const [rotationPassword, setRotationPassword] = useState('');
+  const [rotationData, setRotationData] = useState(null); // { secret, otpAuthUri }
+  const [rotationTotpCode, setRotationTotpCode] = useState('');
+  const [rotateLoading, setRotateLoading] = useState(false);
+  const [rotateError, setRotateError] = useState('');
+
   // Fetch Session Records
   const loadSessions = useCallback(async () => {
     try {
@@ -77,6 +86,12 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
       setIsSetupWizardOpen(false);
       setFreshRecoveryCodes(null);
       setStepUpPassword('');
+      setIsRotatingDevice(false);
+      setRotateStep(1);
+      setRotationPassword('');
+      setRotationData(null);
+      setRotationTotpCode('');
+      setRotateError('');
       Promise.all([loadSessions(), loadMfaStatus()]).finally(() => setLoading(false));
     }
   }, [isOpen, loadSessions, loadMfaStatus]);
@@ -187,6 +202,60 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
       toast.error(err.response?.data?.message || 'Failed to disable MFA.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Device Rotation: Step 1 Initiate
+  const handleInitiateDeviceRotation = async (e) => {
+    e.preventDefault();
+    if (!rotationPassword) {
+      setRotateError('Please enter your account password.');
+      return;
+    }
+    setRotateLoading(true);
+    setRotateError('');
+    try {
+      const res = await authService.rotateMfaDevice(rotationPassword);
+      if (res.success && res.data) {
+        setRotationData(res.data);
+        setRotateStep(2);
+      }
+    } catch (err) {
+      setRotateError(err.response?.data?.message || 'Password authentication failed.');
+    } finally {
+      setRotateLoading(false);
+    }
+  };
+
+  // Device Rotation: Step 2 Confirm with 6-digit code from NEW phone
+  const handleConfirmDeviceRotation = async (e) => {
+    e.preventDefault();
+    const cleanCode = rotationTotpCode.replace(/\D/g, '').trim();
+    if (cleanCode.length !== 6) {
+      setRotateError('Please enter a valid 6-digit code from your new authenticator app.');
+      return;
+    }
+    setRotateLoading(true);
+    setRotateError('');
+    try {
+      const res = await authService.confirmDeviceRotation(cleanCode);
+      if (res.success && res.data) {
+        if (res.data.accessToken) {
+          dispatch(setAccessToken(res.data.accessToken));
+        }
+        setFreshRecoveryCodes(res.data.recoveryCodes || []);
+        setIsRotatingDevice(false);
+        setRotateStep(1);
+        setRotationPassword('');
+        setRotationData(null);
+        setRotationTotpCode('');
+        toast.success('Authenticator successfully transferred to your new phone!');
+        await loadMfaStatus();
+      }
+    } catch (err) {
+      setRotateError(err.response?.data?.message || 'Failed to verify code from new phone.');
+    } finally {
+      setRotateLoading(false);
     }
   };
 
@@ -451,6 +520,181 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
                 </div>
               )}
             </div>
+
+            {/* Device Rotation Trigger Card */}
+            {mfaStatus?.mfaEnabled && !isRotatingDevice && (
+              <div className="rounded-xl border border-blue-200 bg-gradient-to-r from-blue-50/70 to-indigo-50/70 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                <div className="flex items-start gap-3">
+                  <div className="p-2.5 rounded-xl bg-blue-100 text-[#006AC7] flex-shrink-0">
+                    <Smartphone className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-bold text-[#102033]">
+                      Change / Transfer Authenticator Device
+                    </h5>
+                    <p className="text-[11px] text-[#526477] mt-0.5">
+                      Reconfigure Google Authenticator on your new phone without locking yourself out.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsRotatingDevice(true);
+                    setRotateStep(1);
+                    setRotateError('');
+                    setRotationPassword('');
+                  }}
+                  className="px-3.5 py-2 bg-[#006AC7] hover:bg-[#00529B] text-white text-xs font-bold rounded-lg transition flex items-center justify-center gap-1.5 shadow-xs flex-shrink-0"
+                >
+                  <RefreshCw className="h-3.5 w-3.5" />
+                  <span>Transfer Device</span>
+                </button>
+              </div>
+            )}
+
+            {/* Device Rotation Interactive Wizard */}
+            {isRotatingDevice && (
+              <div className="rounded-xl border border-blue-200 bg-white p-4 space-y-4 shadow-sm">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <div className="flex items-center gap-2">
+                    <Smartphone className="h-4 w-4 text-[#006AC7]" />
+                    <span className="text-xs font-bold text-[#102033]">
+                      {rotateStep === 1 ? 'Step 1: Confirm Password' : 'Step 2: Scan & Activate New Phone'}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsRotatingDevice(false);
+                      setRotateStep(1);
+                      setRotationPassword('');
+                      setRotationData(null);
+                      setRotateError('');
+                    }}
+                    className="text-slate-400 hover:text-slate-600 text-xs font-bold"
+                  >
+                    Cancel
+                  </button>
+                </div>
+
+                {rotateError && (
+                  <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg text-xs text-rose-700 flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+                    <span>{rotateError}</span>
+                  </div>
+                )}
+
+                {rotateStep === 1 && (
+                  <form onSubmit={handleInitiateDeviceRotation} className="space-y-3 text-xs">
+                    <p className="text-[#526477]">
+                      To transfer your Authenticator to a new phone, re-confirm your current account login password:
+                    </p>
+                    <input
+                      type="password"
+                      autoFocus
+                      placeholder="Current Account Password"
+                      value={rotationPassword}
+                      onChange={(e) => setRotationPassword(e.target.value)}
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#006AC7]"
+                    />
+                    <div className="flex gap-2 pt-1">
+                      <button
+                        type="submit"
+                        disabled={rotateLoading || !rotationPassword}
+                        className="flex-1 py-2 bg-[#006AC7] text-white font-bold rounded-lg hover:bg-[#00529B] disabled:opacity-50 transition flex items-center justify-center gap-2"
+                      >
+                        {rotateLoading ? (
+                          <>
+                            <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                            <span>Verifying...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>Continue to New Phone Setup</span>
+                            <ArrowRight className="h-3.5 w-3.5" />
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                {rotateStep === 2 && rotationData && (
+                  <form onSubmit={handleConfirmDeviceRotation} className="space-y-3.5 text-xs">
+                    <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-100 flex flex-col sm:flex-row items-center gap-4">
+                      {/* QR Code image */}
+                      <div className="bg-white p-2 rounded-xl border border-slate-200 shadow-xs flex-shrink-0">
+                        <img
+                          src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(
+                            rotationData.otpAuthUri
+                          )}`}
+                          alt="New Authenticator Device QR Code"
+                          className="w-32 h-32 block"
+                        />
+                      </div>
+                      <div className="space-y-2 text-left">
+                        <p className="font-bold text-[#102033]">
+                          1. Scan this QR code with Google Authenticator on your NEW mobile phone.
+                        </p>
+                        <p className="text-[11px] text-[#526477]">
+                          Or enter this setup key manually into your phone:
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <code className="px-2 py-1 bg-white border border-slate-200 rounded font-mono font-bold text-xs tracking-wider text-[#102033]">
+                            {rotationData.secret}
+                          </code>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard.writeText(rotationData.secret);
+                              toast.success('Key copied to clipboard');
+                            }}
+                            className="text-[#006AC7] hover:underline font-bold text-[11px] flex items-center gap-1"
+                          >
+                            <Copy className="h-3 w-3" />
+                            <span>Copy</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="block text-xs font-bold text-[#102033]">
+                        2. Enter the 6-digit code generated on your NEW mobile phone:
+                      </label>
+                      <input
+                        type="text"
+                        maxLength={6}
+                        autoFocus
+                        placeholder="000000"
+                        value={rotationTotpCode}
+                        onChange={(e) => setRotationTotpCode(e.target.value.replace(/\D/g, ''))}
+                        className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-center font-mono font-bold text-xl tracking-[0.3em] text-[#102033] focus:bg-white focus:outline-none focus:border-[#006AC7]"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={rotateLoading || rotationTotpCode.length !== 6}
+                      className="w-full py-2.5 bg-[#4B7F3A] hover:bg-[#3D692F] text-white font-bold rounded-lg transition disabled:opacity-50 flex items-center justify-center gap-2 shadow-xs"
+                    >
+                      {rotateLoading ? (
+                        <>
+                          <RefreshCw className="h-4 w-4 animate-spin" />
+                          <span>Activating New Device...</span>
+                        </>
+                      ) : (
+                        <>
+                          <ShieldCheck className="h-4 w-4" />
+                          <span>Activate New Mobile Phone</span>
+                        </>
+                      )}
+                    </button>
+                  </form>
+                )}
+              </div>
+            )}
 
             {/* Freshly Generated Recovery Codes Vault Modal (Inline) */}
             {freshRecoveryCodes && (

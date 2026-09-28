@@ -80,6 +80,21 @@ export const authService = {
     return response.data;
   },
 
+  rotateMfaDevice: async (currentPassword) => {
+    const response = await apiClient.post('/auth/mfa/rotate-device', {
+      password: currentPassword,
+      currentPassword,
+    });
+    return response.data;
+  },
+
+  confirmDeviceRotation: async (totpCode) => {
+    const response = await apiClient.post('/auth/mfa/confirm-device-rotation', {
+      totpCode,
+    });
+    return response.data;
+  },
+
   // ─── Multi-Device Session Management ────────────────────────────────────────
   getActiveSessions: async () => {
     const response = await apiClient.get('/auth/sessions');
