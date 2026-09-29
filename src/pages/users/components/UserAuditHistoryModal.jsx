@@ -23,10 +23,18 @@ export const UserAuditHistoryModal = ({ isOpen, onClose, targetUser }) => {
       try {
         const response = await apiClient.get(`/users/${targetUser._id}/audit-history`);
         if (response.data?.success) {
-          setAuditLogs(response.data.data?.auditHistory || response.data.data || []);
+          const rawHistory =
+            response.data.data?.history ||
+            response.data.data?.auditHistory ||
+            (Array.isArray(response.data.data) ? response.data.data : []);
+          setAuditLogs(Array.isArray(rawHistory) ? rawHistory : []);
+        } else {
+          setAuditLogs([]);
         }
       } catch (error) {
+        console.error('Failed to load user audit history:', error);
         toast.error('Unable to retrieve user audit history.');
+        setAuditLogs([]);
       } finally {
         setIsLoading(false);
       }
@@ -62,23 +70,26 @@ export const UserAuditHistoryModal = ({ isOpen, onClose, targetUser }) => {
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4 text-xs text-[#526477]">
-          {isLoading ? (
-            <div className="py-12 text-center">
-              <RefreshCw className="w-6 h-6 animate-spin text-[#006AC7] mx-auto mb-2" />
-              <p className="font-medium text-[#526477]">Loading audit history...</p>
-            </div>
-          ) : auditLogs.length === 0 ? (
-            <div className="py-12 text-center">
-              <Clock className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-              <p className="font-bold text-[#102033]">No audit history found</p>
-              <p className="text-slate-400 text-[11px] mt-0.5">
-                No recorded state modifications for this user account.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {auditLogs.map((log) => {
+        {(() => {
+          const safeLogs = Array.isArray(auditLogs) ? auditLogs : [];
+          return (
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 text-xs text-[#526477]">
+              {isLoading ? (
+                <div className="py-12 text-center">
+                  <RefreshCw className="w-6 h-6 animate-spin text-[#006AC7] mx-auto mb-2" />
+                  <p className="font-medium text-[#526477]">Loading audit history...</p>
+                </div>
+              ) : safeLogs.length === 0 ? (
+                <div className="py-12 text-center">
+                  <Clock className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                  <p className="font-bold text-[#102033]">No audit history found</p>
+                  <p className="text-slate-400 text-[11px] mt-0.5">
+                    No recorded state modifications for this user account.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {safeLogs.map((log) => {
                 const isSuccess = log.result === 'SUCCESS';
                 return (
                   <div
@@ -145,6 +156,8 @@ export const UserAuditHistoryModal = ({ isOpen, onClose, targetUser }) => {
             </div>
           )}
         </div>
+      );
+    })()}
 
         {/* Footer */}
         <div className="border-t border-slate-100 bg-slate-50/80 px-6 py-3 text-right">
