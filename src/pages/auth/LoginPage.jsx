@@ -572,9 +572,27 @@ export const LoginPage = () => {
                   )}
 
                   {mfaError && (
-                    <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                      <span>{mfaError}</span>
+                    <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex flex-col gap-2">
+                      <div className="flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                        <span>{mfaError}</span>
+                      </div>
+                      {(mfaError.toLowerCase().includes('timed out') || mfaError.toLowerCase().includes('expired')) && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMfaChallenge(null);
+                            setMfaError('');
+                            setTotpCode('');
+                            setRecoveryCode('');
+                            setRecoveryMode(false);
+                          }}
+                          className="self-start text-[11px] font-bold text-[#006AC7] hover:underline flex items-center gap-1 mt-0.5 cursor-pointer"
+                        >
+                          <ChevronLeft className="w-3 h-3" />
+                          <span>Click here to re-enter password</span>
+                        </button>
+                      )}
                     </div>
                   )}
 
