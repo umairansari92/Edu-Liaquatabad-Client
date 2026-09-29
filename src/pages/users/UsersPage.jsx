@@ -6,69 +6,166 @@ import {
   RefreshCw,
   UserCheck,
   UserX,
-  Clock,
-  Shield,
-  ShieldCheck,
-  CheckCircle2,
-  XCircle,
-  AlertTriangle,
-  Mail,
-  School,
+  Briefcase,
+  GraduationCap,
+  Users2,
+  ListFilter,
   CheckSquare,
   Square,
-  ChevronRight,
-  Filter,
-  Lock,
+  Building2,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import apiClient from '../../services/apiClient.js';
 import PageContainer from '../../components/layout/PageContainer.jsx';
+
+// Common & Modular Components
 import UserAuthorityModal from '../../components/common/UserAuthorityModal.jsx';
+import AssignSchoolModal from './components/AssignSchoolModal.jsx';
+import TransferEmployeeModal from './components/TransferEmployeeModal.jsx';
+import EmployeeProfileDrawer from './components/EmployeeProfileDrawer.jsx';
+import UserAuditHistoryModal from './components/UserAuditHistoryModal.jsx';
+import CategoryKpiCards from './components/CategoryKpiCards.jsx';
+
+// Tables
+import EmployeesTable from './components/EmployeesTable.jsx';
+import StudentsTable from './components/StudentsTable.jsx';
+import ParentsTable from './components/ParentsTable.jsx';
+import AllAccountsTable from './components/AllAccountsTable.jsx';
 
 export const UsersPage = () => {
   const { user: authenticatedUser } = useSelector((state) => state.auth);
 
+  // Active Category Tab
+  const [activeCategory, setActiveCategory] = useState('EMPLOYEES'); // 'EMPLOYEES' | 'STUDENTS' | 'PARENTS' | 'ALL'
+
+  // Data & Pagination
   const [usersList, setUsersList] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Live Summary Counts from Backend
+  const [summaryCounts, setSummaryCounts] = useState({
+    totalAccounts: 0,
+    totalEmployees: 0,
+    totalTeachers: 0,
+    totalHMs: 0,
+    totalAdminStaff: 0,
+    totalStudents: 0,
+    totalParents: 0,
+  });
+
+  // Filter & Search State
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [schoolFilter, setSchoolFilter] = useState('');
+  const [schoolsList, setSchoolsList] = useState([]);
 
-  // Debounce search input by 300ms to prevent per-keystroke API hammering
-  useEffect(() => {
-    const debounceTimer = setTimeout(() => {
-      setDebouncedSearch(searchQuery.trim());
-    }, 300);
-    return () => clearTimeout(debounceTimer);
-  }, [searchQuery]);
-
-  // Bulk Selection State
+  // Bulk Selection (Employees Tab)
   const [selectedUserIds, setSelectedUserIds] = useState([]);
   const [isBulkOperating, setIsBulkOperating] = useState(false);
 
-  // Authority & Designation Management Modal
-  const [isAuthorityModalOpen, setIsAuthorityModalOpen] = useState(false);
+  // Modals & Drawers State
   const [selectedUserForAuthority, setSelectedUserForAuthority] = useState(null);
+  const [isAuthorityModalOpen, setIsAuthorityModalOpen] = useState(false);
+
+  const [selectedEmployeeForAssignment, setSelectedEmployeeForAssignment] = useState(null);
+  const [isAssignSchoolModalOpen, setIsAssignSchoolModalOpen] = useState(false);
+
+  const [selectedEmployeeForTransfer, setSelectedEmployeeForTransfer] = useState(null);
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+
+  const [selectedUserForProfile, setSelectedUserForProfile] = useState(null);
+  const [isProfileDrawerOpen, setIsProfileDrawerOpen] = useState(false);
+
+  const [selectedUserForAudit, setSelectedUserForAudit] = useState(null);
+  const [isAuditModalOpen, setIsAuditModalOpen] = useState(false);
 
   // Action processing indicator
   const [actionProcessingUserId, setActionProcessingUserId] = useState(null);
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery.trim());
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Reset page and selection when category changes
+  const handleTabChange = (newCategory) => {
+    setActiveCategory(newCategory);
+    setPage(1);
+    setRoleFilter('');
+    setStatusFilter('');
+    setSchoolFilter('');
+    setSearchQuery('');
+    setSelectedUserIds([]);
+  };
+
+  // Fetch Auxiliary Municipal Schools List
+  useEffect(() => {
+    const loadSchools = async () => {
+      try {
+        const response = await apiClient.get('/schools');
+        if (response.data?.success) {
+          setSchoolsList(response.data.data?.schools || response.data.data || []);
+        }
+      } catch (err) {
+        console.error('Failed to load schools list:', err);
+      }
+    };
+    loadSchools();
+  }, []);
+
+  // Fetch Live Summary Counts
+  const fetchSummaryCounts = useCallback(async () => {
+    try {
+      const response = await apiClient.get('/users/summary-counts');
+      if (response.data?.success) {
+        setSummaryCounts(response.data.data);
+      }
+    } catch (err) {
+      console.error('Failed to load user summary counts:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchSummaryCounts();
+  }, [fetchSummaryCounts]);
 
   // Fetch Users
   const fetchUsers = useCallback(async () => {
     setIsLoading(true);
     try {
       const queryParams = new URLSearchParams();
+      if (activeCategory !== 'ALL') {
+        // Singular backend category: EMPLOYEE, STUDENT, PARENT
+        const backendCat =
+          activeCategory === 'EMPLOYEES'
+            ? 'EMPLOYEE'
+            : activeCategory === 'STUDENTS'
+            ? 'STUDENT'
+            : 'PARENT';
+        queryParams.append('category', backendCat);
+      }
+
       if (roleFilter) queryParams.append('role', roleFilter);
       if (statusFilter) queryParams.append('status', statusFilter);
+      if (schoolFilter) queryParams.append('schoolId', schoolFilter);
       if (debouncedSearch) queryParams.append('search', debouncedSearch);
+      queryParams.append('page', String(page));
       queryParams.append('limit', '50');
 
       const response = await apiClient.get(`/users?${queryParams.toString()}`);
       if (response.data?.success) {
         setUsersList(response.data.data?.users || []);
         setTotalCount(response.data.data?.total || response.data.data?.users?.length || 0);
+        setTotalPages(response.data.data?.totalPages || 1);
       }
     } catch (error) {
       console.error('Failed to load personnel:', error);
@@ -76,13 +173,19 @@ export const UsersPage = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [roleFilter, statusFilter, debouncedSearch]);
+  }, [activeCategory, roleFilter, statusFilter, schoolFilter, debouncedSearch, page]);
 
   useEffect(() => {
     fetchUsers();
   }, [fetchUsers]);
 
-  // Bulk Selection Handlers (Secured against Root Admin & Self mutations)
+  // Refresh both list and counts
+  const handleFullRefresh = () => {
+    fetchUsers();
+    fetchSummaryCounts();
+  };
+
+  // Bulk Selection Handlers
   const isUserBulkEligible = (u) =>
     u.role !== 'ROOT_ADMIN' && String(u._id) !== String(authenticatedUser?._id);
 
@@ -127,7 +230,7 @@ export const UsersPage = () => {
       if (response.data?.success) {
         toast.success(response.data.message || `Bulk ${actionType} completed.`);
         setSelectedUserIds([]);
-        fetchUsers();
+        handleFullRefresh();
       }
     } catch (error) {
       toast.error(error.response?.data?.message || `Failed to execute bulk ${actionType}.`);
@@ -146,7 +249,7 @@ export const UsersPage = () => {
       });
       if (response.data?.success) {
         toast.success(`User status updated to ${newStatus}.`);
-        fetchUsers();
+        handleFullRefresh();
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Status transition failed.');
@@ -155,16 +258,54 @@ export const UsersPage = () => {
     }
   };
 
+  // Check if caller can see All Accounts view
+  const canViewAllAccounts = ['ROOT_ADMIN', 'SUPER_ADMIN', 'ADMIN'].includes(
+    authenticatedUser?.role
+  );
+
+  // Dynamic Headings & Subtitles based on active tab
+  const getTabHeaders = () => {
+    switch (activeCategory) {
+      case 'EMPLOYEES':
+        return {
+          title: 'Employee Directory',
+          subtitle:
+            'Education Department Liaquatabad Town Centre (DMC) — Staff roster, civil service designations, and authority governance',
+        };
+      case 'STUDENTS':
+        return {
+          title: 'Student Directory',
+          subtitle:
+            'Enrolled students, academic placement, class/section records, and parent linkages',
+        };
+      case 'PARENTS':
+        return {
+          title: 'Parent Directory',
+          subtitle:
+            'Verified parents and legal guardians with institutional child linkages',
+        };
+      case 'ALL':
+      default:
+        return {
+          title: 'Global Account Directory',
+          subtitle:
+            'Complete multi-role system inventory and administrative governance ledger',
+        };
+    }
+  };
+
+  const { title, subtitle } = getTabHeaders();
+
   return (
     <PageContainer
-      title="Global Personnel & Faculty Directory"
-      subtitle="Education Department Liaquatabad Town Centre (DMC) — Staff roster, civil service designations, and authority governance"
+      title={title}
+      subtitle={subtitle}
       actions={
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={fetchUsers}
-            className="flex items-center gap-1.5 rounded-xl border border-slate-200/80 bg-white px-3 py-2 text-xs font-bold text-[#526477] hover:text-[#102033] hover:bg-slate-50 shadow-sm transition"
+            onClick={handleFullRefresh}
+            className="flex items-center gap-1.5 rounded-xl border border-slate-200/80 bg-white px-3 py-2 text-xs font-bold text-[#526477] hover:text-[#102033] hover:bg-slate-50 shadow-xs transition"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
@@ -173,38 +314,187 @@ export const UsersPage = () => {
       }
     >
       <div className="space-y-6">
-        {/* Search & Filter Bar */}
-        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm">
-          <div className="flex flex-1 items-center gap-3">
-            <div className="relative flex-1 max-w-md">
+        {/* Category Navigation Tabs */}
+        <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 pt-2 rounded-t-2xl shadow-xs">
+          <div className="flex items-center gap-1 sm:gap-2">
+            {/* EMPLOYEES TAB */}
+            <button
+              type="button"
+              onClick={() => handleTabChange('EMPLOYEES')}
+              className={`flex items-center gap-2 px-4 py-3 text-xs font-bold border-b-2 transition ${
+                activeCategory === 'EMPLOYEES'
+                  ? 'border-[#006AC7] text-[#006AC7]'
+                  : 'border-transparent text-[#526477] hover:text-[#102033] hover:border-slate-300'
+              }`}
+            >
+              <Briefcase className="w-4 h-4" />
+              <span>Employees</span>
+              <span
+                className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
+                  activeCategory === 'EMPLOYEES'
+                    ? 'bg-blue-100/70 text-[#006AC7]'
+                    : 'bg-slate-100 text-slate-500'
+                }`}
+              >
+                {summaryCounts.totalEmployees}
+              </span>
+            </button>
+
+            {/* STUDENTS TAB */}
+            <button
+              type="button"
+              onClick={() => handleTabChange('STUDENTS')}
+              className={`flex items-center gap-2 px-4 py-3 text-xs font-bold border-b-2 transition ${
+                activeCategory === 'STUDENTS'
+                  ? 'border-purple-600 text-purple-700'
+                  : 'border-transparent text-[#526477] hover:text-[#102033] hover:border-slate-300'
+              }`}
+            >
+              <GraduationCap className="w-4 h-4" />
+              <span>Students</span>
+              <span
+                className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
+                  activeCategory === 'STUDENTS'
+                    ? 'bg-purple-100 text-purple-700'
+                    : 'bg-slate-100 text-slate-500'
+                }`}
+              >
+                {summaryCounts.totalStudents}
+              </span>
+            </button>
+
+            {/* PARENTS TAB */}
+            <button
+              type="button"
+              onClick={() => handleTabChange('PARENTS')}
+              className={`flex items-center gap-2 px-4 py-3 text-xs font-bold border-b-2 transition ${
+                activeCategory === 'PARENTS'
+                  ? 'border-[#4B7F3A] text-[#4B7F3A]'
+                  : 'border-transparent text-[#526477] hover:text-[#102033] hover:border-slate-300'
+              }`}
+            >
+              <Users2 className="w-4 h-4" />
+              <span>Parents</span>
+              <span
+                className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
+                  activeCategory === 'PARENTS'
+                    ? 'bg-emerald-100 text-[#4B7F3A]'
+                    : 'bg-slate-100 text-slate-500'
+                }`}
+              >
+                {summaryCounts.totalParents}
+              </span>
+            </button>
+
+            {/* ALL ACCOUNTS TAB (Privileged View) */}
+            {canViewAllAccounts && (
+              <button
+                type="button"
+                onClick={() => handleTabChange('ALL')}
+                className={`flex items-center gap-2 px-4 py-3 text-xs font-bold border-b-2 transition ${
+                  activeCategory === 'ALL'
+                    ? 'border-slate-800 text-[#102033]'
+                    : 'border-transparent text-[#526477] hover:text-[#102033] hover:border-slate-300'
+                }`}
+              >
+                <Users className="w-4 h-4" />
+                <span>All Accounts</span>
+                <span
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-mono ${
+                    activeCategory === 'ALL'
+                      ? 'bg-slate-200 text-[#102033]'
+                      : 'bg-slate-100 text-slate-500'
+                  }`}
+                >
+                  {summaryCounts.totalAccounts}
+                </span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Live Category Summary KPI Cards */}
+        <CategoryKpiCards
+          activeCategory={activeCategory}
+          summaryCounts={summaryCounts}
+        />
+
+        {/* Search & Multi-Criteria Filter Bar */}
+        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs">
+          <div className="flex flex-1 flex-wrap items-center gap-3">
+            {/* Search Input */}
+            <div className="relative flex-1 min-w-[220px] max-w-md">
               <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 value={searchQuery}
-                onChange={(inputChangeEvent) => setSearchQuery(inputChangeEvent.target.value)}
-                placeholder="Search by full name, email, or civil designation..."
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={
+                  activeCategory === 'EMPLOYEES'
+                    ? 'Search employee name, email, or designation...'
+                    : activeCategory === 'STUDENTS'
+                    ? 'Search student name, B-Form, or roll no...'
+                    : activeCategory === 'PARENTS'
+                    ? 'Search parent name, phone, or email...'
+                    : 'Search across all accounts...'
+                }
                 className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2 pl-9 pr-4 text-xs font-medium text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
               />
             </div>
 
+            {/* Role Filter (Contextual) */}
+            {activeCategory === 'EMPLOYEES' && (
+              <select
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+                className="rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-bold text-[#526477] focus:border-[#006AC7] focus:bg-white focus:outline-none"
+              >
+                <option value="">All Roles</option>
+                <option value="TEACHER">Teacher</option>
+                <option value="HM">Head Master</option>
+                <option value="SUPERVISOR">Supervisor</option>
+                <option value="ADMIN">Admin / DDO</option>
+                <option value="SUPER_ADMIN">Super Admin</option>
+                <option value="PEON">Peon / Staff</option>
+              </select>
+            )}
+
+            {activeCategory === 'ALL' && (
+              <select
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+                className="rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-bold text-[#526477] focus:border-[#006AC7] focus:bg-white focus:outline-none"
+              >
+                <option value="">All Roles</option>
+                <option value="TEACHER">Teacher</option>
+                <option value="HM">Head Master</option>
+                <option value="SUPERVISOR">Supervisor</option>
+                <option value="ADMIN">Admin</option>
+                <option value="SUPER_ADMIN">Super Admin</option>
+                <option value="STUDENT">Student</option>
+                <option value="PARENT">Parent</option>
+                <option value="PEON">Peon</option>
+              </select>
+            )}
+
+            {/* School Filter */}
             <select
-              value={roleFilter}
-              onChange={(selectChangeEvent) => setRoleFilter(selectChangeEvent.target.value)}
-              className="rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-bold text-[#526477] focus:border-[#006AC7] focus:bg-white focus:outline-none"
+              value={schoolFilter}
+              onChange={(e) => setSchoolFilter(e.target.value)}
+              className="rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-bold text-[#526477] focus:border-[#006AC7] focus:bg-white focus:outline-none max-w-[200px]"
             >
-              <option value="">All Roles</option>
-              <option value="SUPER_ADMIN">Super Admin</option>
-              <option value="ADMIN">Admin / DDO</option>
-              <option value="SUPERVISOR">Supervisor</option>
-              <option value="HM">Head Master</option>
-              <option value="TEACHER">Teacher</option>
-              <option value="PEON">Peon / Staff</option>
-              <option value="STUDENT">Student</option>
+              <option value="">All Schools</option>
+              {schoolsList.map((s) => (
+                <option key={s._id} value={s._id}>
+                  {s.name}
+                </option>
+              ))}
             </select>
 
+            {/* Status Filter */}
             <select
               value={statusFilter}
-              onChange={(selectChangeEvent) => setStatusFilter(selectChangeEvent.target.value)}
+              onChange={(e) => setStatusFilter(e.target.value)}
               className="rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-bold text-[#526477] focus:border-[#006AC7] focus:bg-white focus:outline-none"
             >
               <option value="">All Statuses</option>
@@ -214,23 +504,23 @@ export const UsersPage = () => {
             </select>
           </div>
 
-          <div className="text-xs text-[#526477] font-medium text-right">
-            Total Accounts: <span className="font-bold text-[#102033]">{totalCount}</span>
+          <div className="text-xs text-[#526477] font-medium text-right flex-shrink-0">
+            Records Shown: <span className="font-bold text-[#102033]">{totalCount}</span>
           </div>
         </div>
 
-        {/* Bulk Actions Command Strip */}
-        {selectedUserIds.length > 0 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 rounded-2xl border border-blue-200 bg-blue-50/70 p-3.5 text-xs text-[#102033] shadow-sm">
+        {/* Bulk Actions Command Strip (Employees Tab Only) */}
+        {activeCategory === 'EMPLOYEES' && selectedUserIds.length > 0 && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 rounded-2xl border border-blue-200 bg-blue-50/70 p-3.5 text-xs text-[#102033] shadow-xs">
             <span className="font-bold text-[#006AC7]">
-              {selectedUserIds.length} user{selectedUserIds.length > 1 ? 's' : ''} selected
+              {selectedUserIds.length} employee{selectedUserIds.length > 1 ? 's' : ''} selected
             </span>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => handleExecuteBulkAction('APPROVE')}
                 disabled={isBulkOperating}
-                className="flex items-center gap-1 rounded-xl bg-[#4B7F3A] px-3.5 py-2 text-xs font-bold text-white hover:bg-[#3D692F] disabled:opacity-50 transition shadow-sm"
+                className="flex items-center gap-1 rounded-xl bg-[#4B7F3A] px-3.5 py-2 text-xs font-bold text-white hover:bg-[#3D692F] disabled:opacity-50 transition shadow-xs"
               >
                 <UserCheck className="h-3.5 w-3.5" />
                 <span>Bulk Approve</span>
@@ -239,7 +529,7 @@ export const UsersPage = () => {
                 type="button"
                 onClick={() => handleExecuteBulkAction('SUSPEND')}
                 disabled={isBulkOperating}
-                className="flex items-center gap-1 rounded-xl bg-rose-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-rose-700 disabled:opacity-50 transition shadow-sm"
+                className="flex items-center gap-1 rounded-xl bg-rose-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-rose-700 disabled:opacity-50 transition shadow-xs"
               >
                 <UserX className="h-3.5 w-3.5" />
                 <span>Bulk Suspend</span>
@@ -255,244 +545,172 @@ export const UsersPage = () => {
           </div>
         )}
 
-        {/* Users Table */}
-        <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-[#526477]">
-              <thead className="border-b border-slate-200/80 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-[#526477]">
-                <tr>
-                  <th className="w-10 px-4 py-3.5">
-                    <button
-                      type="button"
-                      onClick={handleSelectAllOnPage}
-                      className="text-slate-400 hover:text-[#102033]"
-                      title="Select All"
-                    >
-                      {selectedUserIds.length > 0 && selectedUserIds.length === usersList.length ? (
-                        <CheckSquare className="h-4 w-4 text-[#006AC7]" />
-                      ) : (
-                        <Square className="h-4 w-4" />
-                      )}
-                    </button>
-                  </th>
-                  <th className="px-4 py-3.5">Personnel Identity</th>
-                  <th className="px-4 py-3.5">Civil Designation</th>
-                  <th className="px-4 py-3.5">Base Role</th>
-                  <th className="px-4 py-3.5">System Authority</th>
-                  <th className="px-4 py-3.5">Scope</th>
-                  <th className="px-4 py-3.5">Status</th>
-                  <th className="px-4 py-3.5 text-right">Operations</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {isLoading ? (
-                  <tr>
-                    <td colSpan={8} className="py-12 text-center text-[#526477]">
-                      <RefreshCw className="mx-auto h-6 w-6 animate-spin text-[#006AC7]" />
-                      <p className="mt-2 font-medium">Retrieving personnel records...</p>
-                    </td>
-                  </tr>
-                ) : usersList.length === 0 ? (
-                  <tr>
-                    <td colSpan={8} className="py-12 text-center text-[#526477]">
-                      <Users className="mx-auto h-8 w-8 text-slate-300 mb-2" />
-                      <p className="font-bold text-[#102033]">No personnel records found</p>
-                      <p className="mt-1 text-xs text-[#8094A8]">Try modifying active role or status filters.</p>
-                    </td>
-                  </tr>
-                ) : (
-                  usersList.map((userRecord) => {
-                    const isSelected = selectedUserIds.includes(userRecord._id);
-                    const isProcessing = actionProcessingUserId === userRecord._id;
-                    const isProtectedRoot = userRecord.role === 'ROOT_ADMIN';
-                    const isSelf = String(userRecord._id) === String(authenticatedUser?._id);
-                    const isEligible = !isProtectedRoot && !isSelf;
+        {/* Category Table Render */}
+        {activeCategory === 'EMPLOYEES' && (
+          <EmployeesTable
+            usersList={usersList}
+            isLoading={isLoading}
+            selectedUserIds={selectedUserIds}
+            onToggleSelect={handleToggleSelectUser}
+            onSelectAll={handleSelectAllOnPage}
+            authenticatedUser={authenticatedUser}
+            actionProcessingUserId={actionProcessingUserId}
+            onProcessLifecycle={handleProcessUserLifecycle}
+            onOpenAuthorityModal={(emp) => {
+              setSelectedUserForAuthority(emp);
+              setIsAuthorityModalOpen(true);
+            }}
+            onOpenAssignSchoolModal={(emp) => {
+              setSelectedEmployeeForAssignment(emp);
+              setIsAssignSchoolModalOpen(true);
+            }}
+            onOpenTransferModal={(emp) => {
+              setSelectedEmployeeForTransfer(emp);
+              setIsTransferModalOpen(true);
+            }}
+            onOpenProfileDrawer={(emp) => {
+              setSelectedUserForProfile(emp);
+              setIsProfileDrawerOpen(true);
+            }}
+            onOpenAuditModal={(emp) => {
+              setSelectedUserForAudit(emp);
+              setIsAuditModalOpen(true);
+            }}
+          />
+        )}
 
-                    return (
-                      <tr
-                        key={userRecord._id}
-                        className={`transition hover:bg-blue-50/40 ${isSelected ? 'bg-blue-50/60' : ''}`}
-                      >
-                        <td className="px-4 py-3.5">
-                          {isEligible ? (
-                            <button
-                              type="button"
-                              onClick={() => handleToggleSelectUser(userRecord)}
-                              className="text-slate-400 hover:text-[#102033]"
-                            >
-                              {isSelected ? (
-                                <CheckSquare className="h-4 w-4 text-[#006AC7]" />
-                              ) : (
-                                <Square className="h-4 w-4" />
-                              )}
-                            </button>
-                          ) : (
-                            <span
-                              className="text-slate-300 cursor-not-allowed"
-                              title={
-                                isProtectedRoot
-                                  ? 'Root Admin accounts are exempt from bulk actions'
-                                  : 'Self-selection is prohibited'
-                              }
-                            >
-                              <Square className="h-4 w-4 opacity-35" />
-                            </span>
-                          )}
-                        </td>
+        {activeCategory === 'STUDENTS' && (
+          <StudentsTable
+            studentsList={usersList}
+            isLoading={isLoading}
+            actionProcessingUserId={actionProcessingUserId}
+            onProcessLifecycle={handleProcessUserLifecycle}
+            onOpenProfileDrawer={(stu) => {
+              setSelectedUserForProfile(stu);
+              setIsProfileDrawerOpen(true);
+            }}
+          />
+        )}
 
-                        <td className="px-4 py-3.5">
-                          <div className="font-bold text-[#102033]">{userRecord.fullName}</div>
-                          <div className="text-[11px] text-[#526477] font-medium flex items-center gap-1 mt-0.5">
-                            <Mail className="h-3 w-3 text-slate-400" />
-                            <span>{userRecord.email}</span>
-                          </div>
-                        </td>
+        {activeCategory === 'PARENTS' && (
+          <ParentsTable
+            parentsList={usersList}
+            isLoading={isLoading}
+            actionProcessingUserId={actionProcessingUserId}
+            onProcessLifecycle={handleProcessUserLifecycle}
+            onOpenProfileDrawer={(par) => {
+              setSelectedUserForProfile(par);
+              setIsProfileDrawerOpen(true);
+            }}
+          />
+        )}
 
-                        <td className="px-4 py-3.5">
-                          <span className="font-medium text-amber-700">
-                            {userRecord.designation || 'Civic Official'}
-                          </span>
-                        </td>
+        {activeCategory === 'ALL' && (
+          <AllAccountsTable
+            accountsList={usersList}
+            isLoading={isLoading}
+            authenticatedUser={authenticatedUser}
+            actionProcessingUserId={actionProcessingUserId}
+            onProcessLifecycle={handleProcessUserLifecycle}
+            onOpenAuthorityModal={(acc) => {
+              setSelectedUserForAuthority(acc);
+              setIsAuthorityModalOpen(true);
+            }}
+            onOpenProfileDrawer={(acc) => {
+              setSelectedUserForProfile(acc);
+              setIsProfileDrawerOpen(true);
+            }}
+          />
+        )}
 
-                        <td className="px-4 py-3.5">
-                          <span className="font-mono text-[#006AC7] font-semibold">
-                            {userRecord.baseRole || 'TEACHER'}
-                          </span>
-                        </td>
-
-                        <td className="px-4 py-3.5">
-                          <span
-                            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 font-bold font-mono text-[10px] ${
-                              userRecord.role === 'ROOT_ADMIN'
-                                ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                                : userRecord.role === 'SUPER_ADMIN'
-                                ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                                : userRecord.role === 'ADMIN'
-                                ? 'bg-emerald-50 text-[#4B7F3A] border border-emerald-200'
-                                : 'bg-slate-100 text-slate-700 border border-slate-200'
-                            }`}
-                          >
-                            <Shield className="h-3 w-3" />
-                            <span>{userRecord.role}</span>
-                          </span>
-                        </td>
-
-                        <td className="px-4 py-3.5 font-mono text-[11px] text-[#526477]">
-                          {userRecord.scope || 'TOWN'}
-                        </td>
-
-                        <td className="px-4 py-3.5">
-                          <span
-                            className={`rounded-full px-2.5 py-0.5 font-bold text-[10px] border ${
-                              userRecord.status === 'ACTIVE'
-                                ? 'bg-emerald-50 text-[#4B7F3A] border-emerald-200'
-                                : userRecord.status === 'PENDING_APPROVAL'
-                                ? 'bg-amber-50 text-amber-700 border-amber-200'
-                                : 'bg-rose-50 text-rose-700 border-rose-200'
-                            }`}
-                          >
-                            {userRecord.status}
-                          </span>
-                        </td>
-
-                        <td className="px-4 py-3.5 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            {isProtectedRoot ? (
-                              <span
-                                className="inline-flex items-center gap-1 rounded-lg bg-rose-50 border border-rose-200 px-2.5 py-1 text-[10px] font-bold text-rose-700 select-none"
-                                title="Supreme ROOT_ADMIN accounts cannot be modified or suspended via web API (SEC-CRIT-01)"
-                              >
-                                <Lock className="h-3 w-3" />
-                                <span>Protected Root</span>
-                              </span>
-                            ) : (
-                              <>
-                                {userRecord.status === 'PENDING_APPROVAL' && (
-                                  <button
-                                    type="button"
-                                    disabled={isProcessing}
-                                    onClick={() =>
-                                      handleProcessUserLifecycle(
-                                        userRecord._id,
-                                        'ACTIVE',
-                                        'Administrative onboarding approval'
-                                      )
-                                    }
-                                    className="rounded-lg p-1.5 text-[#4B7F3A] hover:bg-emerald-50"
-                                    title="Approve Registration"
-                                  >
-                                    <UserCheck className="h-4 w-4" />
-                                  </button>
-                                )}
-
-                                {userRecord.status === 'ACTIVE' && (
-                                  <button
-                                    type="button"
-                                    disabled={isProcessing || isSelf}
-                                    onClick={() =>
-                                      handleProcessUserLifecycle(
-                                        userRecord._id,
-                                        'SUSPENDED',
-                                        'Administrative suspension'
-                                      )
-                                    }
-                                    className={`rounded-lg p-1.5 ${
-                                      isSelf
-                                        ? 'text-slate-300 cursor-not-allowed opacity-50'
-                                        : 'text-rose-600 hover:bg-rose-50'
-                                    }`}
-                                    title={isSelf ? 'Self-suspension is prohibited' : 'Suspend Account'}
-                                  >
-                                    <UserX className="h-4 w-4" />
-                                  </button>
-                                )}
-
-                                {userRecord.status === 'SUSPENDED' && (
-                                  <button
-                                    type="button"
-                                    disabled={isProcessing}
-                                    onClick={() =>
-                                      handleProcessUserLifecycle(
-                                        userRecord._id,
-                                        'ACTIVE',
-                                        'Reinstated by administrator'
-                                      )
-                                    }
-                                    className="rounded-lg p-1.5 text-[#4B7F3A] hover:bg-emerald-50"
-                                    title="Reactivate Account"
-                                  >
-                                    <CheckCircle2 className="h-4 w-4" />
-                                  </button>
-                                )}
-
-                                <button
-                                  type="button"
-                                  disabled={isSelf}
-                                  onClick={() => {
-                                    setSelectedUserForAuthority(userRecord);
-                                    setIsAuthorityModalOpen(true);
-                                  }}
-                                  className={`rounded-lg p-1.5 ${
-                                    isSelf
-                                      ? 'text-slate-300 cursor-not-allowed opacity-50'
-                                      : 'text-slate-400 hover:text-[#102033] hover:bg-slate-100'
-                                  }`}
-                                  title={isSelf ? 'Self-role alteration is prohibited' : 'Manage Designation & Authority'}
-                                >
-                                  <ShieldCheck className="h-4 w-4" />
-                                </button>
-                              </>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
+        {/* Pagination Bar */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between border-t border-slate-200/80 pt-4 text-xs text-[#526477]">
+            <div>
+              Page <span className="font-bold text-[#102033]">{page}</span> of{' '}
+              <span className="font-bold text-[#102033]">{totalPages}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={page <= 1 || isLoading}
+                onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white font-bold hover:bg-slate-50 disabled:opacity-40 transition"
+              >
+                Previous
+              </button>
+              <button
+                type="button"
+                disabled={page >= totalPages || isLoading}
+                onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+                className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white font-bold hover:bg-slate-50 disabled:opacity-40 transition"
+              >
+                Next
+              </button>
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Modal: Assign School */}
+        <AssignSchoolModal
+          isOpen={isAssignSchoolModalOpen}
+          onClose={() => {
+            setIsAssignSchoolModalOpen(false);
+            setSelectedEmployeeForAssignment(null);
+          }}
+          targetEmployee={selectedEmployeeForAssignment}
+          schoolsList={schoolsList}
+          onAssigned={handleFullRefresh}
+        />
+
+        {/* Modal: Transfer Employee */}
+        <TransferEmployeeModal
+          isOpen={isTransferModalOpen}
+          onClose={() => {
+            setIsTransferModalOpen(false);
+            setSelectedEmployeeForTransfer(null);
+          }}
+          targetEmployee={selectedEmployeeForTransfer}
+          schoolsList={schoolsList}
+          currentUser={authenticatedUser}
+          onTransferInitiated={handleFullRefresh}
+        />
+
+        {/* Drawer: Detailed Employee Profile */}
+        <EmployeeProfileDrawer
+          isOpen={isProfileDrawerOpen}
+          onClose={() => {
+            setIsProfileDrawerOpen(false);
+            setSelectedUserForProfile(null);
+          }}
+          employee={selectedUserForProfile}
+          onAssignSchool={(emp) => {
+            setSelectedEmployeeForAssignment(emp);
+            setIsAssignSchoolModalOpen(true);
+          }}
+          onTransfer={(emp) => {
+            setSelectedEmployeeForTransfer(emp);
+            setIsTransferModalOpen(true);
+          }}
+          onManageAuthority={(emp) => {
+            setSelectedUserForAuthority(emp);
+            setIsAuthorityModalOpen(true);
+          }}
+          onViewAudit={(emp) => {
+            setSelectedUserForAudit(emp);
+            setIsAuditModalOpen(true);
+          }}
+        />
+
+        {/* Modal: User Audit History */}
+        <UserAuditHistoryModal
+          isOpen={isAuditModalOpen}
+          onClose={() => {
+            setIsAuditModalOpen(false);
+            setSelectedUserForAudit(null);
+          }}
+          targetUser={selectedUserForAudit}
+        />
 
         {/* Modal: User Authority & Designation Management */}
         <UserAuthorityModal
@@ -503,9 +721,7 @@ export const UsersPage = () => {
           }}
           targetUser={selectedUserForAuthority}
           currentUser={authenticatedUser}
-          onAuthorityUpdated={() => {
-            fetchUsers();
-          }}
+          onAuthorityUpdated={handleFullRefresh}
         />
       </div>
     </PageContainer>
