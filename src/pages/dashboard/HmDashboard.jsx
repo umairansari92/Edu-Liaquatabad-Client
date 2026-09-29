@@ -318,6 +318,9 @@ export const HmDashboard = () => {
   useEffect(() => {
     dispatch(fetchHmSummary());
     dispatch(fetchSchoolFaculty());
+    dispatch(fetchAcademicClasses());
+    dispatch(fetchAcademicSections());
+    dispatch(fetchAcademicSubjects());
   }, [dispatch]);
 
   // Sync Redux teacher attendance with local interactive state
@@ -344,6 +347,9 @@ export const HmDashboard = () => {
       loadStudents({ page: 1 });
     } else if (activeTab === 'faculty') {
       dispatch(fetchSchoolFaculty());
+      dispatch(fetchAcademicClasses());
+      dispatch(fetchAcademicSections());
+      dispatch(fetchAcademicSubjects());
     } else if (activeTab === 'approvals') {
       dispatch(fetchPendingApprovals('staff'));
       dispatch(fetchPendingApprovals('student'));
@@ -371,6 +377,16 @@ export const HmDashboard = () => {
       loadNotices();
     }
   }, [activeTab, dispatch, teacherAttendanceDate, loadNotices, transferViewDirection, parentClaimsFilter]);
+
+  // Ensure academic entities and faculty are loaded whenever assignDutyModal opens
+  useEffect(() => {
+    if (assignDutyModal) {
+      if (!classes || classes.length === 0) dispatch(fetchAcademicClasses());
+      if (!sections || sections.length === 0) dispatch(fetchAcademicSections());
+      if (!subjects || subjects.length === 0) dispatch(fetchAcademicSubjects());
+      if (!faculty || faculty.length === 0) dispatch(fetchSchoolFaculty());
+    }
+  }, [assignDutyModal, dispatch, classes, sections, subjects, faculty]);
 
   // Teacher attendance date change trigger
   useEffect(() => {
@@ -3667,12 +3683,16 @@ export const HmDashboard = () => {
               <label className="text-xs font-bold text-[#102033] block mb-1">Select Class</label>
               <select
                 value={dutyData.classId}
-                onChange={(e) => setDutyData({ ...dutyData, classId: e.target.value })}
+                onChange={(e) => setDutyData({ ...dutyData, classId: e.target.value, sectionId: '' })}
                 required
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200"
+                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
               >
                 <option value="">-- Choose Class --</option>
-                {classes.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
+                {classes.length === 0 ? (
+                  <option disabled value="">No classes configured</option>
+                ) : (
+                  classes.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)
+                )}
               </select>
             </div>
             <div>
@@ -3681,12 +3701,19 @@ export const HmDashboard = () => {
                 value={dutyData.sectionId}
                 onChange={(e) => setDutyData({ ...dutyData, sectionId: e.target.value })}
                 required
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200"
+                disabled={!dutyData.classId}
+                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7] disabled:bg-slate-50 disabled:text-slate-400"
               >
-                <option value="">-- Choose Section --</option>
-                {sections
-                  .filter((s) => !dutyData.classId || String(s.classId) === String(dutyData.classId) || String(s.classId?._id) === String(dutyData.classId))
-                  .map((s) => <option key={s._id} value={s._id}>{s.name}</option>)}
+                {!dutyData.classId ? (
+                  <option value="">-- Select Class First --</option>
+                ) : (
+                  <>
+                    <option value="">-- Choose Section --</option>
+                    {sections
+                      .filter((s) => String(s.classId) === String(dutyData.classId) || String(s.classId?._id) === String(dutyData.classId))
+                      .map((s) => <option key={s._id} value={s._id}>Section {s.name}</option>)}
+                  </>
+                )}
               </select>
             </div>
             <div>
@@ -3695,10 +3722,18 @@ export const HmDashboard = () => {
                 value={dutyData.subjectId}
                 onChange={(e) => setDutyData({ ...dutyData, subjectId: e.target.value })}
                 required
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200"
+                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
               >
                 <option value="">-- Choose Subject --</option>
-                {subjects.map((sub) => <option key={sub._id} value={sub._id}>{sub.name}</option>)}
+                {subjects.length === 0 ? (
+                  <option disabled value="">No subjects configured</option>
+                ) : (
+                  subjects.map((sub) => (
+                    <option key={sub._id} value={sub._id}>
+                      {sub.name} {sub.code ? `(${sub.code})` : ''}
+                    </option>
+                  ))
+                )}
               </select>
             </div>
             <div>
