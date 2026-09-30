@@ -43,9 +43,9 @@ export const submitApprovalDecision = createAsyncThunk(
 
 export const fetchAcademicClasses = createAsyncThunk(
   'hm/fetchAcademicClasses',
-  async (_, { rejectWithValue }) => {
+  async (params = {}, { rejectWithValue }) => {
     try {
-      const response = await hmService.getClasses();
+      const response = await hmService.getClasses(params);
       return response.data?.classes || [];
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch classes');

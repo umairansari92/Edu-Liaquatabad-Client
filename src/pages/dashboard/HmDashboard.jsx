@@ -178,6 +178,28 @@ export const HmDashboard = () => {
 
   const [activeTab, setActiveTab] = useState('overview');
 
+  const userSchoolId = user?.schoolId?._id || user?.schoolId;
+
+  // Memoized / scoped classes strictly belonging to HM's school and sorted by grade
+  const scopedClasses = React.useMemo(() => {
+    return (classes || [])
+      .filter((c) => {
+        const cSchoolId = c.schoolId?._id || c.schoolId;
+        return !userSchoolId || !cSchoolId || String(cSchoolId) === String(userSchoolId);
+      })
+      .sort((a, b) => (Number(a.numericGrade) || 0) - (Number(b.numericGrade) || 0));
+  }, [classes, userSchoolId]);
+
+  // Memoized / scoped subjects belonging to HM's school
+  const scopedSubjects = React.useMemo(() => {
+    return (subjects || [])
+      .filter((s) => {
+        const sSchoolId = s.schoolId?._id || s.schoolId;
+        return !userSchoolId || !sSchoolId || String(sSchoolId) === String(userSchoolId);
+      })
+      .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  }, [subjects, userSchoolId]);
+
   // Student Directory State
   const [studentSearchQuery, setStudentSearchQuery] = useState('');
   const [studentClassFilter, setStudentClassFilter] = useState('');
@@ -264,6 +286,16 @@ export const HmDashboard = () => {
   const [newSubjectData, setNewSubjectData] = useState({ classId: '', name: '', code: '', totalMarks: 100, passingMarks: 33 });
   const [assignDutyModal, setAssignDutyModal] = useState(false);
   const [dutyData, setDutyData] = useState({ teacherId: '', classId: '', sectionId: '', subjectId: '', academicSession: '2025-2026' });
+
+  // Selected class & grade for teaching duty allocation
+  const selectedDutyClass = scopedClasses.find((c) => String(c._id) === String(dutyData.classId));
+  const selectedDutyGrade = selectedDutyClass ? Number(selectedDutyClass.numericGrade) : null;
+  const applicableDutySubjects = scopedSubjects.filter((sub) => {
+    if (selectedDutyGrade !== null && Array.isArray(sub.gradeLevels) && sub.gradeLevels.length > 0) {
+      return sub.gradeLevels.includes(selectedDutyGrade);
+    }
+    return true;
+  });
   const [newExamModal, setNewExamModal] = useState(false);
   const [examData, setExamData] = useState({ title: '', examType: 'MID_TERM', academicYear: '2025-2026', startDate: '', endDate: '' });
   const [selectedExamId, setSelectedExamId] = useState('');
@@ -318,10 +350,10 @@ export const HmDashboard = () => {
   useEffect(() => {
     dispatch(fetchHmSummary());
     dispatch(fetchSchoolFaculty());
-    dispatch(fetchAcademicClasses());
-    dispatch(fetchAcademicSections());
-    dispatch(fetchAcademicSubjects());
-  }, [dispatch]);
+    dispatch(fetchAcademicClasses({ schoolId: userSchoolId }));
+    dispatch(fetchAcademicSections({ schoolId: userSchoolId }));
+    dispatch(fetchAcademicSubjects({ schoolId: userSchoolId }));
+  }, [dispatch, userSchoolId]);
 
   // Sync Redux teacher attendance with local interactive state
   useEffect(() => {
@@ -342,28 +374,28 @@ export const HmDashboard = () => {
   // Tab-specific data loading via Redux thunks
   useEffect(() => {
     if (activeTab === 'students') {
-      dispatch(fetchAcademicClasses());
-      dispatch(fetchAcademicSections());
+      dispatch(fetchAcademicClasses({ schoolId: userSchoolId }));
+      dispatch(fetchAcademicSections({ schoolId: userSchoolId }));
       loadStudents({ page: 1 });
     } else if (activeTab === 'faculty') {
       dispatch(fetchSchoolFaculty());
-      dispatch(fetchAcademicClasses());
-      dispatch(fetchAcademicSections());
-      dispatch(fetchAcademicSubjects());
+      dispatch(fetchAcademicClasses({ schoolId: userSchoolId }));
+      dispatch(fetchAcademicSections({ schoolId: userSchoolId }));
+      dispatch(fetchAcademicSubjects({ schoolId: userSchoolId }));
     } else if (activeTab === 'approvals') {
       dispatch(fetchPendingApprovals('staff'));
       dispatch(fetchPendingApprovals('student'));
       dispatch(fetchHmParentLinks({ status: parentClaimsFilter }));
     } else if (activeTab === 'academics') {
-      dispatch(fetchAcademicClasses());
-      dispatch(fetchAcademicSections());
-      dispatch(fetchAcademicSubjects());
+      dispatch(fetchAcademicClasses({ schoolId: userSchoolId }));
+      dispatch(fetchAcademicSections({ schoolId: userSchoolId }));
+      dispatch(fetchAcademicSubjects({ schoolId: userSchoolId }));
     } else if (activeTab === 'assignments') {
       dispatch(fetchTeachingAssignments());
       dispatch(fetchSchoolFaculty());
-      dispatch(fetchAcademicClasses());
-      dispatch(fetchAcademicSections());
-      dispatch(fetchAcademicSubjects());
+      dispatch(fetchAcademicClasses({ schoolId: userSchoolId }));
+      dispatch(fetchAcademicSections({ schoolId: userSchoolId }));
+      dispatch(fetchAcademicSubjects({ schoolId: userSchoolId }));
     } else if (activeTab === 'attendance') {
       dispatch(fetchTeacherDailyAttendance({ date: teacherAttendanceDate }));
       dispatch(fetchAttendanceAnalytics());
@@ -1258,7 +1290,7 @@ export const HmDashboard = () => {
                   className="w-full py-2 px-3 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#006AC7]/20 focus:border-[#006AC7]"
                 >
                   <option value="">All Classes</option>
-                  {classes.map((classItem) => (
+                  {scopedClasses.map((classItem) => (
                     <option key={classItem._id} value={classItem._id}>{classItem.name}</option>
                   ))}
                 </select>
@@ -1881,9 +1913,9 @@ export const HmDashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Classes Column */}
             <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-3">
-              <h4 className="text-xs font-bold uppercase text-[#8094A8] tracking-wider">Classes ({classes.length})</h4>
+              <h4 className="text-xs font-bold uppercase text-[#8094A8] tracking-wider">Classes ({scopedClasses.length})</h4>
               <div className="space-y-2">
-                {classes.map((c) => (
+                {scopedClasses.map((c) => (
                   <div key={c._id} className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center justify-between text-xs">
                     <span className="font-bold text-[#102033]">{c.name}</span>
                     <span className="font-mono text-[#006AC7]">{c.code}</span>
@@ -1910,9 +1942,9 @@ export const HmDashboard = () => {
 
             {/* Subjects Column */}
             <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-3">
-              <h4 className="text-xs font-bold uppercase text-[#8094A8] tracking-wider">Curriculum Subjects ({subjects.length})</h4>
+              <h4 className="text-xs font-bold uppercase text-[#8094A8] tracking-wider">Curriculum Subjects ({scopedSubjects.length})</h4>
               <div className="space-y-2">
-                {subjects.map((sub) => (
+                {scopedSubjects.map((sub) => (
                   <div key={sub._id} className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center justify-between text-xs">
                     <span className="font-bold text-[#102033]">{sub.name}</span>
                     <span className="font-mono text-[#4B7F3A]">{sub.code || 'SUB'}</span>
@@ -2415,7 +2447,7 @@ export const HmDashboard = () => {
                             className="text-xs p-1.5 rounded-lg border border-slate-200 bg-white"
                           >
                             <option value="">All Classes</option>
-                            {classes.map((cls) => (
+                            {scopedClasses.map((cls) => (
                               <option key={cls._id} value={cls._id}>{cls.name}</option>
                             ))}
                           </select>
@@ -3616,7 +3648,7 @@ export const HmDashboard = () => {
                 className="w-full text-xs p-2.5 rounded-xl border border-slate-200"
               >
                 <option value="">-- Choose Class --</option>
-                {classes.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
+                {scopedClasses.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
               </select>
             </div>
             <div>
@@ -3652,7 +3684,7 @@ export const HmDashboard = () => {
                 className="w-full text-xs p-2.5 rounded-xl border border-slate-200"
               >
                 <option value="">-- Choose Class --</option>
-                {classes.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
+                {scopedClasses.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
               </select>
             </div>
             <div>
@@ -3683,15 +3715,15 @@ export const HmDashboard = () => {
               <label className="text-xs font-bold text-[#102033] block mb-1">Select Class</label>
               <select
                 value={dutyData.classId}
-                onChange={(e) => setDutyData({ ...dutyData, classId: e.target.value, sectionId: '' })}
+                onChange={(e) => setDutyData({ ...dutyData, classId: e.target.value, sectionId: '', subjectId: '' })}
                 required
                 className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
               >
                 <option value="">-- Choose Class --</option>
-                {classes.length === 0 ? (
-                  <option disabled value="">No classes configured</option>
+                {scopedClasses.length === 0 ? (
+                  <option disabled value="">No classes configured for this school</option>
                 ) : (
-                  classes.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)
+                  scopedClasses.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)
                 )}
               </select>
             </div>
@@ -3722,17 +3754,22 @@ export const HmDashboard = () => {
                 value={dutyData.subjectId}
                 onChange={(e) => setDutyData({ ...dutyData, subjectId: e.target.value })}
                 required
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                disabled={!dutyData.classId}
+                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7] disabled:bg-slate-50 disabled:text-slate-400"
               >
-                <option value="">-- Choose Subject --</option>
-                {subjects.length === 0 ? (
-                  <option disabled value="">No subjects configured</option>
+                {!dutyData.classId ? (
+                  <option value="">-- Select Class First --</option>
+                ) : applicableDutySubjects.length === 0 ? (
+                  <option disabled value="">No subjects configured for {selectedDutyClass?.name}</option>
                 ) : (
-                  subjects.map((sub) => (
-                    <option key={sub._id} value={sub._id}>
-                      {sub.name} {sub.code ? `(${sub.code})` : ''}
-                    </option>
-                  ))
+                  <>
+                    <option value="">-- Choose Subject ({selectedDutyClass?.name}) --</option>
+                    {applicableDutySubjects.map((sub) => (
+                      <option key={sub._id} value={sub._id}>
+                        {sub.name} {sub.code ? `(${sub.code})` : ''}
+                      </option>
+                    ))}
+                  </>
                 )}
               </select>
             </div>

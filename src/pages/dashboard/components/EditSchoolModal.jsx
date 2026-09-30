@@ -10,6 +10,8 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
     emisCode: '',
     schoolType: 'SECONDARY',
     genderType: 'BOYS',
+    lowestGrade: 6,
+    highestGrade: 10,
     supportedMediums: ['URDU', 'ENGLISH'],
     address: '',
     contactPhone: '',
@@ -27,6 +29,8 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
         emisCode: school.emisCode || '',
         schoolType: school.schoolType || 'SECONDARY',
         genderType: school.genderType || 'BOYS',
+        lowestGrade: Number(school.gradeRange?.lowestGrade) || (school.schoolType === 'SECONDARY' ? 6 : 1),
+        highestGrade: Number(school.gradeRange?.highestGrade) || (school.schoolType === 'PRIMARY' ? 5 : school.schoolType === 'ELEMENTARY' ? 8 : 10),
         supportedMediums: school.supportedMediums && school.supportedMediums.length > 0 ? school.supportedMediums : ['URDU', 'ENGLISH'],
         address: school.address || '',
         contactPhone: school.contactPhone || '',
@@ -49,6 +53,8 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
         emisCode: formData.emisCode ? formData.emisCode.trim() : undefined,
         schoolType: formData.schoolType,
         genderType: formData.genderType,
+        lowestGrade: formData.lowestGrade,
+        highestGrade: formData.highestGrade,
         supportedMediums: formData.supportedMediums && formData.supportedMediums.length > 0 ? formData.supportedMediums : ['URDU', 'ENGLISH'],
         address: formData.address.trim(),
         contactPhone: formData.contactPhone.trim() || undefined,
@@ -162,12 +168,21 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
               <label className="block font-semibold text-[#526477]">School Type *</label>
               <select
                 value={formData.schoolType}
-                onChange={(selectChangeEvent) => setFormData({ ...formData, schoolType: selectChangeEvent.target.value })}
+                onChange={(selectChangeEvent) => {
+                  const newType = selectChangeEvent.target.value;
+                  let newLowest = 1;
+                  let newHighest = 5;
+                  if (newType === 'ECE') { newLowest = 1; newHighest = 2; }
+                  else if (newType === 'PRIMARY') { newLowest = 1; newHighest = 5; }
+                  else if (newType === 'ELEMENTARY') { newLowest = 1; newHighest = 8; }
+                  else if (newType === 'SECONDARY') { newLowest = 6; newHighest = 10; }
+                  setFormData({ ...formData, schoolType: newType, lowestGrade: newLowest, highestGrade: newHighest });
+                }}
                 className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-[#102033] focus:border-[#006AC7] focus:outline-none"
               >
                 <option value="ECE">ECE (Nursery - KG-2)</option>
-                <option value="PRIMARY">PRIMARY (Grades KG-1 to 5)</option>
-                <option value="ELEMENTARY">ELEMENTARY (Grades KG-1 to 8)</option>
+                <option value="PRIMARY">PRIMARY (Grades 1 to 5)</option>
+                <option value="ELEMENTARY">ELEMENTARY (Grades 1 to 8)</option>
                 <option value="SECONDARY">SECONDARY (Grades 6-10 / Matric)</option>
               </select>
             </div>
@@ -183,6 +198,44 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
                 <option value="GIRLS">GIRLS</option>
                 <option value="CO_EDUCATION">CO-EDUCATION</option>
               </select>
+            </div>
+
+            {/* Grade Range Provisioning */}
+            <div className="sm:col-span-2 rounded-xl border border-blue-200 bg-blue-50/50 p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-bold text-[#006AC7]">
+                  Grade Range Provisioning (Classes Kahan Se Kahan Tak Hain)
+                </label>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-[#006AC7]">
+                  Class {formData.lowestGrade} to Class {formData.highestGrade} ({formData.highestGrade - formData.lowestGrade + 1} Classes)
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-3 pt-1">
+                <div>
+                  <label className="block text-[11px] font-semibold text-[#526477]">Lowest Class (Starting)</label>
+                  <select
+                    value={formData.lowestGrade}
+                    onChange={(e) => setFormData({ ...formData, lowestGrade: Number(e.target.value) })}
+                    className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-[#102033] focus:border-[#006AC7] focus:outline-none"
+                  >
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                      <option key={num} value={num}>Class {num}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-semibold text-[#526477]">Highest Class (Ending)</label>
+                  <select
+                    value={formData.highestGrade}
+                    onChange={(e) => setFormData({ ...formData, highestGrade: Number(e.target.value) })}
+                    className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-[#102033] focus:border-[#006AC7] focus:outline-none"
+                  >
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].filter(num => num >= formData.lowestGrade).map((num) => (
+                      <option key={num} value={num}>Class {num}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
             </div>
 
             <div className="sm:col-span-2">

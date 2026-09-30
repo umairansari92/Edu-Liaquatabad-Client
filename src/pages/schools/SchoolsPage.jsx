@@ -37,6 +37,8 @@ export const SchoolsPage = () => {
     emisCode: '',
     schoolType: 'SECONDARY',
     genderType: 'BOYS',
+    lowestGrade: 6,
+    highestGrade: 10,
     supportedMediums: ['URDU', 'ENGLISH'],
     address: '',
     contactPhone: '',
@@ -88,6 +90,8 @@ export const SchoolsPage = () => {
         emisCode: formData.emisCode.trim() || undefined,
         schoolType: formData.schoolType,
         genderType: formData.genderType,
+        lowestGrade: formData.lowestGrade,
+        highestGrade: formData.highestGrade,
         supportedMediums: formData.supportedMediums && formData.supportedMediums.length > 0 ? formData.supportedMediums : ['URDU', 'ENGLISH'],
         address: formData.address.trim(),
         contactPhone: formData.contactPhone.trim(),
@@ -102,6 +106,8 @@ export const SchoolsPage = () => {
           emisCode: '',
           schoolType: 'SECONDARY',
           genderType: 'BOYS',
+          lowestGrade: 6,
+          highestGrade: 10,
           supportedMediums: ['URDU', 'ENGLISH'],
           address: '',
           contactPhone: '',
@@ -358,7 +364,7 @@ export const SchoolsPage = () => {
                 </button>
               </div>
 
-              <form onSubmit={handleRegisterSubmit} className="space-y-3.5">
+              <form onSubmit={handleRegisterSchool} className="space-y-3.5">
                 <div>
                   <label className="block text-xs font-bold text-[#526477]">School Name *</label>
                   <input
@@ -400,12 +406,21 @@ export const SchoolsPage = () => {
                     <label className="block text-xs font-bold text-[#526477]">Category *</label>
                     <select
                       value={formData.schoolType}
-                      onChange={(selectChangeEvent) => setFormData({ ...formData, schoolType: selectChangeEvent.target.value })}
+                      onChange={(selectChangeEvent) => {
+                        const newType = selectChangeEvent.target.value;
+                        let newLowest = 1;
+                        let newHighest = 5;
+                        if (newType === 'ECE') { newLowest = 1; newHighest = 2; }
+                        else if (newType === 'PRIMARY') { newLowest = 1; newHighest = 5; }
+                        else if (newType === 'ELEMENTARY') { newLowest = 1; newHighest = 8; }
+                        else if (newType === 'SECONDARY') { newLowest = 6; newHighest = 10; }
+                        setFormData({ ...formData, schoolType: newType, lowestGrade: newLowest, highestGrade: newHighest });
+                      }}
                       className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-[#102033] focus:border-[#006AC7] focus:outline-none"
                     >
                       <option value="ECE">Early Childhood Education (ECE: Nursery - KG-2)</option>
-                      <option value="PRIMARY">Primary (KG-1 - 5th)</option>
-                      <option value="ELEMENTARY">Elementary (KG-1 - 8th)</option>
+                      <option value="PRIMARY">Primary (1st - 5th)</option>
+                      <option value="ELEMENTARY">Elementary (1st - 8th)</option>
                       <option value="SECONDARY">Secondary (6th - 10th)</option>
                     </select>
                   </div>
@@ -420,6 +435,47 @@ export const SchoolsPage = () => {
                       <option value="GIRLS">Girls</option>
                       <option value="CO_EDUCATION">Co-Education</option>
                     </select>
+                  </div>
+                </div>
+
+                {/* Grade Range Provisioning Matrix */}
+                <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-bold text-[#006AC7]">
+                      Grade Range Provisioning (Classes Kahan Se Kahan Tak Hain) *
+                    </label>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-[#006AC7]">
+                      Class {formData.lowestGrade} to Class {formData.highestGrade} ({formData.highestGrade - formData.lowestGrade + 1} Classes)
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-[#526477]">
+                    Classes and standard DMC Liaquatabad curriculum subjects will be automatically provisioned for this school.
+                  </p>
+                  <div className="grid grid-cols-2 gap-3 pt-1">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-[#526477]">Lowest Class (Starting Grade)</label>
+                      <select
+                        value={formData.lowestGrade}
+                        onChange={(e) => setFormData({ ...formData, lowestGrade: Number(e.target.value) })}
+                        className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-[#102033] focus:border-[#006AC7] focus:outline-none"
+                      >
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                          <option key={num} value={num}>Class {num}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-[#526477]">Highest Class (Ending Grade)</label>
+                      <select
+                        value={formData.highestGrade}
+                        onChange={(e) => setFormData({ ...formData, highestGrade: Number(e.target.value) })}
+                        className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-[#102033] focus:border-[#006AC7] focus:outline-none"
+                      >
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].filter(num => num >= formData.lowestGrade).map((num) => (
+                          <option key={num} value={num}>Class {num}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 </div>
 
