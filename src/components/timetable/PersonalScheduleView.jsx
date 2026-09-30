@@ -110,6 +110,30 @@ export const PersonalScheduleView = ({ role = 'TEACHER', studentId = null }) => 
         </div>
       )}
 
+      {/* ─── Teacher Free Periods Callout ─── */}
+      {role === 'TEACHER' && personalScheduleData?.myFreePeriodsToday && (
+        <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-amber-100 text-amber-800">
+              <Clock className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="font-bold text-amber-950">
+                Your Free Periods Today ({liveStatus?.currentDay || 'TODAY'}):
+              </div>
+              <div className="font-mono font-bold text-amber-800 mt-0.5">
+                {personalScheduleData.myFreePeriodsToday.length > 0
+                  ? personalScheduleData.myFreePeriodsToday.map((p) => `Period ${p}`).join(', ')
+                  : 'None (Full Teaching Schedule Today)'}
+              </div>
+            </div>
+          </div>
+          <span className="text-[11px] font-bold text-amber-900 bg-amber-100/90 border border-amber-300 px-3 py-1 rounded-xl self-start sm:self-auto">
+            Available for Proxy Duties
+          </span>
+        </div>
+      )}
+
       {/* ─── Day Selector Pills ─── */}
       <div className="flex flex-wrap items-center gap-2">
         {DAYS_OF_WEEK.map((day) => {
@@ -201,9 +225,9 @@ export const PersonalScheduleView = ({ role = 'TEACHER', studentId = null }) => 
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3 text-xs text-[#526477]">
-                      {lesson.classId?.name && lesson.sectionId?.name && (
-                        <span className="font-semibold text-[#102033]">
-                          {lesson.classId.name} – Section {lesson.sectionId.name}
+                      {lesson.classId?.name && (
+                        <span className="font-bold text-[#102033] px-2 py-0.5 rounded-md bg-slate-100">
+                          {lesson.classId.name}
                         </span>
                       )}
 
