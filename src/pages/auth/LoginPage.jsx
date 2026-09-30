@@ -25,7 +25,7 @@ import {
   ChevronLeft,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { setCredentials, setError } from '../../store/slices/authSlice.js';
+import { setCredentials, setError, logout } from '../../store/slices/authSlice.js';
 import apiClient from '../../services/apiClient.js';
 import { authService } from '../../services/authService.js';
 import { loginSchema } from '../../validations/authSchemas.js';
@@ -87,8 +87,10 @@ export const LoginPage = () => {
   };
 
   useEffect(() => {
+    // Purge any lingering stale session or access token when entering login screen
+    dispatch(logout());
     fetchCaptcha(false); // initial load — no cooldown
-  }, []);
+  }, [dispatch]);
 
   // CAPTCHA refresh cooldown ticker — 1 tick/sec until 0
   useEffect(() => {
@@ -577,7 +579,7 @@ export const LoginPage = () => {
                         <AlertCircle className="w-4 h-4 flex-shrink-0" />
                         <span>{mfaError}</span>
                       </div>
-                      {(mfaError.toLowerCase().includes('timed out') || mfaError.toLowerCase().includes('expired')) && (
+                      {(mfaError.toLowerCase().includes('timed out') || mfaError.toLowerCase().includes('expired') || mfaError.toLowerCase().includes('invalid')) && (
                         <button
                           type="button"
                           onClick={() => {

@@ -32,30 +32,46 @@ export const authService = {
     const payload = {};
     if (mfaPendingToken) payload.mfaPendingToken = mfaPendingToken;
     if (password) payload.password = password;
-    const response = await apiClient.post('/auth/mfa/setup', payload);
+    const response = await apiClient.post('/auth/mfa/setup', payload, {
+      headers: mfaPendingToken ? { Authorization: `Bearer ${mfaPendingToken}` } : {},
+    });
     return response.data;
   },
 
   mfaConfirm: async ({ totpCode, mfaPendingToken }) => {
     const payload = { totpCode };
     if (mfaPendingToken) payload.mfaPendingToken = mfaPendingToken;
-    const response = await apiClient.post('/auth/mfa/confirm', payload);
+    const response = await apiClient.post('/auth/mfa/confirm', payload, {
+      headers: mfaPendingToken ? { Authorization: `Bearer ${mfaPendingToken}` } : {},
+    });
     return response.data;
   },
 
   mfaVerifyLogin: async ({ totpCode, mfaPendingToken }) => {
-    const response = await apiClient.post('/auth/mfa/verify-login', {
-      totpCode,
-      mfaPendingToken,
-    });
+    const response = await apiClient.post(
+      '/auth/mfa/verify-login',
+      {
+        totpCode,
+        mfaPendingToken,
+      },
+      {
+        headers: mfaPendingToken ? { Authorization: `Bearer ${mfaPendingToken}` } : {},
+      }
+    );
     return response.data;
   },
 
   mfaRecoveryLogin: async ({ recoveryCode, mfaPendingToken }) => {
-    const response = await apiClient.post('/auth/mfa/recovery-login', {
-      recoveryCode,
-      mfaPendingToken,
-    });
+    const response = await apiClient.post(
+      '/auth/mfa/recovery-login',
+      {
+        recoveryCode,
+        mfaPendingToken,
+      },
+      {
+        headers: mfaPendingToken ? { Authorization: `Bearer ${mfaPendingToken}` } : {},
+      }
+    );
     return response.data;
   },
 

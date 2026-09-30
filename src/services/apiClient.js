@@ -14,10 +14,28 @@ const apiClient = axios.create({
 // Request Interceptor: Attach Access Token
 apiClient.interceptors.request.use(
   (requestConfig) => {
-    const applicationState = store.getState();
-    const activeAccessToken = applicationState.auth.accessToken;
-    if (activeAccessToken) {
-      requestConfig.headers.Authorization = `Bearer ${activeAccessToken}`;
+    const requestUrlString = requestConfig?.url || '';
+    const isAuthHandshakeEndpoint =
+      requestUrlString.includes('/auth/login') ||
+      requestUrlString.includes('/auth/refresh-token') ||
+      requestUrlString.includes('/auth/logout') ||
+      requestUrlString.includes('/auth/mfa/verify-login') ||
+      requestUrlString.includes('/auth/mfa/recovery-login') ||
+      requestUrlString.includes('/auth/mfa/setup') ||
+      requestUrlString.includes('/auth/mfa/confirm') ||
+      requestUrlString.includes('/auth/captcha') ||
+      requestUrlString.includes('/auth/register') ||
+      requestUrlString.includes('/auth/forgot-password') ||
+      requestUrlString.includes('/auth/reset-password');
+
+    // Do not inject stale session access tokens into unauthenticated auth or step-2 MFA handshakes
+    // and never overwrite an explicit Authorization header already supplied by the caller
+    if (!isAuthHandshakeEndpoint && !requestConfig.headers?.Authorization) {
+      const applicationState = store.getState();
+      const activeAccessToken = applicationState.auth?.accessToken;
+      if (activeAccessToken) {
+        requestConfig.headers.Authorization = `Bearer ${activeAccessToken}`;
+      }
     }
     return requestConfig;
   },
