@@ -91,17 +91,21 @@ export const HmTimetableBuilder = ({
 
   // Sorted classes (strictly by numericGrade, clean names without sections)
   const sortedClasses = useMemo(() => {
-    return [...classes].sort((a, b) => (Number(a.numericGrade) || 0) - (Number(b.numericGrade) || 0));
+    return [...classes].sort(
+      (firstClass, secondClass) => (Number(firstClass.numericGrade) || 0) - (Number(secondClass.numericGrade) || 0)
+    );
   }, [classes]);
 
   // Primary section lookup map per class (for database foreign key integrity)
   const primarySectionByClassId = useMemo(() => {
     const map = new Map();
-    for (const cls of classes) {
-      const clsId = String(cls._id);
-      const match = sections.find((s) => String(s.classId?._id || s.classId) === clsId);
+    for (const classRecord of classes) {
+      const classRecordId = String(classRecord._id);
+      const match = sections.find(
+        (sectionRecord) => String(sectionRecord.classId?._id || sectionRecord.classId) === classRecordId
+      );
       if (match) {
-        map.set(clsId, match);
+        map.set(classRecordId, match);
       }
     }
     return map;
@@ -143,7 +147,9 @@ export const HmTimetableBuilder = ({
 
   // Chronologically sorted slots
   const sortedSlots = useMemo(() => {
-    return [...editableSlots].sort((a, b) => a.startTime.localeCompare(b.startTime));
+    return [...editableSlots].sort(
+      (firstSlot, secondSlot) => firstSlot.startTime.localeCompare(secondSlot.startTime)
+    );
   }, [editableSlots]);
 
   // Teaching slots only (for free periods calculation)
@@ -184,7 +190,9 @@ export const HmTimetableBuilder = ({
       );
 
       if (allMatch && classTeachingEntries.length >= Math.min(3, teachingSlots.length)) {
-        const teacherObj = faculty.find((f) => String(f._id) === firstTeacherId);
+        const teacherObj = faculty.find(
+          (facultyMember) => String(facultyMember._id) === firstTeacherId
+        );
         return teacherObj || { fullName: 'Assigned Class Teacher' };
       }
       return null;
@@ -208,9 +216,11 @@ export const HmTimetableBuilder = ({
       const freeSlotNumbers = teachingSlots
         .filter((slot) => !assignedPeriods.has(slot.periodNumber))
         .map((slot) => slot.periodNumber)
-        .sort((a, b) => a - b);
+        .sort((firstPeriodNumber, secondPeriodNumber) => firstPeriodNumber - secondPeriodNumber);
 
-      const formatted = freeSlotNumbers.map((num) => String(num).padStart(2, '0')).join(', ');
+      const formatted = freeSlotNumbers
+        .map((periodNumber) => String(periodNumber).padStart(2, '0'))
+        .join(', ');
 
       return {
         teacherId: teacher._id,
@@ -267,7 +277,9 @@ export const HmTimetableBuilder = ({
     );
 
     if (clash) {
-      const clashClass = classes.find((c) => String(c._id) === String(clash.classId?._id || clash.classId));
+      const clashClass = classes.find(
+        (classCandidate) => String(classCandidate._id) === String(clash.classId?._id || clash.classId)
+      );
       toast.error(
         `Clash Detected: Selected teacher is already teaching ${clashClass?.name || 'another class'} in ${periodSlot.label} on ${dayOfWeek}.`
       );
@@ -330,8 +342,11 @@ export const HmTimetableBuilder = ({
 
     // Default early subject e.g. General Knowledge or General
     const defaultSubject =
-      subjects.find((s) => s.name.toLowerCase().includes('general') || s.name.toLowerCase().includes('english')) ||
-      subjects[0];
+      subjects.find(
+        (subjectCandidate) =>
+          subjectCandidate.name.toLowerCase().includes('general') ||
+          subjectCandidate.name.toLowerCase().includes('english')
+      ) || subjects[0];
 
     const primarySection = primarySectionByClassId.get(String(classItem._id));
     const sectionId = primarySection?._id || sections[0]?._id;
@@ -424,9 +439,9 @@ export const HmTimetableBuilder = ({
   const eligibleSubjectsForCell = useMemo(() => {
     if (!activeCellTarget?.classItem) return subjects;
     const grade = Number(activeCellTarget.classItem.numericGrade) || 1;
-    return subjects.filter((sub) => {
-      if (Array.isArray(sub.gradeLevels) && sub.gradeLevels.length > 0) {
-        return sub.gradeLevels.includes(grade);
+    return subjects.filter((subjectDefinition) => {
+      if (Array.isArray(subjectDefinition.gradeLevels) && subjectDefinition.gradeLevels.length > 0) {
+        return subjectDefinition.gradeLevels.includes(grade);
       }
       return true;
     });
@@ -661,7 +676,7 @@ export const HmTimetableBuilder = ({
                             type="button"
                             onClick={() => {
                               const promptTeacher = faculty.find(
-                                (f) => String(f._id) === String(inchargeTeacher?._id || '')
+                                (facultyMember) => String(facultyMember._id) === String(inchargeTeacher?._id || '')
                               );
                               if (promptTeacher) {
                                 handleAssignAllSubjectsToTeacher(classItem, promptTeacher._id);
@@ -704,10 +719,12 @@ export const HmTimetableBuilder = ({
                       // Check if Early Class has All Subjects assigned
                       const entry = getEntryForCell(classItem._id, selectedDay, slot.periodNumber);
                       const subjectObj = subjects.find(
-                        (sub) => String(sub._id) === String(entry?.subjectId?._id || entry?.subjectId)
+                        (subjectDefinition) =>
+                          String(subjectDefinition._id) === String(entry?.subjectId?._id || entry?.subjectId)
                       );
                       const teacherObj = faculty.find(
-                        (fac) => String(fac._id) === String(entry?.teacherId?._id || entry?.teacherId)
+                        (facultyMember) =>
+                          String(facultyMember._id) === String(entry?.teacherId?._id || entry?.teacherId)
                       );
 
                       const isAllocated = Boolean(entry && (subjectObj || teacherObj));
@@ -844,13 +861,13 @@ export const HmTimetableBuilder = ({
                 </label>
                 <select
                   value={cellSubjectId}
-                  onChange={(e) => setCellSubjectId(e.target.value)}
+                  onChange={(changeEvent) => setCellSubjectId(changeEvent.target.value)}
                   className="w-full p-2.5 rounded-xl border border-slate-200 font-bold text-[#102033] bg-white"
                 >
                   <option value="">-- Choose Subject --</option>
-                  {eligibleSubjectsForCell.map((sub) => (
-                    <option key={sub._id} value={sub._id}>
-                      {sub.name} {sub.code ? `(${sub.code})` : ''}
+                  {eligibleSubjectsForCell.map((subjectDefinition) => (
+                    <option key={subjectDefinition._id} value={subjectDefinition._id}>
+                      {subjectDefinition.name} {subjectDefinition.code ? `(${subjectDefinition.code})` : ''}
                     </option>
                   ))}
                 </select>
@@ -862,13 +879,13 @@ export const HmTimetableBuilder = ({
                 </label>
                 <select
                   value={cellTeacherId}
-                  onChange={(e) => setCellTeacherId(e.target.value)}
+                  onChange={(changeEvent) => setCellTeacherId(changeEvent.target.value)}
                   className="w-full p-2.5 rounded-xl border border-slate-200 font-bold text-[#102033] bg-white"
                 >
                   <option value="">-- Choose Faculty Member --</option>
-                  {faculty.map((fac) => (
-                    <option key={fac._id} value={fac._id}>
-                      {fac.fullName} ({fac.designation || 'Teacher'})
+                  {faculty.map((facultyMember) => (
+                    <option key={facultyMember._id} value={facultyMember._id}>
+                      {facultyMember.fullName} ({facultyMember.designation || 'Teacher'})
                     </option>
                   ))}
                 </select>
@@ -882,7 +899,7 @@ export const HmTimetableBuilder = ({
                   type="text"
                   placeholder="e.g. Room 101, Lab A"
                   value={cellRoomNumber}
-                  onChange={(e) => setCellRoomNumber(e.target.value)}
+                  onChange={(changeEvent) => setCellRoomNumber(changeEvent.target.value)}
                   className="w-full p-2.5 rounded-xl border border-slate-200 font-bold text-[#102033] bg-white"
                 />
               </div>

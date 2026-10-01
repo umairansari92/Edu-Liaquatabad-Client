@@ -45,11 +45,11 @@ export const PersonalScheduleView = ({ role = 'TEACHER', studentId = null }) => 
   const dayLessons = useMemo(() => {
     const lessonsForDay = scheduleList.filter((item) => item.dayOfWeek === selectedDay);
 
-    return [...lessonsForDay].sort((a, b) => {
-      const slotA = periodSlots.find((s) => s.periodNumber === a.periodNumber);
-      const slotB = periodSlots.find((s) => s.periodNumber === b.periodNumber);
-      if (!slotA || !slotB) return a.periodNumber - b.periodNumber;
-      return slotA.startTime.localeCompare(slotB.startTime);
+    return [...lessonsForDay].sort((firstLesson, secondLesson) => {
+      const firstSlot = periodSlots.find((slotItem) => slotItem.periodNumber === firstLesson.periodNumber);
+      const secondSlot = periodSlots.find((slotItem) => slotItem.periodNumber === secondLesson.periodNumber);
+      if (!firstSlot || !secondSlot) return firstLesson.periodNumber - secondLesson.periodNumber;
+      return firstSlot.startTime.localeCompare(secondSlot.startTime);
     });
   }, [scheduleList, selectedDay, periodSlots]);
 
@@ -179,7 +179,7 @@ export const PersonalScheduleView = ({ role = 'TEACHER', studentId = null }) => 
           </div>
         ) : (
           dayLessons.map((lesson) => {
-            const slot = periodSlots.find((s) => s.periodNumber === lesson.periodNumber);
+            const slot = periodSlots.find((slotItem) => slotItem.periodNumber === lesson.periodNumber);
             const isLiveNow =
               liveStatus?.currentDay === selectedDay &&
               liveStatus?.activeSlot?.periodNumber === lesson.periodNumber;

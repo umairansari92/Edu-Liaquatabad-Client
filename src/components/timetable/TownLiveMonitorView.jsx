@@ -32,16 +32,16 @@ export const TownLiveMonitorView = () => {
   // Aggregate Metrics
   const metrics = useMemo(() => {
     const total = townLiveMonitor.length;
-    const withTimetable = townLiveMonitor.filter((s) => s.hasTimetable).length;
+    const withTimetable = townLiveMonitor.filter((schoolRecord) => schoolRecord.hasTimetable).length;
     const teachingRightNow = townLiveMonitor.filter(
-      (s) => s.liveStatus?.status === 'ACTIVE_TEACHING'
+      (schoolRecord) => schoolRecord.liveStatus?.status === 'ACTIVE_TEACHING'
     ).length;
-    const recessOrAssembly = townLiveMonitor.filter((s) =>
-      ['RECESS', 'ASSEMBLY'].includes(s.liveStatus?.status)
+    const recessOrAssembly = townLiveMonitor.filter((schoolRecord) =>
+      ['RECESS', 'ASSEMBLY'].includes(schoolRecord.liveStatus?.status)
     ).length;
 
-    const totalOngoingClasses = townLiveMonitor.reduce((sum, s) => {
-      return sum + (s.activePeriodsSummary?.totalOngoingClasses || 0);
+    const totalOngoingClasses = townLiveMonitor.reduce((sum, schoolRecord) => {
+      return sum + (schoolRecord.activePeriodsSummary?.totalOngoingClasses || 0);
     }, 0);
 
     return {
@@ -134,7 +134,7 @@ export const TownLiveMonitorView = () => {
             type="text"
             placeholder="Search school name, code, SEMIS..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(changeEvent) => setSearchQuery(changeEvent.target.value)}
             className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 text-xs font-medium text-[#102033]"
           />
         </div>
@@ -142,7 +142,7 @@ export const TownLiveMonitorView = () => {
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            onChange={(changeEvent) => setStatusFilter(changeEvent.target.value)}
             className="p-2 rounded-xl border border-slate-200 text-xs font-bold text-[#102033] bg-white flex-1 sm:flex-none"
           >
             <option value="ALL">All Schools Status</option>
