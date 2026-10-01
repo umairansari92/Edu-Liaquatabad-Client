@@ -310,11 +310,11 @@ const HmAddStudentModal = ({ isOpen, onClose, schoolId, classes = [], sections =
                   {errors.classId && <p className="hm-field-error">{errors.classId.message}</p>}
                 </div>
                 <div className="hm-field-group">
-                  <label className="hm-label">Section <span className="req">*</span></label>
+                  <label className="hm-label">Section <span className="text-slate-400 font-normal text-xs">(Optional)</span></label>
                   <select {...register('sectionId')} className="hm-input">
-                    <option value="">Select Section</option>
+                    <option value="">-- Whole Class / No Section (Optional) --</option>
                     {availableSections.map((sectionItem) => (
-                      <option key={sectionItem._id} value={sectionItem._id}>{sectionItem.name}</option>
+                      <option key={sectionItem._id} value={sectionItem._id}>Section {sectionItem.name}</option>
                     ))}
                   </select>
                   {errors.sectionId && <p className="hm-field-error">{errors.sectionId.message}</p>}

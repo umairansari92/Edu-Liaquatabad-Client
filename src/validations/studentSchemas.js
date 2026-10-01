@@ -54,7 +54,7 @@ export const enrollStudentFormSchema = z
     residentialAddress: safeString(300).optional(),
 
     classId: z.string().min(1, 'Class is required'),
-    sectionId: z.string().min(1, 'Section is required'),
+    sectionId: z.string().trim().optional().or(z.literal('')),
     admissionDate: z.string().trim().optional(),
 
     // Only required for EXISTING_ENTRY

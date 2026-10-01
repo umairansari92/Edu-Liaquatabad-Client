@@ -255,7 +255,7 @@ export const teacherBaseObject = z.object({
     .array(
       z.object({
         classId: z.string().trim().min(1, 'Class is required'),
-        sectionId: z.string().trim().min(1, 'Section is required'),
+        sectionId: z.string().trim().optional().or(z.literal('')),
         subjectId: z.string().trim().min(1, 'Subject is required'),
         academicSession: z.string().trim().min(1, 'Session is required'),
       })

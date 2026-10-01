@@ -556,12 +556,12 @@ export const RegisterTeacherPage = () => {
                           </div>
 
                           <div>
-                            <label className="block text-[10px] font-medium text-[#526477] mb-0.5">Section</label>
+                            <label className="block text-[10px] font-medium text-[#526477] mb-0.5">Section (Optional)</label>
                             <select
                               {...register(`teachingAssignments.${index}.sectionId`)}
                               className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 text-[#102033] text-xs outline-none focus:ring-1 focus:ring-[#006AC7]"
                             >
-                              <option value="">Select Section</option>
+                              <option value="">-- Whole Class / No Section (Optional) --</option>
                               {schoolStructure.sections.map((sec) => (
                                 <option key={sec._id} value={sec._id}>
                                   Section {sec.name}

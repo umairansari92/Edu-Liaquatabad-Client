@@ -754,6 +754,7 @@ export const HmDashboard = () => {
         assignTeachingDuty({
           schoolId: user?.schoolId?._id || user?.schoolId,
           ...dutyData,
+          sectionId: dutyData.sectionId || undefined,
         })
       ).unwrap();
       toast.success('Teaching assignment allocated.');
@@ -2110,7 +2111,7 @@ export const HmDashboard = () => {
                       <tr key={a._id} className="hover:bg-slate-50/60">
                         <td className="py-3 px-3 font-bold text-[#102033]">{a.teacherId?.fullName}</td>
                         <td className="py-3 px-3">{a.classId?.name}</td>
-                        <td className="py-3 px-3">{a.sectionId?.name}</td>
+                        <td className="py-3 px-3">{a.sectionId?.name ? `Section ${a.sectionId.name}` : 'Whole Class'}</td>
                         <td className="py-3 px-3 font-semibold text-[#006AC7]">{a.subjectId?.name}</td>
                         <td className="py-3 px-3 font-mono">{a.academicSession}</td>
                         <td className="py-3 px-3 text-right">
@@ -3836,11 +3837,12 @@ export const HmDashboard = () => {
               </select>
             </div>
             <div>
-              <label className="text-xs font-bold text-[#102033] block mb-1">Select Section</label>
+              <label className="text-xs font-bold text-[#102033] block mb-1">
+                Select Section <span className="text-slate-400 font-normal">(Optional)</span>
+              </label>
               <select
                 value={dutyData.sectionId}
                 onChange={(e) => setDutyData({ ...dutyData, sectionId: e.target.value })}
-                required
                 disabled={!dutyData.classId}
                 className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7] disabled:bg-slate-50 disabled:text-slate-400"
               >
@@ -3848,7 +3850,7 @@ export const HmDashboard = () => {
                   <option value="">-- Select Class First --</option>
                 ) : (
                   <>
-                    <option value="">-- Choose Section --</option>
+                    <option value="">-- Whole Class / Single Cohort (No Section) --</option>
                     {sections
                       .filter((s) => String(s.classId) === String(dutyData.classId) || String(s.classId?._id) === String(dutyData.classId))
                       .map((s) => <option key={s._id} value={s._id}>Section {s.name}</option>)}
