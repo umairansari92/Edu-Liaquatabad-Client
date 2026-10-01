@@ -107,27 +107,27 @@ export const StaffAccessHistoryModal = ({ isOpen, onClose, targetId, staffName }
             </div>
           ) : (
             <div className="divide-y divide-slate-100 border border-slate-200/80 rounded-2xl overflow-hidden bg-slate-50/40">
-              {accessHistory.map((item) => (
-                <div key={item.id} className="p-4 bg-white hover:bg-slate-50/70 transition-colors space-y-1.5">
+              {accessHistory.map((historyRecord) => (
+                <div key={historyRecord.id} className="p-4 bg-white hover:bg-slate-50/70 transition-colors space-y-1.5">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      {getActionBadge(item.action)}
+                      {getActionBadge(historyRecord.action)}
                       <span className="font-bold text-[#102033]">
-                        {item.actorName || 'Official'}
+                        {historyRecord.actorName || 'Official'}
                       </span>
-                      {item.actorRole && (
-                        <span className="text-[11px] text-slate-400">({item.actorRole})</span>
+                      {historyRecord.actorRole && (
+                        <span className="text-[11px] text-slate-400">({historyRecord.actorRole})</span>
                       )}
                     </div>
                     <span className="text-[11px] text-slate-400 flex items-center gap-1">
                       <Clock className="w-3 h-3" />
-                      {new Date(item.timestamp).toLocaleString()}
+                      {new Date(historyRecord.timestamp).toLocaleString()}
                     </span>
                   </div>
 
-                  {item.purpose && (
+                  {historyRecord.purpose && (
                     <div className="text-[11px] text-slate-600 bg-slate-50 p-2 rounded-lg border border-slate-100">
-                      <strong className="text-slate-700">Official Purpose:</strong> {item.purpose}
+                      <strong className="text-slate-700">Official Purpose:</strong> {historyRecord.purpose}
                     </div>
                   )}
                 </div>

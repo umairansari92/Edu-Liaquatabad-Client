@@ -138,9 +138,9 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
     setIsClassModalOpen(true);
   };
 
-  const handleOpenEditClass = (cls) => {
+  const handleOpenEditClass = (classItem) => {
     setEditingClass(cls);
-    setClassForm({ name: cls.name, code: cls.code, gradeLevel: cls.gradeLevel, schoolId: cls.schoolId?._id || cls.schoolId });
+    setClassForm({ name: classItem.name, code: cls.code, gradeLevel: cls.gradeLevel, schoolId: cls.schoolId?._id || cls.schoolId });
     setIsClassModalOpen(true);
   };
 
@@ -161,11 +161,11 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
     }
   };
 
-  const handleArchiveClass = async (cls) => {
-    if (!window.confirm(`Are you sure you want to archive "${cls.name}"? This is a soft-delete.`)) return;
+  const handleArchiveClass = async (classItem) => {
+    if (!window.confirm(`Are you sure you want to archive "${classItem.name}"? This is a soft-delete.`)) return;
     try {
-      await apiClient.patch(`/academic/classes/${cls._id}`, { status: 'ARCHIVED' });
-      toast.success(`Class "${cls.name}" archived.`);
+      await apiClient.patch(`/academic/classes/${classItem._id}`, { status: 'ARCHIVED' });
+      toast.success(`Class "${classItem.name}" archived.`);
       fetchClasses();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to archive class.');
@@ -179,9 +179,9 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
     setIsSectionModalOpen(true);
   };
 
-  const handleOpenEditSection = (sec) => {
+  const handleOpenEditSection = (sectionItem) => {
     setEditingSection(sec);
-    setSectionForm({ name: sec.name, classId: sec.classId?._id || sec.classId, capacity: sec.capacity || 40, roomNumber: sec.roomNumber || '' });
+    setSectionForm({ name: sectionItem.name, classId: sec.classId?._id || sec.classId, capacity: sec.capacity || 40, roomNumber: sec.roomNumber || '' });
     setIsSectionModalOpen(true);
   };
 
@@ -203,11 +203,11 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
     }
   };
 
-  const handleArchiveSection = async (sec) => {
-    if (!window.confirm(`Are you sure you want to archive section "${sec.name}"?`)) return;
+  const handleArchiveSection = async (sectionItem) => {
+    if (!window.confirm(`Are you sure you want to archive section "${sectionItem.name}"?`)) return;
     try {
-      await apiClient.patch(`/academic/sections/${sec._id}`, { status: 'ARCHIVED' });
-      toast.success(`Section "${sec.name}" archived.`);
+      await apiClient.patch(`/academic/sections/${sectionItem._id}`, { status: 'ARCHIVED' });
+      toast.success(`Section "${sectionItem.name}" archived.`);
       fetchSections();
       fetchClasses();
     } catch (error) {
@@ -228,10 +228,10 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
     setIsSubjectModalOpen(true);
   };
 
-  const handleOpenEditSubject = (sub) => {
+  const handleOpenEditSubject = (subjectItem) => {
     setEditingSubject(sub);
     setSubjectForm({
-      name: sub.name,
+      name: subjectItem.name,
       code: sub.code,
       schoolId: sub.schoolId?._id || sub.schoolId,
       classId: sub.classId?._id || sub.classId || '',
@@ -257,11 +257,11 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
     }
   };
 
-  const handleArchiveSubject = async (sub) => {
-    if (!window.confirm(`Are you sure you want to archive subject "${sub.name}"?`)) return;
+  const handleArchiveSubject = async (subjectItem) => {
+    if (!window.confirm(`Are you sure you want to archive subject "${subjectItem.name}"?`)) return;
     try {
-      await apiClient.patch(`/academic/subjects/${sub._id}`, { status: 'ARCHIVED' });
-      toast.success(`Subject "${sub.name}" archived.`);
+      await apiClient.patch(`/academic/subjects/${subjectItem._id}`, { status: 'ARCHIVED' });
+      toast.success(`Subject "${subjectItem.name}" archived.`);
       fetchSubjects();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to archive subject.');
@@ -339,9 +339,9 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
               className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-[#102033] focus:border-[#006AC7] focus:outline-none"
             >
               <option value="">All Classes in School ({classes.length})</option>
-              {classes.map((cls) => (
-                <option key={cls._id} value={cls._id}>
-                  {cls.name} (Grade {cls.gradeLevel})
+              {classes.map((classItem) => (
+                <option key={classItem._id} value={classItem._id}>
+                  {classItem.name} (Grade {cls.gradeLevel})
                 </option>
               ))}
             </select>
@@ -360,10 +360,10 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
             >
               <option value="">All Sections</option>
               {sections
-                .filter((sec) => !selectedClassId || (sec.classId?._id || sec.classId) === selectedClassId)
+                .filter((sectionItem) => !selectedClassId || (sec.classId?._id || sec.classId) === selectedClassId)
                 .map((sec) => (
-                  <option key={sec._id} value={sec._id}>
-                    Section {sec.name} {sec.roomNumber ? `(Room: ${sec.roomNumber})` : ''}
+                  <option key={sectionItem._id} value={sectionItem._id}>
+                    Section {sectionItem.name} {sec.roomNumber ? `(Room: ${sec.roomNumber})` : ''}
                   </option>
                 ))}
             </select>
@@ -489,13 +489,13 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
               </p>
             </div>
           ) : (
-            filteredClasses.map((cls) => {
-              const secCount = classSectionCounts[cls._id] || 0;
+            filteredClasses.map((classItem) => {
+              const secCount = classSectionCounts[classItem._id] || 0;
               const isArchived = cls.status === 'ARCHIVED';
 
               return (
                 <div
-                  key={cls._id}
+                  key={classItem._id}
                   className={`rounded-xl border p-4 shadow-sm transition flex flex-col justify-between ${
                     isArchived
                       ? 'border-slate-200 bg-slate-50 opacity-60'
@@ -510,7 +510,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                         <span className="rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-mono font-bold text-[#006AC7]">
                           {cls.code}
                         </span>
-                        <span className="text-xs font-bold text-[#102033]">{cls.name}</span>
+                        <span className="text-xs font-bold text-[#102033]">{classItem.name}</span>
                       </div>
                       <span
                         className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
@@ -548,7 +548,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                     <button
                       type="button"
                       onClick={() => {
-                        setSelectedClassId(cls._id);
+                        setSelectedClassId(classItem._id);
                         setSubTab('sections');
                       }}
                       className="text-[#006AC7] hover:underline font-semibold flex items-center gap-1 cursor-pointer"
@@ -608,10 +608,10 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                   </td>
                 </tr>
               ) : (
-                filteredSections.map((sec) => (
-                  <tr key={sec._id} className="transition hover:bg-blue-50/40">
+                filteredSections.map((sectionItem) => (
+                  <tr key={sectionItem._id} className="transition hover:bg-blue-50/40">
                     <td className="px-5 py-4 font-bold text-[#102033]">
-                      Section {sec.name}
+                      Section {sectionItem.name}
                     </td>
                     <td className="px-4 py-4 text-[#006AC7] font-medium">
                       {sec.classId?.name || 'Class Record'}
@@ -687,10 +687,10 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                   </td>
                 </tr>
               ) : (
-                filteredSubjects.map((sub) => (
-                  <tr key={sub._id} className="transition hover:bg-blue-50/40">
+                filteredSubjects.map((subjectItem) => (
+                  <tr key={subjectItem._id} className="transition hover:bg-blue-50/40">
                     <td className="px-5 py-4 font-bold text-[#102033]">
-                      {sub.name}
+                      {subjectItem.name}
                     </td>
                     <td className="px-4 py-4 font-mono font-bold text-[#006AC7]">
                       {sub.code}
@@ -844,9 +844,9 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                   onChange={(selectChangeEvent) => setSectionForm({ ...sectionForm, classId: selectChangeEvent.target.value })}
                   className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-[#102033] focus:border-[#006AC7] focus:outline-none"
                 >
-                  {classes.map((cls) => (
-                    <option key={cls._id} value={cls._id}>
-                      {cls.name} (Grade {cls.gradeLevel})
+                  {classes.map((classItem) => (
+                    <option key={classItem._id} value={classItem._id}>
+                      {classItem.name} (Grade {cls.gradeLevel})
                     </option>
                   ))}
                 </select>
@@ -950,9 +950,9 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                   className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-[#102033] focus:border-[#006AC7] focus:outline-none"
                 >
                   <option value="">Applicable to All Classes</option>
-                  {classes.map((cls) => (
-                    <option key={cls._id} value={cls._id}>
-                      {cls.name} (Grade {cls.gradeLevel})
+                  {classes.map((classItem) => (
+                    <option key={classItem._id} value={classItem._id}>
+                      {classItem.name} (Grade {cls.gradeLevel})
                     </option>
                   ))}
                 </select>

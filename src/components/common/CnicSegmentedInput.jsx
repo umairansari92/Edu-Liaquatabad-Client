@@ -27,22 +27,22 @@ export const CnicSegmentedInput = ({ value = '', onChange, disabled = false, has
     onChange?.(formatted);
   };
 
-  const handleKeyDown = (index, e) => {
-    if (e.key === 'Backspace') {
+  const handleKeyDown = (index, keyboardEvent) => {
+    if (keyboardEvent.key === 'Backspace') {
       if (!rawDigits[index] && index > 0) {
         inputRefs.current[index - 1]?.focus();
       } else {
         updateDigit(index, '');
       }
-    } else if (e.key === 'ArrowLeft' && index > 0) {
+    } else if (keyboardEvent.key === 'ArrowLeft' && index > 0) {
       inputRefs.current[index - 1]?.focus();
-    } else if (e.key === 'ArrowRight' && index < 12) {
+    } else if (keyboardEvent.key === 'ArrowRight' && index < 12) {
       inputRefs.current[index + 1]?.focus();
     }
   };
 
-  const handleInput = (index, e) => {
-    const char = e.target.value.replace(/\D/g, '').slice(-1);
+  const handleInput = (index, inputChangeEvent) => {
+    const char = inputChangeEvent.target.value.replace(/\D/g, '').slice(-1);
     if (char) {
       updateDigit(index, char);
       if (index < 12) {
@@ -51,9 +51,9 @@ export const CnicSegmentedInput = ({ value = '', onChange, disabled = false, has
     }
   };
 
-  const handlePaste = (e) => {
-    e.preventDefault();
-    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 13);
+  const handlePaste = (pasteEvent) => {
+    pasteEvent.preventDefault();
+    const pasted = pasteEvent.clipboardData.getData('text').replace(/\D/g, '').slice(0, 13);
     if (pasted) {
       let formatted = pasted;
       if (pasted.length >= 13) {
@@ -72,14 +72,14 @@ export const CnicSegmentedInput = ({ value = '', onChange, disabled = false, has
     return (
       <input
         key={index}
-        ref={(el) => (inputRefs.current[index] = el)}
+        ref={(inputElement) => (inputRefs.current[index] = inputElement)}
         type="text"
         inputMode="numeric"
         maxLength={1}
         value={digitChar}
         disabled={disabled}
-        onChange={(e) => handleInput(index, e)}
-        onKeyDown={(e) => handleKeyDown(index, e)}
+        onChange={(inputChangeEvent) => handleInput(index, inputChangeEvent)}
+        onKeyDown={(keyboardEvent) => handleKeyDown(index, keyboardEvent)}
         onPaste={handlePaste}
         className={`w-6 h-8 sm:w-7 sm:h-9 text-center font-mono text-xs sm:text-sm font-bold rounded border transition-all focus:outline-none ${
           hasError

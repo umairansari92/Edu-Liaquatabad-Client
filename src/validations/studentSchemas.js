@@ -61,9 +61,9 @@ export const enrollStudentFormSchema = z
     manualGrNumber: z.coerce.number().int().positive().optional(),
   })
   .refine(
-    (data) => {
-      if (data.admissionType === 'EXISTING_ENTRY') {
-        return !!data.manualGrNumber && data.manualGrNumber > 0;
+    (formData) => {
+      if (formData.admissionType === 'EXISTING_ENTRY') {
+        return !!formData.manualGrNumber && formData.manualGrNumber > 0;
       }
       return true;
     },

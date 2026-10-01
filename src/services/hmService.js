@@ -35,13 +35,13 @@ export const hmService = {
     return response.data;
   },
 
-  createClass: async (data) => {
-    const response = await apiClient.post('/academic/classes', data);
+  createClass: async (classPayload) => {
+    const response = await apiClient.post('/academic/classes', payload);
     return response.data;
   },
 
-  updateClass: async (id, data) => {
-    const response = await apiClient.patch(`/academic/classes/${id}`, data);
+  updateClass: async (classId, classPayload) => {
+    const response = await apiClient.patch(`/academic/classes/${id}`, payload);
     return response.data;
   },
 
@@ -50,13 +50,13 @@ export const hmService = {
     return response.data;
   },
 
-  createSection: async (data) => {
-    const response = await apiClient.post('/academic/sections', data);
+  createSection: async (sectionPayload) => {
+    const response = await apiClient.post('/academic/sections', payload);
     return response.data;
   },
 
-  updateSection: async (id, data) => {
-    const response = await apiClient.patch(`/academic/sections/${id}`, data);
+  updateSection: async (sectionId, sectionPayload) => {
+    const response = await apiClient.patch(`/academic/sections/${id}`, payload);
     return response.data;
   },
 
@@ -65,13 +65,13 @@ export const hmService = {
     return response.data;
   },
 
-  createSubject: async (data) => {
-    const response = await apiClient.post('/academic/subjects', data);
+  createSubject: async (subjectPayload) => {
+    const response = await apiClient.post('/academic/subjects', payload);
     return response.data;
   },
 
-  updateSubject: async (id, data) => {
-    const response = await apiClient.patch(`/academic/subjects/${id}`, data);
+  updateSubject: async (subjectId, subjectPayload) => {
+    const response = await apiClient.patch(`/academic/subjects/${id}`, payload);
     return response.data;
   },
 
@@ -81,8 +81,8 @@ export const hmService = {
     return response.data;
   },
 
-  addTeachingAssignment: async (data) => {
-    const response = await apiClient.post('/assignments', data);
+  addTeachingAssignment: async (assignmentPayload) => {
+    const response = await apiClient.post('/assignments', assignmentPayload);
     return response.data;
   },
 
@@ -102,8 +102,8 @@ export const hmService = {
     return response.data;
   },
 
-  uploadAttendanceSheet: async (data) => {
-    const response = await apiClient.post('/attendance/upload-sheet', data);
+  uploadAttendanceSheet: async (attendancePayload) => {
+    const response = await apiClient.post('/attendance/upload-sheet', attendancePayload);
     return response.data;
   },
 
@@ -113,8 +113,8 @@ export const hmService = {
     return response.data;
   },
 
-  createExam: async (data) => {
-    const response = await apiClient.post('/exams', data);
+  createExam: async (examPayload) => {
+    const response = await apiClient.post('/exams', examPayload);
     return response.data;
   },
 
@@ -124,7 +124,7 @@ export const hmService = {
   },
 
   submitStudentMarks: async (examId, data) => {
-    const response = await apiClient.post(`/exams/${examId}/results`, data);
+    const response = await apiClient.post(`/exams/${examId}/results`, payload);
     return response.data;
   },
 
@@ -134,7 +134,7 @@ export const hmService = {
   },
 
   batchVerifyExamResults: async (examId, data = {}) => {
-    const response = await apiClient.post(`/exams/${examId}/results/batch-verify`, data);
+    const response = await apiClient.post(`/exams/${examId}/results/batch-verify`, payload);
     return response.data;
   },
 
@@ -215,10 +215,10 @@ export const hmService = {
     return response.data;
   },
 
-  createDocument: async (data) => {
+  createDocument: async (documentPayload) => {
     // Automatically handles FormData (multipart/form-data) or JSON payload
-    const isFormData = typeof FormData !== 'undefined' && data instanceof FormData;
-    const response = await apiClient.post('/documents', data, {
+    const isFormData = typeof FormData !== 'undefined' && documentPayload instanceof FormData;
+    const response = await apiClient.post('/documents', documentPayload, {
       headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {},
     });
     return response.data;

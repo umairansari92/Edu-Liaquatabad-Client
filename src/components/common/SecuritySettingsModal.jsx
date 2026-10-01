@@ -58,24 +58,24 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
   // Fetch Session Records
   const loadSessions = useCallback(async () => {
     try {
-      const res = await authService.getActiveSessions();
-      if (res.success && res.data) {
-        setSessions(res.data.sessions || []);
+      const sessionsResponse = await authService.getActiveSessions();
+      if (sessionsResponse.success && sessionsResponse.data) {
+        setSessions(sessionsResponse.data.sessions || []);
       }
-    } catch (err) {
-      console.error('Failed to load active sessions:', err);
+    } catch (sessionFetchError) {
+      console.error('Failed to load active sessions:', sessionFetchError);
     }
   }, []);
 
   // Fetch MFA Status
   const loadMfaStatus = useCallback(async () => {
     try {
-      const res = await authService.getMfaStatus();
-      if (res.success && res.data) {
-        setMfaStatus(res.data);
+      const mfaStatusResponse = await authService.getMfaStatus();
+      if (mfaStatusResponse.success && mfaStatusResponse.data) {
+        setMfaStatus(mfaStatusResponse.data);
       }
-    } catch (err) {
-      console.error('Failed to load MFA status:', err);
+    } catch (mfaStatusFetchError) {
+      console.error('Failed to load MFA status:', mfaStatusFetchError);
     }
   }, []);
 
@@ -107,16 +107,16 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
         toast.success('Remote session terminated successfully.');
         await loadSessions();
       }
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to terminate session.');
+    } catch (sessionTerminationError) {
+      toast.error(sessionTerminationError.response?.data?.message || 'Failed to terminate session.');
     } finally {
       setTerminatingSessionId(null);
     }
   };
 
   // Start MFA Enrollment (Step 1: Password step-up)
-  const handleInitiateMfaSetup = async (e) => {
-    e.preventDefault();
+  const handleInitiateMfaSetup = async (submitEvent) => {
+    submitEvent.preventDefault();
     if (!stepUpPassword) {
       setActionError('Password is required to initiate MFA enrollment.');
       return;
@@ -124,21 +124,21 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
     setLoading(true);
     setActionError('');
     try {
-      const res = await authService.mfaSetup({ password: stepUpPassword });
-      if (res.success && res.data) {
-        setPendingSecret(res.data.secret);
+      const setupResponse = await authService.mfaSetup({ password: stepUpPassword });
+      if (setupResponse.success && setupResponse.data) {
+        setPendingSecret(setupResponse.data.secret);
         setSetupStep(2);
       }
-    } catch (err) {
-      setActionError(err.response?.data?.message || 'Password authentication failed.');
+    } catch (mfaSetupError) {
+      setActionError(mfaSetupError.response?.data?.message || 'Password authentication failed.');
     } finally {
       setLoading(false);
     }
   };
 
   // Confirm MFA Enrollment with TOTP Code (Step 2)
-  const handleConfirmMfaSetup = async (e) => {
-    e.preventDefault();
+  const handleConfirmMfaSetup = async (submitEvent) => {
+    submitEvent.preventDefault();
     const cleanCode = confirmTotpCode.replace(/\D/g, '').trim();
     if (cleanCode.length !== 6) {
       setActionError('Please enter a valid 6-digit authentication code.');
@@ -147,15 +147,15 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
     setLoading(true);
     setActionError('');
     try {
-      const res = await authService.mfaConfirm({ totpCode: cleanCode });
-      if (res.success && res.data) {
-        setFreshRecoveryCodes(res.data.recoveryCodes || []);
+      const confirmationResponse = await authService.mfaConfirm({ totpCode: cleanCode });
+      if (confirmationResponse.success && confirmationResponse.data) {
+        setFreshRecoveryCodes(confirmationResponse.data.recoveryCodes || []);
         setSetupStep(3);
         toast.success('Two-factor authentication enabled!');
         await loadMfaStatus();
       }
-    } catch (err) {
-      setActionError(err.response?.data?.message || 'Verification failed. Please check the code.');
+    } catch (mfaConfirmationError) {
+      setActionError(mfaConfirmationError.response?.data?.message || 'Verification failed. Please check the code.');
     } finally {
       setLoading(false);
     }
@@ -167,17 +167,17 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
     if (!password) return;
     setLoading(true);
     try {
-      const res = await authService.regenerateRecoveryCodes(password);
-      if (res.success && res.data) {
-        if (res.data.accessToken) {
-          dispatch(setAccessToken(res.data.accessToken));
+      const regenerateResponse = await authService.regenerateRecoveryCodes(password);
+      if (regenerateResponse.success && regenerateResponse.data) {
+        if (regenerateResponse.data.accessToken) {
+          dispatch(setAccessToken(regenerateResponse.data.accessToken));
         }
-        setFreshRecoveryCodes(res.data.recoveryCodes || []);
+        setFreshRecoveryCodes(regenerateResponse.data.recoveryCodes || []);
         toast.success('New emergency recovery codes generated.');
         await loadMfaStatus();
       }
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to regenerate recovery codes.');
+    } catch (regenerationError) {
+      toast.error(regenerationError.response?.data?.message || 'Failed to regenerate recovery codes.');
     } finally {
       setLoading(false);
     }
@@ -193,21 +193,21 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
     if (!password) return;
     setLoading(true);
     try {
-      const res = await authService.disableMfa(password);
-      if (res.success) {
+      const disableResponse = await authService.disableMfa(password);
+      if (disableResponse.success) {
         toast.success('Two-Factor Authentication disabled.');
         await loadMfaStatus();
       }
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to disable MFA.');
+    } catch (disableError) {
+      toast.error(disableError.response?.data?.message || 'Failed to disable MFA.');
     } finally {
       setLoading(false);
     }
   };
 
   // Device Rotation: Step 1 Initiate
-  const handleInitiateDeviceRotation = async (e) => {
-    e.preventDefault();
+  const handleInitiateDeviceRotation = async (submitEvent) => {
+    submitEvent.preventDefault();
     if (!rotationPassword) {
       setRotateError('Please enter your account password.');
       return;
@@ -215,21 +215,21 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
     setRotateLoading(true);
     setRotateError('');
     try {
-      const res = await authService.rotateMfaDevice(rotationPassword);
-      if (res.success && res.data) {
-        setRotationData(res.data);
+      const rotateResponse = await authService.rotateMfaDevice(rotationPassword);
+      if (rotateResponse.success && rotateResponse.data) {
+        setRotationData(rotateResponse.data);
         setRotateStep(2);
       }
-    } catch (err) {
-      setRotateError(err.response?.data?.message || 'Password authentication failed.');
+    } catch (rotateInitError) {
+      setRotateError(rotateInitError.response?.data?.message || 'Password authentication failed.');
     } finally {
       setRotateLoading(false);
     }
   };
 
   // Device Rotation: Step 2 Confirm with 6-digit code from NEW phone
-  const handleConfirmDeviceRotation = async (e) => {
-    e.preventDefault();
+  const handleConfirmDeviceRotation = async (submitEvent) => {
+    submitEvent.preventDefault();
     const cleanCode = rotationTotpCode.replace(/\D/g, '').trim();
     if (cleanCode.length !== 6) {
       setRotateError('Please enter a valid 6-digit code from your new authenticator app.');
@@ -238,12 +238,12 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
     setRotateLoading(true);
     setRotateError('');
     try {
-      const res = await authService.confirmDeviceRotation(cleanCode);
-      if (res.success && res.data) {
-        if (res.data.accessToken) {
-          dispatch(setAccessToken(res.data.accessToken));
+      const confirmRotationResponse = await authService.confirmDeviceRotation(cleanCode);
+      if (confirmRotationResponse.success && confirmRotationResponse.data) {
+        if (confirmRotationResponse.data.accessToken) {
+          dispatch(setAccessToken(confirmRotationResponse.data.accessToken));
         }
-        setFreshRecoveryCodes(res.data.recoveryCodes || []);
+        setFreshRecoveryCodes(confirmRotationResponse.data.recoveryCodes || []);
         setIsRotatingDevice(false);
         setRotateStep(1);
         setRotationPassword('');
@@ -252,8 +252,8 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
         toast.success('Authenticator successfully transferred to your new phone!');
         await loadMfaStatus();
       }
-    } catch (err) {
-      setRotateError(err.response?.data?.message || 'Failed to verify code from new phone.');
+    } catch (rotateConfirmError) {
+      setRotateError(rotateConfirmError.response?.data?.message || 'Failed to verify code from new phone.');
     } finally {
       setRotateLoading(false);
     }
@@ -595,7 +595,7 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
                       autoFocus
                       placeholder="Current Account Password"
                       value={rotationPassword}
-                      onChange={(e) => setRotationPassword(e.target.value)}
+                      onChange={(changeEvent) => setRotationPassword(changeEvent.target.value)}
                       className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#006AC7]"
                     />
                     <div className="flex gap-2 pt-1">
@@ -669,7 +669,7 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
                         autoFocus
                         placeholder="000000"
                         value={rotationTotpCode}
-                        onChange={(e) => setRotationTotpCode(e.target.value.replace(/\D/g, ''))}
+                        onChange={(changeEvent) => setRotationTotpCode(changeEvent.target.value.replace(/\D/g, ''))}
                         className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-center font-mono font-bold text-xl tracking-[0.3em] text-[#102033] focus:bg-white focus:outline-none focus:border-[#006AC7]"
                       />
                     </div>
@@ -776,7 +776,7 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
                       type="password"
                       placeholder="Current Account Password"
                       value={stepUpPassword}
-                      onChange={(e) => setStepUpPassword(e.target.value)}
+                      onChange={(changeEvent) => setStepUpPassword(changeEvent.target.value)}
                       className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#006AC7]"
                     />
                     <div className="flex gap-2">
@@ -829,7 +829,7 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
                       maxLength={6}
                       placeholder="000000"
                       value={confirmTotpCode}
-                      onChange={(e) => setConfirmTotpCode(e.target.value.replace(/\D/g, ''))}
+                      onChange={(changeEvent) => setConfirmTotpCode(changeEvent.target.value.replace(/\D/g, ''))}
                       className="w-full px-3 py-2.5 text-center font-mono text-xl tracking-[0.3em] font-bold border border-slate-300 rounded-lg focus:outline-none focus:border-[#006AC7]"
                     />
 

@@ -562,9 +562,9 @@ export const RegisterTeacherPage = () => {
                               className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 text-[#102033] text-xs outline-none focus:ring-1 focus:ring-[#006AC7]"
                             >
                               <option value="">-- Whole Class / No Section (Optional) --</option>
-                              {schoolStructure.sections.map((sec) => (
-                                <option key={sec._id} value={sec._id}>
-                                  Section {sec.name}
+                              {schoolStructure.sections.map((sectionItem) => (
+                                <option key={sectionItem._id} value={sectionItem._id}>
+                                  Section {sectionItem.name}
                                 </option>
                               ))}
                             </select>
@@ -577,7 +577,7 @@ export const RegisterTeacherPage = () => {
                               className="w-full px-2.5 py-1.5 rounded-lg bg-white border border-slate-300 text-[#102033] text-xs outline-none focus:ring-1 focus:ring-[#006AC7]"
                             >
                               <option value="">Select Subject</option>
-                              {schoolStructure.subjects.map((sub) => (
+                              {schoolStructure.subjects.map((subjectItem) => (
                                 <option key={sub._id} value={sub._id}>
                                   {sub.name} ({sub.code || 'GEN'})
                                 </option>

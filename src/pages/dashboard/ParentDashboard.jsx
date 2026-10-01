@@ -75,7 +75,7 @@ export const ParentDashboard = () => {
     // Fetch public schools list for the lookup dropdown
     apiClient
       .get('/public/schools')
-      .then((res) => {
+      .then((responsePayload) => {
         const list = res.data?.data?.schools || [];
         setMunicipalSchools(list);
         if (list.length > 0) setSelectedSchoolId(list[0]._id);
@@ -95,7 +95,7 @@ export const ParentDashboard = () => {
     if (!selectedWardId) return null;
     return (
       wards.find(
-        (w) => String(w.studentProfileId?._id || w.studentProfileId) === String(selectedWardId)
+        (wardRecord) => String(wardRecord.studentProfileId?._id || wardRecord.studentProfileId) === String(selectedWardId)
       ) || null
     );
   }, [wards, selectedWardId]);
@@ -121,16 +121,16 @@ export const ParentDashboard = () => {
         })
       ).unwrap();
       toast.success('Official Marksheet PDF downloaded successfully.');
-    } catch (err) {
-      toast.error(err || 'Failed to download official marksheet PDF.');
+    } catch (errorObject) {
+      toast.error(errorObject || 'Failed to download official marksheet PDF.');
     } finally {
       setDownloadingExamId(null);
     }
   };
 
   // ── Wizard Handlers ──
-  const handleLookupSubmit = (e) => {
-    e.preventDefault();
+  const handleLookupSubmit = (submitEvent) => {
+    submitEvent.preventDefault();
     if (!selectedSchoolId || !lookupGrNumber.trim()) {
       toast.error('Please select a school and enter student GR Number.');
       return;
@@ -153,8 +153,8 @@ export const ParentDashboard = () => {
     );
   };
 
-  const handleVerifyOtpSubmit = (e) => {
-    e.preventDefault();
+  const handleVerifyOtpSubmit = (submitEvent) => {
+    submitEvent.preventDefault();
     const linkId = claimWizard.initiatedClaim?._id;
     if (!linkId || !inputOtp.trim()) {
       toast.error('Please enter the 6-digit verification code.');
@@ -167,7 +167,7 @@ export const ParentDashboard = () => {
         dispatch(fetchMyClaims());
         dispatch(fetchMyWards());
       })
-      .catch((err) => {
+      .catch((errorObject) => {
         toast.error(err || 'OTP verification failed.');
       });
   };
@@ -507,21 +507,21 @@ export const ParentDashboard = () => {
                     <p className="text-xs text-[#526477] italic py-4">No active homework tasks assigned right now.</p>
                   ) : (
                     <div className="space-y-3">
-                      {activeWardData.homework.slice(0, 3).map((hw) => (
+                      {activeWardData.homework.slice(0, 3).map((homeworkItem) => (
                         <div
-                          key={hw.id}
+                          key={homeworkItem.id}
                           className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 flex items-start justify-between gap-3"
                         >
                           <div className="space-y-1">
                             <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-[#006AC7]">
-                              {hw.subject?.name || 'General'}
+                              {homeworkItem.subject?.name || 'General'}
                             </span>
-                            <p className="text-xs font-bold text-[#102033]">{hw.title}</p>
-                            <p className="text-[11px] text-[#526477]">Teacher: {hw.teacher?.fullName}</p>
+                            <p className="text-xs font-bold text-[#102033]">{homeworkItem.title}</p>
+                            <p className="text-[11px] text-[#526477]">Teacher: {homeworkItem.teacher?.fullName}</p>
                           </div>
                           <div className="text-right shrink-0">
                             <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-1 rounded-md border border-amber-200">
-                              Due: {new Date(hw.dueDate).toLocaleDateString()}
+                              Due: {new Date(homeworkItem.dueDate).toLocaleDateString()}
                             </span>
                           </div>
                         </div>
@@ -825,22 +825,22 @@ export const ParentDashboard = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {activeWardData.homework.map((hw) => (
+              {activeWardData.homework.map((homeworkItem) => (
                 <div
-                  key={hw.id}
+                  key={homeworkItem.id}
                   className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-3 flex flex-col justify-between"
                 >
                   <div className="space-y-2">
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 text-[#006AC7]">
-                        {hw.subject?.name || 'Subject'}
+                        {homeworkItem.subject?.name || 'Subject'}
                       </span>
                       <span className="text-[10px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                        Due: {new Date(hw.dueDate).toLocaleDateString()}
+                        Due: {new Date(homeworkItem.dueDate).toLocaleDateString()}
                       </span>
                     </div>
-                    <h4 className="text-sm font-bold text-[#102033]">{hw.title}</h4>
-                    <p className="text-xs text-[#526477] leading-relaxed whitespace-pre-line">{hw.description}</p>
+                    <h4 className="text-sm font-bold text-[#102033]">{homeworkItem.title}</h4>
+                    <p className="text-xs text-[#526477] leading-relaxed whitespace-pre-line">{homeworkItem.description}</p>
                   </div>
 
                   <div className="border-t border-slate-100 pt-3 flex items-center justify-between text-[11px] text-[#526477]">
@@ -936,12 +936,12 @@ export const ParentDashboard = () => {
                   <label className="block text-xs font-bold text-[#102033] mb-1.5">Municipal School</label>
                   <select
                     value={selectedSchoolId}
-                    onChange={(e) => setSelectedSchoolId(e.target.value)}
+                    onChange={(changeEvent) => setSelectedSchoolId(changeEvent.target.value)}
                     className="w-full text-xs rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-[#102033] focus:border-[#006AC7] focus:outline-none"
                   >
-                    {municipalSchools.map((sch) => (
-                      <option key={sch._id} value={sch._id}>
-                        {sch.name} ({sch.schoolCode})
+                    {municipalSchools.map((schoolItem) => (
+                      <option key={schoolItem._id} value={schoolItem._id}>
+                        {schoolItem.name} ({sch.schoolCode})
                       </option>
                     ))}
                   </select>
@@ -955,7 +955,7 @@ export const ParentDashboard = () => {
                     type="number"
                     placeholder="e.g. 1042"
                     value={lookupGrNumber}
-                    onChange={(e) => setLookupGrNumber(e.target.value)}
+                    onChange={(changeEvent) => setLookupGrNumber(changeEvent.target.value)}
                     className="w-full text-xs rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-[#102033] focus:border-[#006AC7] focus:outline-none"
                     required
                   />
@@ -1070,7 +1070,7 @@ export const ParentDashboard = () => {
                     maxLength={6}
                     placeholder="e.g. 123456"
                     value={inputOtp}
-                    onChange={(e) => setInputOtp(e.target.value)}
+                    onChange={(changeEvent) => setInputOtp(changeEvent.target.value)}
                     className="w-full text-center tracking-widest font-mono text-base font-black rounded-xl border border-slate-200 bg-white px-3 py-2 text-[#102033] focus:border-[#4B7F3A] focus:outline-none"
                     required
                   />

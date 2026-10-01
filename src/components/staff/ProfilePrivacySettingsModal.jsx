@@ -50,8 +50,8 @@ export const ProfilePrivacySettingsModal = ({
     setFieldVisibility((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSave = async (e) => {
-    e.preventDefault();
+  const handleSave = async (submitEvent) => {
+    submitEvent.preventDefault();
     try {
       await dispatch(
         updateStaffPrivacySettings({
@@ -101,7 +101,7 @@ export const ProfilePrivacySettingsModal = ({
                 type="checkbox"
                 id="allowAuthorizedPdfDownload"
                 checked={allowAuthorizedPdfDownload}
-                onChange={(e) => setAllowAuthorizedPdfDownload(e.target.checked)}
+                onChange={(changeEvent) => setAllowAuthorizedPdfDownload(changeEvent.target.checked)}
                 className="mt-1 w-4 h-4 text-[#006AC7] rounded border-slate-300 focus:ring-[#006AC7]"
               />
               <label htmlFor="allowAuthorizedPdfDownload" className="cursor-pointer">
@@ -135,7 +135,7 @@ export const ProfilePrivacySettingsModal = ({
                 </div>
                 <select
                   value={fieldVisibility.profilePhoto}
-                  onChange={(e) => handleFieldChange('profilePhoto', e.target.value)}
+                  onChange={(changeEvent) => handleFieldChange('profilePhoto', changeEvent.target.value)}
                   className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white font-medium text-[#102033] focus:ring-1 focus:ring-[#006AC7]"
                 >
                   <option value="PUBLIC">Public (Everyone)</option>
@@ -152,7 +152,7 @@ export const ProfilePrivacySettingsModal = ({
                 </div>
                 <select
                   value={fieldVisibility.designation}
-                  onChange={(e) => handleFieldChange('designation', e.target.value)}
+                  onChange={(changeEvent) => handleFieldChange('designation', changeEvent.target.value)}
                   className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white font-medium text-[#102033] focus:ring-1 focus:ring-[#006AC7]"
                 >
                   <option value="PUBLIC">Public (Everyone)</option>
@@ -169,7 +169,7 @@ export const ProfilePrivacySettingsModal = ({
                 </div>
                 <select
                   value={fieldVisibility.qualification}
-                  onChange={(e) => handleFieldChange('qualification', e.target.value)}
+                  onChange={(changeEvent) => handleFieldChange('qualification', changeEvent.target.value)}
                   className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white font-medium text-[#102033] focus:ring-1 focus:ring-[#006AC7]"
                 >
                   <option value="PUBLIC">Public (Everyone)</option>
@@ -187,7 +187,7 @@ export const ProfilePrivacySettingsModal = ({
                 </div>
                 <select
                   value={fieldVisibility.phoneNumber}
-                  onChange={(e) => handleFieldChange('phoneNumber', e.target.value)}
+                  onChange={(changeEvent) => handleFieldChange('phoneNumber', changeEvent.target.value)}
                   className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white font-medium text-[#102033] focus:ring-1 focus:ring-[#006AC7]"
                 >
                   <option value="SCHOOL">School Members</option>
@@ -204,7 +204,7 @@ export const ProfilePrivacySettingsModal = ({
                 </div>
                 <select
                   value={fieldVisibility.email}
-                  onChange={(e) => handleFieldChange('email', e.target.value)}
+                  onChange={(changeEvent) => handleFieldChange('email', changeEvent.target.value)}
                   className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white font-medium text-[#102033] focus:ring-1 focus:ring-[#006AC7]"
                 >
                   <option value="SCHOOL">School Members</option>
@@ -228,7 +228,7 @@ export const ProfilePrivacySettingsModal = ({
                 </div>
                 <select
                   value={fieldVisibility.cnic}
-                  onChange={(e) => handleFieldChange('cnic', e.target.value)}
+                  onChange={(changeEvent) => handleFieldChange('cnic', changeEvent.target.value)}
                   className="px-3 py-1.5 rounded-lg border border-rose-300 bg-white font-bold text-rose-900 focus:ring-1 focus:ring-rose-500"
                 >
                   <option value="AUTHORIZED_ROLE">Authorized Leadership Only (HM / DDO)</option>
@@ -251,7 +251,7 @@ export const ProfilePrivacySettingsModal = ({
                 </div>
                 <select
                   value={fieldVisibility.bankDetails}
-                  onChange={(e) => handleFieldChange('bankDetails', e.target.value)}
+                  onChange={(changeEvent) => handleFieldChange('bankDetails', changeEvent.target.value)}
                   className="px-3 py-1.5 rounded-lg border border-amber-300 bg-white font-bold text-amber-900 focus:ring-1 focus:ring-amber-500"
                 >
                   <option value="AUTHORIZED_ROLE">Authorized Leadership Only (DDO / Accounts)</option>

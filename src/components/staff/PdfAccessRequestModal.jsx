@@ -27,8 +27,8 @@ export const PdfAccessRequestModal = ({
 
   if (!isOpen) return null;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (submitEvent) => {
+    submitEvent.preventDefault();
     if (!purpose.trim() || purpose.trim().length < 5) {
       toast.error('Please specify a legitimate official purpose (min 5 characters).');
       return;
@@ -48,8 +48,8 @@ export const PdfAccessRequestModal = ({
 
       toast.success(`Access consent request dispatched to ${targetName || 'staff member'}.`);
       onClose();
-    } catch (err) {
-      toast.error(err || 'Failed to submit official PDF access request.');
+    } catch (errorObject) {
+      toast.error(errorObject || 'Failed to submit official PDF access request.');
     }
   };
 
@@ -93,7 +93,7 @@ export const PdfAccessRequestModal = ({
               required
               rows={3}
               value={purpose}
-              onChange={(e) => setPurpose(e.target.value)}
+              onChange={(changeEvent) => setPurpose(changeEvent.target.value)}
               placeholder="e.g., Annual Performance Audit, Promotion Review, Administrative Verification for LTC..."
               className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-[#102033] placeholder-slate-400 focus:ring-1 focus:ring-[#006AC7] outline-none"
             />
@@ -104,7 +104,7 @@ export const PdfAccessRequestModal = ({
             <label className="font-bold text-[#102033] block">Requested Audit Scope</label>
             <select
               value={requestedScope}
-              onChange={(e) => setRequestedScope(e.target.value)}
+              onChange={(changeEvent) => setRequestedScope(changeEvent.target.value)}
               className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-[#102033] bg-white font-medium focus:ring-1 focus:ring-[#006AC7]"
             >
               <option value="OFFICIAL_SERVICE_RECORD">Comprehensive Official Service Record</option>
@@ -118,7 +118,7 @@ export const PdfAccessRequestModal = ({
             <label className="font-bold text-[#102033] block">Requested Window Duration</label>
             <select
               value={expirationHours}
-              onChange={(e) => setExpirationHours(e.target.value)}
+              onChange={(changeEvent) => setExpirationHours(changeEvent.target.value)}
               className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-[#102033] bg-white font-medium focus:ring-1 focus:ring-[#006AC7]"
             >
               <option value={24}>24 Hours from approval</option>

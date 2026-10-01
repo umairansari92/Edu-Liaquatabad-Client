@@ -230,25 +230,25 @@ export const TeacherDashboard = () => {
 
   // ─── Live Attendance Derivations ──────────────────────────────────────────
   const totalStudentsCount = localAttendanceRecords.length;
-  const absentStudentsCount = localAttendanceRecords.filter((r) => r.status === 'ABSENT').length;
-  const leaveStudentsCount = localAttendanceRecords.filter((r) => r.status === 'LEAVE').length;
+  const absentStudentsCount = localAttendanceRecords.filter((attendanceItem) => attendanceItem.status === 'ABSENT').length;
+  const leaveStudentsCount = localAttendanceRecords.filter((attendanceItem) => attendanceItem.status === 'LEAVE').length;
   const presentStudentsCount = Math.max(0, totalStudentsCount - absentStudentsCount - leaveStudentsCount);
 
   // Memoized filtered attendance records for fast client search & filter
   const filteredAttendanceRecords = useMemo(() => {
-    return localAttendanceRecords.filter((rec) => {
+    return localAttendanceRecords.filter((attendanceRecord) => {
       // 1. Status Filter
-      if (attendanceStatusFilter === 'EXCEPTIONS' && rec.status === 'PRESENT') return false;
-      if (attendanceStatusFilter === 'PRESENT' && rec.status !== 'PRESENT') return false;
-      if (attendanceStatusFilter === 'ABSENT' && rec.status !== 'ABSENT') return false;
-      if (attendanceStatusFilter === 'LEAVE' && rec.status !== 'LEAVE') return false;
+      if (attendanceStatusFilter === 'EXCEPTIONS' && attendanceRecord.status === 'PRESENT') return false;
+      if (attendanceStatusFilter === 'PRESENT' && attendanceRecord.status !== 'PRESENT') return false;
+      if (attendanceStatusFilter === 'ABSENT' && attendanceRecord.status !== 'ABSENT') return false;
+      if (attendanceStatusFilter === 'LEAVE' && attendanceRecord.status !== 'LEAVE') return false;
 
       // 2. Search Query (GR #, Roll #, or Student Name)
       if (attendanceSearchQuery.trim()) {
         const query = attendanceSearchQuery.trim().toLowerCase();
-        const nameMatch = (rec.fullName || '').toLowerCase().includes(query);
-        const grMatch = String(rec.grNumber || '').toLowerCase().includes(query);
-        const rollMatch = String(rec.rollNumber || '').toLowerCase().includes(query);
+        const nameMatch = (attendanceRecord.fullName || '').toLowerCase().includes(query);
+        const grMatch = String(attendanceRecord.grNumber || '').toLowerCase().includes(query);
+        const rollMatch = String(attendanceRecord.rollNumber || '').toLowerCase().includes(query);
         return nameMatch || grMatch || rollMatch;
       }
       return true;
@@ -258,20 +258,20 @@ export const TeacherDashboard = () => {
   // ─── Handlers: Attendance ──────────────────────────────────────────────────
   const handleResetAllToPresent = () => {
     setLocalAttendanceRecords((prev) =>
-      prev.map((rec) => ({ ...rec, status: 'PRESENT' }))
+      prev.map((attendanceRecord) => ({ ...attendanceRecord, status: 'PRESENT' }))
     );
     toast.success('All students reset to Present.');
   };
 
   const handleUpdateRecordStatus = (studentProfileId, newStatus) => {
     setLocalAttendanceRecords((prev) =>
-      prev.map((rec) => (rec.studentProfileId === studentProfileId ? { ...rec, status: newStatus } : rec))
+      prev.map((attendanceRecord) => (attendanceRecord.studentProfileId === studentProfileId ? { ...attendanceRecord, status: newStatus } : attendanceRecord))
     );
   };
 
   const handleUpdateRecordRemarks = (studentProfileId, newRemarks) => {
     setLocalAttendanceRecords((prev) =>
-      prev.map((rec) => (rec.studentProfileId === studentProfileId ? { ...rec, remarks: newRemarks } : rec))
+      prev.map((attendanceRecord) => (attendanceRecord.studentProfileId === studentProfileId ? { ...attendanceRecord, remarks: newRemarks } : attendanceRecord))
     );
   };
 
@@ -287,17 +287,17 @@ export const TeacherDashboard = () => {
 
     try {
       const absentStudentProfileIds = localAttendanceRecords
-        .filter((r) => r.status === 'ABSENT')
-        .map((r) => r.studentProfileId);
+        .filter((attendanceRecord) => attendanceRecord.status === 'ABSENT')
+        .map((attendanceRecord) => attendanceRecord.studentProfileId);
       const leaveStudentProfileIds = localAttendanceRecords
-        .filter((r) => r.status === 'LEAVE')
-        .map((r) => r.studentProfileId);
+        .filter((attendanceRecord) => attendanceRecord.status === 'LEAVE')
+        .map((attendanceRecord) => attendanceRecord.studentProfileId);
       const recordsWithRemarks = localAttendanceRecords
-        .filter((r) => r.remarks && r.remarks.trim().length > 0)
-        .map((r) => ({
-          studentProfileId: r.studentProfileId,
-          status: r.status,
-          remarks: r.remarks.trim(),
+        .filter((attendanceRecord) => attendanceRecord.remarks && attendanceRecord.remarks.trim().length > 0)
+        .map((attendanceRecord) => ({
+          studentProfileId: attendanceRecord.studentProfileId,
+          status: attendanceRecord.status,
+          remarks: attendanceRecord.remarks.trim(),
         }));
 
       // Lightweight exception payload: server derives PRESENT for all other active students
@@ -311,8 +311,8 @@ export const TeacherDashboard = () => {
       await dispatch(submitStudentAttendance(payload)).unwrap();
       toast.success(`Attendance submitted: ${presentStudentsCount} Present, ${absentStudentsCount} Absent, ${leaveStudentsCount} Leave.`);
       dispatch(fetchTeacherSummary());
-    } catch (err) {
-      toast.error(err || 'Failed to submit attendance.');
+    } catch (errorObject) {
+      toast.error(errorObject || 'Failed to submit attendance.');
     }
   };
 
@@ -322,7 +322,7 @@ export const TeacherDashboard = () => {
       toast.error('Please select both Examination and Class Section.');
       return;
     }
-    const sec = assignedSections.find((s) => String(s._id) === String(selectedExamSectionId));
+    const sec = assignedSections.find((sectionItem) => String(s._id) === String(selectedExamSectionId));
     const classId = sec?.class?._id || sec?.class;
     dispatch(fetchExamMarksRoster({
       examId: selectedExamId,
@@ -356,7 +356,7 @@ export const TeacherDashboard = () => {
       toast.error('Exam and Section must be selected.');
       return;
     }
-    const sec = assignedSections.find((s) => String(s._id) === String(selectedExamSectionId));
+    const sec = assignedSections.find((sectionItem) => String(s._id) === String(selectedExamSectionId));
     const classId = sec?.class?._id || sec?.class;
 
     try {
@@ -401,19 +401,19 @@ export const TeacherDashboard = () => {
       })).unwrap();
 
       toast.success('Exam marks submitted successfully!');
-    } catch (err) {
-      toast.error(err || 'Failed to submit exam marks.');
+    } catch (errorObject) {
+      toast.error(errorObject || 'Failed to submit exam marks.');
     }
   };
 
   // ─── Handlers: Homework ────────────────────────────────────────────────────
-  const handleCreateHomework = async (e) => {
-    e.preventDefault();
+  const handleCreateHomework = async (submitEvent) => {
+    submitEvent.preventDefault();
     if (!newHwSectionId || !newHwSubjectId || !newHwTitle || !newHwDueDate) {
       toast.error('Please fill all required homework fields.');
       return;
     }
-    const sec = assignedSections.find((s) => String(s._id) === String(newHwSectionId));
+    const sec = assignedSections.find((sectionItem) => String(s._id) === String(newHwSectionId));
     const classId = sec?.class?._id || sec?.class;
 
     try {
@@ -432,8 +432,8 @@ export const TeacherDashboard = () => {
       setNewHwDescription('');
       setNewHwDueDate('');
       dispatch(fetchMyHomework());
-    } catch (err) {
-      toast.error(err || 'Failed to assign homework.');
+    } catch (errorObject) {
+      toast.error(errorObject || 'Failed to assign homework.');
     }
   };
 
@@ -443,8 +443,8 @@ export const TeacherDashboard = () => {
       await dispatch(cancelHomework(homeworkId)).unwrap();
       toast.success('Homework cancelled.');
       dispatch(fetchMyHomework());
-    } catch (err) {
-      toast.error(err || 'Failed to cancel homework.');
+    } catch (errorObject) {
+      toast.error(errorObject || 'Failed to cancel homework.');
     }
   };
 
@@ -560,13 +560,13 @@ export const TeacherDashboard = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {assignedSections.map((sec) => {
+              {assignedSections.map((sectionItem) => {
                 const isCT = sec.isClassTeacher;
                 const subjects = sec.assignedSubjects || [];
                 const att = sec.todayAttendance;
                 return (
                   <div
-                    key={String(sec._id)}
+                    key={String(sectionItem._id)}
                     className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm hover:border-[#006AC7]/40 hover:shadow-md transition-all flex flex-col justify-between"
                   >
                     <div>
@@ -575,7 +575,7 @@ export const TeacherDashboard = () => {
                           <span className="text-xs font-bold text-[#006AC7] uppercase tracking-wide">
                             {sec.class?.name || 'Class'}
                           </span>
-                          <h3 className="text-xl font-black text-[#102033] mt-0.5">Section {sec.name}</h3>
+                          <h3 className="text-xl font-black text-[#102033] mt-0.5">Section {sectionItem.name}</h3>
                           {sec.roomNumber && (
                             <p className="text-xs text-[#8094A8] mt-0.5">Room {sec.roomNumber}</p>
                           )}
@@ -608,7 +608,7 @@ export const TeacherDashboard = () => {
                                 key={idx}
                                 className="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-medium border border-slate-200"
                               >
-                                {sub.name}
+                                {subjectItem.name}
                               </span>
                             ))
                           ) : (
@@ -638,7 +638,7 @@ export const TeacherDashboard = () => {
                     <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
                       <button
                         onClick={() => {
-                          setSelectedAttendanceSectionId(String(sec._id));
+                          setSelectedAttendanceSectionId(String(sectionItem._id));
                           setActiveTab('ATTENDANCE');
                         }}
                         className="py-2 px-3 rounded-xl bg-[#006AC7] hover:bg-[#00529B] text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm"
@@ -682,12 +682,12 @@ export const TeacherDashboard = () => {
                   <label className="block text-xs font-bold text-[#526477] mb-1">Section</label>
                   <select
                     value={selectedAttendanceSectionId}
-                    onChange={(e) => setSelectedAttendanceSectionId(e.target.value)}
+                    onChange={(changeEvent) => setSelectedAttendanceSectionId(changeEvent.target.value)}
                     className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-[#102033] focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
                   >
-                    {assignedSections.map((sec) => (
-                      <option key={String(sec._id)} value={String(sec._id)}>
-                        {sec.class?.name} - Section {sec.name} ({sec.studentCount} students)
+                    {assignedSections.map((sectionItem) => (
+                      <option key={String(sectionItem._id)} value={String(sectionItem._id)}>
+                        {sec.class?.name} - Section {sectionItem.name} ({sec.studentCount} students)
                       </option>
                     ))}
                   </select>
@@ -698,7 +698,7 @@ export const TeacherDashboard = () => {
                     type="date"
                     value={attendanceDate}
                     max={new Date().toISOString().split('T')[0]}
-                    onChange={(e) => setAttendanceDate(e.target.value)}
+                    onChange={(changeEvent) => setAttendanceDate(changeEvent.target.value)}
                     className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-[#102033] focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
                   />
                 </div>
@@ -738,7 +738,7 @@ export const TeacherDashboard = () => {
                   type="text"
                   placeholder="Search by GR #, Roll # or Student Name…"
                   value={attendanceSearchQuery}
-                  onChange={(e) => setAttendanceSearchQuery(e.target.value)}
+                  onChange={(changeEvent) => setAttendanceSearchQuery(changeEvent.target.value)}
                   className="w-full pl-9 pr-8 py-2 rounded-xl border border-slate-200 text-xs font-medium text-[#102033] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
                 />
                 {attendanceSearchQuery && (
@@ -921,13 +921,13 @@ export const TeacherDashboard = () => {
                   <label className="block text-xs font-bold text-[#526477] mb-1">Select Exam</label>
                   <select
                     value={selectedExamId}
-                    onChange={(e) => setSelectedExamId(e.target.value)}
+                    onChange={(changeEvent) => setSelectedExamId(changeEvent.target.value)}
                     className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-[#102033] focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
                   >
                     <option value="">-- Choose Exam --</option>
-                    {examsList.map((ex) => (
-                      <option key={String(ex._id)} value={String(ex._id)}>
-                        {ex.title} ({ex.status})
+                    {examsList.map((examItem) => (
+                      <option key={String(examItem._id)} value={String(examItem._id)}>
+                        {examItem.title} ({examItem.status})
                       </option>
                     ))}
                   </select>
@@ -937,16 +937,16 @@ export const TeacherDashboard = () => {
                   <label className="block text-xs font-bold text-[#526477] mb-1">Select Section</label>
                   <select
                     value={selectedExamSectionId}
-                    onChange={(e) => {
-                      setSelectedExamSectionId(e.target.value);
+                    onChange={(changeEvent) => {
+                      setSelectedExamSectionId(changeEvent.target.value);
                       setSelectedExamSubjectId('');
                     }}
                     className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-[#102033] focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
                   >
                     <option value="">-- Choose Section --</option>
-                    {assignedSections.map((sec) => (
-                      <option key={String(sec._id)} value={String(sec._id)}>
-                        {sec.class?.name} - {sec.name} {sec.isClassTeacher ? '(Class Teacher)' : ''}
+                    {assignedSections.map((sectionItem) => (
+                      <option key={String(sectionItem._id)} value={String(sectionItem._id)}>
+                        {sec.class?.name} - {sectionItem.name} {sec.isClassTeacher ? '(Class Teacher)' : ''}
                       </option>
                     ))}
                   </select>
@@ -956,16 +956,16 @@ export const TeacherDashboard = () => {
                   <label className="block text-xs font-bold text-[#526477] mb-1">Select Subject</label>
                   <select
                     value={selectedExamSubjectId}
-                    onChange={(e) => setSelectedExamSubjectId(e.target.value)}
+                    onChange={(changeEvent) => setSelectedExamSubjectId(changeEvent.target.value)}
                     className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-[#102033] focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
                   >
                     <option value="">-- Single Subject (or Multi if CT) --</option>
                     {(() => {
-                      const sec = assignedSections.find((s) => String(s._id) === String(selectedExamSectionId));
+                      const sec = assignedSections.find((sectionItem) => String(s._id) === String(selectedExamSectionId));
                       const subs = sec?.assignedSubjects || [];
-                      return subs.map((sub) => (
-                        <option key={String(sub._id)} value={String(sub._id)}>
-                          {sub.name} ({sub.code || 'SUB'})
+                      return subs.map((subjectItem) => (
+                        <option key={String(subjectItem._id)} value={String(subjectItem._id)}>
+                          {subjectItem.name} ({sub.code || 'SUB'})
                         </option>
                       ));
                     })()}
@@ -1049,11 +1049,11 @@ export const TeacherDashboard = () => {
                                   min="0"
                                   max="20"
                                   value={entry.subComponents?.nazra ?? ''}
-                                  onChange={(e) =>
+                                  onChange={(changeEvent) =>
                                     handleUpdateMarksEntry(
                                       entry.studentId,
                                       'subComponents.nazra',
-                                      e.target.value
+                                      changeEvent.target.value
                                     )
                                   }
                                   placeholder="0-20"
@@ -1066,11 +1066,11 @@ export const TeacherDashboard = () => {
                                   min="0"
                                   max="80"
                                   value={entry.subComponents?.written ?? ''}
-                                  onChange={(e) =>
+                                  onChange={(changeEvent) =>
                                     handleUpdateMarksEntry(
                                       entry.studentId,
                                       'subComponents.written',
-                                      e.target.value
+                                      changeEvent.target.value
                                     )
                                   }
                                   placeholder="0-80"
@@ -1088,14 +1088,14 @@ export const TeacherDashboard = () => {
                             <td className="py-3 px-2">
                               <select
                                 value={entry.letterGrade || 'A'}
-                                onChange={(e) =>
-                                  handleUpdateMarksEntry(entry.studentId, 'letterGrade', e.target.value)
+                                onChange={(changeEvent) =>
+                                  handleUpdateMarksEntry(entry.studentId, 'letterGrade', changeEvent.target.value)
                                 }
                                 className="px-3 py-1 rounded-lg border border-slate-200 text-xs font-bold text-[#006AC7] focus:outline-none"
                               >
-                                {['A+', 'A', 'B', 'C', 'D', 'FAIL'].map((g) => (
-                                  <option key={g} value={g}>
-                                    Grade {g}
+                                {['A+', 'A', 'B', 'C', 'D', 'FAIL'].map((gradeOption) => (
+                                  <option key={gradeOption} value={gradeOption}>
+                                    Grade {gradeOption}
                                   </option>
                                 ))}
                               </select>
@@ -1111,11 +1111,11 @@ export const TeacherDashboard = () => {
                                   min="0"
                                   max={max}
                                   value={entry.obtainedMarks ?? ''}
-                                  onChange={(e) =>
+                                  onChange={(changeEvent) =>
                                     handleUpdateMarksEntry(
                                       entry.studentId,
                                       'obtainedMarks',
-                                      e.target.value
+                                      changeEvent.target.value
                                     )
                                   }
                                   placeholder="Marks"
@@ -1133,8 +1133,8 @@ export const TeacherDashboard = () => {
                               type="text"
                               placeholder="Academic / conduct remarks"
                               value={entry.remarks ?? ''}
-                              onChange={(e) =>
-                                handleUpdateMarksEntry(entry.studentId, 'remarks', e.target.value)
+                              onChange={(changeEvent) =>
+                                handleUpdateMarksEntry(entry.studentId, 'remarks', changeEvent.target.value)
                               }
                               className="w-48 px-2.5 py-1 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
                             />
@@ -1202,34 +1202,34 @@ export const TeacherDashboard = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {homeworkList.map((hw) => (
+              {homeworkList.map((homeworkItem) => (
                 <div
-                  key={String(hw._id)}
+                  key={String(homeworkItem._id)}
                   className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-start justify-between gap-3 mb-2">
                       <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-[#006AC7] border border-blue-200">
-                        {hw.subjectId?.name || 'Subject'}
+                        {homeworkItem.subjectId?.name || 'Subject'}
                       </span>
                       <span className="text-xs font-semibold text-[#8094A8]">
-                        Due: {fmtDate(hw.dueDate)}
+                        Due: {fmtDate(homeworkItem.dueDate)}
                       </span>
                     </div>
 
-                    <h3 className="text-base font-bold text-[#102033] mt-2">{hw.title}</h3>
-                    <p className="text-xs text-[#526477] mt-1 line-clamp-3">{hw.description}</p>
+                    <h3 className="text-base font-bold text-[#102033] mt-2">{homeworkItem.title}</h3>
+                    <p className="text-xs text-[#526477] mt-1 line-clamp-3">{homeworkItem.description}</p>
 
                     <div className="mt-3 text-xs text-[#8094A8] font-medium">
-                      <span>{hw.classId?.name} · Section {hw.sectionId?.name}</span>
+                      <span>{homeworkItem.classId?.name} · Section {homeworkItem.sectionId?.name}</span>
                     </div>
                   </div>
 
                   <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <span className="text-[#8094A8]">Posted {fmtDate(hw.createdAt)}</span>
+                    <span className="text-[#8094A8]">Posted {fmtDate(homeworkItem.createdAt)}</span>
                     <button
                       type="button"
-                      onClick={() => handleCancelHomework(hw._id)}
+                      onClick={() => handleCancelHomework(homeworkItem._id)}
                       className="text-rose-600 hover:text-rose-800 font-bold flex items-center gap-1 transition"
                     >
                       <Trash2 className="w-3.5 h-3.5" /> Cancel Task
@@ -1262,24 +1262,24 @@ export const TeacherDashboard = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {circularsList.map((doc) => (
+              {circularsList.map((documentItem) => (
                 <div
-                  key={String(doc._id)}
+                  key={String(documentItem._id)}
                   className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1.5">
                       <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
-                        {doc.category || 'NOTICE'}
+                        {documentItem.category || 'NOTICE'}
                       </span>
-                      <span className="text-xs text-[#8094A8]">{fmtDate(doc.createdAt)}</span>
+                      <span className="text-xs text-[#8094A8]">{fmtDate(documentItem.createdAt)}</span>
                     </div>
-                    <h3 className="text-base font-bold text-[#102033]">{doc.title}</h3>
-                    <p className="text-xs text-[#526477] mt-1">{doc.description || doc.content}</p>
+                    <h3 className="text-base font-bold text-[#102033]">{documentItem.title}</h3>
+                    <p className="text-xs text-[#526477] mt-1">{documentItem.description || documentItem.content}</p>
                   </div>
-                  {doc.fileUrl && (
+                  {documentItem.fileUrl && (
                     <a
-                      href={doc.fileUrl}
+                      href={documentItem.fileUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200 flex items-center gap-1.5 transition"
@@ -1478,17 +1478,17 @@ export const TeacherDashboard = () => {
                 <label className="block font-bold text-[#526477] mb-1">Class Section *</label>
                 <select
                   value={newHwSectionId}
-                  onChange={(e) => {
-                    setNewHwSectionId(e.target.value);
+                  onChange={(changeEvent) => {
+                    setNewHwSectionId(changeEvent.target.value);
                     setNewHwSubjectId('');
                   }}
                   required
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
                 >
                   <option value="">-- Choose Section --</option>
-                  {assignedSections.map((sec) => (
-                    <option key={String(sec._id)} value={String(sec._id)}>
-                      {sec.class?.name} - Section {sec.name}
+                  {assignedSections.map((sectionItem) => (
+                    <option key={String(sectionItem._id)} value={String(sectionItem._id)}>
+                      {sec.class?.name} - Section {sectionItem.name}
                     </option>
                   ))}
                 </select>
@@ -1498,16 +1498,16 @@ export const TeacherDashboard = () => {
                 <label className="block font-bold text-[#526477] mb-1">Subject *</label>
                 <select
                   value={newHwSubjectId}
-                  onChange={(e) => setNewHwSubjectId(e.target.value)}
+                  onChange={(changeEvent) => setNewHwSubjectId(changeEvent.target.value)}
                   required
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
                 >
                   <option value="">-- Choose Subject --</option>
                   {(() => {
-                    const sec = assignedSections.find((s) => String(s._id) === String(newHwSectionId));
-                    return (sec?.assignedSubjects || []).map((sub) => (
-                      <option key={String(sub._id)} value={String(sub._id)}>
-                        {sub.name}
+                    const sec = assignedSections.find((sectionItem) => String(s._id) === String(newHwSectionId));
+                    return (sectionItem?.assignedSubjects || []).map((subjectItem) => (
+                      <option key={String(subjectItem._id)} value={String(subjectItem._id)}>
+                        {subjectItem.name}
                       </option>
                     ));
                   })()}
@@ -1520,7 +1520,7 @@ export const TeacherDashboard = () => {
                   type="text"
                   placeholder="e.g. Chapter 4 Exercise Questions"
                   value={newHwTitle}
-                  onChange={(e) => setNewHwTitle(e.target.value)}
+                  onChange={(changeEvent) => setNewHwTitle(changeEvent.target.value)}
                   required
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
                 />
@@ -1532,7 +1532,7 @@ export const TeacherDashboard = () => {
                   rows="3"
                   placeholder="Provide specific exercises, page numbers, or guidelines..."
                   value={newHwDescription}
-                  onChange={(e) => setNewHwDescription(e.target.value)}
+                  onChange={(changeEvent) => setNewHwDescription(changeEvent.target.value)}
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
                 />
               </div>
@@ -1543,7 +1543,7 @@ export const TeacherDashboard = () => {
                   type="date"
                   min={new Date().toISOString().split('T')[0]}
                   value={newHwDueDate}
-                  onChange={(e) => setNewHwDueDate(e.target.value)}
+                  onChange={(changeEvent) => setNewHwDueDate(changeEvent.target.value)}
                   required
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
                 />

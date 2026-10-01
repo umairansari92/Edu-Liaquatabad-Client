@@ -59,13 +59,13 @@ export const PendingApprovalsPage = () => {
     fetchPendingList();
   }, [activeTab]);
 
-  const handleInspect = async (item) => {
-    setSelectedApplicant(item);
+  const handleInspect = async (approvalItem) => {
+    setSelectedApplicant(approvalItem);
     setDetailLoading(true);
     try {
-      const res = await apiClient.get(`/approvals/${item.userId}/detail`);
-      if (res.data?.success && res.data?.data) {
-        setApplicantDetail(res.data.data);
+      const response = await apiClient.get(`/approvals/${approvalItem.userId}/detail`);
+      if (response.data?.success && response.data?.data) {
+        setApplicantDetail(response.data.data);
       }
     } catch (detailInspectionError) {
       toast.error('Failed to fetch detailed profile inspection.');
@@ -111,14 +111,14 @@ export const PendingApprovalsPage = () => {
     }
   };
 
-  const filteredItems = items.filter((item) => {
+  const filteredItems = items.filter((approvalItem) => {
     const query = searchQuery.toLowerCase();
     return (
-      item.fullName?.toLowerCase().includes(query) ||
-      item.email?.toLowerCase().includes(query) ||
-      item.employeeId?.toLowerCase().includes(query) ||
-      item.claimedSchool?.name?.toLowerCase().includes(query) ||
-      item.designation?.toLowerCase().includes(query)
+      approvalItem.fullName?.toLowerCase().includes(query) ||
+      approvalItem.email?.toLowerCase().includes(query) ||
+      approvalItem.employeeId?.toLowerCase().includes(query) ||
+      approvalItem.claimedSchool?.name?.toLowerCase().includes(query) ||
+      approvalItem.designation?.toLowerCase().includes(query)
     );
   });
 
@@ -217,14 +217,14 @@ export const PendingApprovalsPage = () => {
                   </td>
                 </tr>
               ) : (
-                filteredItems.map((item) => (
-                  <tr key={item.userId} className="hover:bg-blue-50/40 transition-colors">
+                filteredItems.map((approvalItem) => (
+                  <tr key={approvalItem.userId} className="hover:bg-blue-50/40 transition-colors">
                     <td className="py-3.5 px-4 font-bold text-[#102033]">
-                      <div>{item.fullName}</div>
-                      <div className="text-[10px] text-[#526477] font-normal">{item.email}</div>
+                      <div>{approvalItem.fullName}</div>
+                      <div className="text-[10px] text-[#526477] font-normal">{approvalItem.email}</div>
                     </td>
                     <td className="py-3.5 px-4 font-mono font-bold text-[#006AC7]">
-                      {item.employeeId || item.grNumber || 'N/A'}
+                      {approvalItem.employeeId || approvalItem.grNumber || 'N/A'}
                     </td>
                     <td className="py-3.5 px-4">
                       <span className="px-2.5 py-0.5 rounded-md bg-slate-100 text-[#102033] border border-slate-200 text-[11px] font-bold">

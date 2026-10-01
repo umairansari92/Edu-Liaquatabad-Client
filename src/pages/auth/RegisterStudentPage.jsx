@@ -198,7 +198,7 @@ export const RegisterStudentPage = () => {
   const watchedSchoolId = formA.watch('schoolId');
   const watchedFormAValues = formA.watch();
 
-  const selectedSchool = schools.find((s) => String(s._id) === String(watchedSchoolId));
+  const selectedSchool = schools.find((schoolItem) => String(schoolItem._id) === String(watchedSchoolId));
   const availableGrades = (selectedSchool?.schoolType && GRADE_TIERS[selectedSchool.schoolType])
     ? GRADE_TIERS[selectedSchool.schoolType]
     : GRADE_TIERS.ALL;
@@ -551,12 +551,12 @@ export const RegisterStudentPage = () => {
                     { step: 3, label: 'Academic', icon: School },
                     { step: 4, label: 'Security', icon: Lock },
                     { step: 5, label: 'Review', icon: FileText },
-                  ].map((item) => {
-                    const Icon = item.icon;
-                    const isCompleted = wizardStep > item.step;
-                    const isCurrent = wizardStep === item.step;
+                  ].map((stepConfig) => {
+                    const Icon = stepConfig.icon;
+                    const isCompleted = wizardStep > stepConfig.step;
+                    const isCurrent = wizardStep === stepConfig.step;
                     return (
-                      <div key={item.step} className="relative z-10 flex flex-col items-center">
+                      <div key={stepConfig.step} className="relative z-10 flex flex-col items-center">
                         <div
                           className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold transition-all ${
                             isCompleted
@@ -621,7 +621,7 @@ export const RegisterStudentPage = () => {
                         <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 inline-block w-full sm:w-auto">
                           <CnicSegmentedInput
                             value={formA.watch('bFormNumber')}
-                            onChange={(val) => formA.setValue('bFormNumber', val, { shouldValidate: true })}
+                            onChange={(cnicValue) => formA.setValue('bFormNumber', cnicValue, { shouldValidate: true })}
                             hasError={!!formA.formState.errors.bFormNumber}
                           />
                         </div>
@@ -768,7 +768,7 @@ export const RegisterStudentPage = () => {
                         <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 inline-block w-full sm:w-auto">
                           <CnicSegmentedInput
                             value={formA.watch('guardianCnicNumber')}
-                            onChange={(val) => formA.setValue('guardianCnicNumber', val, { shouldValidate: true })}
+                            onChange={(cnicValue) => formA.setValue('guardianCnicNumber', cnicValue, { shouldValidate: true })}
                             hasError={!!formA.formState.errors.guardianCnicNumber}
                           />
                         </div>
@@ -1204,7 +1204,7 @@ export const RegisterStudentPage = () => {
                       <div className="flex justify-between">
                         <span className="text-slate-500">Target School:</span>
                         <span className="font-medium text-[#102033]">
-                          {selectedSchool?.name || schools.find((s) => s._id === watchedFormAValues.schoolId)?.name || 'Selected School'}
+                          {selectedSchool?.name || schools.find((schoolItem) => schoolItem._id === watchedFormAValues.schoolId)?.name || 'Selected School'}
                           {selectedSchool?.schoolType && ` (${SCHOOL_TYPE_LABELS[selectedSchool.schoolType] || selectedSchool.schoolType})`}
                         </span>
                       </div>

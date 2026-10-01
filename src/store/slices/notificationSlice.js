@@ -110,7 +110,7 @@ const notificationSlice = createSlice({
       // Mark single read
       .addCase(markNotificationAsRead.fulfilled, (state, action) => {
         const id = action.payload;
-        const target = state.notifications.find((n) => n._id === id);
+        const target = state.notifications.find((notificationItem) => notificationItem._id === id);
         if (target && !target.isRead) {
           target.isRead = true;
           state.unreadCount = Math.max(0, state.unreadCount - 1);
@@ -119,8 +119,8 @@ const notificationSlice = createSlice({
 
       // Mark all read
       .addCase(markAllNotificationsAsRead.fulfilled, (state) => {
-        state.notifications.forEach((n) => {
-          n.isRead = true;
+        state.notifications.forEach((notificationItem) => {
+          notificationItem.isRead = true;
         });
         state.unreadCount = 0;
       })
@@ -133,16 +133,16 @@ const notificationSlice = createSlice({
         state.actionLoading = false;
         const { requestId, decision } = action.payload;
         // Update any notification referencing this accessRequestId
-        state.notifications.forEach((n) => {
-          if (n.metadata?.accessRequestId === requestId || n._id === requestId) {
-            n.metadata = {
-              ...n.metadata,
+        state.notifications.forEach((notificationItem) => {
+          if (notificationItem.metadata?.accessRequestId === requestId || notificationItem._id === requestId) {
+            notificationItem.metadata = {
+              ...notificationItem.metadata,
               status: decision === 'ALLOW' ? 'APPROVED' : 'DENIED',
             };
-            n.isRead = true;
+            notificationItem.isRead = true;
           }
         });
-        state.unreadCount = state.notifications.filter((n) => !n.isRead).length;
+        state.unreadCount = state.notifications.filter((notificationItem) => !notificationItem.isRead).length;
       })
       .addCase(respondToAccessRequest.rejected, (state, action) => {
         state.actionLoading = false;

@@ -193,20 +193,20 @@ export const SupervisorDashboard = () => {
   // Filtered Schools List
   const filteredSchools = useMemo(() => {
     if (!schoolSearchQuery.trim()) return assignedSchools;
-    const q = schoolSearchQuery.toLowerCase();
+    const lowerSearchQuery = schoolSearchQuery.toLowerCase();
     return assignedSchools.filter(
-      (s) =>
-        s.name?.toLowerCase().includes(q) ||
-        s.schoolCode?.toLowerCase().includes(q) ||
-        s.emisCode?.toLowerCase().includes(q) ||
-        s.address?.toLowerCase().includes(q)
+      (schoolItem) =>
+        schoolItem.name?.toLowerCase().includes(lowerSearchQuery) ||
+        schoolItem.schoolCode?.toLowerCase().includes(lowerSearchQuery) ||
+        schoolItem.emisCode?.toLowerCase().includes(lowerSearchQuery) ||
+        schoolItem.address?.toLowerCase().includes(lowerSearchQuery)
     );
   }, [assignedSchools, schoolSearchQuery]);
 
   // Filtered Inspections List
   const filteredInspections = useMemo(() => {
     if (inspectionFilterStatus === 'ALL') return inspections;
-    return inspections.filter((insp) => insp.status === inspectionFilterStatus);
+    return inspections.filter((inspectionRecord) => inspectionRecord.status === inspectionFilterStatus);
   }, [inspections, inspectionFilterStatus]);
 
   // Filtered Faculty List
@@ -256,8 +256,8 @@ export const SupervisorDashboard = () => {
   };
 
   // Submit New Inspection
-  const handleSubmitNewInspection = (e) => {
-    e.preventDefault();
+  const handleSubmitNewInspection = (submitEvent) => {
+    submitEvent.preventDefault();
     if (!newInspectionForm.schoolId) {
       toast.error('Please select an assigned school to inspect.');
       return;
@@ -296,7 +296,7 @@ export const SupervisorDashboard = () => {
 
   // Calculations for KPI Summary
   const pendingActionsCount = useMemo(() => {
-    return inspections.filter((insp) => insp.status === 'ACTION_REQUIRED').length;
+    return inspections.filter((inspectionRecord) => inspectionRecord.status === 'ACTION_REQUIRED').length;
   }, [inspections]);
 
   const clusterAverageAttendance = useMemo(() => {
@@ -472,7 +472,7 @@ export const SupervisorDashboard = () => {
                   type="text"
                   placeholder="Search by school name, code..."
                   value={schoolSearchQuery}
-                  onChange={(e) => setSchoolSearchQuery(e.target.value)}
+                  onChange={(changeEvent) => setSchoolSearchQuery(changeEvent.target.value)}
                   className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-[#006AC7] focus:outline-hidden"
                 />
               </div>
@@ -598,15 +598,15 @@ export const SupervisorDashboard = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {filteredInspections.map((insp) => (
-                      <tr key={insp._id} className="hover:bg-slate-50/80 transition-colors">
+                    {filteredInspections.map((inspectionRecord) => (
+                      <tr key={inspectionRecord._id} className="hover:bg-slate-50/80 transition-colors">
                         <td className="py-3.5 px-4 font-semibold text-slate-900">
-                          {fmtDate(insp.inspectionDate)}
+                          {fmtDate(inspectionRecord.inspectionDate)}
                         </td>
                         <td className="py-3.5 px-4">
-                          <p className="font-bold text-slate-900">{insp.schoolId?.name || 'School'}</p>
+                          <p className="font-bold text-slate-900">{inspectionRecord.schoolId?.name || 'School'}</p>
                           <p className="text-[11px] text-slate-400 font-mono">
-                            {insp.schoolId?.schoolCode || 'CODE'} • {insp.schoolId?.emisCode || 'EMIS'}
+                            {inspectionRecord.schoolId?.schoolCode || 'CODE'} • {inspectionRecord.schoolId?.emisCode || 'EMIS'}
                           </p>
                         </td>
                         <td className="py-3.5 px-4 text-slate-600 font-mono text-[11px]">
@@ -715,19 +715,19 @@ export const SupervisorDashboard = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {assignedSchools.map((sch) => {
+                  {assignedSchools.map((schoolItem) => {
                     // Try to match from clusterAttendance ranking if available
                     const matchedRanking = (clusterAttendance?.schoolRankings || []).find(
-                      (r) => String(r.schoolId) === String(sch._id)
+                      (rankingRecord) => String(rankingRecord.schoolId) === String(schoolItem._id)
                     );
                     const currPct = matchedRanking ? matchedRanking.currentMonthPct : 88.0;
                     const sessPct = matchedRanking ? matchedRanking.overallSessionPct : 89.1;
                     const isDeficient = currPct < 75;
 
                     return (
-                      <tr key={sch._id} className="hover:bg-slate-50/80 transition-colors">
+                      <tr key={schoolItem._id} className="hover:bg-slate-50/80 transition-colors">
                         <td className="py-3.5 px-4">
-                          <p className="font-bold text-slate-900">{sch.name}</p>
+                          <p className="font-bold text-slate-900">{schoolItem.name}</p>
                           <p className="text-[11px] text-slate-400 font-mono">{sch.schoolCode}</p>
                         </td>
                         <td className="py-3.5 px-4 font-bold text-slate-800">{currPct}%</td>
@@ -748,7 +748,7 @@ export const SupervisorDashboard = () => {
                         </td>
                         <td className="py-3.5 px-4 text-right">
                           <button
-                            onClick={() => handleOpenSchoolDetail(sch._id)}
+                            onClick={() => handleOpenSchoolDetail(schoolItem._id)}
                             className="px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-[#006AC7] font-semibold text-xs transition-all shadow-2xs"
                           >
                             Analyze
@@ -781,13 +781,13 @@ export const SupervisorDashboard = () => {
               <div className="flex flex-wrap items-center gap-2">
                 <select
                   value={facultySchoolFilter}
-                  onChange={(e) => setFacultySchoolFilter(e.target.value)}
+                  onChange={(changeEvent) => setFacultySchoolFilter(changeEvent.target.value)}
                   className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-[#006AC7] focus:outline-hidden"
                 >
                   <option value="ALL">All Cluster Schools</option>
-                  {assignedSchools.map((s) => (
-                    <option key={s._id} value={s._id}>
-                      {s.name}
+                  {assignedSchools.map((schoolItem) => (
+                    <option key={schoolItem._id} value={schoolItem._id}>
+                      {schoolItem.name}
                     </option>
                   ))}
                 </select>
@@ -798,7 +798,7 @@ export const SupervisorDashboard = () => {
                     type="text"
                     placeholder="Search faculty name, CNIC..."
                     value={facultySearchQuery}
-                    onChange={(e) => setFacultySearchQuery(e.target.value)}
+                    onChange={(changeEvent) => setFacultySearchQuery(changeEvent.target.value)}
                     className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-[#006AC7] focus:outline-hidden"
                   />
                 </div>
@@ -891,27 +891,27 @@ export const SupervisorDashboard = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {transfers.map((tx) => (
-                      <tr key={tx._id} className="hover:bg-slate-50/80 transition-colors">
+                    {transfers.map((transferRecord) => (
+                      <tr key={transferRecord._id} className="hover:bg-slate-50/80 transition-colors">
                         <td className="py-3.5 px-4 font-semibold text-slate-900">
-                          {fmtDate(tx.createdAt)}
+                          {fmtDate(transferRecord.createdAt)}
                         </td>
                         <td className="py-3.5 px-4 font-bold text-slate-900">
-                          {tx.teacherId?.fullName || 'Teacher'}
+                          {transferRecord.teacherId?.fullName || 'Teacher'}
                         </td>
                         <td className="py-3.5 px-4 text-slate-700">
-                          {tx.fromSchoolId?.name || 'Current School'}
+                          {transferRecord.fromSchoolId?.name || 'Current School'}
                         </td>
                         <td className="py-3.5 px-4 text-slate-700">
-                          {tx.toSchoolId?.name || 'Target School'}
+                          {transferRecord.toSchoolId?.name || 'Target School'}
                         </td>
                         <td className="py-3.5 px-4">
                           <span
                             className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${getStatusBadge(
-                              tx.status
+                              transferRecord.status
                             )}`}
                           >
-                            {tx.status}
+                            {transferRecord.status}
                           </span>
                         </td>
                       </tr>
@@ -957,16 +957,16 @@ export const SupervisorDashboard = () => {
                   <label className="block font-bold text-slate-700 mb-1">Target Assigned School *</label>
                   <select
                     value={newInspectionForm.schoolId}
-                    onChange={(e) =>
-                      setNewInspectionForm((prev) => ({ ...prev, schoolId: e.target.value }))
+                    onChange={(changeEvent) =>
+                      setNewInspectionForm((prev) => ({ ...prev, schoolId: changeEvent.target.value }))
                     }
                     className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-[#006AC7] focus:outline-hidden"
                     required
                   >
                     <option value="">Select an assigned school...</option>
-                    {assignedSchools.map((s) => (
-                      <option key={s._id} value={s._id}>
-                        {s.name} ({s.schoolCode})
+                    {assignedSchools.map((schoolItem) => (
+                      <option key={schoolItem._id} value={schoolItem._id}>
+                        {schoolItem.name} ({s.schoolCode})
                       </option>
                     ))}
                   </select>
@@ -977,8 +977,8 @@ export const SupervisorDashboard = () => {
                   <input
                     type="date"
                     value={newInspectionForm.inspectionDate}
-                    onChange={(e) =>
-                      setNewInspectionForm((prev) => ({ ...prev, inspectionDate: e.target.value }))
+                    onChange={(changeEvent) =>
+                      setNewInspectionForm((prev) => ({ ...prev, inspectionDate: changeEvent.target.value }))
                     }
                     className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-[#006AC7] focus:outline-hidden"
                     required
@@ -998,8 +998,8 @@ export const SupervisorDashboard = () => {
                     </label>
                     <select
                       value={newInspectionForm.overallGrade}
-                      onChange={(e) =>
-                        setNewInspectionForm((prev) => ({ ...prev, overallGrade: e.target.value }))
+                      onChange={(changeEvent) =>
+                        setNewInspectionForm((prev) => ({ ...prev, overallGrade: changeEvent.target.value }))
                       }
                       className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold"
                     >
@@ -1019,10 +1019,10 @@ export const SupervisorDashboard = () => {
                       min="0"
                       max="100"
                       value={newInspectionForm.summaryScore}
-                      onChange={(e) =>
+                      onChange={(changeEvent) =>
                         setNewInspectionForm((prev) => ({
                           ...prev,
-                          summaryScore: parseInt(e.target.value, 10),
+                          summaryScore: parseInt(changeEvent.target.value, 10),
                         }))
                       }
                       className="w-full accent-[#006AC7]"
@@ -1041,12 +1041,12 @@ export const SupervisorDashboard = () => {
                     <input
                       type="checkbox"
                       checked={newInspectionForm.infrastructure.drinkingWaterAvailable}
-                      onChange={(e) =>
+                      onChange={(changeEvent) =>
                         setNewInspectionForm((prev) => ({
                           ...prev,
                           infrastructure: {
                             ...prev.infrastructure,
-                            drinkingWaterAvailable: e.target.checked,
+                            drinkingWaterAvailable: changeEvent.target.checked,
                           },
                         }))
                       }
@@ -1059,12 +1059,12 @@ export const SupervisorDashboard = () => {
                     <input
                       type="checkbox"
                       checked={newInspectionForm.infrastructure.washroomsFunctional}
-                      onChange={(e) =>
+                      onChange={(changeEvent) =>
                         setNewInspectionForm((prev) => ({
                           ...prev,
                           infrastructure: {
                             ...prev.infrastructure,
-                            washroomsFunctional: e.target.checked,
+                            washroomsFunctional: changeEvent.target.checked,
                           },
                         }))
                       }
@@ -1077,12 +1077,12 @@ export const SupervisorDashboard = () => {
                     <input
                       type="checkbox"
                       checked={newInspectionForm.infrastructure.electricityFunctional}
-                      onChange={(e) =>
+                      onChange={(changeEvent) =>
                         setNewInspectionForm((prev) => ({
                           ...prev,
                           infrastructure: {
                             ...prev.infrastructure,
-                            electricityFunctional: e.target.checked,
+                            electricityFunctional: changeEvent.target.checked,
                           },
                         }))
                       }
@@ -1095,12 +1095,12 @@ export const SupervisorDashboard = () => {
                     <input
                       type="checkbox"
                       checked={newInspectionForm.infrastructure.boundaryWallSecure}
-                      onChange={(e) =>
+                      onChange={(changeEvent) =>
                         setNewInspectionForm((prev) => ({
                           ...prev,
                           infrastructure: {
                             ...prev.infrastructure,
-                            boundaryWallSecure: e.target.checked,
+                            boundaryWallSecure: changeEvent.target.checked,
                           },
                         }))
                       }
@@ -1115,12 +1115,12 @@ export const SupervisorDashboard = () => {
                     <label className="block text-slate-600 font-semibold mb-1">Cleanliness Rating</label>
                     <select
                       value={newInspectionForm.infrastructure.cleanlinessRating}
-                      onChange={(e) =>
+                      onChange={(changeEvent) =>
                         setNewInspectionForm((prev) => ({
                           ...prev,
                           infrastructure: {
                             ...prev.infrastructure,
-                            cleanlinessRating: e.target.value,
+                            cleanlinessRating: changeEvent.target.value,
                           },
                         }))
                       }
@@ -1137,12 +1137,12 @@ export const SupervisorDashboard = () => {
                     <label className="block text-slate-600 font-semibold mb-1">Classroom Conditions</label>
                     <select
                       value={newInspectionForm.infrastructure.classroomsConditionRating}
-                      onChange={(e) =>
+                      onChange={(changeEvent) =>
                         setNewInspectionForm((prev) => ({
                           ...prev,
                           infrastructure: {
                             ...prev.infrastructure,
-                            classroomsConditionRating: e.target.value,
+                            classroomsConditionRating: changeEvent.target.value,
                           },
                         }))
                       }
@@ -1167,12 +1167,12 @@ export const SupervisorDashboard = () => {
                     <input
                       type="checkbox"
                       checked={newInspectionForm.academicEnvironment.lessonPlansMaintained}
-                      onChange={(e) =>
+                      onChange={(changeEvent) =>
                         setNewInspectionForm((prev) => ({
                           ...prev,
                           academicEnvironment: {
                             ...prev.academicEnvironment,
-                            lessonPlansMaintained: e.target.checked,
+                            lessonPlansMaintained: changeEvent.target.checked,
                           },
                         }))
                       }
@@ -1185,12 +1185,12 @@ export const SupervisorDashboard = () => {
                     <input
                       type="checkbox"
                       checked={newInspectionForm.academicEnvironment.studentNotebooksChecked}
-                      onChange={(e) =>
+                      onChange={(changeEvent) =>
                         setNewInspectionForm((prev) => ({
                           ...prev,
                           academicEnvironment: {
                             ...prev.academicEnvironment,
-                            studentNotebooksChecked: e.target.checked,
+                            studentNotebooksChecked: changeEvent.target.checked,
                           },
                         }))
                       }
@@ -1203,12 +1203,12 @@ export const SupervisorDashboard = () => {
                     <input
                       type="checkbox"
                       checked={newInspectionForm.academicEnvironment.timetableCompliance}
-                      onChange={(e) =>
+                      onChange={(changeEvent) =>
                         setNewInspectionForm((prev) => ({
                           ...prev,
                           academicEnvironment: {
                             ...prev.academicEnvironment,
-                            timetableCompliance: e.target.checked,
+                            timetableCompliance: changeEvent.target.checked,
                           },
                         }))
                       }
@@ -1231,12 +1231,12 @@ export const SupervisorDashboard = () => {
                       type="number"
                       min="0"
                       value={newInspectionForm.attendanceAudit.studentsEnrolledCount}
-                      onChange={(e) =>
+                      onChange={(changeEvent) =>
                         setNewInspectionForm((prev) => ({
                           ...prev,
                           attendanceAudit: {
                             ...prev.attendanceAudit,
-                            studentsEnrolledCount: parseInt(e.target.value, 10) || 0,
+                            studentsEnrolledCount: parseInt(changeEvent.target.value, 10) || 0,
                           },
                         }))
                       }
@@ -1250,12 +1250,12 @@ export const SupervisorDashboard = () => {
                       type="number"
                       min="0"
                       value={newInspectionForm.attendanceAudit.physicalHeadcount}
-                      onChange={(e) =>
+                      onChange={(changeEvent) =>
                         setNewInspectionForm((prev) => ({
                           ...prev,
                           attendanceAudit: {
                             ...prev.attendanceAudit,
-                            physicalHeadcount: parseInt(e.target.value, 10) || 0,
+                            physicalHeadcount: parseInt(changeEvent.target.value, 10) || 0,
                           },
                         }))
                       }
@@ -1269,12 +1269,12 @@ export const SupervisorDashboard = () => {
                       type="number"
                       min="0"
                       value={newInspectionForm.attendanceAudit.teachersPresentCount}
-                      onChange={(e) =>
+                      onChange={(changeEvent) =>
                         setNewInspectionForm((prev) => ({
                           ...prev,
                           attendanceAudit: {
                             ...prev.attendanceAudit,
-                            teachersPresentCount: parseInt(e.target.value, 10) || 0,
+                            teachersPresentCount: parseInt(changeEvent.target.value, 10) || 0,
                           },
                         }))
                       }
@@ -1288,12 +1288,12 @@ export const SupervisorDashboard = () => {
                       type="number"
                       min="0"
                       value={newInspectionForm.attendanceAudit.unauthorizedTeacherAbsentees}
-                      onChange={(e) =>
+                      onChange={(changeEvent) =>
                         setNewInspectionForm((prev) => ({
                           ...prev,
                           attendanceAudit: {
                             ...prev.attendanceAudit,
-                            unauthorizedTeacherAbsentees: parseInt(e.target.value, 10) || 0,
+                            unauthorizedTeacherAbsentees: parseInt(changeEvent.target.value, 10) || 0,
                           },
                         }))
                       }
@@ -1313,12 +1313,12 @@ export const SupervisorDashboard = () => {
                     type="text"
                     placeholder="Enter actionable directive for HM (e.g. Repair water pump, update register)..."
                     value={newDirectiveText}
-                    onChange={(e) => setNewDirectiveText(e.target.value)}
+                    onChange={(changeEvent) => setNewDirectiveText(changeEvent.target.value)}
                     className="flex-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs"
                   />
                   <select
                     value={newDirectivePriority}
-                    onChange={(e) => setNewDirectivePriority(e.target.value)}
+                    onChange={(changeEvent) => setNewDirectivePriority(changeEvent.target.value)}
                     className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold"
                   >
                     <option value="LOW">Low</option>
@@ -1375,8 +1375,8 @@ export const SupervisorDashboard = () => {
                   rows="3"
                   placeholder="Official observations regarding school leadership, cleanliness, or discipline..."
                   value={newInspectionForm.supervisorNotes}
-                  onChange={(e) =>
-                    setNewInspectionForm((prev) => ({ ...prev, supervisorNotes: e.target.value }))
+                  onChange={(changeEvent) =>
+                    setNewInspectionForm((prev) => ({ ...prev, supervisorNotes: changeEvent.target.value }))
                   }
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs"
                 />
@@ -1522,7 +1522,7 @@ export const SupervisorDashboard = () => {
                     rows="2"
                     placeholder="Enter compliance verification notes..."
                     value={resolutionNotesInput}
-                    onChange={(e) => setResolutionNotesInput(e.target.value)}
+                    onChange={(changeEvent) => setResolutionNotesInput(changeEvent.target.value)}
                     className="w-full px-3 py-1.5 rounded-lg border border-emerald-200 text-xs bg-white"
                   />
                   <button

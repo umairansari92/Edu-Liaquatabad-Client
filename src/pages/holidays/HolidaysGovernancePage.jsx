@@ -514,48 +514,48 @@ export const HolidaysGovernancePage = () => {
                 ) : (
                   holidays
                     .filter((holidayItem) => activeTab === 'ALL' || holidayItem.status === activeTab)
-                    .map((h) => (
-                      <tr key={h._id} className="hover:bg-blue-50/40 transition">
+                    .map((holidayRecord) => (
+                      <tr key={holidayRecord._id} className="hover:bg-blue-50/40 transition">
                         <td className="px-6 py-4">
-                          <div className="font-bold text-[#102033]">{h.title}</div>
-                          <div className="text-[11px] text-[#526477] line-clamp-1">{h.reason}</div>
+                          <div className="font-bold text-[#102033]">{holidayRecord.title}</div>
+                          <div className="text-[11px] text-[#526477] line-clamp-1">{holidayRecord.reason}</div>
                         </td>
                         <td className="px-6 py-4">
                           <span
                             className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${
-                              h.scopeType === 'TOWN'
+                              holidayRecord.scopeType === 'TOWN'
                                 ? 'bg-purple-50 text-purple-700 border-purple-200'
                                 : 'bg-amber-50 text-amber-700 border-amber-200'
                             }`}
                           >
-                            {h.scopeType === 'TOWN' ? 'Town-Wide' : h.schoolId?.name || 'Single School'}
+                            {holidayRecord.scopeType === 'TOWN' ? 'Town-Wide' : holidayRecord.schoolId?.name || 'Single School'}
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <span className="font-mono text-[#006AC7] font-semibold">{h.holidayType}</span>
+                          <span className="font-mono text-[#006AC7] font-semibold">{holidayRecord.holidayType}</span>
                         </td>
                         <td className="px-6 py-4 font-mono text-[#102033]">
-                          {h.startDate} {h.startDate !== h.endDate ? `to ${h.endDate}` : ''}
+                          {holidayRecord.startDate} {holidayRecord.startDate !== holidayRecord.endDate ? `to ${holidayRecord.endDate}` : ''}
                         </td>
                         <td className="px-6 py-4 text-[#526477]">
-                          {h.declaredBy?.fullName || 'Municipal Authority'}
+                          {holidayRecord.declaredBy?.fullName || 'Municipal Authority'}
                         </td>
                         <td className="px-6 py-4">
                           <span
                             className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${
-                              h.status === 'ACTIVE'
+                              holidayRecord.status === 'ACTIVE'
                                 ? 'bg-emerald-50 text-[#4B7F3A] border-emerald-200'
                                 : 'bg-slate-100 text-slate-700 border-slate-200'
                             }`}
                           >
-                            {h.status}
+                            {holidayRecord.status}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-right">
-                          {h.status === 'ACTIVE' && (isTownAdmin || isHm) && (
+                          {holidayRecord.status === 'ACTIVE' && (isTownAdmin || isHm) && (
                             <button
                               type="button"
-                              onClick={() => handleCancelHoliday(h._id, h.title)}
+                              onClick={() => handleCancelHoliday(holidayRecord._id, holidayRecord.title)}
                               className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition"
                               title="Revoke / Cancel Holiday"
                             >

@@ -277,8 +277,8 @@ export const LoginPage = () => {
   };
 
   // ─── Step 2: TOTP Verification or Enrollment Confirmation ───────────────────
-  const handleVerifyTotp = async (e) => {
-    e.preventDefault();
+  const handleVerifyTotp = async (submitEvent) => {
+    submitEvent.preventDefault();
     const cleanCode = totpCode.replace(/\D/g, '').trim();
     if (cleanCode.length !== 6) {
       setMfaError('Please enter a valid 6-digit authentication code.');
@@ -289,13 +289,13 @@ export const LoginPage = () => {
     try {
       if (mfaChallenge.requiresSetup) {
         // Confirm Enrollment (Receives 8 recovery codes)
-        const confirmRes = await authService.mfaConfirm({
+        const confirmationResponse = await authService.mfaConfirm({
           totpCode: cleanCode,
           mfaPendingToken: mfaChallenge.mfaPendingToken,
         });
 
-        if (confirmRes.success && confirmRes.data) {
-          const { user, accessToken, recoveryCodes } = confirmRes.data;
+        if (confirmationResponse.success && confirmationResponse.data) {
+          const { user, accessToken, recoveryCodes } = confirmationResponse.data;
           if (recoveryCodes && recoveryCodes.length > 0) {
             setUnmaskedRecoveryCodes(recoveryCodes);
             setMfaSuccessData({ user, accessToken });
@@ -307,20 +307,20 @@ export const LoginPage = () => {
         }
       } else {
         // Standard TOTP Step-2 Verification
-        const verifyRes = await authService.mfaVerifyLogin({
+        const verificationResponse = await authService.mfaVerifyLogin({
           totpCode: cleanCode,
           mfaPendingToken: mfaChallenge.mfaPendingToken,
         });
 
-        if (verifyRes.success && verifyRes.data) {
-          const { user, accessToken } = verifyRes.data;
+        if (verificationResponse.success && verificationResponse.data) {
+          const { user, accessToken } = verificationResponse.data;
           dispatch(setCredentials({ user, accessToken }));
           toast.success(`Welcome back, ${user.fullName}!`);
           navigate('/dashboard');
         }
       }
-    } catch (err) {
-      setMfaError(err.response?.data?.message || 'Verification failed. Please check your authenticator clock.');
+    } catch (errorObject) {
+      setMfaError(errorObject.response?.data?.message || 'Verification failed. Please check your authenticator clock.');
       setTotpCode('');
     } finally {
       setMfaLoading(false);
@@ -328,8 +328,8 @@ export const LoginPage = () => {
   };
 
   // ─── Step 2 Alternate: Emergency Recovery Code Verification ─────────────────
-  const handleVerifyRecovery = async (e) => {
-    e.preventDefault();
+  const handleVerifyRecovery = async (submitEvent) => {
+    submitEvent.preventDefault();
     const cleanRecoveryCode = recoveryCode.trim();
     if (!cleanRecoveryCode || cleanRecoveryCode.length < 10) {
       setMfaError('Please enter a valid backup recovery code.');
@@ -338,19 +338,19 @@ export const LoginPage = () => {
     setMfaLoading(true);
     setMfaError('');
     try {
-      const recRes = await authService.mfaRecoveryLogin({
+      const recoveryResponse = await authService.mfaRecoveryLogin({
         recoveryCode: cleanRecoveryCode,
         mfaPendingToken: mfaChallenge.mfaPendingToken,
       });
 
-      if (recRes.success && recRes.data) {
-        const { user, accessToken } = recRes.data;
+      if (recoveryResponse.success && recoveryResponse.data) {
+        const { user, accessToken } = recoveryResponse.data;
         dispatch(setCredentials({ user, accessToken }));
         toast.success(`Emergency recovery successful! Welcome back, ${user.fullName}.`);
         navigate('/dashboard');
       }
-    } catch (err) {
-      setMfaError(err.response?.data?.message || 'Invalid or consumed recovery code.');
+    } catch (errorObject) {
+      setMfaError(errorObject.response?.data?.message || 'Invalid or consumed recovery code.');
     } finally {
       setMfaLoading(false);
     }
@@ -485,7 +485,7 @@ export const LoginPage = () => {
                     <input
                       type="checkbox"
                       checked={hasConfirmedVaultStorage}
-                      onChange={(e) => setHasConfirmedVaultStorage(e.target.checked)}
+                      onChange={(changeEvent) => setHasConfirmedVaultStorage(changeEvent.target.checked)}
                       className="mt-0.5 rounded border-slate-300 text-[#006AC7] focus:ring-[#006AC7]"
                     />
                     <span>
@@ -608,7 +608,7 @@ export const LoginPage = () => {
                         autoFocus
                         placeholder="e.g. A1B2-C3D4-E5F6-G7H8"
                         value={recoveryCode}
-                        onChange={(e) => setRecoveryCode(e.target.value)}
+                        onChange={(changeEvent) => setRecoveryCode(changeEvent.target.value)}
                         className="block w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono text-center tracking-widest focus:bg-white focus:outline-none focus:border-[#006AC7]"
                       />
                     </div>
@@ -623,7 +623,7 @@ export const LoginPage = () => {
                         autoFocus
                         placeholder="000000"
                         value={totpCode}
-                        onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ''))}
+                        onChange={(changeEvent) => setTotpCode(changeEvent.target.value.replace(/\D/g, ''))}
                         className="block w-full px-3 py-3 bg-slate-50 border border-slate-300 rounded-xl text-2xl font-mono font-bold text-center tracking-[0.35em] text-[#102033] focus:bg-white focus:outline-none focus:border-[#006AC7] shadow-inner"
                       />
                     </div>

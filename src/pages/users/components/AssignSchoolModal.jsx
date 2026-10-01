@@ -30,16 +30,16 @@ export const AssignSchoolModal = ({
   if (!isOpen || !targetEmployee) return null;
 
   const currentSchool = targetEmployee.schoolId?.name || 'Unassigned';
-  const filteredSchools = schoolsList.filter((s) => {
+  const filteredSchools = schoolsList.filter((schoolItem) => {
     const q = schoolSearch.toLowerCase();
     return (
-      s.name?.toLowerCase().includes(q) ||
+      schoolItem.name?.toLowerCase().includes(q) ||
       s.schoolCode?.toLowerCase().includes(q) ||
-      s.emisCode?.toLowerCase().includes(q)
+      schoolItem.emisCode?.toLowerCase().includes(q)
     );
   });
 
-  const selectedSchool = schoolsList.find((s) => String(s._id) === String(selectedSchoolId));
+  const selectedSchool = schoolsList.find((schoolItem) => String(schoolItem._id) === String(selectedSchoolId));
 
   const handleExecuteAssignment = async () => {
     if (!selectedSchoolId) {
@@ -145,22 +145,22 @@ export const AssignSchoolModal = ({
                   <input
                     type="text"
                     value={schoolSearch}
-                    onChange={(e) => setSchoolSearch(e.target.value)}
+                    onChange={(changeEvent) => setSchoolSearch(changeEvent.target.value)}
                     placeholder="Type school name or code to filter..."
                     className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-[#102033] focus:border-[#006AC7] focus:bg-white focus:outline-none"
                   />
                   <select
                     value={selectedSchoolId}
-                    onChange={(e) => setSelectedSchoolId(e.target.value)}
+                    onChange={(changeEvent) => setSelectedSchoolId(changeEvent.target.value)}
                     size={4}
                     className="w-full rounded-xl border border-slate-200 bg-white p-2 text-xs text-[#102033] focus:border-[#006AC7] focus:outline-none overflow-y-auto"
                   >
                     <option value="" disabled className="text-slate-400 py-1">
                       -- Choose from {filteredSchools.length} registered schools --
                     </option>
-                    {filteredSchools.map((s) => (
-                      <option key={s._id} value={s._id} className="py-1 px-1.5 rounded hover:bg-blue-50">
-                        {s.name} {s.schoolCode ? `(${s.schoolCode})` : ''}
+                    {filteredSchools.map((schoolItem) => (
+                      <option key={schoolItem._id} value={schoolItem._id} className="py-1 px-1.5 rounded hover:bg-blue-50">
+                        {schoolItem.name} {s.schoolCode ? `(${s.schoolCode})` : ''}
                       </option>
                     ))}
                   </select>
@@ -174,7 +174,7 @@ export const AssignSchoolModal = ({
                   <input
                     type="text"
                     value={designation}
-                    onChange={(e) => setDesignation(e.target.value)}
+                    onChange={(changeEvent) => setDesignation(changeEvent.target.value)}
                     placeholder="e.g. Teacher / PST"
                     className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-[#102033] focus:border-[#006AC7] focus:bg-white focus:outline-none"
                   />
@@ -184,7 +184,7 @@ export const AssignSchoolModal = ({
                   <input
                     type="date"
                     value={effectiveDate}
-                    onChange={(e) => setEffectiveDate(e.target.value)}
+                    onChange={(changeEvent) => setEffectiveDate(changeEvent.target.value)}
                     className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-[#102033] focus:border-[#006AC7] focus:bg-white focus:outline-none"
                   />
                 </div>
@@ -197,7 +197,7 @@ export const AssignSchoolModal = ({
                 </label>
                 <textarea
                   value={assignmentReason}
-                  onChange={(e) => setAssignmentReason(e.target.value)}
+                  onChange={(changeEvent) => setAssignmentReason(changeEvent.target.value)}
                   rows={2}
                   placeholder="Official justification for this school assignment..."
                   className="w-full rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 text-xs text-[#102033] focus:border-[#006AC7] focus:bg-white focus:outline-none resize-none"

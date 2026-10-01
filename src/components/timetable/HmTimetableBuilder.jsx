@@ -161,10 +161,10 @@ export const HmTimetableBuilder = ({
   const getEntryForCell = useCallback(
     (classId, day, periodNum) => {
       return editableSchedule.find(
-        (item) =>
-          String(item.classId?._id || item.classId) === String(classId) &&
-          item.dayOfWeek === day &&
-          item.periodNumber === periodNum
+        (scheduleEntry) =>
+          String(scheduleEntry.classId?._id || scheduleEntry.classId) === String(classId) &&
+          scheduleEntry.dayOfWeek === day &&
+          scheduleEntry.periodNumber === periodNum
       );
     },
     [editableSchedule]
@@ -269,11 +269,11 @@ export const HmTimetableBuilder = ({
 
     // Teacher clash check in local schedule
     const clash = editableSchedule.find(
-      (item) =>
-        item.dayOfWeek === dayOfWeek &&
-        item.periodNumber === periodSlot.periodNumber &&
-        String(item.teacherId?._id || item.teacherId) === String(cellTeacherId) &&
-        String(item.classId?._id || item.classId) !== String(classItem._id)
+      (scheduleEntry) =>
+        scheduleEntry.dayOfWeek === dayOfWeek &&
+        scheduleEntry.periodNumber === periodSlot.periodNumber &&
+        String(scheduleEntry.teacherId?._id || scheduleEntry.teacherId) === String(cellTeacherId) &&
+        String(scheduleEntry.classId?._id || scheduleEntry.classId) !== String(classItem._id)
     );
 
     if (clash) {
@@ -292,11 +292,11 @@ export const HmTimetableBuilder = ({
 
     // Filter out previous entry for this class+day+period
     const updatedSchedule = editableSchedule.filter(
-      (item) =>
+      (scheduleEntry) =>
         !(
-          String(item.classId?._id || item.classId) === String(classItem._id) &&
-          item.dayOfWeek === dayOfWeek &&
-          item.periodNumber === periodSlot.periodNumber
+          String(scheduleEntry.classId?._id || scheduleEntry.classId) === String(classItem._id) &&
+          scheduleEntry.dayOfWeek === dayOfWeek &&
+          scheduleEntry.periodNumber === periodSlot.periodNumber
         )
     );
 
@@ -321,11 +321,11 @@ export const HmTimetableBuilder = ({
     const { classItem, dayOfWeek, periodSlot } = activeCellTarget;
 
     const updatedSchedule = editableSchedule.filter(
-      (item) =>
+      (scheduleEntry) =>
         !(
-          String(item.classId?._id || item.classId) === String(classItem._id) &&
-          item.dayOfWeek === dayOfWeek &&
-          item.periodNumber === periodSlot.periodNumber
+          String(scheduleEntry.classId?._id || scheduleEntry.classId) === String(classItem._id) &&
+          scheduleEntry.dayOfWeek === dayOfWeek &&
+          scheduleEntry.periodNumber === periodSlot.periodNumber
         )
     );
     setEditableSchedule(updatedSchedule);
@@ -353,8 +353,8 @@ export const HmTimetableBuilder = ({
 
     // Remove existing entries for this class on selectedDay
     const filtered = editableSchedule.filter(
-      (item) =>
-        !(String(item.classId?._id || item.classId) === String(classItem._id) && item.dayOfWeek === selectedDay)
+      (scheduleEntry) =>
+        !(String(scheduleEntry.classId?._id || scheduleEntry.classId) === String(classItem._id) && scheduleEntry.dayOfWeek === selectedDay)
     );
 
     // Create entries for all teaching slots on selectedDay
@@ -374,14 +374,14 @@ export const HmTimetableBuilder = ({
 
   // Copy Current Day's Schedule to All Weekdays (Mon-Sat)
   const handleCopyDayToAllWeekdays = () => {
-    const currentDayEntries = editableSchedule.filter((item) => item.dayOfWeek === selectedDay);
+    const currentDayEntries = editableSchedule.filter((scheduleEntry) => scheduleEntry.dayOfWeek === selectedDay);
     if (currentDayEntries.length === 0) {
       toast.error(`No timetable entries configured on ${selectedDay} to copy.`);
       return;
     }
 
     const otherDays = DAYS_OF_WEEK.filter((day) => day !== selectedDay);
-    const retainedEntries = editableSchedule.filter((item) => item.dayOfWeek === selectedDay);
+    const retainedEntries = editableSchedule.filter((scheduleEntry) => scheduleEntry.dayOfWeek === selectedDay);
 
     const duplicatedEntries = [];
     for (const targetDay of otherDays) {
@@ -517,7 +517,7 @@ export const HmTimetableBuilder = ({
           {DAYS_OF_WEEK.map((day) => {
             const isSelected = selectedDay === day;
             const isToday = liveStatus?.currentDay === day;
-            const dayEntryCount = editableSchedule.filter((item) => item.dayOfWeek === day).length;
+            const dayEntryCount = editableSchedule.filter((scheduleEntry) => scheduleEntry.dayOfWeek === day).length;
 
             return (
               <button
@@ -799,17 +799,17 @@ export const HmTimetableBuilder = ({
 
         {/* Free Periods Grid Display (Identical to Image 2 footer) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {teacherFreePeriodsSummary.map((item) => (
+          {teacherFreePeriodsSummary.map((teacherSummary) => (
             <div
-              key={item.teacherId}
+              key={teacherSummary.teacherId}
               className="p-3.5 rounded-2xl border border-slate-200/90 bg-slate-50/60 hover:bg-white hover:border-[#006AC7]/60 hover:shadow-sm transition flex items-center justify-between gap-3"
             >
               <div>
                 <div className="text-xs font-black text-[#102033] uppercase">
-                  {item.fullName}
+                  {teacherSummary.fullName}
                 </div>
                 <div className="text-[10px] text-[#8094A8] font-medium">
-                  {item.designation}
+                  {teacherSummary.designation}
                 </div>
               </div>
 

@@ -83,8 +83,8 @@ export const AdminDashboard = () => {
   }, [location.pathname]);
 
   // Handle Search in Personnel
-  const handleSearchPersonnel = (e) => {
-    e.preventDefault();
+  const handleSearchPersonnel = (submitEvent) => {
+    submitEvent.preventDefault();
     dispatch(fetchAdminUsersList({ search: personnelSearch, role: personnelRoleFilter || undefined, limit: 50 }));
   };
 
@@ -323,13 +323,13 @@ export const AdminDashboard = () => {
                   type="text"
                   placeholder="Search faculty by name, email, or designation..."
                   value={personnelSearch}
-                  onChange={(e) => setPersonnelSearch(e.target.value)}
+                  onChange={(changeEvent) => setPersonnelSearch(changeEvent.target.value)}
                   className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#006AC7]/20"
                 />
               </div>
               <select
                 value={personnelRoleFilter}
-                onChange={(e) => setPersonnelRoleFilter(e.target.value)}
+                onChange={(changeEvent) => setPersonnelRoleFilter(changeEvent.target.value)}
                 className="py-2 px-3 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#006AC7]/20"
               >
                 <option value="">All Town Staff</option>
@@ -434,7 +434,7 @@ export const AdminDashboard = () => {
         <div className="space-y-6">
           <TeacherTransferTab
             schoolsList={schoolsList}
-            teachersList={personnelList.filter((u) => u.role === 'TEACHER')}
+            teachersList={personnelList.filter((userRecord) => userRecord.role === 'TEACHER')}
           />
         </div>
       )}

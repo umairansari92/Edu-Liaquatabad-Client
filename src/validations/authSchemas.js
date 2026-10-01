@@ -14,7 +14,7 @@ const safeString = (maxLen = 200, minLen = 0, minMsg = '') => {
   if (minLen > 0) {
     schema = schema.min(minLen, minMsg || `Must be at least ${minLen} characters`);
   }
-  return schema.refine((val) => !SCRIPT_INJECTION_REGEX.test(val), {
+  return schema.refine((fieldValue) => !SCRIPT_INJECTION_REGEX.test(fieldValue), {
     message: 'Input contains disallowed characters or code patterns.',
   });
 };
@@ -25,10 +25,10 @@ const nameField = (label = 'Name') =>
     .trim()
     .min(2, `${label} must be at least 2 characters`)
     .max(100, `${label} must be 100 characters or fewer`)
-    .refine((val) => !SCRIPT_INJECTION_REGEX.test(val), {
+    .refine((fieldValue) => !SCRIPT_INJECTION_REGEX.test(fieldValue), {
       message: 'Input contains disallowed characters or code patterns.',
     })
-    .refine((val) => !SPECIAL_CHARS_STRICT_REGEX.test(val), {
+    .refine((fieldValue) => !SPECIAL_CHARS_STRICT_REGEX.test(fieldValue), {
       message: `${label} must not contain special characters.`,
     });
 
@@ -39,7 +39,7 @@ export const emailField = z
   .min(5, 'Email is required')
   .max(254, 'Email address is too long')
   .email('Please enter a valid email address')
-  .refine((val) => !SCRIPT_INJECTION_REGEX.test(val), {
+  .refine((fieldValue) => !SCRIPT_INJECTION_REGEX.test(fieldValue), {
     message: 'Email contains disallowed patterns.',
   });
 
@@ -47,9 +47,9 @@ export const passwordField = z
   .string()
   .min(8, 'Password must be at least 8 characters')
   .max(128, 'Password is too long')
-  .refine((val) => /[A-Z]/.test(val), { message: 'Must contain at least one uppercase letter.' })
-  .refine((val) => /[0-9]/.test(val), { message: 'Must contain at least one number.' })
-  .refine((val) => !SCRIPT_INJECTION_REGEX.test(val), { message: 'Password contains disallowed patterns.' });
+  .refine((fieldValue) => /[A-Z]/.test(fieldValue), { message: 'Must contain at least one uppercase letter.' })
+  .refine((fieldValue) => /[0-9]/.test(fieldValue), { message: 'Must contain at least one number.' })
+  .refine((fieldValue) => !SCRIPT_INJECTION_REGEX.test(fieldValue), { message: 'Password contains disallowed patterns.' });
 
 const phoneField = z
   .string()
@@ -80,7 +80,7 @@ export const loginIdentifierField = z
   .trim()
   .min(1, 'Email or GR Number is required')
   .max(254, 'Identifier is too long')
-  .refine((val) => !SCRIPT_INJECTION_REGEX.test(val), {
+  .refine((fieldValue) => !SCRIPT_INJECTION_REGEX.test(fieldValue), {
     message: 'Disallowed characters detected.',
   });
 
@@ -90,7 +90,7 @@ export const grNumberField = z
   .min(1, 'GR Number is required')
   .max(30, 'GR Number is too long')
   .regex(/^[A-Za-z0-9\-\/]+$/, 'GR Number may only contain letters, numbers, hyphens, or slashes')
-  .refine((val) => !SCRIPT_INJECTION_REGEX.test(val), { message: 'Disallowed characters.' });
+  .refine((fieldValue) => !SCRIPT_INJECTION_REGEX.test(fieldValue), { message: 'Disallowed characters.' });
 
 // ─── Auth Schemas (mirrors server-side validation exactly) ────────────────────
 
@@ -172,7 +172,7 @@ export const studentAdmissionWizardSchema = z
     otpCode: otpField.optional().or(z.literal('')),
     _gotcha: z.string().max(0, 'Submission rejected').optional(),
   })
-  .refine((data) => data.password === data.confirmPassword, {
+  .refine((formData) => formData.password === formData.confirmPassword, {
     message: 'Passwords do not match.',
     path: ['confirmPassword'],
   });
@@ -190,11 +190,11 @@ export const studentPortalActivationSchema = z
     otpCode: otpField,
     _gotcha: z.string().optional(),
   })
-  .refine((data) => Boolean(data.grNumber || data.globalStudentId), {
+  .refine((formData) => Boolean(formData.grNumber || formData.globalStudentId), {
     message: 'Either GR Number or Global Student ID must be provided.',
     path: ['grNumber'],
   })
-  .refine((data) => data.password === data.confirmPassword, {
+  .refine((formData) => formData.password === formData.confirmPassword, {
     message: 'Passwords do not match.',
     path: ['confirmPassword'],
   });
@@ -212,7 +212,7 @@ export const studentRegistrationSchema = z
     confirmPassword: z.string().min(1, 'Please re-type your account password'),
     _gotcha: z.string().optional(),
   })
-  .refine((data) => data.password === data.confirmPassword, {
+  .refine((formData) => formData.password === formData.confirmPassword, {
     message: 'Passwords do not match.',
     path: ['confirmPassword'],
   });
@@ -266,7 +266,7 @@ export const teacherBaseObject = z.object({
 
 /** Teacher / Staff registration form schema */
 export const teacherFormSchema = teacherBaseObject.refine(
-  (data) => data.password === data.confirmPassword,
+  (formData) => formData.password === formData.confirmPassword,
   {
     message: 'Passwords do not match.',
     path: ['confirmPassword'],
@@ -281,7 +281,7 @@ export const registerTeacherSchema = teacherBaseObject
     captchaChallengeToken: z.string().optional(),
     _gotcha: z.string().optional(),
   })
-  .refine((data) => data.password === data.confirmPassword, {
+  .refine((formData) => formData.password === formData.confirmPassword, {
     message: 'Passwords do not match.',
     path: ['confirmPassword'],
   });
@@ -299,7 +299,7 @@ export const passwordResetConfirmSchema = z
     newPassword: passwordField,
     confirmPassword: z.string().min(1, 'Please confirm your password'),
   })
-  .refine((data) => data.newPassword === data.confirmPassword, {
+  .refine((formData) => formData.newPassword === formData.confirmPassword, {
     message: 'Passwords do not match.',
     path: ['confirmPassword'],
   });

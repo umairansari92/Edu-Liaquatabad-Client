@@ -122,8 +122,8 @@ export const SuperAdminDashboard = () => {
   }, [location.pathname]);
 
   // Handle Search in Personnel
-  const handleSearchPersonnel = (e) => {
-    e.preventDefault();
+  const handleSearchPersonnel = (submitEvent) => {
+    submitEvent.preventDefault();
     dispatch(fetchAdminUsersList({ search: personnelSearch, role: personnelRoleFilter || undefined, limit: 50 }));
   };
 
@@ -166,7 +166,7 @@ export const SuperAdminDashboard = () => {
       }
       setTargetSuperAdminAction(null);
       setActionReason('');
-    } catch (err) {
+    } catch (errorObject) {
       toast.error('An unexpected error occurred.');
     }
   };
@@ -597,13 +597,13 @@ export const SuperAdminDashboard = () => {
                   type="text"
                   placeholder="Search by name, email, or designation..."
                   value={personnelSearch}
-                  onChange={(e) => setPersonnelSearch(e.target.value)}
+                  onChange={(changeEvent) => setPersonnelSearch(changeEvent.target.value)}
                   className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#006AC7]/20"
                 />
               </div>
               <select
                 value={personnelRoleFilter}
-                onChange={(e) => setPersonnelRoleFilter(e.target.value)}
+                onChange={(changeEvent) => setPersonnelRoleFilter(changeEvent.target.value)}
                 className="py-2 px-3 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-[#006AC7]/20"
               >
                 <option value="">All Roles</option>
@@ -719,7 +719,7 @@ export const SuperAdminDashboard = () => {
         <div className="space-y-6">
           <TeacherTransferTab
             schoolsList={schoolsList}
-            teachersList={personnelList.filter((u) => u.role === 'TEACHER')}
+            teachersList={personnelList.filter((userRecord) => userRecord.role === 'TEACHER')}
           />
         </div>
       )}
@@ -849,7 +849,7 @@ export const SuperAdminDashboard = () => {
               <textarea
                 rows="3"
                 value={actionReason}
-                onChange={(e) => setActionReason(e.target.value)}
+                onChange={(changeEvent) => setActionReason(changeEvent.target.value)}
                 placeholder="Specify official governance rationale..."
                 className="w-full p-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-rose-500/20"
               />

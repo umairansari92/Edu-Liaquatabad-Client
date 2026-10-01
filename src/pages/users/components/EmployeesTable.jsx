@@ -33,8 +33,8 @@ export const EmployeesTable = ({
   onOpenProfileDrawer,
   onOpenAuditModal,
 }) => {
-  const isUserBulkEligible = (u) =>
-    u.role !== 'ROOT_ADMIN' && String(u._id) !== String(authenticatedUser?._id);
+  const isUserBulkEligible = (targetUser) =>
+    targetUser.role !== 'ROOT_ADMIN' && String(targetUser._id) !== String(authenticatedUser?._id);
 
   const eligibleUsers = usersList.filter(isUserBulkEligible);
   const isAllSelected =

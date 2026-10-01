@@ -81,8 +81,8 @@ export const StaffProfilePage = () => {
         .then(() => {
           toast.success('Official Service Record PDF downloaded successfully.');
         })
-        .catch((err) => {
-          toast.error(err || 'Failed to download official PDF.');
+        .catch((downloadError) => {
+          toast.error(downloadError || 'Failed to download official PDF.');
         });
     } else {
       // Consent required - open request modal

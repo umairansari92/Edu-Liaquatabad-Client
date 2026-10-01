@@ -56,8 +56,8 @@ export const adminService = {
     return response.data;
   },
 
-  createSchool: async (data) => {
-    const response = await apiClient.post('/schools', data);
+  createSchool: async (schoolPayload) => {
+    const response = await apiClient.post('/schools', schoolPayload);
     return response.data;
   },
 

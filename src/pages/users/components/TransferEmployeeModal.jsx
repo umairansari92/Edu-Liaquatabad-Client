@@ -34,20 +34,20 @@ export const TransferEmployeeModal = ({
   const currentSchoolName = targetEmployee.schoolId?.name || 'Unassigned';
 
   // Filter out current school from destination choices
-  const availableSchools = schoolsList.filter((s) => {
-    const isDifferent = String(s._id) !== String(currentSchoolId);
+  const availableSchools = schoolsList.filter((schoolItem) => {
+    const isDifferent = String(schoolItem._id) !== String(currentSchoolId);
     const q = schoolSearch.toLowerCase();
     const matchesSearch =
-      s.name?.toLowerCase().includes(q) ||
+      schoolItem.name?.toLowerCase().includes(q) ||
       s.schoolCode?.toLowerCase().includes(q) ||
-      s.emisCode?.toLowerCase().includes(q);
+      schoolItem.emisCode?.toLowerCase().includes(q);
     return isDifferent && matchesSearch;
   });
 
   const isPrivilegedAdmin = ['ROOT_ADMIN', 'SUPER_ADMIN', 'ADMIN'].includes(currentUser?.role);
 
-  const handleSubmitTransfer = async (e) => {
-    e.preventDefault();
+  const handleSubmitTransfer = async (submitEvent) => {
+    submitEvent.preventDefault();
     if (!destinationSchoolId) {
       toast.error('Please select a destination municipal school.');
       return;
@@ -163,22 +163,22 @@ export const TransferEmployeeModal = ({
               <input
                 type="text"
                 value={schoolSearch}
-                onChange={(e) => setSchoolSearch(e.target.value)}
+                onChange={(changeEvent) => setSchoolSearch(changeEvent.target.value)}
                 placeholder="Search target school by name or code..."
                 className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-[#102033] focus:border-[#006AC7] focus:bg-white focus:outline-none"
               />
               <select
                 value={destinationSchoolId}
-                onChange={(e) => setDestinationSchoolId(e.target.value)}
+                onChange={(changeEvent) => setDestinationSchoolId(changeEvent.target.value)}
                 size={4}
                 className="w-full rounded-xl border border-slate-200 bg-white p-2 text-xs text-[#102033] focus:border-[#006AC7] focus:outline-none overflow-y-auto"
               >
                 <option value="" disabled className="text-slate-400 py-1">
                   -- Select target destination school --
                 </option>
-                {availableSchools.map((s) => (
-                  <option key={s._id} value={s._id} className="py-1 px-1.5 rounded hover:bg-blue-50">
-                    {s.name} {s.schoolCode ? `(${s.schoolCode})` : ''}
+                {availableSchools.map((schoolItem) => (
+                  <option key={schoolItem._id} value={schoolItem._id} className="py-1 px-1.5 rounded hover:bg-blue-50">
+                    {schoolItem.name} {s.schoolCode ? `(${s.schoolCode})` : ''}
                   </option>
                 ))}
               </select>
@@ -194,7 +194,7 @@ export const TransferEmployeeModal = ({
               <input
                 type="text"
                 value={officialOrderNumber}
-                onChange={(e) => setOfficialOrderNumber(e.target.value)}
+                onChange={(changeEvent) => setOfficialOrderNumber(changeEvent.target.value)}
                 placeholder="e.g. DMC/LTC/ED/2026/891"
                 className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-[#102033] focus:border-[#006AC7] focus:bg-white focus:outline-none"
               />
@@ -204,7 +204,7 @@ export const TransferEmployeeModal = ({
               <input
                 type="date"
                 value={orderDate}
-                onChange={(e) => setOrderDate(e.target.value)}
+                onChange={(changeEvent) => setOrderDate(changeEvent.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-[#102033] focus:border-[#006AC7] focus:bg-white focus:outline-none"
               />
             </div>
@@ -217,7 +217,7 @@ export const TransferEmployeeModal = ({
             </label>
             <textarea
               value={reason}
-              onChange={(e) => setReason(e.target.value)}
+              onChange={(changeEvent) => setReason(changeEvent.target.value)}
               rows={2}
               placeholder="Provide official justification for faculty transfer..."
               className="w-full rounded-xl border border-slate-200 bg-slate-50/50 p-2.5 text-xs text-[#102033] focus:border-[#006AC7] focus:bg-white focus:outline-none resize-none"
@@ -231,7 +231,7 @@ export const TransferEmployeeModal = ({
                 <input
                   type="checkbox"
                   checked={isEmergencyOverride}
-                  onChange={(e) => setIsEmergencyOverride(e.target.checked)}
+                  onChange={(changeEvent) => setIsEmergencyOverride(changeEvent.target.checked)}
                   className="rounded border-amber-300 text-amber-600 focus:ring-amber-500"
                 />
                 <span>Executive Emergency Override (Direct Placement)</span>
@@ -240,7 +240,7 @@ export const TransferEmployeeModal = ({
                 <div>
                   <textarea
                     value={overrideJustification}
-                    onChange={(e) => setOverrideJustification(e.target.value)}
+                    onChange={(changeEvent) => setOverrideJustification(changeEvent.target.value)}
                     rows={2}
                     placeholder="Mandatory administrative justification for bypassing standard HM review (minimum 10 chars)..."
                     className="w-full rounded-lg border border-amber-300 bg-white p-2 text-xs text-[#102033] focus:outline-none resize-none"

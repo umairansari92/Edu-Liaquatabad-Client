@@ -456,11 +456,11 @@ export const SchoolsPage = () => {
                       <label className="block text-[11px] font-semibold text-[#526477]">Lowest Class (Starting Grade)</label>
                       <select
                         value={formData.lowestGrade}
-                        onChange={(e) => setFormData({ ...formData, lowestGrade: Number(e.target.value) })}
+                        onChange={(changeEvent) => setFormData({ ...formData, lowestGrade: Number(changeEvent.target.value) })}
                         className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-[#102033] focus:border-[#006AC7] focus:outline-none"
                       >
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                          <option key={num} value={num}>Class {num}</option>
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((gradeNumber) => (
+                          <option key={gradeNumber} value={gradeNumber}>Class {gradeNumber}</option>
                         ))}
                       </select>
                     </div>
@@ -468,11 +468,11 @@ export const SchoolsPage = () => {
                       <label className="block text-[11px] font-semibold text-[#526477]">Highest Class (Ending Grade)</label>
                       <select
                         value={formData.highestGrade}
-                        onChange={(e) => setFormData({ ...formData, highestGrade: Number(e.target.value) })}
+                        onChange={(changeEvent) => setFormData({ ...formData, highestGrade: Number(changeEvent.target.value) })}
                         className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-[#102033] focus:border-[#006AC7] focus:outline-none"
                       >
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].filter(num => num >= formData.lowestGrade).map((num) => (
-                          <option key={num} value={num}>Class {num}</option>
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].filter((gradeNumber) => gradeNumber >= formData.lowestGrade).map((gradeNumber) => (
+                          <option key={gradeNumber} value={gradeNumber}>Class {gradeNumber}</option>
                         ))}
                       </select>
                     </div>
@@ -486,22 +486,22 @@ export const SchoolsPage = () => {
                       { id: 'URDU', label: 'Urdu Medium (اردو)' },
                       { id: 'ENGLISH', label: 'English Medium (انگلش)' },
                       { id: 'SINDHI', label: 'Sindhi Medium (سنڌي)' },
-                    ].map((med) => {
-                      const isChecked = formData.supportedMediums?.includes(med.id);
+                    ].map((mediumOption) => {
+                      const isChecked = formData.supportedMediums?.includes(mediumOption.id);
                       return (
-                        <label key={med.id} className="inline-flex items-center gap-1.5 text-xs text-[#102033] cursor-pointer font-medium">
+                        <label key={mediumOption.id} className="inline-flex items-center gap-1.5 text-xs text-[#102033] cursor-pointer font-medium">
                           <input
                             type="checkbox"
                             checked={isChecked}
-                            onChange={(e) => {
-                              const next = e.target.checked
-                                ? [...(formData.supportedMediums || []), med.id]
-                                : (formData.supportedMediums || []).filter((m) => m !== med.id);
-                              setFormData({ ...formData, supportedMediums: next.length > 0 ? next : ['URDU'] });
+                            onChange={(changeEvent) => {
+                              const updatedMediums = changeEvent.target.checked
+                                ? [...(formData.supportedMediums || []), mediumOption.id]
+                                : (formData.supportedMediums || []).filter((activeMedium) => activeMedium !== mediumOption.id);
+                              setFormData({ ...formData, supportedMediums: updatedMediums.length > 0 ? updatedMediums : ['URDU'] });
                             }}
                             className="rounded border-slate-300 text-[#006AC7] focus:ring-[#006AC7]"
                           />
-                          <span>{med.label}</span>
+                          <span>{mediumOption.label}</span>
                         </label>
                       );
                     })}

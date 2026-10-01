@@ -218,13 +218,13 @@ export const StudentDashboard = () => {
   // Filtered Homework
   const filteredHomeworkList = useMemo(() => {
     if (homeworkStatusFilter === 'DUE_SOON') {
-      return homeworkCalculations.classifiedList.filter((item) => item.isDueSoon);
+      return homeworkCalculations.classifiedList.filter((homeworkItem) => homeworkItem.isDueSoon);
     }
     if (homeworkStatusFilter === 'OVERDUE') {
-      return homeworkCalculations.classifiedList.filter((item) => item.isOverdue);
+      return homeworkCalculations.classifiedList.filter((homeworkItem) => homeworkItem.isOverdue);
     }
     if (homeworkStatusFilter === 'ACTIVE') {
-      return homeworkCalculations.classifiedList.filter((item) => !item.isOverdue);
+      return homeworkCalculations.classifiedList.filter((homeworkItem) => !homeworkItem.isOverdue);
     }
     return homeworkCalculations.classifiedList;
   }, [homeworkCalculations.classifiedList, homeworkStatusFilter]);

@@ -115,8 +115,8 @@ export const UsersPage = () => {
         if (response.data?.success) {
           setSchoolsList(response.data.data?.schools || response.data.data || []);
         }
-      } catch (err) {
-        console.error('Failed to load schools list:', err);
+      } catch (errorObject) {
+        console.error('Failed to load schools list:', errorObject);
       }
     };
     loadSchools();
@@ -129,8 +129,8 @@ export const UsersPage = () => {
       if (response.data?.success) {
         setSummaryCounts(response.data.data);
       }
-    } catch (err) {
-      console.error('Failed to load user summary counts:', err);
+    } catch (errorObject) {
+      console.error('Failed to load user summary counts:', errorObject);
     }
   }, []);
 
@@ -186,8 +186,8 @@ export const UsersPage = () => {
   };
 
   // Bulk Selection Handlers
-  const isUserBulkEligible = (u) =>
-    u.role !== 'ROOT_ADMIN' && String(u._id) !== String(authenticatedUser?._id);
+  const isUserBulkEligible = (targetUser) =>
+    targetUser.role !== 'ROOT_ADMIN' && String(targetUser._id) !== String(authenticatedUser?._id);
 
   const handleToggleSelectUser = (userRecord) => {
     if (!isUserBulkEligible(userRecord)) {
@@ -196,7 +196,7 @@ export const UsersPage = () => {
     }
     setSelectedUserIds((prev) =>
       prev.includes(userRecord._id)
-        ? prev.filter((id) => id !== userRecord._id)
+        ? prev.filter((selectedId) => selectedId !== userRecord._id)
         : [...prev, userRecord._id]
     );
   };
@@ -212,8 +212,8 @@ export const UsersPage = () => {
 
   // Bulk Lifecycle Execution
   const handleExecuteBulkAction = async (actionType) => {
-    const sanitizedUserIds = selectedUserIds.filter((id) => {
-      const matched = usersList.find((u) => String(u._id) === String(id));
+    const sanitizedUserIds = selectedUserIds.filter((selectedId) => {
+      const matched = usersList.find((userItem) => String(userItem._id) === String(selectedId));
       return matched && isUserBulkEligible(matched);
     });
     if (sanitizedUserIds.length === 0) {
@@ -428,7 +428,7 @@ export const UsersPage = () => {
               <input
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(changeEvent) => setSearchQuery(changeEvent.target.value)}
                 placeholder={
                   activeCategory === 'EMPLOYEES'
                     ? 'Search employee name, email, or designation...'
@@ -446,7 +446,7 @@ export const UsersPage = () => {
             {activeCategory === 'EMPLOYEES' && (
               <select
                 value={roleFilter}
-                onChange={(e) => setRoleFilter(e.target.value)}
+                onChange={(changeEvent) => setRoleFilter(changeEvent.target.value)}
                 className="rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-bold text-[#526477] focus:border-[#006AC7] focus:bg-white focus:outline-none"
               >
                 <option value="">All Roles</option>
@@ -462,7 +462,7 @@ export const UsersPage = () => {
             {activeCategory === 'ALL' && (
               <select
                 value={roleFilter}
-                onChange={(e) => setRoleFilter(e.target.value)}
+                onChange={(changeEvent) => setRoleFilter(changeEvent.target.value)}
                 className="rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-bold text-[#526477] focus:border-[#006AC7] focus:bg-white focus:outline-none"
               >
                 <option value="">All Roles</option>
@@ -480,13 +480,13 @@ export const UsersPage = () => {
             {/* School Filter */}
             <select
               value={schoolFilter}
-              onChange={(e) => setSchoolFilter(e.target.value)}
+              onChange={(changeEvent) => setSchoolFilter(changeEvent.target.value)}
               className="rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-bold text-[#526477] focus:border-[#006AC7] focus:bg-white focus:outline-none max-w-[200px]"
             >
               <option value="">All Schools</option>
-              {schoolsList.map((s) => (
-                <option key={s._id} value={s._id}>
-                  {s.name}
+              {schoolsList.map((schoolItem) => (
+                <option key={schoolItem._id} value={schoolItem._id}>
+                  {schoolItem.name}
                 </option>
               ))}
             </select>
@@ -494,7 +494,7 @@ export const UsersPage = () => {
             {/* Status Filter */}
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(changeEvent) => setStatusFilter(changeEvent.target.value)}
               className="rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-bold text-[#526477] focus:border-[#006AC7] focus:bg-white focus:outline-none"
             >
               <option value="">All Statuses</option>
@@ -634,7 +634,7 @@ export const UsersPage = () => {
               <button
                 type="button"
                 disabled={page <= 1 || isLoading}
-                onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                onClick={() => setPage((currentPageNumber) => Math.max(currentPageNumber - 1, 1))}
                 className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white font-bold hover:bg-slate-50 disabled:opacity-40 transition"
               >
                 Previous
@@ -642,7 +642,7 @@ export const UsersPage = () => {
               <button
                 type="button"
                 disabled={page >= totalPages || isLoading}
-                onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+                onClick={() => setPage((currentPageNumber) => Math.min(currentPageNumber + 1, totalPages))}
                 className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white font-bold hover:bg-slate-50 disabled:opacity-40 transition"
               >
                 Next

@@ -80,13 +80,13 @@ export const Sidebar = () => {
           Navigation &amp; Modules
         </div>
 
-        {navigationItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = location.pathname === item.path;
+        {navigationItems.map((navItem) => {
+          const Icon = navItem.icon;
+          const isActive = location.pathname === navItem.path;
           return (
             <Link
-              key={item.path}
-              to={item.path}
+              key={navItem.path}
+              to={navItem.path}
               className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                 isActive
                   ? 'bg-[#F0F8FF] text-[#006AC7] border border-[#B9DEFF] font-semibold shadow-xs'

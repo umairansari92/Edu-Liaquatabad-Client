@@ -183,21 +183,21 @@ export const HmDashboard = () => {
   // Memoized / scoped classes strictly belonging to HM's school and sorted by grade
   const scopedClasses = React.useMemo(() => {
     return (classes || [])
-      .filter((c) => {
-        const cSchoolId = c.schoolId?._id || c.schoolId;
-        return !userSchoolId || !cSchoolId || String(cSchoolId) === String(userSchoolId);
+      .filter((classEntity) => {
+        const classSchoolId = classEntity.schoolId?._id || classEntity.schoolId;
+        return !userSchoolId || !classSchoolId || String(classSchoolId) === String(userSchoolId);
       })
-      .sort((a, b) => (Number(a.numericGrade) || 0) - (Number(b.numericGrade) || 0));
+      .sort((firstClass, secondClass) => (Number(firstClass.numericGrade) || 0) - (Number(secondClass.numericGrade) || 0));
   }, [classes, userSchoolId]);
 
   // Memoized / scoped subjects belonging to HM's school
   const scopedSubjects = React.useMemo(() => {
     return (subjects || [])
-      .filter((s) => {
-        const sSchoolId = s.schoolId?._id || s.schoolId;
-        return !userSchoolId || !sSchoolId || String(sSchoolId) === String(userSchoolId);
+      .filter((subjectEntity) => {
+        const subjectSchoolId = subjectEntity.schoolId?._id || subjectEntity.schoolId;
+        return !userSchoolId || !subjectSchoolId || String(subjectSchoolId) === String(userSchoolId);
       })
-      .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      .sort((firstSubject, secondSubject) => (firstSubject.name || '').localeCompare(secondSubject.name || ''));
   }, [subjects, userSchoolId]);
 
   // Memoized incoming pending transfers awaiting Target HM action
@@ -270,8 +270,8 @@ export const HmDashboard = () => {
       .then(() => {
         if (currentRequestId !== studentRequestIdRef.current) return;
       })
-      .catch((err) => {
-        if (err === 'REQUEST_ABORTED') return;
+      .catch((errorObject) => {
+        if (errorObject === 'REQUEST_ABORTED') return;
       });
   }, [dispatch, studentPage, studentLimit, studentSearchQuery, studentClassFilter, studentSectionFilter, studentGenderFilter, studentStatusFilter]);
 
@@ -302,11 +302,11 @@ export const HmDashboard = () => {
   const [dutyData, setDutyData] = useState({ teacherId: '', classId: '', sectionId: '', subjectId: '', academicSession: '2025-2026' });
 
   // Selected class & grade for teaching duty allocation
-  const selectedDutyClass = scopedClasses.find((c) => String(c._id) === String(dutyData.classId));
+  const selectedDutyClass = scopedClasses.find((classItem) => String(classItem._id) === String(dutyData.classId));
   const selectedDutyGrade = selectedDutyClass ? Number(selectedDutyClass.numericGrade) : null;
-  const applicableDutySubjects = scopedSubjects.filter((sub) => {
-    if (selectedDutyGrade !== null && Array.isArray(sub.gradeLevels) && sub.gradeLevels.length > 0) {
-      return sub.gradeLevels.includes(selectedDutyGrade);
+  const applicableDutySubjects = scopedSubjects.filter((subjectItem) => {
+    if (selectedDutyGrade !== null && Array.isArray(subjectItem.gradeLevels) && subjectItem.gradeLevels.length > 0) {
+      return subjectItem.gradeLevels.includes(selectedDutyGrade);
     }
     return true;
   });
@@ -373,7 +373,7 @@ export const HmDashboard = () => {
   useEffect(() => {
     if (teacherAttendance?.roster) {
       setTeacherAttendanceRecords(
-        teacherAttendance.roster.map((item) => ({
+        teacherAttendance.roster.map((rosterEntry) => ({
           userId: item.userId,
           fullName: item.fullName,
           employeeId: item.employeeId,
@@ -478,8 +478,8 @@ export const HmDashboard = () => {
     return () => clearTimeout(debounceTimer);
   }, [activeTab, noticeCategoryFilter, noticeTypeFilter, noticeSearchQuery, loadNotices]);
 
-  const handleUpdateSchoolCodeSubmit = async (e) => {
-    e.preventDefault();
+  const handleUpdateSchoolCodeSubmit = async (submitEvent) => {
+    submitEvent.preventDefault();
     if (!newSchoolCodeInput.trim()) return;
     const effectiveSchoolId = user?.schoolId?._id || user?.schoolId;
     try {
@@ -489,26 +489,26 @@ export const HmDashboard = () => {
       setNewSchoolCodeInput('');
       loadStudents({ page: 1 });
       dispatch(fetchHmSummary());
-    } catch (err) {
-      toast.error(err || 'Failed to update school code');
+    } catch (errorObject) {
+      toast.error(errorObject || 'Failed to update school code');
     }
   };
 
   const handleTeacherStatusChange = (userId, status) => {
     setTeacherAttendanceRecords((prev) =>
-      prev.map((rec) => (rec.userId === userId ? { ...rec, status } : rec))
+      prev.map((attendanceRecord) => (attendanceRecord.userId === userId ? { ...attendanceRecord, status } : attendanceRecord))
     );
   };
 
   const handleTeacherRemarksChange = (userId, remarks) => {
     setTeacherAttendanceRecords((prev) =>
-      prev.map((rec) => (rec.userId === userId ? { ...rec, remarks } : rec))
+      prev.map((attendanceRecord) => (attendanceRecord.userId === userId ? { ...attendanceRecord, remarks } : attendanceRecord))
     );
   };
 
   const handleMarkAllTeachersPresent = () => {
     setTeacherAttendanceRecords((prev) =>
-      prev.map((rec) => ({ ...rec, status: 'PRESENT' }))
+      prev.map((attendanceRecord) => ({ ...attendanceRecord, status: 'PRESENT' }))
     );
     toast.success('All faculty members marked Present.');
   };
@@ -522,16 +522,16 @@ export const HmDashboard = () => {
       await dispatch(
         saveTeacherDailyAttendance({
           date: teacherAttendanceDate,
-          records: teacherAttendanceRecords.map((r) => ({
-            userId: r.userId,
-            status: r.status,
-            remarks: r.remarks,
+          records: teacherAttendanceRecords.map((attendanceRecord) => ({
+            userId: attendanceRecord.userId,
+            status: attendanceRecord.status,
+            remarks: attendanceRecord.remarks,
           })),
         })
       ).unwrap();
       toast.success('Teacher daily attendance recorded & verified successfully.');
-    } catch (err) {
-      toast.error(err || 'Failed to record teacher attendance');
+    } catch (errorObject) {
+      toast.error(errorObject || 'Failed to record teacher attendance');
     }
   };
 
@@ -577,8 +577,8 @@ export const HmDashboard = () => {
       toast.success(`Application marked as ${decision}.`);
       setApprovalModal({ open: false, user: null, type: 'staff' });
       setApprovalRemarks('');
-    } catch (err) {
-      toast.error(err || 'Failed to process decision.');
+    } catch (errorObject) {
+      toast.error(errorObject || 'Failed to process decision.');
     }
   };
 
@@ -692,8 +692,8 @@ export const HmDashboard = () => {
   };
 
   // ─── Academic Actions ───────────────────────────────────────────────────────
-  const handleCreateClassSubmit = async (e) => {
-    e.preventDefault();
+  const handleCreateClassSubmit = async (submitEvent) => {
+    submitEvent.preventDefault();
     if (!newClassName || !newClassGrade) return;
     try {
       await dispatch(
@@ -707,13 +707,13 @@ export const HmDashboard = () => {
       setNewClassName('');
       setNewClassGrade('');
       setNewClassModal(false);
-    } catch (err) {
-      toast.error(err || 'Failed to create class.');
+    } catch (errorObject) {
+      toast.error(errorObject || 'Failed to create class.');
     }
   };
 
-  const handleCreateSectionSubmit = async (e) => {
-    e.preventDefault();
+  const handleCreateSectionSubmit = async (submitEvent) => {
+    submitEvent.preventDefault();
     if (!newSectionData.classId || !newSectionData.name) return;
     try {
       await dispatch(
@@ -724,13 +724,13 @@ export const HmDashboard = () => {
       ).unwrap();
       toast.success(`Section "${newSectionData.name}" created.`);
       setNewSectionModal(false);
-    } catch (err) {
-      toast.error(err || 'Failed to create section.');
+    } catch (errorObject) {
+      toast.error(errorObject || 'Failed to create section.');
     }
   };
 
-  const handleCreateSubjectSubmit = async (e) => {
-    e.preventDefault();
+  const handleCreateSubjectSubmit = async (submitEvent) => {
+    submitEvent.preventDefault();
     if (!newSubjectData.classId || !newSubjectData.name) return;
     try {
       await dispatch(
@@ -741,14 +741,14 @@ export const HmDashboard = () => {
       ).unwrap();
       toast.success(`Subject "${newSubjectData.name}" added.`);
       setNewSubjectModal(false);
-    } catch (err) {
-      toast.error(err || 'Failed to add subject.');
+    } catch (errorObject) {
+      toast.error(errorObject || 'Failed to add subject.');
     }
   };
 
   // ─── Teaching Assignment Handler ───────────────────────────────────────────
-  const handleAssignDutySubmit = async (e) => {
-    e.preventDefault();
+  const handleAssignDutySubmit = async (submitEvent) => {
+    submitEvent.preventDefault();
     try {
       await dispatch(
         assignTeachingDuty({
@@ -759,8 +759,8 @@ export const HmDashboard = () => {
       ).unwrap();
       toast.success('Teaching assignment allocated.');
       setAssignDutyModal(false);
-    } catch (err) {
-      toast.error(err || 'Failed to allocate assignment.');
+    } catch (errorObject) {
+      toast.error(errorObject || 'Failed to allocate assignment.');
     }
   };
 
@@ -770,8 +770,8 @@ export const HmDashboard = () => {
     try {
       await dispatch(terminateTeachingDuty({ id: assignmentId, reason: reason.trim() })).unwrap();
       toast.success('Teaching duty archived.');
-    } catch (err) {
-      toast.error(err || 'Failed to end duty.');
+    } catch (errorObject) {
+      toast.error(errorObject || 'Failed to end duty.');
     }
   };
 
@@ -789,8 +789,8 @@ export const HmDashboard = () => {
       toast.success('Faculty physical joining verified and approved.');
       setJoiningModal({ open: false, transfer: null, remarks: '', joiningDate: '' });
       dispatch(fetchIncomingTransfers({ direction: transferViewDirection }));
-    } catch (err) {
-      toast.error(err || 'Failed to approve joining.');
+    } catch (errorObject) {
+      toast.error(errorObject || 'Failed to approve joining.');
     }
   };
 
@@ -821,8 +821,8 @@ export const HmDashboard = () => {
         clearanceCertified: false,
       });
       dispatch(fetchIncomingTransfers({ direction: transferViewDirection }));
-    } catch (err) {
-      toast.error(err || 'Failed to relieve faculty member.');
+    } catch (errorObject) {
+      toast.error(errorObject || 'Failed to relieve faculty member.');
     }
   };
 
@@ -843,14 +843,14 @@ export const HmDashboard = () => {
       toast.success('Faculty arrival rejected. Referred for municipal administrative review.');
       setRejectJoiningModal({ open: false, transfer: null, rejectionReason: '' });
       dispatch(fetchIncomingTransfers({ direction: transferViewDirection }));
-    } catch (err) {
-      toast.error(err || 'Failed to reject joining.');
+    } catch (errorObject) {
+      toast.error(errorObject || 'Failed to reject joining.');
     }
   };
 
   // ─── Exam Handlers ─────────────────────────────────────────────────────────
-  const handleScheduleExamSubmit = async (e) => {
-    e.preventDefault();
+  const handleScheduleExamSubmit = async (submitEvent) => {
+    submitEvent.preventDefault();
     try {
       await dispatch(
         scheduleExam({
@@ -860,8 +860,8 @@ export const HmDashboard = () => {
       ).unwrap();
       toast.success('Examination scheduled.');
       setNewExamModal(false);
-    } catch (err) {
-      toast.error(err || 'Failed to schedule exam.');
+    } catch (errorObject) {
+      toast.error(errorObject || 'Failed to schedule exam.');
     }
   };
 
@@ -876,8 +876,8 @@ export const HmDashboard = () => {
       if (sectionId) params.sectionId = sectionId;
       const response = await hmService.getClassTabulationData(examId, params);
       setTabulationData(response?.data || response);
-    } catch (err) {
-      const msg = err?.response?.data?.message || err?.message || 'Failed to load tabulation data.';
+    } catch (errorObject) {
+      const msg = errorObject?.response?.data?.message || err?.message || 'Failed to load tabulation data.';
       toast.error(msg);
       setTabulationData(null);
     } finally {
@@ -918,8 +918,8 @@ export const HmDashboard = () => {
       toast.loading(`Generating Official DMC Marksheet for ${studentName}...`, { id: 'marksheet-dl' });
       await hmService.downloadStudentMarksheetPdf(examId, studentId);
       toast.success('Marksheet downloaded successfully.', { id: 'marksheet-dl' });
-    } catch (err) {
-      const msg = err?.response?.data?.message || err?.message || 'Failed to download marksheet.';
+    } catch (errorObject) {
+      const msg = errorObject?.response?.data?.message || err?.message || 'Failed to download marksheet.';
       toast.error(msg, { id: 'marksheet-dl' });
     } finally {
       setDownloadingPdf(false);
@@ -936,8 +936,8 @@ export const HmDashboard = () => {
       toast.loading('Generating Official Elementary Board Tabulation Sheet (Legal Landscape)...', { id: 'tab-dl' });
       await hmService.downloadClassTabulationPdf(examId, classId, sectionId);
       toast.success('Official Legal Tabulation Sheet downloaded successfully.', { id: 'tab-dl' });
-    } catch (err) {
-      const msg = err?.response?.data?.message || err?.message || 'Failed to download tabulation sheet.';
+    } catch (errorObject) {
+      const msg = errorObject?.response?.data?.message || err?.message || 'Failed to download tabulation sheet.';
       toast.error(msg, { id: 'tab-dl' });
     } finally {
       setDownloadingPdf(false);
@@ -948,8 +948,8 @@ export const HmDashboard = () => {
     try {
       await dispatch(verifyStudentResult({ resultId, examId: selectedExamId, remarks: 'Verified by HM' })).unwrap();
       toast.success('Marks verified.');
-    } catch (err) {
-      toast.error(err || 'Failed to verify marks.');
+    } catch (errorObject) {
+      toast.error(errorObject || 'Failed to verify marks.');
     }
   };
 
@@ -965,8 +965,8 @@ export const HmDashboard = () => {
         })
       ).unwrap();
       toast.success(response?.message || 'Batch verification completed successfully.');
-    } catch (err) {
-      toast.error(err || 'Failed to batch verify results.');
+    } catch (errorObject) {
+      toast.error(errorObject || 'Failed to batch verify results.');
     }
   };
 
@@ -975,14 +975,14 @@ export const HmDashboard = () => {
     try {
       await dispatch(publishExamGazette(examId)).unwrap();
       toast.success('Exam gazette officially published.');
-    } catch (err) {
-      toast.error(err || 'Failed to publish gazette.');
+    } catch (errorObject) {
+      toast.error(errorObject || 'Failed to publish gazette.');
     }
   };
 
   // ─── Notice Board Handlers ──────────────────────────────────────────────────
-  const handlePublishNoticeSubmit = async (e) => {
-    e.preventDefault();
+  const handlePublishNoticeSubmit = async (submitEvent) => {
+    submitEvent.preventDefault();
     if (!noticeData.title.trim()) {
       toast.error('Notice title is required.');
       return;
@@ -1005,7 +1005,7 @@ export const HmDashboard = () => {
         formData.append('description', noticeData.description.trim());
       }
       formData.append('schoolId', effectiveSchoolId);
-      noticeData.targetAudience.forEach((aud) => formData.append('targetAudience[]', aud));
+      noticeData.targetAudience.forEach((targetAudienceRole) => formData.append('targetAudience[]', targetAudienceRole));
       if (selectedNoticeFile) {
         formData.append('file', selectedNoticeFile);
       }
@@ -1023,8 +1023,8 @@ export const HmDashboard = () => {
       });
       setSelectedNoticeFile(null);
       loadNotices();
-    } catch (err) {
-      toast.error(err || 'Failed to publish circular.');
+    } catch (errorObject) {
+      toast.error(errorObject || 'Failed to publish circular.');
     }
   };
 
@@ -1034,8 +1034,8 @@ export const HmDashboard = () => {
       await dispatch(archiveSchoolNotice(docId)).unwrap();
       toast.success('Circular moved to archive.');
       loadNotices();
-    } catch (err) {
-      toast.error(err || 'Failed to archive circular.');
+    } catch (errorObject) {
+      toast.error(errorObject || 'Failed to archive circular.');
     }
   };
 
@@ -1045,22 +1045,22 @@ export const HmDashboard = () => {
       await dispatch(deleteSchoolNotice(docId)).unwrap();
       toast.success('Circular permanently deleted.');
       loadNotices();
-    } catch (err) {
-      toast.error(err || 'Failed to delete circular.');
+    } catch (errorObject) {
+      toast.error(errorObject || 'Failed to delete circular.');
     }
   };
 
   const handleViewNoticeAttachment = async (docId) => {
     try {
-      const res = await hmService.getViewDocumentUrl(docId);
-      const fileUrl = res?.data?.viewUrl || res?.viewUrl;
+      const documentResponse = await hmService.getViewDocumentUrl(docId);
+      const fileUrl = documentResponse?.data?.viewUrl || documentResponse?.viewUrl;
       if (fileUrl) {
         window.open(fileUrl, '_blank', 'noopener,noreferrer');
       } else {
         toast.error('Document file URL is not available.');
       }
-    } catch (err) {
-      toast.error(err?.response?.data?.message || err?.message || 'Access denied or document not found.');
+    } catch (errorObject) {
+      toast.error(errorObject?.response?.data?.message || err?.message || 'Access denied or document not found.');
     }
   };
 
@@ -1070,7 +1070,7 @@ export const HmDashboard = () => {
       return {
         ...prev,
         targetAudience: exists
-          ? prev.targetAudience.filter((r) => r !== audienceRole)
+          ? prev.targetAudience.filter((roleItem) => roleItem !== audienceRole)
           : [...prev.targetAudience, audienceRole],
       };
     });
@@ -1281,7 +1281,7 @@ export const HmDashboard = () => {
                 <input
                   type="text"
                   value={studentSearchQuery}
-                  onChange={(e) => setStudentSearchQuery(e.target.value)}
+                  onChange={(changeEvent) => setStudentSearchQuery(changeEvent.target.value)}
                   placeholder="Search by GR No, Global ID (LMGA-0001), or Name..."
                   className="w-full pl-10 pr-9 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#006AC7]/20 focus:border-[#006AC7]"
                 />
@@ -1299,8 +1299,8 @@ export const HmDashboard = () => {
               <div>
                 <select
                   value={studentClassFilter}
-                  onChange={(e) => {
-                    setStudentClassFilter(e.target.value);
+                  onChange={(changeEvent) => {
+                    setStudentClassFilter(changeEvent.target.value);
                     setStudentSectionFilter('');
                   }}
                   className="w-full py-2 px-3 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#006AC7]/20 focus:border-[#006AC7]"
@@ -1316,7 +1316,7 @@ export const HmDashboard = () => {
               <div>
                 <select
                   value={studentSectionFilter}
-                  onChange={(e) => setStudentSectionFilter(e.target.value)}
+                  onChange={(changeEvent) => setStudentSectionFilter(changeEvent.target.value)}
                   className="w-full py-2 px-3 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#006AC7]/20 focus:border-[#006AC7]"
                 >
                   <option value="">All Sections</option>
@@ -1332,7 +1332,7 @@ export const HmDashboard = () => {
               <div>
                 <select
                   value={studentStatusFilter}
-                  onChange={(e) => setStudentStatusFilter(e.target.value)}
+                  onChange={(changeEvent) => setStudentStatusFilter(changeEvent.target.value)}
                   className="w-full py-2 px-3 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#006AC7]/20 focus:border-[#006AC7]"
                 >
                   <option value="">All Statuses</option>
@@ -1850,7 +1850,7 @@ export const HmDashboard = () => {
                 type="text"
                 placeholder="Search faculty by name, employee ID, or email..."
                 value={facultySearchQuery}
-                onChange={(e) => setFacultySearchQuery(e.target.value)}
+                onChange={(changeEvent) => setFacultySearchQuery(changeEvent.target.value)}
                 className="w-full pl-9 pr-4 py-2 rounded-xl text-xs border border-slate-200/80 bg-slate-50/50 focus:outline-none focus:ring-1 focus:ring-[#006AC7] focus:bg-white transition"
               />
             </div>
@@ -1858,7 +1858,7 @@ export const HmDashboard = () => {
               <select
                 id="hm-faculty-status-filter"
                 value={facultyStatusFilter}
-                onChange={(e) => setFacultyStatusFilter(e.target.value)}
+                onChange={(changeEvent) => setFacultyStatusFilter(changeEvent.target.value)}
                 className="px-3 py-2 rounded-xl text-xs border border-slate-200/80 bg-slate-50/50 text-[#102033] focus:outline-none focus:ring-1 focus:ring-[#006AC7] transition"
               >
                 <option value="">All Account Statuses</option>
@@ -2024,10 +2024,10 @@ export const HmDashboard = () => {
             <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-3">
               <h4 className="text-xs font-bold uppercase text-[#8094A8] tracking-wider">Classes ({scopedClasses.length})</h4>
               <div className="space-y-2">
-                {scopedClasses.map((c) => (
-                  <div key={c._id} className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center justify-between text-xs">
-                    <span className="font-bold text-[#102033]">{c.name}</span>
-                    <span className="font-mono text-[#006AC7]">{c.code}</span>
+                {scopedClasses.map((classItem) => (
+                  <div key={classItem._id} className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center justify-between text-xs">
+                    <span className="font-bold text-[#102033]">{classItem.name}</span>
+                    <span className="font-mono text-[#006AC7]">{classItem.code}</span>
                   </div>
                 ))}
               </div>
@@ -2037,13 +2037,13 @@ export const HmDashboard = () => {
             <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-3">
               <h4 className="text-xs font-bold uppercase text-[#8094A8] tracking-wider">Sections ({sections.length})</h4>
               <div className="space-y-2">
-                {sections.map((s) => (
-                  <div key={s._id} className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center justify-between text-xs">
+                {sections.map((sectionItem) => (
+                  <div key={sectionItem._id} className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center justify-between text-xs">
                     <div>
-                      <p className="font-bold text-[#102033]">Section {s.name}</p>
-                      <p className="text-[10px] text-[#8094A8]">Room: {s.roomNumber || '—'}</p>
+                      <p className="font-bold text-[#102033]">Section {sectionItem.name}</p>
+                      <p className="text-[10px] text-[#8094A8]">Room: {sectionItem.roomNumber || '—'}</p>
                     </div>
-                    <span className="text-xs text-[#526477]">Cap: {s.capacity || 40}</span>
+                    <span className="text-xs text-[#526477]">Cap: {sectionItem.capacity || 40}</span>
                   </div>
                 ))}
               </div>
@@ -2053,10 +2053,10 @@ export const HmDashboard = () => {
             <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-3">
               <h4 className="text-xs font-bold uppercase text-[#8094A8] tracking-wider">Curriculum Subjects ({scopedSubjects.length})</h4>
               <div className="space-y-2">
-                {scopedSubjects.map((sub) => (
-                  <div key={sub._id} className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center justify-between text-xs">
-                    <span className="font-bold text-[#102033]">{sub.name}</span>
-                    <span className="font-mono text-[#4B7F3A]">{sub.code || 'SUB'}</span>
+                {scopedSubjects.map((subjectItem) => (
+                  <div key={subjectItem._id} className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center justify-between text-xs">
+                    <span className="font-bold text-[#102033]">{subjectItem.name}</span>
+                    <span className="font-mono text-[#4B7F3A]">{subjectItem.code || 'SUB'}</span>
                   </div>
                 ))}
               </div>
@@ -2107,16 +2107,16 @@ export const HmDashboard = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {assignments.activeAssignments.map((a) => (
-                      <tr key={a._id} className="hover:bg-slate-50/60">
-                        <td className="py-3 px-3 font-bold text-[#102033]">{a.teacherId?.fullName}</td>
-                        <td className="py-3 px-3">{a.classId?.name}</td>
-                        <td className="py-3 px-3">{a.sectionId?.name ? `Section ${a.sectionId.name}` : 'Whole Class'}</td>
-                        <td className="py-3 px-3 font-semibold text-[#006AC7]">{a.subjectId?.name}</td>
-                        <td className="py-3 px-3 font-mono">{a.academicSession}</td>
+                    {assignments.activeAssignments.map((assignmentItem) => (
+                      <tr key={assignmentItem._id} className="hover:bg-slate-50/60">
+                        <td className="py-3 px-3 font-bold text-[#102033]">{assignmentItem.teacherId?.fullName}</td>
+                        <td className="py-3 px-3">{assignmentItem.classId?.name}</td>
+                        <td className="py-3 px-3">{assignmentItem.sectionId?.name ? `Section ${assignmentItem.sectionId.name}` : 'Whole Class'}</td>
+                        <td className="py-3 px-3 font-semibold text-[#006AC7]">{assignmentItem.subjectId?.name}</td>
+                        <td className="py-3 px-3 font-mono">{assignmentItem.academicSession}</td>
                         <td className="py-3 px-3 text-right">
                           <button
-                            onClick={() => handleEndDuty(a._id)}
+                            onClick={() => handleEndDuty(assignmentItem._id)}
                             className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition cursor-pointer"
                           >
                             End Duty
@@ -2189,7 +2189,7 @@ export const HmDashboard = () => {
                       type="date"
                       value={teacherAttendanceDate}
                       max={new Date().toISOString().split('T')[0]}
-                      onChange={(e) => setTeacherAttendanceDate(e.target.value)}
+                      onChange={(changeEvent) => setTeacherAttendanceDate(changeEvent.target.value)}
                       className="text-xs font-semibold px-3 py-1.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
                     />
                     <button
@@ -2235,25 +2235,25 @@ export const HmDashboard = () => {
                   <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200">
                     <span className="text-[11px] font-bold text-[#4B7F3A] uppercase block">Present</span>
                     <span className="text-xl font-black text-[#4B7F3A]">
-                      {teacherAttendanceRecords.filter((r) => r.status === 'PRESENT').length}
+                      {teacherAttendanceRecords.filter((attendanceRecord) => attendanceRecord.status === 'PRESENT').length}
                     </span>
                   </div>
                   <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200">
                     <span className="text-[11px] font-bold text-rose-700 uppercase block">Absent</span>
                     <span className="text-xl font-black text-rose-700">
-                      {teacherAttendanceRecords.filter((r) => r.status === 'ABSENT').length}
+                      {teacherAttendanceRecords.filter((attendanceRecord) => attendanceRecord.status === 'ABSENT').length}
                     </span>
                   </div>
                   <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200">
                     <span className="text-[11px] font-bold text-amber-700 uppercase block">Leave</span>
                     <span className="text-xl font-black text-amber-700">
-                      {teacherAttendanceRecords.filter((r) => r.status === 'LEAVE').length}
+                      {teacherAttendanceRecords.filter((attendanceRecord) => attendanceRecord.status === 'LEAVE').length}
                     </span>
                   </div>
                   <div className="p-3.5 rounded-xl bg-purple-50 border border-purple-200">
                     <span className="text-[11px] font-bold text-purple-700 uppercase block">Late</span>
                     <span className="text-xl font-black text-purple-700">
-                      {teacherAttendanceRecords.filter((r) => r.status === 'LATE').length}
+                      {teacherAttendanceRecords.filter((attendanceRecord) => attendanceRecord.status === 'LATE').length}
                     </span>
                   </div>
                 </div>
@@ -2363,7 +2363,7 @@ export const HmDashboard = () => {
                               <input
                                 type="text"
                                 value={recordItem.remarks}
-                                onChange={(e) => handleTeacherRemarksChange(recordItem.userId, e.target.value)}
+                                onChange={(changeEvent) => handleTeacherRemarksChange(recordItem.userId, changeEvent.target.value)}
                                 placeholder={
                                   recordItem.status === 'LEAVE'
                                     ? 'Casual / Medical / Official leave reason...'
@@ -2475,13 +2475,13 @@ export const HmDashboard = () => {
               const selectedExam = exams.find((ex) => String(ex._id) === String(selectedExamId));
               const examResultsList = activeExamResults?.results || [];
               const totalCandidates = examResultsList.length;
-              const passedCandidates = examResultsList.filter((res) => res.grade !== 'F').length;
+              const passedCandidates = examResultsList.filter((resultItem) => resultItem.grade !== 'F').length;
               const failedCandidates = totalCandidates - passedCandidates;
               const passRate = totalCandidates > 0 ? ((passedCandidates / totalCandidates) * 100).toFixed(1) : '0.0';
               const avgScore = totalCandidates > 0
                 ? (examResultsList.reduce((acc, res) => acc + (res.percentage || 0), 0) / totalCandidates).toFixed(1)
                 : '0.0';
-              const unverifiedCount = examResultsList.filter((res) => res.status === 'SUBMITTED').length;
+              const unverifiedCount = examResultsList.filter((resultItem) => resultItem.status === 'SUBMITTED').length;
 
               return (
                 <div className="lg:col-span-2 p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-4">
@@ -2552,12 +2552,12 @@ export const HmDashboard = () => {
                           <span className="text-[11px] font-bold text-[#526477]">Class:</span>
                           <select
                             value={examClassFilter}
-                            onChange={(e) => handleExamFilterChange(e.target.value, examSectionFilter)}
+                            onChange={(changeEvent) => handleExamFilterChange(changeEvent.target.value, examSectionFilter)}
                             className="text-xs p-1.5 rounded-lg border border-slate-200 bg-white"
                           >
                             <option value="">All Classes</option>
-                            {scopedClasses.map((cls) => (
-                              <option key={cls._id} value={cls._id}>{cls.name}</option>
+                            {scopedClasses.map((classItem) => (
+                              <option key={classItem._id} value={classItem._id}>{classItem.name}</option>
                             ))}
                           </select>
                         </div>
@@ -2565,14 +2565,14 @@ export const HmDashboard = () => {
                           <span className="text-[11px] font-bold text-[#526477]">Section:</span>
                           <select
                             value={examSectionFilter}
-                            onChange={(e) => handleExamFilterChange(examClassFilter, e.target.value)}
+                            onChange={(changeEvent) => handleExamFilterChange(examClassFilter, changeEvent.target.value)}
                             className="text-xs p-1.5 rounded-lg border border-slate-200 bg-white"
                           >
                             <option value="">All Sections</option>
                             {sections
-                              .filter((sec) => !examClassFilter || String(sec.classId?._id || sec.classId) === String(examClassFilter))
-                              .map((sec) => (
-                                <option key={sec._id} value={sec._id}>{sec.name}</option>
+                              .filter((sectionItem) => !examClassFilter || String(sectionItem.classId?._id || sectionItem.classId) === String(examClassFilter))
+                              .map((sectionItem) => (
+                                <option key={sectionItem._id} value={sectionItem._id}>{sectionItem.name}</option>
                               ))}
                           </select>
                         </div>
@@ -2637,37 +2637,37 @@ export const HmDashboard = () => {
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-100">
-                            {examResultsList.map((res) => (
-                              <tr key={res._id} className="hover:bg-slate-50/60">
+                            {examResultsList.map((resultRecord) => (
+                              <tr key={resultRecord._id} className="hover:bg-slate-50/60">
                                 <td className="py-2 px-2">
-                                  <span className="font-bold text-[#102033] block">{res.studentId?.fullName}</span>
-                                  {res.studentId?.rollNumber ? (
-                                    <span className="text-[10px] text-[#8094A8] font-mono">Roll #{res.studentId.rollNumber}</span>
+                                  <span className="font-bold text-[#102033] block">{resultRecord.studentId?.fullName}</span>
+                                  {resultRecord.studentId?.rollNumber ? (
+                                    <span className="text-[10px] text-[#8094A8] font-mono">Roll #{resultRecord.studentId.rollNumber}</span>
                                   ) : null}
                                 </td>
                                 <td className="py-2 px-2">
-                                  <span>{res.classId?.name}</span>
-                                  {res.sectionId?.name ? (
-                                    <span className="text-[#8094A8] text-[11px] ml-1">({res.sectionId.name})</span>
+                                  <span>{resultRecord.classId?.name}</span>
+                                  {resultRecord.sectionId?.name ? (
+                                    <span className="text-[#8094A8] text-[11px] ml-1">({resultRecord.sectionId.name})</span>
                                   ) : null}
                                 </td>
-                                <td className="py-2 px-2 font-mono">{res.totalObtainedMarks} / {res.totalMaxMarks}</td>
-                                <td className="py-2 px-2 font-bold text-[#006AC7]">{res.percentage}%</td>
-                                <td className="py-2 px-2 font-mono font-bold">{res.grade}</td>
+                                <td className="py-2 px-2 font-mono">{resultRecord.totalObtainedMarks} / {resultRecord.totalMaxMarks}</td>
+                                <td className="py-2 px-2 font-bold text-[#006AC7]">{resultRecord.percentage}%</td>
+                                <td className="py-2 px-2 font-mono font-bold">{resultRecord.grade}</td>
                                 <td className="py-2 px-2">
                                   <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${
-                                    res.status === 'PUBLISHED' ? 'bg-emerald-50 text-[#4B7F3A]' :
-                                    res.status === 'VERIFIED_BY_HM' ? 'bg-blue-50 text-[#006AC7]' :
+                                    resultRecord.status === 'PUBLISHED' ? 'bg-emerald-50 text-[#4B7F3A]' :
+                                    resultRecord.status === 'VERIFIED_BY_HM' ? 'bg-blue-50 text-[#006AC7]' :
                                     'bg-amber-50 text-amber-700'
                                   }`}>
-                                    {res.status}
+                                    {resultRecord.status}
                                   </span>
                                 </td>
                                 <td className="py-2 px-2 text-right">
                                   <div className="flex items-center justify-end gap-1.5">
-                                    {['VERIFIED_BY_HM', 'PUBLISHED'].includes(res.status) && (
+                                    {['VERIFIED_BY_HM', 'PUBLISHED'].includes(resultRecord.status) && (
                                       <button
-                                        onClick={() => handleDownloadStudentMarksheet(selectedExamId, res.studentId?._id || res.studentId, res.studentId?.fullName)}
+                                        onClick={() => handleDownloadStudentMarksheet(selectedExamId, resultRecord.studentId?._id || resultRecord.studentId, resultRecord.studentId?.fullName)}
                                         disabled={downloadingPdf}
                                         title="Download Official A4 Marksheet PDF (Image 1 Replica)"
                                         className="px-2 py-1 rounded bg-emerald-50 text-[#15803d] border border-emerald-200 text-[10px] font-bold hover:bg-emerald-100 transition cursor-pointer flex items-center gap-1"
@@ -2675,9 +2675,9 @@ export const HmDashboard = () => {
                                         <Download className="w-3 h-3" /> Marksheet
                                       </button>
                                     )}
-                                    {res.status === 'SUBMITTED' && selectedExam?.status !== 'PUBLISHED' && (
+                                    {resultRecord.status === 'SUBMITTED' && selectedExam?.status !== 'PUBLISHED' && (
                                       <button
-                                        onClick={() => handleVerifyMarks(res._id)}
+                                        onClick={() => handleVerifyMarks(resultRecord._id)}
                                         className="px-2 py-1 rounded bg-[#006AC7] text-white text-[10px] font-bold hover:bg-[#005299] transition cursor-pointer"
                                       >
                                         Verify
@@ -2727,9 +2727,9 @@ export const HmDashboard = () => {
                               Tabulation Sheet of {tabulationData.exam?.title || selectedExam?.title} ({tabulationData.exam?.academicYear || selectedExam?.academicYear})
                             </h4>
                             <p className="text-xs text-[#526477]">
-                              Class: <span className="font-bold text-[#102033]">{classes.find((c) => String(c._id) === String(examClassFilter))?.name}</span>
+                              Class: <span className="font-bold text-[#102033]">{classes.find((classItem) => String(classItem._id) === String(examClassFilter))?.name}</span>
                               {examSectionFilter && (
-                                <span> • Section: <span className="font-bold text-[#102033]">{sections.find((s) => String(s._id) === String(examSectionFilter))?.name}</span></span>
+                                <span> • Section: <span className="font-bold text-[#102033]">{sections.find((sectionItem) => String(sectionItem._id) === String(examSectionFilter))?.name}</span></span>
                               )}
                               <span> • Candidates: <span className="font-bold text-[#102033]">{tabulationData.rankedResults?.length || 0}</span></span>
                             </p>
@@ -2779,7 +2779,7 @@ export const HmDashboard = () => {
                             <tbody className="divide-y divide-slate-200">
                               {(tabulationData.rankedResults || []).map((row, idx) => {
                                 const subjects = row.subjectMarks || [];
-                                const findSubj = (name) => subjects.find((s) => (s.subjectName || '').toLowerCase().includes(name));
+                                const findSubj = (targetSubjectName) => subjects.find((subjectItem) => (subjectItem.subjectName || '').toLowerCase().includes(targetSubjectName));
 
                                 const isl = findSubj('islamiat');
                                 const isNaz = isl?.subComponents ? isl.subComponents.nazra : Math.round((isl?.obtainedMarks || 0) * 0.2);
@@ -3245,7 +3245,7 @@ export const HmDashboard = () => {
                 <Filter className="w-3.5 h-3.5 text-[#8094A8]" />
                 <select
                   value={noticeTypeFilter}
-                  onChange={(e) => setNoticeTypeFilter(e.target.value)}
+                  onChange={(changeEvent) => setNoticeTypeFilter(changeEvent.target.value)}
                   className="text-xs p-2 rounded-xl border border-slate-200 bg-white font-medium text-[#102033] focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
                 >
                   <option value="">All Document Types</option>
@@ -3261,7 +3261,7 @@ export const HmDashboard = () => {
                 <input
                   type="text"
                   value={noticeSearchQuery}
-                  onChange={(e) => setNoticeSearchQuery(e.target.value)}
+                  onChange={(changeEvent) => setNoticeSearchQuery(changeEvent.target.value)}
                   placeholder="Search notices..."
                   maxLength={100}
                   className="w-full text-xs pl-8 pr-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
@@ -3466,7 +3466,7 @@ export const HmDashboard = () => {
               <label className="text-xs font-bold text-[#102033] block mb-1">Administrative Remarks</label>
               <textarea
                 value={approvalRemarks}
-                onChange={(e) => setApprovalRemarks(e.target.value)}
+                onChange={(changeEvent) => setApprovalRemarks(changeEvent.target.value)}
                 placeholder="Required when rejecting or requesting correction..."
                 rows={3}
                 className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
@@ -3716,7 +3716,7 @@ export const HmDashboard = () => {
               <input
                 type="text"
                 value={newClassName}
-                onChange={(e) => setNewClassName(e.target.value)}
+                onChange={(changeEvent) => setNewClassName(changeEvent.target.value)}
                 placeholder="e.g. Class 6"
                 required
                 className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
@@ -3729,7 +3729,7 @@ export const HmDashboard = () => {
                 min={1}
                 max={12}
                 value={newClassGrade}
-                onChange={(e) => setNewClassGrade(e.target.value)}
+                onChange={(changeEvent) => setNewClassGrade(changeEvent.target.value)}
                 placeholder="e.g. 6"
                 required
                 className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
@@ -3752,12 +3752,12 @@ export const HmDashboard = () => {
               <label className="text-xs font-bold text-[#102033] block mb-1">Select Class</label>
               <select
                 value={newSectionData.classId}
-                onChange={(e) => setNewSectionData({ ...newSectionData, classId: e.target.value })}
+                onChange={(changeEvent) => setNewSectionData({ ...newSectionData, classId: changeEvent.target.value })}
                 required
                 className="w-full text-xs p-2.5 rounded-xl border border-slate-200"
               >
                 <option value="">-- Choose Class --</option>
-                {scopedClasses.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
+                {scopedClasses.map((classItem) => <option key={classItem._id} value={classItem._id}>{classItem.name}</option>)}
               </select>
             </div>
             <div>
@@ -3765,7 +3765,7 @@ export const HmDashboard = () => {
               <input
                 type="text"
                 value={newSectionData.name}
-                onChange={(e) => setNewSectionData({ ...newSectionData, name: e.target.value })}
+                onChange={(changeEvent) => setNewSectionData({ ...newSectionData, name: changeEvent.target.value })}
                 placeholder="e.g. A, B, Green"
                 required
                 className="w-full text-xs p-2.5 rounded-xl border border-slate-200"
@@ -3788,12 +3788,12 @@ export const HmDashboard = () => {
               <label className="text-xs font-bold text-[#102033] block mb-1">Select Class</label>
               <select
                 value={newSubjectData.classId}
-                onChange={(e) => setNewSubjectData({ ...newSubjectData, classId: e.target.value })}
+                onChange={(changeEvent) => setNewSubjectData({ ...newSubjectData, classId: changeEvent.target.value })}
                 required
                 className="w-full text-xs p-2.5 rounded-xl border border-slate-200"
               >
                 <option value="">-- Choose Class --</option>
-                {scopedClasses.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
+                {scopedClasses.map((classItem) => <option key={classItem._id} value={classItem._id}>{classItem.name}</option>)}
               </select>
             </div>
             <div>
@@ -3801,7 +3801,7 @@ export const HmDashboard = () => {
               <input
                 type="text"
                 value={newSubjectData.name}
-                onChange={(e) => setNewSubjectData({ ...newSubjectData, name: e.target.value })}
+                onChange={(changeEvent) => setNewSubjectData({ ...newSubjectData, name: changeEvent.target.value })}
                 placeholder="e.g. Mathematics, Science"
                 required
                 className="w-full text-xs p-2.5 rounded-xl border border-slate-200"
@@ -3824,7 +3824,7 @@ export const HmDashboard = () => {
               <label className="text-xs font-bold text-[#102033] block mb-1">Select Class</label>
               <select
                 value={dutyData.classId}
-                onChange={(e) => setDutyData({ ...dutyData, classId: e.target.value, sectionId: '', subjectId: '' })}
+                onChange={(changeEvent) => setDutyData({ ...dutyData, classId: changeEvent.target.value, sectionId: '', subjectId: '' })}
                 required
                 className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
               >
@@ -3832,7 +3832,7 @@ export const HmDashboard = () => {
                 {scopedClasses.length === 0 ? (
                   <option disabled value="">No classes configured for this school</option>
                 ) : (
-                  scopedClasses.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)
+                  scopedClasses.map((classItem) => <option key={classItem._id} value={classItem._id}>{classItem.name}</option>)
                 )}
               </select>
             </div>
@@ -3842,7 +3842,7 @@ export const HmDashboard = () => {
               </label>
               <select
                 value={dutyData.sectionId}
-                onChange={(e) => setDutyData({ ...dutyData, sectionId: e.target.value })}
+                onChange={(changeEvent) => setDutyData({ ...dutyData, sectionId: changeEvent.target.value })}
                 disabled={!dutyData.classId}
                 className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7] disabled:bg-slate-50 disabled:text-slate-400"
               >
@@ -3852,8 +3852,8 @@ export const HmDashboard = () => {
                   <>
                     <option value="">-- Whole Class / Single Cohort (No Section) --</option>
                     {sections
-                      .filter((s) => String(s.classId) === String(dutyData.classId) || String(s.classId?._id) === String(dutyData.classId))
-                      .map((s) => <option key={s._id} value={s._id}>Section {s.name}</option>)}
+                      .filter((sectionItem) => String(sectionItem.classId) === String(dutyData.classId) || String(sectionItem.classId?._id) === String(dutyData.classId))
+                      .map((sectionItem) => <option key={sectionItem._id} value={sectionItem._id}>Section {sectionItem.name}</option>)}
                   </>
                 )}
               </select>
@@ -3862,7 +3862,7 @@ export const HmDashboard = () => {
               <label className="text-xs font-bold text-[#102033] block mb-1">Select Subject</label>
               <select
                 value={dutyData.subjectId}
-                onChange={(e) => setDutyData({ ...dutyData, subjectId: e.target.value })}
+                onChange={(changeEvent) => setDutyData({ ...dutyData, subjectId: changeEvent.target.value })}
                 required
                 disabled={!dutyData.classId}
                 className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7] disabled:bg-slate-50 disabled:text-slate-400"
@@ -3874,8 +3874,8 @@ export const HmDashboard = () => {
                 ) : (
                   <>
                     <option value="">-- Choose Subject ({selectedDutyClass?.name}) --</option>
-                    {applicableDutySubjects.map((sub) => (
-                      <option key={sub._id} value={sub._id}>
+                    {applicableDutySubjects.map((subjectItem) => (
+                      <option key={subjectItem._id} value={subjectItem._id}>
                         {sub.name} {sub.code ? `(${sub.code})` : ''}
                       </option>
                     ))}
@@ -3888,7 +3888,7 @@ export const HmDashboard = () => {
               <select
                 id="hm-assign-duty-teacher-select"
                 value={dutyData.teacherId}
-                onChange={(e) => setDutyData({ ...dutyData, teacherId: e.target.value })}
+                onChange={(changeEvent) => setDutyData({ ...dutyData, teacherId: changeEvent.target.value })}
                 required
                 className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
               >
@@ -3919,7 +3919,7 @@ export const HmDashboard = () => {
               <input
                 type="text"
                 value={examData.title}
-                onChange={(e) => setExamData({ ...examData, title: e.target.value })}
+                onChange={(changeEvent) => setExamData({ ...examData, title: changeEvent.target.value })}
                 placeholder="e.g. Mid-Term Examination 2025"
                 required
                 className="w-full text-xs p-2.5 rounded-xl border border-slate-200"
@@ -3929,7 +3929,7 @@ export const HmDashboard = () => {
               <label className="text-xs font-bold text-[#102033] block mb-1">Academic Year</label>
               <select
                 value={examData.academicYear}
-                onChange={(e) => setExamData({ ...examData, academicYear: e.target.value })}
+                onChange={(changeEvent) => setExamData({ ...examData, academicYear: changeEvent.target.value })}
                 className="w-full text-xs p-2.5 rounded-xl border border-slate-200"
               >
                 <option value="2024-2025">2024-2025</option>
@@ -3942,7 +3942,7 @@ export const HmDashboard = () => {
               <label className="text-xs font-bold text-[#102033] block mb-1">Exam Type</label>
               <select
                 value={examData.examType}
-                onChange={(e) => setExamData({ ...examData, examType: e.target.value })}
+                onChange={(changeEvent) => setExamData({ ...examData, examType: changeEvent.target.value })}
                 className="w-full text-xs p-2.5 rounded-xl border border-slate-200"
               >
                 <option value="MID_TERM">Mid-Term</option>
@@ -3956,7 +3956,7 @@ export const HmDashboard = () => {
               <input
                 type="date"
                 value={examData.startDate}
-                onChange={(e) => setExamData({ ...examData, startDate: e.target.value })}
+                onChange={(changeEvent) => setExamData({ ...examData, startDate: changeEvent.target.value })}
                 required
                 className="w-full text-xs p-2.5 rounded-xl border border-slate-200"
               />
@@ -3966,7 +3966,7 @@ export const HmDashboard = () => {
               <input
                 type="date"
                 value={examData.endDate}
-                onChange={(e) => setExamData({ ...examData, endDate: e.target.value })}
+                onChange={(changeEvent) => setExamData({ ...examData, endDate: changeEvent.target.value })}
                 required
                 className="w-full text-xs p-2.5 rounded-xl border border-slate-200"
               />
@@ -3996,7 +3996,7 @@ export const HmDashboard = () => {
               <input
                 type="date"
                 value={joiningModal.joiningDate}
-                onChange={(e) => setJoiningModal({ ...joiningModal, joiningDate: e.target.value })}
+                onChange={(changeEvent) => setJoiningModal({ ...joiningModal, joiningDate: changeEvent.target.value })}
                 className="w-full text-xs p-2.5 rounded-xl border border-slate-200"
               />
             </div>
@@ -4005,7 +4005,7 @@ export const HmDashboard = () => {
               <input
                 type="text"
                 value={joiningModal.remarks}
-                onChange={(e) => setJoiningModal({ ...joiningModal, remarks: e.target.value })}
+                onChange={(changeEvent) => setJoiningModal({ ...joiningModal, remarks: changeEvent.target.value })}
                 placeholder="e.g. Physical report submitted and accepted"
                 className="w-full text-xs p-2.5 rounded-xl border border-slate-200"
               />
@@ -4041,7 +4041,7 @@ export const HmDashboard = () => {
                 <input
                   type="date"
                   value={relieveModal.relievingDate}
-                  onChange={(e) => setRelieveModal({ ...relieveModal, relievingDate: e.target.value })}
+                  onChange={(changeEvent) => setRelieveModal({ ...relieveModal, relievingDate: changeEvent.target.value })}
                   className="w-full text-xs p-2.5 rounded-xl border border-slate-200"
                 />
               </div>
@@ -4051,7 +4051,7 @@ export const HmDashboard = () => {
                   type="text"
                   placeholder="e.g. REL/2026/042"
                   value={relieveModal.relievingOrderNumber}
-                  onChange={(e) => setRelieveModal({ ...relieveModal, relievingOrderNumber: e.target.value })}
+                  onChange={(changeEvent) => setRelieveModal({ ...relieveModal, relievingOrderNumber: changeEvent.target.value })}
                   className="w-full text-xs p-2.5 rounded-xl border border-slate-200 font-mono"
                 />
               </div>
@@ -4062,7 +4062,7 @@ export const HmDashboard = () => {
               <textarea
                 rows={2}
                 value={relieveModal.relievingRemarks}
-                onChange={(e) => setRelieveModal({ ...relieveModal, relievingRemarks: e.target.value })}
+                onChange={(changeEvent) => setRelieveModal({ ...relieveModal, relievingRemarks: changeEvent.target.value })}
                 placeholder="Certified all gradebooks, examination registers, and municipal assets handed over."
                 className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
               />
@@ -4073,7 +4073,7 @@ export const HmDashboard = () => {
                 <input
                   type="checkbox"
                   checked={relieveModal.clearanceCertified}
-                  onChange={(e) => setRelieveModal({ ...relieveModal, clearanceCertified: e.target.checked })}
+                  onChange={(changeEvent) => setRelieveModal({ ...relieveModal, clearanceCertified: changeEvent.target.checked })}
                   className="mt-0.5 rounded text-[#006AC7] focus:ring-[#006AC7]"
                 />
                 <span className="text-xs font-semibold text-amber-900 leading-tight">
@@ -4124,7 +4124,7 @@ export const HmDashboard = () => {
               <textarea
                 rows={3}
                 value={rejectJoiningModal.rejectionReason}
-                onChange={(e) => setRejectJoiningModal({ ...rejectJoiningModal, rejectionReason: e.target.value })}
+                onChange={(changeEvent) => setRejectJoiningModal({ ...rejectJoiningModal, rejectionReason: changeEvent.target.value })}
                 placeholder="e.g. Discrepancy in relieving order credentials; subject quota full; identity mismatch."
                 className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-rose-500"
               />
@@ -4173,7 +4173,7 @@ export const HmDashboard = () => {
               <input
                 type="text"
                 value={noticeData.title}
-                onChange={(e) => setNoticeData({ ...noticeData, title: e.target.value })}
+                onChange={(changeEvent) => setNoticeData({ ...noticeData, title: changeEvent.target.value })}
                 placeholder="e.g. Annual Sports Day Schedule 2026"
                 required
                 maxLength={200}
@@ -4187,7 +4187,7 @@ export const HmDashboard = () => {
                 <input
                   type="text"
                   value={noticeData.referenceNumber}
-                  onChange={(e) => setNoticeData({ ...noticeData, referenceNumber: e.target.value })}
+                  onChange={(changeEvent) => setNoticeData({ ...noticeData, referenceNumber: changeEvent.target.value })}
                   placeholder="e.g. HM/CIR/2026/01"
                   maxLength={50}
                   className="w-full text-xs p-2.5 rounded-xl border border-slate-200 font-mono focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
@@ -4198,7 +4198,7 @@ export const HmDashboard = () => {
                 <label className="text-xs font-bold text-[#102033] block mb-1">Document Type</label>
                 <select
                   value={noticeData.documentType}
-                  onChange={(e) => setNoticeData({ ...noticeData, documentType: e.target.value })}
+                  onChange={(changeEvent) => setNoticeData({ ...noticeData, documentType: changeEvent.target.value })}
                   className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-white font-medium text-[#102033] focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
                 >
                   <option value="CIRCULAR">Circular</option>
@@ -4214,7 +4214,7 @@ export const HmDashboard = () => {
                 <label className="text-xs font-bold text-[#102033] block mb-1">Priority</label>
                 <select
                   value={noticeData.priority}
-                  onChange={(e) => setNoticeData({ ...noticeData, priority: e.target.value })}
+                  onChange={(changeEvent) => setNoticeData({ ...noticeData, priority: changeEvent.target.value })}
                   className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-white font-medium text-[#102033] focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
                 >
                   <option value="NORMAL">Normal Priority</option>
@@ -4254,7 +4254,7 @@ export const HmDashboard = () => {
               <label className="text-xs font-bold text-[#102033] block mb-1">Notice Description / Remarks</label>
               <textarea
                 value={noticeData.description}
-                onChange={(e) => setNoticeData({ ...noticeData, description: e.target.value })}
+                onChange={(changeEvent) => setNoticeData({ ...noticeData, description: changeEvent.target.value })}
                 rows={3}
                 placeholder="Detailed instructions or description..."
                 maxLength={2000}
@@ -4268,7 +4268,7 @@ export const HmDashboard = () => {
               <input
                 type="file"
                 accept=".pdf,image/jpeg,image/png,image/webp"
-                onChange={(e) => setSelectedNoticeFile(e.target.files?.[0] || null)}
+                onChange={(changeEvent) => setSelectedNoticeFile(changeEvent.target.files?.[0] || null)}
                 className="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-[#006AC7] hover:file:bg-blue-100 cursor-pointer"
               />
               <p className="text-[10px] text-[#8094A8] mt-1">
@@ -4330,7 +4330,7 @@ export const HmDashboard = () => {
                 <input
                   type="text"
                   value={newSchoolCodeInput}
-                  onChange={(e) => setNewSchoolCodeInput(e.target.value.toUpperCase())}
+                  onChange={(changeEvent) => setNewSchoolCodeInput(changeEvent.target.value.toUpperCase())}
                   placeholder="e.g. LMGA"
                   maxLength={10}
                   className="w-full p-2.5 rounded-xl border border-slate-200 font-mono uppercase text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#006AC7]/20 focus:border-[#006AC7]"

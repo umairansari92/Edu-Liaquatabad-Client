@@ -103,14 +103,14 @@ export const NotificationDropdown = ({ isOpen, onClose }) => {
           ? 'Profile PDF download granted to requester.'
           : 'Profile PDF download denied.'
       );
-    } catch (err) {
-      toast.error(err || 'Failed to record consent response.');
+    } catch (consentError) {
+      toast.error(consentError || 'Failed to record consent response.');
     }
   };
 
-  const filteredNotifications = notifications.filter((item) => {
+  const filteredNotifications = notifications.filter((notificationItem) => {
     if (activeCategory === 'ALL') return true;
-    return item.category === activeCategory;
+    return notificationItem.category === activeCategory;
   });
 
   const getCategoryIcon = (notificationType, category) => {
@@ -204,46 +204,46 @@ export const NotificationDropdown = ({ isOpen, onClose }) => {
             <p className="text-xs font-medium text-slate-500">No notifications in this category</p>
           </div>
         ) : (
-          filteredNotifications.map((n) => {
-            const isAccessRequest = n.notificationType === 'PDF_ACCESS_REQUEST';
-            const requestStatus = n.metadata?.status;
+          filteredNotifications.map((notificationItem) => {
+            const isAccessRequest = notificationItem.notificationType === 'PDF_ACCESS_REQUEST';
+            const requestStatus = notificationItem.metadata?.status;
 
             return (
               <div
-                key={n._id}
-                onClick={() => handleItemClick(n)}
+                key={notificationItem._id}
+                onClick={() => handleItemClick(notificationItem)}
                 className={`p-3.5 transition-colors cursor-pointer text-left ${
-                  !n.isRead ? 'bg-blue-50/40 hover:bg-blue-50/70' : 'bg-white hover:bg-slate-50'
+                  !notificationItem.isRead ? 'bg-blue-50/40 hover:bg-blue-50/70' : 'bg-white hover:bg-slate-50'
                 }`}
               >
                 <div className="flex items-start gap-3">
                   <div className="p-2 rounded-xl bg-white border border-slate-200/80 shadow-xs flex-shrink-0 mt-0.5">
-                    {getCategoryIcon(n.notificationType, n.category)}
+                    {getCategoryIcon(notificationItem.notificationType, notificationItem.category)}
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-1 mb-0.5">
                       <p
                         className={`text-xs font-bold leading-snug truncate ${
-                          !n.isRead ? 'text-[#102033]' : 'text-slate-700'
+                          !notificationItem.isRead ? 'text-[#102033]' : 'text-slate-700'
                         }`}
                       >
-                        {n.title}
+                        {notificationItem.title}
                       </p>
                       <span className="text-[10px] text-slate-400 whitespace-nowrap flex items-center gap-1">
                         <Clock className="w-3 h-3" />
-                        {formatTimestamp(n.createdAt)}
+                        {formatTimestamp(notificationItem.createdAt)}
                       </span>
                     </div>
 
                     <p className="text-xs text-[#526477] leading-relaxed line-clamp-2 mb-1.5">
-                      {n.message}
+                      {notificationItem.message}
                     </p>
 
                     {/* Metadata Context Badge */}
-                    {n.metadata?.requesterName && (
+                    {notificationItem.metadata?.requesterName && (
                       <div className="text-[11px] text-slate-500 bg-slate-100/70 rounded-md px-2 py-0.5 inline-block mb-1.5 font-medium">
-                        Requester: <span className="text-[#102033] font-semibold">{n.metadata.requesterName}</span> ({n.metadata.requesterRole || 'Official'})
+                        Requester: <span className="text-[#102033] font-semibold">{notificationItem.metadata.requesterName}</span> ({notificationItem.metadata.requesterRole || 'Official'})
                       </div>
                     )}
 
@@ -264,9 +264,9 @@ export const NotificationDropdown = ({ isOpen, onClose }) => {
                           <div className="flex items-center gap-2">
                             <button
                               disabled={actionLoading}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleConsentResponse(n, 'ALLOW');
+                              onClick={(clickEvent) => {
+                                clickEvent.stopPropagation();
+                                handleConsentResponse(notificationItem, 'ALLOW');
                               }}
                               className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold shadow-xs transition-colors flex items-center gap-1 disabled:opacity-50"
                             >
@@ -275,9 +275,9 @@ export const NotificationDropdown = ({ isOpen, onClose }) => {
                             </button>
                             <button
                               disabled={actionLoading}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleConsentResponse(n, 'DENY');
+                              onClick={(clickEvent) => {
+                                clickEvent.stopPropagation();
+                                handleConsentResponse(notificationItem, 'DENY');
                               }}
                               className="px-2.5 py-1 rounded-lg bg-slate-200 hover:bg-rose-100 hover:text-rose-700 text-slate-700 text-[11px] font-bold transition-colors disabled:opacity-50"
                             >

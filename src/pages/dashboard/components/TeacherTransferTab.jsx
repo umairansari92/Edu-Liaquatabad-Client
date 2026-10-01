@@ -224,21 +224,21 @@ export const TeacherTransferTab = ({ schoolsList = [], teachersList = [] }) => {
                 </td>
               </tr>
             ) : (
-              filteredTransfers.map((item) => {
-                const teacherObj = item.teacherUserId || item.userId;
-                const fromSchoolObj = item.fromSchoolId || item.currentSchoolId;
-                const toSchoolObj = item.toSchoolId || item.destinationSchoolId;
+              filteredTransfers.map((transferRecord) => {
+                const teacherRecord = transferRecord.teacherUserId || transferRecord.userId;
+                const fromSchoolRecord = transferRecord.fromSchoolId || transferRecord.currentSchoolId;
+                const toSchoolRecord = transferRecord.toSchoolId || transferRecord.destinationSchoolId;
 
                 return (
-                  <tr key={item._id} className="transition hover:bg-blue-50/40">
+                  <tr key={transferRecord._id} className="transition hover:bg-blue-50/40">
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-2.5">
                         <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 font-bold text-[#006AC7]">
-                          {teacherObj?.fullName?.charAt(0) || 'T'}
+                          {teacherRecord?.fullName?.charAt(0) || 'T'}
                         </div>
                         <div>
-                          <p className="font-bold text-[#102033]">{teacherObj?.fullName || 'Faculty Member'}</p>
-                          <p className="text-[11px] text-[#8094A8] font-mono">{teacherObj?.email || 'N/A'}</p>
+                          <p className="font-bold text-[#102033]">{teacherRecord?.fullName || 'Faculty Member'}</p>
+                          <p className="text-[11px] text-[#8094A8] font-mono">{teacherRecord?.email || 'N/A'}</p>
                         </div>
                       </div>
                     </td>
@@ -246,11 +246,11 @@ export const TeacherTransferTab = ({ schoolsList = [], teachersList = [] }) => {
                     <td className="px-4 py-4 text-[#526477]">
                       <div className="flex items-center gap-1.5">
                         <Building2 className="h-3.5 w-3.5 text-slate-400" />
-                        <span className="font-medium text-[#102033]">{fromSchoolObj?.name || 'Previous School'}</span>
+                        <span className="font-medium text-[#102033]">{fromSchoolRecord?.name || 'Previous School'}</span>
                       </div>
-                      {fromSchoolObj?.schoolCode && (
+                      {fromSchoolRecord?.schoolCode && (
                         <span className="text-[10px] text-[#8094A8] font-mono ml-5">
-                          Code: {fromSchoolObj.schoolCode}
+                          Code: {fromSchoolRecord.schoolCode}
                         </span>
                       )}
                     </td>
@@ -258,11 +258,11 @@ export const TeacherTransferTab = ({ schoolsList = [], teachersList = [] }) => {
                     <td className="px-4 py-4 text-[#006AC7]">
                       <div className="flex items-center gap-1.5">
                         <Building2 className="h-3.5 w-3.5 text-[#006AC7]" />
-                        <span className="font-semibold text-[#006AC7]">{toSchoolObj?.name || 'Target School'}</span>
+                        <span className="font-semibold text-[#006AC7]">{toSchoolRecord?.name || 'Target School'}</span>
                       </div>
-                      {toSchoolObj?.schoolCode && (
+                      {toSchoolRecord?.schoolCode && (
                         <span className="text-[10px] text-blue-500 font-mono ml-5">
-                          Code: {toSchoolObj.schoolCode}
+                          Code: {toSchoolRecord.schoolCode}
                         </span>
                       )}
                     </td>
@@ -270,26 +270,26 @@ export const TeacherTransferTab = ({ schoolsList = [], teachersList = [] }) => {
                   <td className="px-4 py-4">
                     <span
                       className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
-                        item.status === 'APPROVED'
+                        transferRecord.status === 'APPROVED'
                           ? 'bg-emerald-50 text-[#4B7F3A] border border-emerald-200'
-                          : item.status === 'PENDING'
+                          : transferRecord.status === 'PENDING'
                           ? 'bg-amber-50 text-amber-700 border border-amber-200'
                           : 'bg-rose-50 text-rose-700 border border-rose-200'
                       }`}
                     >
-                      {item.status === 'APPROVED' && <CheckCircle2 className="h-3 w-3" />}
-                      {item.status === 'PENDING' && <Clock className="h-3 w-3" />}
-                      {item.status === 'REJECTED' && <XCircle className="h-3 w-3" />}
-                      {item.status}
+                      {transferRecord.status === 'APPROVED' && <CheckCircle2 className="h-3 w-3" />}
+                      {transferRecord.status === 'PENDING' && <Clock className="h-3 w-3" />}
+                      {transferRecord.status === 'REJECTED' && <XCircle className="h-3 w-3" />}
+                      {transferRecord.status}
                     </span>
                   </td>
 
-                  <td className="px-4 py-4 text-[#526477] max-w-xs truncate" title={item.reason}>
-                    {item.reason || 'Administrative reassignment'}
+                  <td className="px-4 py-4 text-[#526477] max-w-xs truncate" title={transferRecord.reason}>
+                    {transferRecord.reason || 'Administrative reassignment'}
                   </td>
 
                   <td className="px-4 py-4 text-right text-[#8094A8] font-mono text-[11px]">
-                    {new Date(item.createdAt).toLocaleDateString()}
+                    {new Date(transferRecord.createdAt).toLocaleDateString()}
                   </td>
                   </tr>
                 );

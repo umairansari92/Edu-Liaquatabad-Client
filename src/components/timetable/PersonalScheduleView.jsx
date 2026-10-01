@@ -43,7 +43,7 @@ export const PersonalScheduleView = ({ role = 'TEACHER', studentId = null }) => 
 
   // Filter lessons for selected day and sort chronologically
   const dayLessons = useMemo(() => {
-    const lessonsForDay = scheduleList.filter((item) => item.dayOfWeek === selectedDay);
+    const lessonsForDay = scheduleList.filter((scheduleItem) => scheduleItem.dayOfWeek === selectedDay);
 
     return [...lessonsForDay].sort((firstLesson, secondLesson) => {
       const firstSlot = periodSlots.find((slotItem) => slotItem.periodNumber === firstLesson.periodNumber);
@@ -123,7 +123,7 @@ export const PersonalScheduleView = ({ role = 'TEACHER', studentId = null }) => 
               </div>
               <div className="font-mono font-bold text-amber-800 mt-0.5">
                 {personalScheduleData.myFreePeriodsToday.length > 0
-                  ? personalScheduleData.myFreePeriodsToday.map((p) => `Period ${p}`).join(', ')
+                  ? personalScheduleData.myFreePeriodsToday.map((periodNumber) => `Period ${periodNumber}`).join(', ')
                   : 'None (Full Teaching Schedule Today)'}
               </div>
             </div>
@@ -139,7 +139,7 @@ export const PersonalScheduleView = ({ role = 'TEACHER', studentId = null }) => 
         {DAYS_OF_WEEK.map((day) => {
           const isSelected = selectedDay === day;
           const isToday = liveStatus?.currentDay === day;
-          const count = scheduleList.filter((item) => item.dayOfWeek === day).length;
+          const count = scheduleList.filter((scheduleItem) => scheduleItem.dayOfWeek === day).length;
 
           return (
             <button
