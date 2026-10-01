@@ -76,9 +76,12 @@ export const TransferEmployeeModal = ({
       });
 
       if (response.data?.success) {
+        const destSchoolObj = schoolsList.find((schoolItem) => String(schoolItem._id) === String(destinationSchoolId));
+        const destSchoolName = destSchoolObj?.name || 'Target School';
         toast.success(
-          response.data.message ||
-            `Transfer request initiated for ${targetEmployee.fullName}. Awaiting destination HM review.`
+          isEmergencyOverride
+            ? (response.data.message || `Emergency transfer executed for ${targetEmployee.fullName}.`)
+            : `Transfer request sent to ${destSchoolName} HM for approval.`
         );
         onTransferInitiated?.();
         handleClose();

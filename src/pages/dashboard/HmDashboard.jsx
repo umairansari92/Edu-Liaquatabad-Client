@@ -200,6 +200,20 @@ export const HmDashboard = () => {
       .sort((a, b) => (a.name || '').localeCompare(b.name || ''));
   }, [subjects, userSchoolId]);
 
+  // Memoized incoming pending transfers awaiting Target HM action
+  const pendingIncomingTransfers = React.useMemo(() => {
+    return (transfers || []).filter((transferItem) => {
+      const isTarget = String(transferItem.toSchoolId?._id || transferItem.toSchoolId) === String(userSchoolId);
+      const isPending = [
+        'PENDING_TARGET_HM_APPROVAL',
+        'TRANSFER_REQUESTED',
+        'RELIEVED',
+        'AWAITING_DESTINATION_HM',
+      ].includes(transferItem.status);
+      return isTarget && isPending;
+    });
+  }, [transfers, userSchoolId]);
+
   // Student Directory State
   const [studentSearchQuery, setStudentSearchQuery] = useState('');
   const [studentClassFilter, setStudentClassFilter] = useState('');
@@ -386,6 +400,7 @@ export const HmDashboard = () => {
       dispatch(fetchPendingApprovals('staff'));
       dispatch(fetchPendingApprovals('student'));
       dispatch(fetchHmParentLinks({ status: parentClaimsFilter }));
+      dispatch(fetchIncomingTransfers({ direction: 'incoming' }));
     } else if (activeTab === 'academics') {
       dispatch(fetchAcademicClasses({ schoolId: userSchoolId }));
       dispatch(fetchAcademicSections({ schoolId: userSchoolId }));
@@ -1485,6 +1500,99 @@ export const HmDashboard = () => {
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {activeTab === 'approvals' && (
         <div className="space-y-6">
+          {/* Transfer Approvals Queue */}
+          <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+              <div>
+                <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
+                  <ArrowLeftRight className="w-5 h-5 text-[#006AC7]" />
+                  Inter-School Faculty & Staff Transfer Approvals
+                </h3>
+                <p className="text-xs text-[#526477] mt-0.5">
+                  Official transfer directives from Town Administration requiring target Head Master review and acceptance.
+                </p>
+              </div>
+              <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-[#006AC7] border border-blue-200/60 self-start sm:self-auto">
+                {pendingIncomingTransfers.length} Pending
+              </span>
+            </div>
+
+            {transfersLoading ? (
+              <div className="flex items-center gap-2 p-6 text-sm text-[#526477]">
+                <Loader2 className="w-4 h-4 animate-spin text-[#006AC7]" /> Loading transfer requests...
+              </div>
+            ) : pendingIncomingTransfers.length === 0 ? (
+              <div className="p-6 text-center text-sm text-[#8094A8] bg-slate-50 rounded-xl border border-slate-200/60">
+                No pending inter-school transfer requests awaiting your approval.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {pendingIncomingTransfers.map((tr) => (
+                  <div
+                    key={tr._id}
+                    className="p-4 rounded-xl border border-slate-200/80 hover:bg-slate-50/60 transition flex flex-col md:flex-row md:items-center justify-between gap-4"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-[#102033] text-sm">
+                          {tr.employeeUserId?.fullName || tr.teacherUserId?.fullName || 'Employee'}
+                        </span>
+                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-[#526477]">
+                          {tr.employeeDesignation || tr.employeeUserId?.designation || tr.teacherUserId?.designation || 'Staff'}
+                        </span>
+                        <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                          {tr.status}
+                        </span>
+                      </div>
+                      <div className="text-xs text-[#526477] flex items-center gap-2">
+                        <span><strong className="text-[#102033]">From:</strong> {tr.fromSchoolId?.name || 'Source School'}</span>
+                        <ArrowLeftRight className="w-3 h-3 text-slate-400" />
+                        <span><strong className="text-[#102033]">To:</strong> {tr.toSchoolId?.name || 'Your School'}</span>
+                      </div>
+                      {tr.reason && (
+                        <p className="text-xs text-[#8094A8]">
+                          <strong className="text-[#526477]">Reason:</strong> {tr.reason}
+                        </p>
+                      )}
+                      {tr.initiatedBy && (
+                        <p className="text-[11px] text-slate-400">
+                          Initiated by: {tr.initiatedBy.fullName || tr.initiatedBy.role} • {new Date(tr.createdAt).toLocaleDateString()}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 self-end md:self-center">
+                      <button
+                        onClick={() =>
+                          setJoiningModal({
+                            open: true,
+                            transfer: tr,
+                            remarks: '',
+                            joiningDate: new Date().toISOString().split('T')[0],
+                          })
+                        }
+                        className="px-4 py-2 rounded-xl text-xs font-bold bg-[#4B7F3A] hover:bg-[#3d682f] text-white transition cursor-pointer shadow-sm"
+                      >
+                        Approve Transfer
+                      </button>
+                      <button
+                        onClick={() =>
+                          setRejectJoiningModal({
+                            open: true,
+                            transfer: tr,
+                            rejectionReason: '',
+                          })
+                        }
+                        className="px-3.5 py-2 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 transition cursor-pointer border border-rose-200"
+                      >
+                        Reject Transfer
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Staff Approvals Section */}
           <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-4">
             <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
@@ -2940,9 +3048,9 @@ export const HmDashboard = () => {
                   const isIncoming = String(tr.toSchoolId?._id || tr.toSchoolId) === String(user?.schoolId?._id || user?.schoolId);
                   const isOutgoing = String(tr.fromSchoolId?._id || tr.fromSchoolId) === String(user?.schoolId?._id || user?.schoolId);
 
-                  const canRelieve = isOutgoing && ['APPROVED', 'INITIATED', 'TRANSFER_REQUESTED'].includes(tr.status);
-                  const canJoin = isIncoming && ['RELIEVED', 'AWAITING_DESTINATION_HM'].includes(tr.status);
-                  const canReject = isIncoming && ['RELIEVED', 'AWAITING_DESTINATION_HM'].includes(tr.status);
+                  const canRelieve = isOutgoing && ['APPROVED', 'INITIATED', 'TRANSFER_REQUESTED', 'PENDING_TARGET_HM_APPROVAL'].includes(tr.status);
+                  const canJoin = isIncoming && ['RELIEVED', 'AWAITING_DESTINATION_HM', 'PENDING_TARGET_HM_APPROVAL', 'TRANSFER_REQUESTED'].includes(tr.status);
+                  const canReject = isIncoming && ['RELIEVED', 'AWAITING_DESTINATION_HM', 'PENDING_TARGET_HM_APPROVAL', 'TRANSFER_REQUESTED'].includes(tr.status);
 
                   return (
                     <div
@@ -3042,7 +3150,7 @@ export const HmDashboard = () => {
                             }
                             className="px-4 py-2 rounded-xl text-xs font-bold bg-[#4B7F3A] hover:bg-[#3d682f] text-white transition cursor-pointer shadow-sm"
                           >
-                            Approve Physical Joining
+                            {['PENDING_TARGET_HM_APPROVAL', 'TRANSFER_REQUESTED'].includes(tr.status) ? 'Approve Transfer' : 'Approve Physical Joining'}
                           </button>
                         )}
 
@@ -3057,7 +3165,7 @@ export const HmDashboard = () => {
                             }
                             className="px-3.5 py-2 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 transition cursor-pointer border border-rose-200"
                           >
-                            Reject Arrival
+                            {['PENDING_TARGET_HM_APPROVAL', 'TRANSFER_REQUESTED'].includes(tr.status) ? 'Reject Transfer' : 'Reject Arrival'}
                           </button>
                         )}
                       </div>

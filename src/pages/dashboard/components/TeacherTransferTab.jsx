@@ -85,6 +85,11 @@ export const TeacherTransferTab = ({ schoolsList = [], teachersList = [] }) => {
       return;
     }
 
+    if (!formData.reason.trim() || formData.reason.trim().length < 5) {
+      toast.error('Transfer reason must be at least 5 characters.');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const response = await apiClient.post('/transfers', {
@@ -96,7 +101,9 @@ export const TeacherTransferTab = ({ schoolsList = [], teachersList = [] }) => {
       });
 
       if (response.data?.success) {
-        toast.success(`Teacher transferred successfully! School assignment updated.`);
+        const destSchoolObj = schoolsList.find((schoolItem) => String(schoolItem._id) === String(formData.destinationSchoolId));
+        const destSchoolName = destSchoolObj?.name || 'Target School';
+        toast.success(`Transfer request sent to ${destSchoolName} HM for approval.`);
         setIsModalOpen(false);
         fetchTransfers();
       } else {
@@ -384,7 +391,7 @@ export const TeacherTransferTab = ({ schoolsList = [], teachersList = [] }) => {
                   disabled={isSubmitting}
                   className="flex items-center gap-1.5 rounded-lg bg-[#006AC7] px-5 py-2 font-semibold text-white hover:bg-[#00529B] cursor-pointer shadow-sm disabled:opacity-50"
                 >
-                  {isSubmitting ? 'Executing Transfer...' : 'Confirm & Execute Transfer'}
+                  {isSubmitting ? 'Submitting Transfer Request...' : 'Send Transfer Request For HM Approval'}
                 </button>
               </div>
             </form>
