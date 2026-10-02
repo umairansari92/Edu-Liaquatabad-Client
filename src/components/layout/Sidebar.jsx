@@ -94,7 +94,7 @@ export const Sidebar = () => {
               }`}
             >
               <Icon className={`w-5 h-5 ${isActive ? 'text-[#006AC7]' : 'text-[#8094A8]'}`} />
-              <span>{item.label}</span>
+              <span>{navItem.label}</span>
             </Link>
           );
         })}

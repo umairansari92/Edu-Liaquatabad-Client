@@ -76,7 +76,7 @@ export const ParentDashboard = () => {
     apiClient
       .get('/public/schools')
       .then((responsePayload) => {
-        const list = res.data?.data?.schools || [];
+        const list = responsePayload.data?.data?.schools || [];
         setMunicipalSchools(list);
         if (list.length > 0) setSelectedSchoolId(list[0]._id);
       })
@@ -168,7 +168,7 @@ export const ParentDashboard = () => {
         dispatch(fetchMyWards());
       })
       .catch((errorObject) => {
-        toast.error(err || 'OTP verification failed.');
+        toast.error(errorObject || 'OTP verification failed.');
       });
   };
 
@@ -844,9 +844,9 @@ export const ParentDashboard = () => {
                   </div>
 
                   <div className="border-t border-slate-100 pt-3 flex items-center justify-between text-[11px] text-[#526477]">
-                    <span>Teacher: {hw.teacher?.fullName} ({hw.teacher?.designation})</span>
+                    <span>Teacher: {homeworkItem.teacher?.fullName} ({homeworkItem.teacher?.designation})</span>
                     <span className="text-[10px] text-[#8094A8]">
-                      Assigned: {new Date(hw.createdAt).toLocaleDateString()}
+                      Assigned: {new Date(homeworkItem.createdAt).toLocaleDateString()}
                     </span>
                   </div>
                 </div>
@@ -941,7 +941,7 @@ export const ParentDashboard = () => {
                   >
                     {municipalSchools.map((schoolItem) => (
                       <option key={schoolItem._id} value={schoolItem._id}>
-                        {schoolItem.name} ({sch.schoolCode})
+                        {schoolItem.name} ({schoolItem.schoolCode})
                       </option>
                     ))}
                   </select>

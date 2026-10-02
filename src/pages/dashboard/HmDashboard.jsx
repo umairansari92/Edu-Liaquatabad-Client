@@ -374,12 +374,12 @@ export const HmDashboard = () => {
     if (teacherAttendance?.roster) {
       setTeacherAttendanceRecords(
         teacherAttendance.roster.map((rosterEntry) => ({
-          userId: item.userId,
-          fullName: item.fullName,
-          employeeId: item.employeeId,
-          designation: item.designation,
-          status: item.status,
-          remarks: item.remarks || '',
+          userId: rosterEntry.userId,
+          fullName: rosterEntry.fullName,
+          employeeId: rosterEntry.employeeId,
+          designation: rosterEntry.designation,
+          status: rosterEntry.status,
+          remarks: rosterEntry.remarks || '',
         }))
       );
     }
@@ -877,7 +877,7 @@ export const HmDashboard = () => {
       const response = await hmService.getClassTabulationData(examId, params);
       setTabulationData(response?.data || response);
     } catch (errorObject) {
-      const msg = errorObject?.response?.data?.message || err?.message || 'Failed to load tabulation data.';
+      const msg = errorObject?.response?.data?.message || errorObject?.message || 'Failed to load tabulation data.';
       toast.error(msg);
       setTabulationData(null);
     } finally {
@@ -919,7 +919,7 @@ export const HmDashboard = () => {
       await hmService.downloadStudentMarksheetPdf(examId, studentId);
       toast.success('Marksheet downloaded successfully.', { id: 'marksheet-dl' });
     } catch (errorObject) {
-      const msg = errorObject?.response?.data?.message || err?.message || 'Failed to download marksheet.';
+      const msg = errorObject?.response?.data?.message || errorObject?.message || 'Failed to download marksheet.';
       toast.error(msg, { id: 'marksheet-dl' });
     } finally {
       setDownloadingPdf(false);
@@ -937,7 +937,7 @@ export const HmDashboard = () => {
       await hmService.downloadClassTabulationPdf(examId, classId, sectionId);
       toast.success('Official Legal Tabulation Sheet downloaded successfully.', { id: 'tab-dl' });
     } catch (errorObject) {
-      const msg = errorObject?.response?.data?.message || err?.message || 'Failed to download tabulation sheet.';
+      const msg = errorObject?.response?.data?.message || errorObject?.message || 'Failed to download tabulation sheet.';
       toast.error(msg, { id: 'tab-dl' });
     } finally {
       setDownloadingPdf(false);
@@ -1060,7 +1060,7 @@ export const HmDashboard = () => {
         toast.error('Document file URL is not available.');
       }
     } catch (errorObject) {
-      toast.error(errorObject?.response?.data?.message || err?.message || 'Access denied or document not found.');
+      toast.error(errorObject?.response?.data?.message || errorObject?.message || 'Access denied or document not found.');
     }
   };
 
@@ -3876,7 +3876,7 @@ export const HmDashboard = () => {
                     <option value="">-- Choose Subject ({selectedDutyClass?.name}) --</option>
                     {applicableDutySubjects.map((subjectItem) => (
                       <option key={subjectItem._id} value={subjectItem._id}>
-                        {sub.name} {sub.code ? `(${sub.code})` : ''}
+                        {subjectItem.name} {subjectItem.code ? `(${subjectItem.code})` : ''}
                       </option>
                     ))}
                   </>

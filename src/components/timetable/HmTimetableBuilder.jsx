@@ -818,9 +818,9 @@ export const HmTimetableBuilder = ({
                   FREE PERIODS
                 </div>
                 <div className="text-xs font-mono font-black text-[#006AC7] mt-0.5">
-                  {item.freePeriods.length > 0 ? (
+                  {teacherSummary.freePeriods.length > 0 ? (
                     <span className="px-2 py-0.5 rounded-lg bg-blue-100/80 text-blue-900 border border-blue-200">
-                      {item.formatted}
+                      {teacherSummary.formatted}
                     </span>
                   ) : (
                     <span className="text-slate-400 text-[10px]">None (Full Load)</span>

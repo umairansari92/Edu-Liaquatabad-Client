@@ -36,12 +36,12 @@ export const hmService = {
   },
 
   createClass: async (classPayload) => {
-    const response = await apiClient.post('/academic/classes', payload);
+    const response = await apiClient.post('/academic/classes', classPayload);
     return response.data;
   },
 
   updateClass: async (classId, classPayload) => {
-    const response = await apiClient.patch(`/academic/classes/${id}`, payload);
+    const response = await apiClient.patch(`/academic/classes/${classId}`, classPayload);
     return response.data;
   },
 
@@ -51,12 +51,12 @@ export const hmService = {
   },
 
   createSection: async (sectionPayload) => {
-    const response = await apiClient.post('/academic/sections', payload);
+    const response = await apiClient.post('/academic/sections', sectionPayload);
     return response.data;
   },
 
   updateSection: async (sectionId, sectionPayload) => {
-    const response = await apiClient.patch(`/academic/sections/${id}`, payload);
+    const response = await apiClient.patch(`/academic/sections/${sectionId}`, sectionPayload);
     return response.data;
   },
 
@@ -66,12 +66,12 @@ export const hmService = {
   },
 
   createSubject: async (subjectPayload) => {
-    const response = await apiClient.post('/academic/subjects', payload);
+    const response = await apiClient.post('/academic/subjects', subjectPayload);
     return response.data;
   },
 
   updateSubject: async (subjectId, subjectPayload) => {
-    const response = await apiClient.patch(`/academic/subjects/${id}`, payload);
+    const response = await apiClient.patch(`/academic/subjects/${subjectId}`, subjectPayload);
     return response.data;
   },
 
@@ -123,8 +123,8 @@ export const hmService = {
     return response.data;
   },
 
-  submitStudentMarks: async (examId, data) => {
-    const response = await apiClient.post(`/exams/${examId}/results`, payload);
+  submitStudentMarks: async (examId, marksPayload) => {
+    const response = await apiClient.post(`/exams/${examId}/results`, marksPayload);
     return response.data;
   },
 
@@ -133,8 +133,8 @@ export const hmService = {
     return response.data;
   },
 
-  batchVerifyExamResults: async (examId, data = {}) => {
-    const response = await apiClient.post(`/exams/${examId}/results/batch-verify`, payload);
+  batchVerifyExamResults: async (examId, batchPayload = {}) => {
+    const response = await apiClient.post(`/exams/${examId}/results/batch-verify`, batchPayload);
     return response.data;
   },
 

@@ -31,11 +31,11 @@ export const AssignSchoolModal = ({
 
   const currentSchool = targetEmployee.schoolId?.name || 'Unassigned';
   const filteredSchools = schoolsList.filter((schoolItem) => {
-    const q = schoolSearch.toLowerCase();
+    const searchQuery = schoolSearch.toLowerCase();
     return (
-      schoolItem.name?.toLowerCase().includes(q) ||
-      s.schoolCode?.toLowerCase().includes(q) ||
-      schoolItem.emisCode?.toLowerCase().includes(q)
+      schoolItem.name?.toLowerCase().includes(searchQuery) ||
+      schoolItem.schoolCode?.toLowerCase().includes(searchQuery) ||
+      schoolItem.emisCode?.toLowerCase().includes(searchQuery)
     );
   });
 
@@ -160,7 +160,7 @@ export const AssignSchoolModal = ({
                     </option>
                     {filteredSchools.map((schoolItem) => (
                       <option key={schoolItem._id} value={schoolItem._id} className="py-1 px-1.5 rounded hover:bg-blue-50">
-                        {schoolItem.name} {s.schoolCode ? `(${s.schoolCode})` : ''}
+                        {schoolItem.name} {schoolItem.schoolCode ? `(${schoolItem.schoolCode})` : ''}
                       </option>
                     ))}
                   </select>

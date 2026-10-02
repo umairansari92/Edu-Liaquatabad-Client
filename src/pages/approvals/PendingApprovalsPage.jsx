@@ -228,21 +228,21 @@ export const PendingApprovalsPage = () => {
                     </td>
                     <td className="py-3.5 px-4">
                       <span className="px-2.5 py-0.5 rounded-md bg-slate-100 text-[#102033] border border-slate-200 text-[11px] font-bold">
-                        {item.designation || 'Staff'}
+                        {approvalItem.designation || 'Staff'}
                       </span>
                     </td>
                     <td className="py-3.5 px-4 text-[#102033]">
-                      {item.claimedSchool ? item.claimedSchool.name : 'Unassigned'}
+                      {approvalItem.claimedSchool ? approvalItem.claimedSchool.name : 'Unassigned'}
                     </td>
                     <td className="py-3.5 px-4 font-mono text-[#526477]">
-                      {item.cnicMasked || '*****-*******-*'}
+                      {approvalItem.cnicMasked || '*****-*******-*'}
                     </td>
                     <td className="py-3.5 px-4 text-[11px] text-[#8094A8]">
-                      {item.submittedAt ? new Date(item.submittedAt).toLocaleDateString() : 'N/A'}
+                      {approvalItem.submittedAt ? new Date(approvalItem.submittedAt).toLocaleDateString() : 'N/A'}
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <button
-                        onClick={() => handleInspect(item)}
+                        onClick={() => handleInspect(approvalItem)}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#006AC7] border border-blue-200 text-xs font-bold transition-all shadow-sm"
                       >
                         <Eye className="w-3.5 h-3.5" />

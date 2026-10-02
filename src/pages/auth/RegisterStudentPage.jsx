@@ -573,7 +573,7 @@ export const RegisterStudentPage = () => {
                             isCurrent ? 'text-[#006AC7]' : isCompleted ? 'text-[#4B7F3A]' : 'text-slate-400'
                           }`}
                         >
-                          {item.label}
+                          {stepConfig.label}
                         </span>
                       </div>
                     );

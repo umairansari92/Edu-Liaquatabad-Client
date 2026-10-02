@@ -92,6 +92,8 @@ export const UserAuthorityModal = ({
 
   const isProtectedRoot = targetUser.role === 'ROOT_ADMIN';
   const isSelf = String(currentUser?._id) === String(targetUser._id);
+  const actorLevel = AUTHORITY_LEVELS[currentUser?.role] || 0;
+  const targetLevel = AUTHORITY_LEVELS[targetUser.role] || 0;
 
   // Actor cannot manage ROOT_ADMIN, self, or users of equal or higher authority (SEC-CRIT-01)
   const canActorManageTarget =

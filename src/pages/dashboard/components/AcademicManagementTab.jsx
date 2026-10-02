@@ -139,8 +139,8 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
   };
 
   const handleOpenEditClass = (classItem) => {
-    setEditingClass(cls);
-    setClassForm({ name: classItem.name, code: cls.code, gradeLevel: cls.gradeLevel, schoolId: cls.schoolId?._id || cls.schoolId });
+    setEditingClass(classItem);
+    setClassForm({ name: classItem.name, code: classItem.code, gradeLevel: classItem.gradeLevel, schoolId: classItem.schoolId?._id || classItem.schoolId });
     setIsClassModalOpen(true);
   };
 
@@ -180,8 +180,8 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
   };
 
   const handleOpenEditSection = (sectionItem) => {
-    setEditingSection(sec);
-    setSectionForm({ name: sectionItem.name, classId: sec.classId?._id || sec.classId, capacity: sec.capacity || 40, roomNumber: sec.roomNumber || '' });
+    setEditingSection(sectionItem);
+    setSectionForm({ name: sectionItem.name, classId: sectionItem.classId?._id || sectionItem.classId, capacity: sectionItem.capacity || 40, roomNumber: sectionItem.roomNumber || '' });
     setIsSectionModalOpen(true);
   };
 
@@ -229,13 +229,13 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
   };
 
   const handleOpenEditSubject = (subjectItem) => {
-    setEditingSubject(sub);
+    setEditingSubject(subjectItem);
     setSubjectForm({
       name: subjectItem.name,
-      code: sub.code,
-      schoolId: sub.schoolId?._id || sub.schoolId,
-      classId: sub.classId?._id || sub.classId || '',
-      isElective: !!sub.isElective,
+      code: subjectItem.code,
+      schoolId: subjectItem.schoolId?._id || subjectItem.schoolId,
+      classId: subjectItem.classId?._id || subjectItem.classId || '',
+      isElective: !!subjectItem.isElective,
     });
     setIsSubjectModalOpen(true);
   };
@@ -341,7 +341,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
               <option value="">All Classes in School ({classes.length})</option>
               {classes.map((classItem) => (
                 <option key={classItem._id} value={classItem._id}>
-                  {classItem.name} (Grade {cls.gradeLevel})
+                  {classItem.name} (Grade {classItem.gradeLevel})
                 </option>
               ))}
             </select>
@@ -360,10 +360,10 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
             >
               <option value="">All Sections</option>
               {sections
-                .filter((sectionItem) => !selectedClassId || (sec.classId?._id || sec.classId) === selectedClassId)
-                .map((sec) => (
+                .filter((sectionItem) => !selectedClassId || (sectionItem.classId?._id || sectionItem.classId) === selectedClassId)
+                .map((sectionItem) => (
                   <option key={sectionItem._id} value={sectionItem._id}>
-                    Section {sectionItem.name} {sec.roomNumber ? `(Room: ${sec.roomNumber})` : ''}
+                    Section {sectionItem.name} {sectionItem.roomNumber ? `(Room: ${sectionItem.roomNumber})` : ''}
                   </option>
                 ))}
             </select>
@@ -491,7 +491,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
           ) : (
             filteredClasses.map((classItem) => {
               const secCount = classSectionCounts[classItem._id] || 0;
-              const isArchived = cls.status === 'ARCHIVED';
+              const isArchived = classItem.status === 'ARCHIVED';
 
               return (
                 <div
@@ -508,7 +508,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                     <div className="flex items-start justify-between">
                       <div className="flex items-center gap-2">
                         <span className="rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-mono font-bold text-[#006AC7]">
-                          {cls.code}
+                          {classItem.code}
                         </span>
                         <span className="text-xs font-bold text-[#102033]">{classItem.name}</span>
                       </div>
@@ -516,19 +516,19 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                         className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
                           isArchived
                             ? 'bg-slate-100 text-slate-600'
-                            : cls.status === 'ACTIVE'
+                            : classItem.status === 'ACTIVE'
                             ? 'bg-emerald-50 text-[#4B7F3A] border border-emerald-200'
                             : 'bg-amber-50 text-amber-700 border border-amber-200'
                         }`}
                       >
-                        {cls.status}
+                        {classItem.status}
                       </span>
                     </div>
 
                     <div className="mt-3 space-y-1.5 text-xs text-[#526477]">
                       <div className="flex justify-between">
                         <span className="text-[#8094A8]">Grade Level:</span>
-                        <span className="font-semibold text-[#102033]">Grade {cls.gradeLevel}</span>
+                        <span className="font-semibold text-[#102033]">Grade {classItem.gradeLevel}</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-[#8094A8]">Active Sections:</span>
@@ -559,7 +559,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        onClick={() => handleOpenEditClass(cls)}
+                        onClick={() => handleOpenEditClass(classItem)}
                         className="rounded p-1.5 text-slate-500 hover:text-[#102033] hover:bg-slate-100 transition cursor-pointer"
                         title="Edit Class"
                       >
@@ -568,7 +568,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                       {!isArchived && (
                         <button
                           type="button"
-                          onClick={() => handleArchiveClass(cls)}
+                          onClick={() => handleArchiveClass(classItem)}
                           className="rounded p-1.5 text-amber-600 hover:text-amber-700 hover:bg-amber-50 transition cursor-pointer"
                           title="Archive Class (Soft Delete)"
                         >
@@ -614,40 +614,40 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                       Section {sectionItem.name}
                     </td>
                     <td className="px-4 py-4 text-[#006AC7] font-medium">
-                      {sec.classId?.name || 'Class Record'}
+                      {sectionItem.classId?.name || 'Class Record'}
                     </td>
                     <td className="px-4 py-4 text-[#526477] font-mono">
-                      {sec.roomNumber || 'Unspecified'}
+                      {sectionItem.roomNumber || 'Unspecified'}
                     </td>
                     <td className="px-4 py-4 font-semibold text-[#4B7F3A]">
-                      {sec.capacity || 40} Seats
+                      {sectionItem.capacity || 40} Seats
                     </td>
                     <td className="px-4 py-4">
                       <span
                         className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                          sec.status === 'ARCHIVED'
+                          sectionItem.status === 'ARCHIVED'
                             ? 'bg-slate-100 text-slate-500'
-                            : sec.status === 'ACTIVE'
+                            : sectionItem.status === 'ACTIVE'
                             ? 'bg-emerald-50 text-[#4B7F3A] border border-emerald-200'
                             : 'bg-amber-50 text-amber-700 border border-amber-200'
                         }`}
                       >
-                        {sec.status}
+                        {sectionItem.status}
                       </span>
                     </td>
                     <td className="px-4 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
                           type="button"
-                          onClick={() => handleOpenEditSection(sec)}
+                          onClick={() => handleOpenEditSection(sectionItem)}
                           className="rounded p-1.5 text-slate-500 hover:text-[#102033] hover:bg-slate-100 cursor-pointer"
                         >
                           <Edit2 className="h-3.5 w-3.5" />
                         </button>
-                        {sec.status !== 'ARCHIVED' && (
+                        {sectionItem.status !== 'ARCHIVED' && (
                           <button
                             type="button"
-                            onClick={() => handleArchiveSection(sec)}
+                            onClick={() => handleArchiveSection(sectionItem)}
                             className="rounded p-1.5 text-amber-600 hover:text-amber-700 hover:bg-amber-50 cursor-pointer"
                           >
                             <Archive className="h-3.5 w-3.5" />
@@ -693,46 +693,46 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                       {subjectItem.name}
                     </td>
                     <td className="px-4 py-4 font-mono font-bold text-[#006AC7]">
-                      {sub.code}
+                      {subjectItem.code}
                     </td>
                     <td className="px-4 py-4 text-[#526477]">
-                      {sub.classId?.name || 'All Classes'}
+                      {subjectItem.classId?.name || 'All Classes'}
                     </td>
                     <td className="px-4 py-4">
                       <span
                         className={`rounded-md px-2 py-0.5 text-[10px] font-bold ${
-                          sub.isElective
+                          subjectItem.isElective
                             ? 'bg-purple-50 text-purple-700 border border-purple-200'
                             : 'bg-blue-50 text-[#006AC7] border border-blue-200'
                         }`}
                       >
-                        {sub.isElective ? 'Elective Course' : 'Core Compulsory'}
+                        {subjectItem.isElective ? 'Elective Course' : 'Core Compulsory'}
                       </span>
                     </td>
                     <td className="px-4 py-4">
                       <span
                         className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                          sub.status === 'ARCHIVED'
+                          subjectItem.status === 'ARCHIVED'
                             ? 'bg-slate-100 text-slate-500'
                             : 'bg-emerald-50 text-[#4B7F3A] border border-emerald-200'
                         }`}
                       >
-                        {sub.status}
+                        {subjectItem.status}
                       </span>
                     </td>
                     <td className="px-4 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         <button
                           type="button"
-                          onClick={() => handleOpenEditSubject(sub)}
+                          onClick={() => handleOpenEditSubject(subjectItem)}
                           className="rounded p-1.5 text-slate-500 hover:text-[#102033] hover:bg-slate-100 cursor-pointer"
                         >
                           <Edit2 className="h-3.5 w-3.5" />
                         </button>
-                        {sub.status !== 'ARCHIVED' && (
+                        {subjectItem.status !== 'ARCHIVED' && (
                           <button
                             type="button"
-                            onClick={() => handleArchiveSubject(sub)}
+                            onClick={() => handleArchiveSubject(subjectItem)}
                             className="rounded p-1.5 text-amber-600 hover:text-amber-700 hover:bg-amber-50 cursor-pointer"
                           >
                             <Archive className="h-3.5 w-3.5" />
@@ -846,7 +846,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                 >
                   {classes.map((classItem) => (
                     <option key={classItem._id} value={classItem._id}>
-                      {classItem.name} (Grade {cls.gradeLevel})
+                      {classItem.name} (Grade {classItem.gradeLevel})
                     </option>
                   ))}
                 </select>
@@ -952,7 +952,7 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                   <option value="">Applicable to All Classes</option>
                   {classes.map((classItem) => (
                     <option key={classItem._id} value={classItem._id}>
-                      {classItem.name} (Grade {cls.gradeLevel})
+                      {classItem.name} (Grade {classItem.gradeLevel})
                     </option>
                   ))}
                 </select>

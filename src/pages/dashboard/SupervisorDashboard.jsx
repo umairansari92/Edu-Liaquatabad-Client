@@ -610,26 +610,26 @@ export const SupervisorDashboard = () => {
                           </p>
                         </td>
                         <td className="py-3.5 px-4 text-slate-600 font-mono text-[11px]">
-                          {insp.academicSession || '2025-2026'}
+                          {inspectionRecord.academicSession || '2025-2026'}
                         </td>
                         <td className="py-3.5 px-4">
                           <div className="flex items-center gap-1.5">
                             <span
                               className={`px-2 py-0.5 rounded-md font-bold text-xs border ${getGradeBadge(
-                                insp.overallGrade
+                                inspectionRecord.overallGrade
                               )}`}
                             >
-                              Grade {insp.overallGrade}
+                              Grade {inspectionRecord.overallGrade}
                             </span>
                             <span className="text-slate-400 font-mono text-[11px]">
-                              ({insp.summaryScore}/100)
+                              ({inspectionRecord.summaryScore}/100)
                             </span>
                           </div>
                         </td>
                         <td className="py-3.5 px-4">
-                          {insp.remedialDirectives?.length > 0 ? (
+                          {inspectionRecord.remedialDirectives?.length > 0 ? (
                             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                              {insp.remedialDirectives.length} Action Items
+                              {inspectionRecord.remedialDirectives.length} Action Items
                             </span>
                           ) : (
                             <span className="text-slate-400 text-[11px]">None Issued</span>
@@ -638,15 +638,15 @@ export const SupervisorDashboard = () => {
                         <td className="py-3.5 px-4">
                           <span
                             className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${getStatusBadge(
-                              insp.status
+                              inspectionRecord.status
                             )}`}
                           >
-                            {insp.status.replace(/_/g, ' ')}
+                            {inspectionRecord.status.replace(/_/g, ' ')}
                           </span>
                         </td>
                         <td className="py-3.5 px-4 text-right">
                           <button
-                            onClick={() => handleOpenInspectionDetail(insp._id)}
+                            onClick={() => handleOpenInspectionDetail(inspectionRecord._id)}
                             className="px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-[#006AC7] font-semibold text-xs transition-all shadow-2xs"
                           >
                             View Report
@@ -728,7 +728,7 @@ export const SupervisorDashboard = () => {
                       <tr key={schoolItem._id} className="hover:bg-slate-50/80 transition-colors">
                         <td className="py-3.5 px-4">
                           <p className="font-bold text-slate-900">{schoolItem.name}</p>
-                          <p className="text-[11px] text-slate-400 font-mono">{sch.schoolCode}</p>
+                          <p className="text-[11px] text-slate-400 font-mono">{schoolItem.schoolCode}</p>
                         </td>
                         <td className="py-3.5 px-4 font-bold text-slate-800">{currPct}%</td>
                         <td className="py-3.5 px-4 text-slate-600">
@@ -966,7 +966,7 @@ export const SupervisorDashboard = () => {
                     <option value="">Select an assigned school...</option>
                     {assignedSchools.map((schoolItem) => (
                       <option key={schoolItem._id} value={schoolItem._id}>
-                        {schoolItem.name} ({s.schoolCode})
+                        {schoolItem.name} ({schoolItem.schoolCode})
                       </option>
                     ))}
                   </select>

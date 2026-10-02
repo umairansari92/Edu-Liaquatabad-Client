@@ -578,8 +578,8 @@ export const RegisterTeacherPage = () => {
                             >
                               <option value="">Select Subject</option>
                               {schoolStructure.subjects.map((subjectItem) => (
-                                <option key={sub._id} value={sub._id}>
-                                  {sub.name} ({sub.code || 'GEN'})
+                                <option key={subjectItem._id} value={subjectItem._id}>
+                                  {subjectItem.name} ({subjectItem.code || 'GEN'})
                                 </option>
                               ))}
                             </select>
