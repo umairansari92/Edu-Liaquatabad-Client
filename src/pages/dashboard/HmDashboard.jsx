@@ -180,6 +180,10 @@ export const HmDashboard = () => {
 
   const userSchoolId = user?.schoolId?._id || user?.schoolId;
 
+  // Authoritative grade boundaries for HM's municipal school
+  const hmMinGrade = Number(summary?.school?.gradeRange?.lowestGrade) || (summary?.school?.schoolType === 'SECONDARY' ? 6 : 1);
+  const hmMaxGrade = Number(summary?.school?.gradeRange?.highestGrade) || (summary?.school?.schoolType === 'PRIMARY' ? 5 : summary?.school?.schoolType === 'ELEMENTARY' ? 8 : 10);
+
   // Memoized / scoped classes strictly belonging to HM's school and sorted by grade
   const scopedClasses = React.useMemo(() => {
     return (classes || [])
@@ -3723,17 +3727,22 @@ export const HmDashboard = () => {
               />
             </div>
             <div>
-              <label className="text-xs font-bold text-[#102033] block mb-1">Numeric Grade Level (1 - 12)</label>
+              <label className="text-xs font-bold text-[#102033] block mb-1">
+                Numeric Grade Level ({hmMinGrade} - {hmMaxGrade})
+              </label>
               <input
                 type="number"
-                min={1}
-                max={12}
+                min={hmMinGrade}
+                max={hmMaxGrade}
                 value={newClassGrade}
                 onChange={(changeEvent) => setNewClassGrade(changeEvent.target.value)}
-                placeholder="e.g. 6"
+                placeholder={`e.g. ${hmMinGrade}`}
                 required
                 className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
               />
+              <p className="mt-1 text-[11px] text-slate-500">
+                Authorized for your school: Class {hmMinGrade} to Class {hmMaxGrade}
+              </p>
             </div>
             <div className="flex justify-end gap-2 pt-2">
               <button type="button" onClick={() => setNewClassModal(false)} className="px-3 py-1.5 rounded-lg text-xs font-semibold text-[#526477]">Cancel</button>

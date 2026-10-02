@@ -131,16 +131,27 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
     setSelectedSectionId('');
   };
 
+  // Derive authoritative Grade Range for the currently selected school
+  const activeSchool = schoolsList.find((schoolItem) => String(schoolItem._id) === String(selectedSchoolId));
+  const minGrade = Number(activeSchool?.gradeRange?.lowestGrade) || (activeSchool?.schoolType === 'SECONDARY' ? 6 : 1);
+  const maxGrade = Number(activeSchool?.gradeRange?.highestGrade) || (activeSchool?.schoolType === 'PRIMARY' ? 5 : activeSchool?.schoolType === 'ELEMENTARY' ? 8 : 10);
+
   // --- Class Operations ---
   const handleOpenCreateClass = () => {
     setEditingClass(null);
-    setClassForm({ name: '', code: '', gradeLevel: 1, schoolId: selectedSchoolId });
+    setClassForm({ name: '', code: '', gradeLevel: minGrade, schoolId: selectedSchoolId });
     setIsClassModalOpen(true);
   };
 
   const handleOpenEditClass = (classItem) => {
     setEditingClass(classItem);
-    setClassForm({ name: classItem.name, code: classItem.code, gradeLevel: classItem.gradeLevel, schoolId: classItem.schoolId?._id || classItem.schoolId });
+    const targetGrade = classItem.numericGrade ?? classItem.gradeLevel ?? minGrade;
+    setClassForm({
+      name: classItem.name,
+      code: classItem.code,
+      gradeLevel: targetGrade,
+      schoolId: classItem.schoolId?._id || classItem.schoolId,
+    });
     setIsClassModalOpen(true);
   };
 
@@ -305,11 +316,11 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
             <h3 className="text-sm font-bold text-[#102033]">Hierarchical Academic Control Matrix</h3>
           </div>
           <span className="text-xs text-[#006AC7] font-semibold">
-            Cascading Scope: School → Class → Section
+            Institutional Model: School → Class → Subjects
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {/* 1. School Selector */}
           <div>
             <label className="block text-[11px] font-bold uppercase tracking-wider text-[#526477] mb-1">
@@ -341,31 +352,9 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
               <option value="">All Classes in School ({classes.length})</option>
               {classes.map((classItem) => (
                 <option key={classItem._id} value={classItem._id}>
-                  {classItem.name} (Grade {classItem.gradeLevel})
+                  {classItem.name} (Grade {classItem.numericGrade ?? classItem.gradeLevel})
                 </option>
               ))}
-            </select>
-          </div>
-
-          {/* 3. Section Selector */}
-          <div>
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-[#526477] mb-1">
-              3. Filter by Section (Optional)
-            </label>
-            <select
-              value={selectedSectionId}
-              onChange={(selectChangeEvent) => setSelectedSectionId(selectChangeEvent.target.value)}
-              disabled={!selectedClassId}
-              className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs text-[#102033] focus:border-[#006AC7] focus:outline-none disabled:opacity-50"
-            >
-              <option value="">All Sections</option>
-              {sections
-                .filter((sectionItem) => !selectedClassId || (sectionItem.classId?._id || sectionItem.classId) === selectedClassId)
-                .map((sectionItem) => (
-                  <option key={sectionItem._id} value={sectionItem._id}>
-                    Section {sectionItem.name} {sectionItem.roomNumber ? `(Room: ${sectionItem.roomNumber})` : ''}
-                  </option>
-                ))}
             </select>
           </div>
         </div>
@@ -386,19 +375,6 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
           >
             <GraduationCap className="h-4 w-4" />
             <span>Classes ({classes.length})</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setSubTab('sections')}
-            className={`flex items-center gap-2 rounded-lg px-3.5 py-2 text-xs font-bold transition cursor-pointer ${
-              subTab === 'sections'
-                ? 'bg-[#006AC7] text-white shadow-sm'
-                : 'text-[#526477] hover:text-[#102033] hover:bg-[#F0F8FF]'
-            }`}
-          >
-            <Layers className="h-4 w-4" />
-            <span>Sections ({sections.length})</span>
           </button>
 
           <button
@@ -788,16 +764,24 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
                 />
               </div>
               <div>
-                <label className="block font-semibold text-[#526477]">Grade Level (1 - 12) *</label>
+                <label className="block font-semibold text-[#526477]">
+                  Grade Level ({minGrade} - {maxGrade}) *
+                </label>
                 <input
                   type="number"
                   required
-                  min={1}
-                  max={12}
+                  min={minGrade}
+                  max={maxGrade}
                   value={classForm.gradeLevel}
-                  onChange={(inputChangeEvent) => setClassForm({ ...classForm, gradeLevel: parseInt(inputChangeEvent.target.value, 10) || 1 })}
+                  onChange={(inputChangeEvent) => {
+                    const parsedGrade = parseInt(inputChangeEvent.target.value, 10);
+                    setClassForm({ ...classForm, gradeLevel: Number.isNaN(parsedGrade) ? minGrade : parsedGrade });
+                  }}
                   className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-[#102033] focus:border-[#006AC7] focus:outline-none"
                 />
+                <p className="mt-1 text-[11px] text-slate-500">
+                  Allowed for {activeSchool?.name || 'this school'}: Class {minGrade} to Class {maxGrade}
+                </p>
               </div>
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
                 <button
