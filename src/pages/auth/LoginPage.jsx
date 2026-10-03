@@ -690,7 +690,7 @@ export const LoginPage = () => {
             </div>
           ) : (
             /* ─── State B: Credentials & Anti-Bot Form ─── */
-            <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+            <form className="space-y-4" onSubmit={handleSubmit(onSubmit)} autoComplete="off">
               {/* Honeypot field */}
               <input
                 type="text"
@@ -711,6 +711,10 @@ export const LoginPage = () => {
                   <input
                     type="text"
                     {...register('email')}
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck="false"
                     placeholder="Official email or GR Number (e.g. 1045)"
                     className="block w-full pl-10 pr-3 py-2.5 bg-slate-50/50 border border-slate-300 rounded-xl text-[#102033] placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#006AC7] focus:ring-1 focus:ring-[#006AC7] text-xs font-medium"
                   />
@@ -739,6 +743,7 @@ export const LoginPage = () => {
                   <input
                     type={showPassword ? 'text' : 'password'}
                     {...register('password')}
+                    autoComplete="new-password"
                     placeholder="••••••••••••"
                     className="block w-full pl-10 pr-10 py-2.5 bg-slate-50/50 border border-slate-300 rounded-xl text-[#102033] placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#006AC7] focus:ring-1 focus:ring-[#006AC7] text-xs font-medium"
                   />
@@ -838,9 +843,14 @@ export const LoginPage = () => {
         </div>
 
         {/* Security badge footer */}
-        <div className="mt-4 flex items-center justify-center gap-2 text-[11px] text-[#526477] font-medium">
-          <ShieldCheck className="w-3.5 h-3.5 text-[#4B7F3A]" />
-          <span>Protected by Triple-Lock Rate Limiting &amp; 256-bit Encryption</span>
+        <div className="mt-4 flex flex-col items-center justify-center gap-1 text-[11px] text-[#526477] font-medium text-center">
+          <div className="flex items-center gap-1.5">
+            <ShieldCheck className="w-3.5 h-3.5 text-[#4B7F3A]" />
+            <span>Protected by Triple-Lock Rate Limiting &amp; 256-bit Encryption</span>
+          </div>
+          <span className="text-[10px] text-slate-400">
+            Institutional Notice: Avoid saving official credentials on shared school or municipal computers.
+          </span>
         </div>
       </div>
     </div>

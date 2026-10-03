@@ -1,52 +1,111 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { useLocation } from 'react-router-dom';
 import { ShieldAlert, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-// Privileged roles that are legally allowed to capture screens / take records
+// Privileged roles (retained for administrative audit logging and scoped workflow authority)
 const PRIVILEGED_ROLES = ['ROOT_ADMIN', 'SUPER_ADMIN', 'ADMIN'];
 
-export const ScreenCaptureProtection = ({ children }) => {
-  const { user } = useSelector((state) => state.auth);
-  const isPrivileged = user && PRIVILEGED_ROLES.includes(user.role);
-  const isDev = Boolean(import.meta.env.DEV);
-  const isPublicOrGuest = !user;
-  const shouldBypass = isDev || isPrivileged || isPublicOrGuest;
+// Sensitive municipal routes requiring elevated attribution density
+const SENSITIVE_ROUTE_PREFIXES = [
+  '/examinations',
+  '/results',
+  '/audit',
+  '/approvals',
+  '/transfers',
+  '/finance',
+  '/payroll',
+];
 
+export const ScreenCaptureProtection = ({ children }) => {
+  const location = useLocation();
+  const { user } = useSelector((state) => state.auth);
+  const isPrivileged = Boolean(user && PRIVILEGED_ROLES.includes(user.role));
+  const isDev = Boolean(import.meta.env.DEV);
+
+  // Heuristic states
   const [isWindowBlurred, setIsWindowBlurred] = useState(false);
   const [showCaptureWarning, setShowCaptureWarning] = useState(false);
+  // Developer ergonomics toggle (Alt+Shift+D): allows temporarily pausing window-blur heuristics during coding
+  const [devHeuristicsPaused, setDevHeuristicsPaused] = useState(false);
 
   // Security Toast throttler to prevent spamming
   const notifyCaptureBlocked = useCallback(() => {
-    toast.error('Screenshot & screen recording are restricted under Municipal Security Policy.', {
+    toast.error('Screenshot & screen capture are restricted under Municipal Security Policy.', {
       id: 'screen-capture-blocked',
       duration: 3500,
     });
   }, []);
 
-  useEffect(() => {
-    // If bypassed (DEV mode, privileged admin, or public/guest login page), remove all guards
-    if (shouldBypass) {
-      document.body.classList.remove('screen-protected');
-      setIsWindowBlurred(false);
-      return;
+  // Check if current route is in a high-sensitivity municipal module
+  const isSensitiveModule = useMemo(() => {
+    return SENSITIVE_ROUTE_PREFIXES.some((prefix) => location.pathname.startsWith(prefix));
+  }, [location.pathname]);
+
+  // Dynamic forensic watermark text resolved per authentication state
+  const currentDateString = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const watermarkText = useMemo(() => {
+    if (!user) {
+      return `LIAQUATABAD DMC • OFFICIAL PORTAL • CONFIDENTIAL`;
     }
 
-    // Apply CSS-level protections to body for sensitive authenticated municipal records
+    const schoolIdentity = user.schoolId?.name
+      ? user.schoolId.name
+      : user.schoolId?.code
+      ? user.schoolId.code
+      : typeof user.schoolId === 'string' && user.schoolId
+      ? user.schoolId.slice(-6).toUpperCase()
+      : Array.isArray(user.assignedSchools) && user.assignedSchools.length > 0
+      ? `${user.assignedSchools.length} Assigned Schools`
+      : 'CENTRAL HQ';
+
+    const actorName = user.fullName || 'OFFICIAL ACTOR';
+    const actorRole = user.role || 'CIVIL_USER';
+    const classification = isSensitiveModule ? 'SENSITIVE MUNICIPAL RECORD • CONFIDENTIAL' : 'CONFIDENTIAL';
+
+    return `${actorName} • ${actorRole} • ${schoolIdentity} • ${currentDateString} • ${classification}`;
+  }, [user, isSensitiveModule, currentDateString]);
+
+  useEffect(() => {
+    // Apply CSS-level body protection class
     document.body.classList.add('screen-protected');
 
-    // 1. Intercept PrintScreen and Screenshot Hotkeys (DevTools shortcuts allowed for inspection)
+    // 1. Intercept Screenshot & Print Hotkeys
     const handleKeyDown = (event) => {
       const isPrintScreen = event.key === 'PrintScreen' || event.keyCode === 44;
       const isPrintShortcut = (event.ctrlKey || event.metaKey) && event.key?.toLowerCase() === 'p';
       const isSnippingShortcut = (event.ctrlKey || event.metaKey) && event.shiftKey && event.key?.toLowerCase() === 's';
       const isSaveShortcut = (event.ctrlKey || event.metaKey) && event.key?.toLowerCase() === 's';
 
-      if (isPrintScreen || isPrintShortcut || isSnippingShortcut || isSaveShortcut) {
+      // Developer mode shortcut to toggle heuristics while inspecting UI (Alt + Shift + D)
+      if (isDev && event.altKey && event.shiftKey && event.key?.toLowerCase() === 'd') {
+        event.preventDefault();
+        setDevHeuristicsPaused((previous) => {
+          const nextState = !previous;
+          toast.success(
+            nextState
+              ? 'Dev Mode: Heuristic screen blur paused for debugging.'
+              : 'Dev Mode: Heuristic screen blur re-enabled.',
+            { id: 'dev-heuristics-toggle', duration: 2500 }
+          );
+          if (nextState) setIsWindowBlurred(false);
+          return nextState;
+        });
+        return false;
+      }
+
+      // DevTools keys: blocked in production only; allowed in development for engineering convenience
+      const isDevToolsShortcut =
+        !isDev &&
+        (event.key === 'F12' ||
+          ((event.ctrlKey || event.metaKey) && event.shiftKey && ['i', 'c', 'j'].includes(event.key?.toLowerCase())));
+
+      if (isPrintScreen || isPrintShortcut || isSnippingShortcut || isSaveShortcut || isDevToolsShortcut) {
         event.preventDefault();
         event.stopPropagation();
 
-        // Clear clipboard immediately to sanitize any OS-buffered screen snapshot
+        // Sanitize clipboard immediately to flush any OS-buffered screenshot
         if (navigator.clipboard?.writeText) {
           navigator.clipboard.writeText('').catch(() => {});
         }
@@ -75,8 +134,11 @@ export const ScreenCaptureProtection = ({ children }) => {
       }
     };
 
-    // 2. Window Blur, Mouseleave & Visibility (Defends against Windows Snipping Tool, screen grabbers & app-switchers)
+    // 2. Window Blur, Mouseleave & Visibility Heuristics
+    let mouseLeaveTimer = null;
+
     const handleWindowBlur = () => {
+      if (devHeuristicsPaused) return;
       setIsWindowBlurred(true);
     };
 
@@ -85,15 +147,27 @@ export const ScreenCaptureProtection = ({ children }) => {
     };
 
     const handleMouseLeave = () => {
-      // When Snipping Tool, overlay, or external tool grabs cursor, mouseleave triggers
-      setIsWindowBlurred(true);
+      if (devHeuristicsPaused) return;
+      // In dev mode, apply a slight 200ms debounce so rapid cursor transitions don't jarringly flash
+      if (isDev) {
+        mouseLeaveTimer = setTimeout(() => {
+          setIsWindowBlurred(true);
+        }, 200);
+      } else {
+        setIsWindowBlurred(true);
+      }
     };
 
     const handleMouseEnter = () => {
+      if (mouseLeaveTimer) {
+        clearTimeout(mouseLeaveTimer);
+        mouseLeaveTimer = null;
+      }
       setIsWindowBlurred(false);
     };
 
     const handleVisibilityChange = () => {
+      if (devHeuristicsPaused) return;
       if (document.hidden) {
         setIsWindowBlurred(true);
       } else {
@@ -101,8 +175,9 @@ export const ScreenCaptureProtection = ({ children }) => {
       }
     };
 
-    // 3. Block Right-Click Context Menu (Prevents "Save Image As", "Print", "Inspect")
+    // 3. Block Right-Click Context Menu (Prevents "Save Image As", "Print", "Inspect" in Prod)
     const handleContextMenu = (event) => {
+      if (isDev && devHeuristicsPaused) return;
       event.preventDefault();
       return false;
     };
@@ -117,6 +192,7 @@ export const ScreenCaptureProtection = ({ children }) => {
     document.addEventListener('contextmenu', handleContextMenu);
 
     return () => {
+      if (mouseLeaveTimer) clearTimeout(mouseLeaveTimer);
       document.body.classList.remove('screen-protected');
       window.removeEventListener('keydown', handleKeyDown, true);
       window.removeEventListener('keyup', handleKeyUp, true);
@@ -127,31 +203,25 @@ export const ScreenCaptureProtection = ({ children }) => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       document.removeEventListener('contextmenu', handleContextMenu);
     };
-  }, [shouldBypass, notifyCaptureBlocked]);
-
-  // Privileged actors, DEV mode, and public/guest views experience completely normal, unobstructed UI
-  if (shouldBypass) {
-    return <>{children}</>;
-  }
-
-  const currentDateString = new Date().toISOString().split('T')[0];
-  const watermarkIdentity = user?.fullName
-    ? `${user.fullName} (${user.role})`
-    : user?.role || 'CIVIL REGISTRY GUEST';
+  }, [isDev, devHeuristicsPaused, notifyCaptureBlocked]);
 
   return (
     <div className="relative min-h-screen select-none">
-      {/* ── Dynamic Anti-Leak Forensic Civic Watermark ── */}
+      {/* ── Dynamic Anti-Leak Forensic Civic Watermark (ALWAYS Rendered for Forensic Attribution) ── */}
       <div
-        className="pointer-events-none fixed inset-0 z-40 overflow-hidden opacity-[0.04] select-none flex flex-wrap gap-x-20 gap-y-16 p-6"
+        className={`pointer-events-none fixed inset-0 z-40 overflow-hidden select-none flex flex-wrap gap-x-16 gap-y-12 p-4 transition-opacity duration-200 ${
+          isSensitiveModule ? 'opacity-[0.065]' : 'opacity-[0.045]'
+        }`}
         aria-hidden="true"
       >
-        {Array.from({ length: 32 }).map((_, index) => (
+        {Array.from({ length: 36 }).map((_, index) => (
           <div
             key={index}
-            className="transform -rotate-25 text-[11px] font-mono font-bold tracking-widest text-slate-900 uppercase whitespace-nowrap"
+            className={`transform -rotate-25 text-[10px] sm:text-[11px] font-mono tracking-widest text-slate-800 dark:text-slate-300 uppercase whitespace-nowrap ${
+              isSensitiveModule ? 'font-extrabold' : 'font-bold'
+            }`}
           >
-            LIAQUATABAD DMC • {watermarkIdentity} • {currentDateString} • CONFIDENTIAL
+            {watermarkText}
           </div>
         ))}
       </div>
@@ -161,9 +231,12 @@ export const ScreenCaptureProtection = ({ children }) => {
         {children}
       </div>
 
-      {/* ── Privacy Shield (Triggered when window loses focus e.g. Snipping Tool / Screen Grabber) ── */}
+      {/* ── Privacy Shield (Triggered when window loses focus e.g. Snipping Tool / External App Switcher) ── */}
       {isWindowBlurred && (
-        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white/95 backdrop-blur-2xl p-6 text-center select-none animate-in fade-in duration-100">
+        <div
+          onClick={() => setIsWindowBlurred(false)}
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white/95 backdrop-blur-2xl p-6 text-center select-none cursor-pointer animate-in fade-in duration-100"
+        >
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-amber-300 bg-amber-50 text-amber-600 mb-4 shadow-sm">
             <Lock className="h-8 w-8" />
           </div>
@@ -173,9 +246,14 @@ export const ScreenCaptureProtection = ({ children }) => {
           <p className="mt-2 max-w-md text-xs text-[#526477] leading-relaxed">
             Content is obscured while the application window is out of focus to prevent unauthorized screen capture or external recording.
           </p>
-          <p className="mt-4 text-[11px] font-mono text-[#006AC7] bg-[#F0F8FF] border border-blue-200 rounded-lg px-3 py-1.5">
+          <p className="mt-4 text-[11px] font-mono text-[#006AC7] bg-[#F0F8FF] border border-blue-200 rounded-lg px-3 py-1.5 shadow-xs">
             Click anywhere on this window to resume viewing.
           </p>
+          {isDev && (
+            <p className="mt-3 text-[10px] font-mono text-slate-400">
+              [Dev Tip: Press Alt + Shift + D to toggle heuristic blur during development]
+            </p>
+          )}
         </div>
       )}
 
