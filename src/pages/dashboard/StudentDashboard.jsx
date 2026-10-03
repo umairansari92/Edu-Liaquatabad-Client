@@ -31,6 +31,7 @@ import { useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import PageContainer from '../../components/layout/PageContainer.jsx';
 import PersonalScheduleView from '../../components/timetable/PersonalScheduleView.jsx';
+import HomeworkAttachmentsViewer from '../../components/common/HomeworkAttachmentsViewer.jsx';
 import {
   fetchStudentProfile,
   fetchStudentExamResults,
@@ -934,27 +935,9 @@ export const StudentDashboard = () => {
                       </div>
                     </div>
 
-                    {/* Attachments */}
+                    {/* Attachments & Learning Materials */}
                     {homeworkItem.attachments?.length > 0 && (
-                      <div className="mt-3 pt-3 border-t border-slate-100 space-y-1.5">
-                        <span className="text-[11px] font-bold text-[#8094A8] uppercase tracking-wider block">
-                          Attached Materials:
-                        </span>
-                        <div className="flex flex-wrap gap-2">
-                          {homeworkItem.attachments.map((attachmentItem, attachmentIndex) => (
-                            <a
-                              key={attachmentIndex}
-                              href={attachmentItem.fileUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-blue-50/70 border border-slate-200/80 text-xs font-semibold text-[#006AC7] transition-colors"
-                            >
-                              <Paperclip className="w-3 h-3" />
-                              <span className="truncate max-w-[180px]">{attachmentItem.fileName || 'Attachment'}</span>
-                            </a>
-                          ))}
-                        </div>
-                      </div>
+                      <HomeworkAttachmentsViewer attachments={homeworkItem.attachments} />
                     )}
                   </div>
                 );

@@ -38,6 +38,9 @@ import {
 import toast from 'react-hot-toast';
 import PageContainer from '../../components/layout/PageContainer.jsx';
 import PersonalScheduleView from '../../components/timetable/PersonalScheduleView.jsx';
+import HomeworkAttachmentUploader from '../../components/common/HomeworkAttachmentUploader.jsx';
+import HomeworkAttachmentsViewer from '../../components/common/HomeworkAttachmentsViewer.jsx';
+import { revokePreviewUrl } from '../../utils/imageCompressor.js';
 import {
   fetchTeacherSummary,
   fetchTeachingAssignments,
@@ -159,6 +162,7 @@ export const TeacherDashboard = () => {
   const [newHwTitle, setNewHwTitle] = useState('');
   const [newHwDescription, setNewHwDescription] = useState('');
   const [newHwDueDate, setNewHwDueDate] = useState('');
+  const [newHwAttachments, setNewHwAttachments] = useState([]);
 
   // Initial Load
   useEffect(() => {
@@ -406,6 +410,14 @@ export const TeacherDashboard = () => {
     }
   };
 
+  const handleCloseAssignModal = () => {
+    newHwAttachments.forEach((att) => {
+      if (att.previewUrl) revokePreviewUrl(att.previewUrl);
+    });
+    setNewHwAttachments([]);
+    setAssignHomeworkModal(false);
+  };
+
   // ─── Handlers: Homework ────────────────────────────────────────────────────
   const handleCreateHomework = async (submitEvent) => {
     submitEvent.preventDefault();
@@ -417,17 +429,35 @@ export const TeacherDashboard = () => {
     const classId = targetSection?.class?._id || targetSection?.class;
 
     try {
-      await dispatch(createHomework({
-        classId,
-        sectionId: newHwSectionId,
-        subjectId: newHwSubjectId,
-        title: newHwTitle.trim(),
-        description: newHwDescription.trim(),
-        dueDate: newHwDueDate,
-      })).unwrap();
+      if (newHwAttachments.length > 0) {
+        const formData = new FormData();
+        formData.append('classId', classId);
+        formData.append('sectionId', newHwSectionId);
+        formData.append('subjectId', newHwSubjectId);
+        formData.append('title', newHwTitle.trim());
+        formData.append('description', newHwDescription.trim());
+        formData.append('dueDate', newHwDueDate);
+
+        newHwAttachments.forEach((attItem) => {
+          if (attItem.file) {
+            formData.append('attachments', attItem.file);
+          }
+        });
+
+        await dispatch(createHomework(formData)).unwrap();
+      } else {
+        await dispatch(createHomework({
+          classId,
+          sectionId: newHwSectionId,
+          subjectId: newHwSubjectId,
+          title: newHwTitle.trim(),
+          description: newHwDescription.trim(),
+          dueDate: newHwDueDate,
+        })).unwrap();
+      }
 
       toast.success('Homework assigned successfully.');
-      setAssignHomeworkModal(false);
+      handleCloseAssignModal();
       setNewHwTitle('');
       setNewHwDescription('');
       setNewHwDueDate('');
@@ -1223,6 +1253,11 @@ export const TeacherDashboard = () => {
                     <div className="mt-3 text-xs text-[#8094A8] font-medium">
                       <span>{homeworkItem.classId?.name} · Section {homeworkItem.sectionId?.name}</span>
                     </div>
+
+                    {/* Attached Learning Materials */}
+                    {homeworkItem.attachments?.length > 0 && (
+                      <HomeworkAttachmentsViewer attachments={homeworkItem.attachments} isCompact />
+                    )}
                   </div>
 
                   <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
@@ -1460,13 +1495,14 @@ export const TeacherDashboard = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
             className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
-            onClick={() => setAssignHomeworkModal(false)}
+            onClick={handleCloseAssignModal}
           />
-          <div className="relative w-full max-w-lg rounded-2xl bg-white border border-slate-200 shadow-2xl overflow-hidden p-6">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+          <div className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white border border-slate-200 shadow-2xl p-6">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4 sticky top-0 bg-white z-10">
               <h3 className="text-base font-bold text-[#102033]">Assign New Homework</h3>
               <button
-                onClick={() => setAssignHomeworkModal(false)}
+                type="button"
+                onClick={handleCloseAssignModal}
                 className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition"
               >
                 <X className="w-5 h-5" />
@@ -1549,10 +1585,18 @@ export const TeacherDashboard = () => {
                 />
               </div>
 
+              {/* Attachments & Learning Material Uploader */}
+              <div className="pt-2 border-t border-slate-100">
+                <HomeworkAttachmentUploader
+                  attachments={newHwAttachments}
+                  onChange={setNewHwAttachments}
+                />
+              </div>
+
               <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-2">
                 <button
                   type="button"
-                  onClick={() => setAssignHomeworkModal(false)}
+                  onClick={handleCloseAssignModal}
                   className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition"
                 >
                   Cancel

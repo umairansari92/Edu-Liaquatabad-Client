@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSearchParams } from 'react-router-dom';
 import PageContainer from '../../components/layout/PageContainer.jsx';
+import HomeworkAttachmentsViewer from '../../components/common/HomeworkAttachmentsViewer.jsx';
 import {
   Users,
   GraduationCap,
@@ -841,6 +842,11 @@ export const ParentDashboard = () => {
                     </div>
                     <h4 className="text-sm font-bold text-[#102033]">{homeworkItem.title}</h4>
                     <p className="text-xs text-[#526477] leading-relaxed whitespace-pre-line">{homeworkItem.description}</p>
+                    
+                    {/* Attached Learning Materials */}
+                    {homeworkItem.attachments?.length > 0 && (
+                      <HomeworkAttachmentsViewer attachments={homeworkItem.attachments} />
+                    )}
                   </div>
 
                   <div className="border-t border-slate-100 pt-3 flex items-center justify-between text-[11px] text-[#526477]">

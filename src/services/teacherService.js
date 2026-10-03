@@ -102,9 +102,12 @@ export const teacherService = {
 
   /**
    * Create a new homework assignment for an assigned class, section, and subject.
+   * Supports both JSON and FormData multipart payloads.
    */
   async createHomework(payload) {
-    const response = await apiClient.post('/homework', payload);
+    const isFormData = typeof FormData !== 'undefined' && payload instanceof FormData;
+    const requestConfig = isFormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : {};
+    const response = await apiClient.post('/homework', payload, requestConfig);
     return response.data?.data;
   },
 
