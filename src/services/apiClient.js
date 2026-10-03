@@ -2,6 +2,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { store } from '../store/index.js';
 import { setAccessToken, logout } from '../store/slices/authSlice.js';
+import { generateIdempotencyKey } from './reliability/idempotencyManager.js';
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api/v1',
@@ -11,7 +12,7 @@ const apiClient = axios.create({
   withCredentials: true, // Send HttpOnly refresh cookies to BFF
 });
 
-// Request Interceptor: Attach Access Token
+// Request Interceptor: Attach Access Token and Idempotency Key
 apiClient.interceptors.request.use(
   (requestConfig) => {
     const requestUrlString = requestConfig?.url || '';
@@ -37,6 +38,17 @@ apiClient.interceptors.request.use(
         requestConfig.headers.Authorization = `Bearer ${activeAccessToken}`;
       }
     }
+
+    // Attach stable Idempotency-Key on mutating operations (POST, PATCH, PUT, DELETE)
+    const requestMethod = (requestConfig.method || 'GET').toUpperCase();
+    if (['POST', 'PATCH', 'PUT', 'DELETE'].includes(requestMethod) && !isAuthHandshakeEndpoint) {
+      if (requestConfig.idempotencyKey) {
+        requestConfig.headers['Idempotency-Key'] = requestConfig.idempotencyKey;
+      } else if (!requestConfig.headers['Idempotency-Key']) {
+        requestConfig.headers['Idempotency-Key'] = generateIdempotencyKey();
+      }
+    }
+
     return requestConfig;
   },
   (error) => Promise.reject(error)
@@ -143,6 +155,35 @@ apiClient.interceptors.response.use(
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
+      }
+    }
+
+    // ─── Network Drop / Offline Graceful Handling ────────────────────────────────
+    if (!error.response && error.code !== 'ERR_CANCELED') {
+      const isMutation = ['POST', 'PATCH', 'PUT', 'DELETE'].includes((originalRequest?.method || '').toUpperCase());
+      const state = store.getState();
+      const userBinding = state.auth?.user?._id || state.auth?.user?.userId;
+
+      // If mutation opted into offline queueing and user is authenticated
+      if (isMutation && userBinding && originalRequest?.enableOfflineQueue) {
+        try {
+          const { queueOfflineMutation } = await import('./reliability/syncQueue.js');
+          await queueOfflineMutation({
+            userSessionBinding: userBinding,
+            endpoint: originalRequest.url,
+            method: originalRequest.method,
+            payload: originalRequest.data,
+            module: originalRequest.module || 'general',
+            entityId: originalRequest.entityId || 'primary',
+            idempotencyKey: originalRequest.headers?.['Idempotency-Key'],
+          });
+          toast.success('Connection interrupted. Your changes were safely saved on this device and will sync automatically.', {
+            id: 'offline-queue-toast',
+            duration: 5000,
+          });
+        } catch (queueErr) {
+          console.warn('[ApiClient] Failed to enqueue offline mutation:', queueErr);
+        }
       }
     }
 

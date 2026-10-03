@@ -6,7 +6,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import NotificationDropdown from '../notifications/NotificationDropdown.jsx';
 import SecuritySettingsModal from '../common/SecuritySettingsModal.jsx';
+import ConnectionStatusBadge from '../common/ConnectionStatusBadge.jsx';
 import { usePwaInstall } from '../../hooks/usePwaInstall.js';
+import { clearUserRecords } from '../../services/reliability/draftStorage.js';
 
 export const Navbar = () => {
   const { user, isAuthenticated } = useSelector((state) => state.auth);
@@ -21,6 +23,10 @@ export const Navbar = () => {
   const handleLogout = async () => {
     try {
       setLoggingOut(true);
+      const userSessionBinding = user?._id || user?.userId;
+      if (userSessionBinding) {
+        await clearUserRecords(userSessionBinding);
+      }
       await dispatch(logoutUser()).unwrap();
       navigate('/login');
     } catch (error) {
@@ -53,6 +59,9 @@ export const Navbar = () => {
 
         {/* Right Navigation Controls */}
         <div className="flex items-center space-x-3 sm:space-x-4">
+          {/* Live Connection Status Badge */}
+          <ConnectionStatusBadge />
+
           {/* PWA Direct Installation Prompt Button (Desktop & Mobile) */}
           {canInstallApplication && (
             <button

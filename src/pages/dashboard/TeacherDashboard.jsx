@@ -41,6 +41,9 @@ import PersonalScheduleView from '../../components/timetable/PersonalScheduleVie
 import HomeworkAttachmentUploader from '../../components/common/HomeworkAttachmentUploader.jsx';
 import HomeworkAttachmentsViewer from '../../components/common/HomeworkAttachmentsViewer.jsx';
 import { revokePreviewUrl } from '../../utils/imageCompressor.js';
+import useReliabilityDraft from '../../hooks/useReliabilityDraft.js';
+import DraftRecoveryBanner from '../../components/common/DraftRecoveryBanner.jsx';
+import DraftStatusIndicator from '../../components/common/DraftStatusIndicator.jsx';
 import {
   fetchTeacherSummary,
   fetchTeachingAssignments,
@@ -164,6 +167,68 @@ export const TeacherDashboard = () => {
   const [newHwDueDate, setNewHwDueDate] = useState('');
   const [newHwAttachments, setNewHwAttachments] = useState([]);
 
+  // ─── Reliability & Offline Draft Hooks ────────────────────────────────────
+  const attendanceDraftKey = selectedAttendanceSectionId && attendanceDate
+    ? `${selectedAttendanceSectionId}_${attendanceDate}`
+    : null;
+
+  const {
+    draft: attendanceDraft,
+    hasDraft: hasAttendanceDraft,
+    isAutosaving: isAttendanceAutosaving,
+    lastSavedAt: attendanceLastSavedAt,
+    saveDraft: saveAttendanceDraft,
+    discardDraft: discardAttendanceDraft,
+    restoreDraft: restoreAttendanceDraft,
+  } = useReliabilityDraft('teacher_attendance', attendanceDraftKey, {
+    debounceMs: 1000,
+    enableAutosave: true,
+  });
+
+  const homeworkDraftKey = 'create_homework_modal';
+  const {
+    draft: homeworkDraft,
+    hasDraft: hasHomeworkDraft,
+    isAutosaving: isHomeworkAutosaving,
+    lastSavedAt: homeworkLastSavedAt,
+    saveDraft: saveHomeworkDraft,
+    discardDraft: discardHomeworkDraft,
+    restoreDraft: restoreHomeworkDraft,
+  } = useReliabilityDraft('teacher_homework', homeworkDraftKey, {
+    debounceMs: 800,
+    enableAutosave: false,
+  });
+
+  const marksDraftKey = selectedExamId && selectedExamSectionId
+    ? `${selectedExamId}_${selectedExamSectionId}_${selectedExamSubjectId || 'all'}`
+    : null;
+
+  const {
+    draft: marksDraft,
+    hasDraft: hasMarksDraft,
+    isAutosaving: isMarksAutosaving,
+    lastSavedAt: marksLastSavedAt,
+    saveDraft: saveMarksDraft,
+    discardDraft: discardMarksDraft,
+    restoreDraft: restoreMarksDraft,
+  } = useReliabilityDraft('teacher_exam_marks', marksDraftKey, {
+    debounceMs: 1000,
+    enableAutosave: true,
+  });
+
+  const handleUpdateHomeworkDraft = (updates) => {
+    const payload = {
+      sectionId: updates.sectionId !== undefined ? updates.sectionId : newHwSectionId,
+      subjectId: updates.subjectId !== undefined ? updates.subjectId : newHwSubjectId,
+      title: updates.title !== undefined ? updates.title : newHwTitle,
+      description: updates.description !== undefined ? updates.description : newHwDescription,
+      dueDate: updates.dueDate !== undefined ? updates.dueDate : newHwDueDate,
+    };
+    if (payload.title || payload.description || payload.sectionId) {
+      saveHomeworkDraft(payload);
+    }
+  };
+
   // Initial Load
   useEffect(() => {
     dispatch(fetchTeacherSummary());
@@ -261,22 +326,26 @@ export const TeacherDashboard = () => {
 
   // ─── Handlers: Attendance ──────────────────────────────────────────────────
   const handleResetAllToPresent = () => {
-    setLocalAttendanceRecords((prev) =>
-      prev.map((attendanceRecord) => ({ ...attendanceRecord, status: 'PRESENT' }))
-    );
+    const updated = localAttendanceRecords.map((attendanceRecord) => ({ ...attendanceRecord, status: 'PRESENT' }));
+    setLocalAttendanceRecords(updated);
+    saveAttendanceDraft({ records: updated });
     toast.success('All students reset to Present.');
   };
 
   const handleUpdateRecordStatus = (studentProfileId, newStatus) => {
-    setLocalAttendanceRecords((prev) =>
-      prev.map((attendanceRecord) => (attendanceRecord.studentProfileId === studentProfileId ? { ...attendanceRecord, status: newStatus } : attendanceRecord))
-    );
+    setLocalAttendanceRecords((prev) => {
+      const updated = prev.map((attendanceRecord) => (attendanceRecord.studentProfileId === studentProfileId ? { ...attendanceRecord, status: newStatus } : attendanceRecord));
+      saveAttendanceDraft({ records: updated });
+      return updated;
+    });
   };
 
   const handleUpdateRecordRemarks = (studentProfileId, newRemarks) => {
-    setLocalAttendanceRecords((prev) =>
-      prev.map((attendanceRecord) => (attendanceRecord.studentProfileId === studentProfileId ? { ...attendanceRecord, remarks: newRemarks } : attendanceRecord))
-    );
+    setLocalAttendanceRecords((prev) => {
+      const updated = prev.map((attendanceRecord) => (attendanceRecord.studentProfileId === studentProfileId ? { ...attendanceRecord, remarks: newRemarks } : attendanceRecord));
+      saveAttendanceDraft({ records: updated });
+      return updated;
+    });
   };
 
   const handleSubmitAttendanceForm = async () => {
@@ -313,6 +382,7 @@ export const TeacherDashboard = () => {
         records: recordsWithRemarks,
       };
       await dispatch(submitStudentAttendance(payload)).unwrap();
+      discardAttendanceDraft();
       toast.success(`Attendance submitted: ${presentStudentsCount} Present, ${absentStudentsCount} Absent, ${leaveStudentsCount} Leave.`);
       dispatch(fetchTeacherSummary());
     } catch (errorObject) {
@@ -337,8 +407,8 @@ export const TeacherDashboard = () => {
   };
 
   const handleUpdateMarksEntry = (studentId, field, value) => {
-    setLocalMarksEntries((prev) =>
-      prev.map((entry) => {
+    setLocalMarksEntries((prev) => {
+      const updated = prev.map((entry) => {
         if (entry.studentId !== studentId) return entry;
         if (field.startsWith('subComponents.')) {
           const subKey = field.split('.')[1];
@@ -351,8 +421,10 @@ export const TeacherDashboard = () => {
           };
         }
         return { ...entry, [field]: value };
-      })
-    );
+      });
+      saveMarksDraft({ entries: updated });
+      return updated;
+    });
   };
 
   const handleBulkSubmitMarks = async () => {
@@ -404,6 +476,7 @@ export const TeacherDashboard = () => {
         subjectId: selectedExamSubjectId || undefined,
       })).unwrap();
 
+      discardMarksDraft();
       toast.success('Exam marks submitted successfully!');
     } catch (errorObject) {
       toast.error(errorObject || 'Failed to submit exam marks.');
@@ -457,6 +530,7 @@ export const TeacherDashboard = () => {
       }
 
       toast.success('Homework assigned successfully.');
+      discardHomeworkDraft();
       handleCloseAssignModal();
       setNewHwTitle('');
       setNewHwDescription('');
@@ -819,6 +893,23 @@ export const TeacherDashboard = () => {
               </div>
             </div>
 
+            {/* Attendance Draft Recovery Banner */}
+            <DraftRecoveryBanner
+              hasDraft={hasAttendanceDraft}
+              lastSavedAt={attendanceLastSavedAt}
+              onRestore={() => {
+                const restoredData = restoreAttendanceDraft();
+                if (restoredData?.records && Array.isArray(restoredData.records)) {
+                  setLocalAttendanceRecords(restoredData.records);
+                  toast.success('Offline attendance draft restored.');
+                }
+              }}
+              onDiscard={() => {
+                discardAttendanceDraft();
+                toast.success('Offline draft discarded.');
+              }}
+            />
+
             {/* Attendance Roster Table */}
             {attendanceLoading ? (
               <div className="py-16 flex flex-col items-center justify-center gap-3 text-[#526477]">
@@ -909,8 +1000,15 @@ export const TeacherDashboard = () => {
 
             {/* Submit Attendance Bar */}
             <div className="mt-6 pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="text-xs text-[#526477]">
-                Ready to submit: <strong className="text-emerald-700 font-bold">{presentStudentsCount} Present</strong>, <strong className="text-rose-700 font-bold">{absentStudentsCount} Absent</strong>, <strong className="text-amber-700 font-bold">{leaveStudentsCount} Leave</strong>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                <DraftStatusIndicator
+                  isAutosaving={isAttendanceAutosaving}
+                  lastSavedAt={attendanceLastSavedAt}
+                  hasDraft={hasAttendanceDraft}
+                />
+                <div className="text-xs text-[#526477]">
+                  Ready to submit: <strong className="text-emerald-700 font-bold">{presentStudentsCount} Present</strong>, <strong className="text-rose-700 font-bold">{absentStudentsCount} Absent</strong>, <strong className="text-amber-700 font-bold">{leaveStudentsCount} Leave</strong>
+                </div>
               </div>
               <button
                 type="button"
@@ -1014,6 +1112,23 @@ export const TeacherDashboard = () => {
                 </div>
               </div>
             </div>
+
+            {/* Exam Marks Draft Recovery Banner */}
+            <DraftRecoveryBanner
+              hasDraft={hasMarksDraft}
+              lastSavedAt={marksLastSavedAt}
+              onRestore={() => {
+                const restoredData = restoreMarksDraft();
+                if (restoredData?.entries && Array.isArray(restoredData.entries)) {
+                  setLocalMarksEntries(restoredData.entries);
+                  toast.success('Offline examination marks draft restored.');
+                }
+              }}
+              onDiscard={() => {
+                discardMarksDraft();
+                toast.success('Offline marks draft discarded.');
+              }}
+            />
 
             {/* Exam Roster Table */}
             {examRosterLoading ? (
@@ -1177,9 +1292,16 @@ export const TeacherDashboard = () => {
 
                 {/* Bulk Submit Button */}
                 <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
-                  <span className="text-xs text-[#8094A8]">
-                    Ready to submit marks for {localMarksEntries.length} students
-                  </span>
+                  <div className="flex items-center gap-3">
+                    <DraftStatusIndicator
+                      isAutosaving={isMarksAutosaving}
+                      lastSavedAt={marksLastSavedAt}
+                      hasDraft={hasMarksDraft}
+                    />
+                    <span className="text-xs text-[#8094A8]">
+                      Ready to submit marks for {localMarksEntries.length} students
+                    </span>
+                  </div>
                   <button
                     type="button"
                     onClick={handleBulkSubmitMarks}
@@ -1499,7 +1621,14 @@ export const TeacherDashboard = () => {
           />
           <div className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white border border-slate-200 shadow-2xl p-6">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4 sticky top-0 bg-white z-10">
-              <h3 className="text-base font-bold text-[#102033]">Assign New Homework</h3>
+              <div className="flex items-center gap-3">
+                <h3 className="text-base font-bold text-[#102033]">Assign New Homework</h3>
+                <DraftStatusIndicator
+                  isAutosaving={isHomeworkAutosaving}
+                  lastSavedAt={homeworkLastSavedAt}
+                  hasDraft={hasHomeworkDraft}
+                />
+              </div>
               <button
                 type="button"
                 onClick={handleCloseAssignModal}
@@ -1509,14 +1638,36 @@ export const TeacherDashboard = () => {
               </button>
             </div>
 
+            <DraftRecoveryBanner
+              hasDraft={hasHomeworkDraft}
+              lastSavedAt={homeworkLastSavedAt}
+              onRestore={() => {
+                const restoredData = restoreHomeworkDraft();
+                if (restoredData) {
+                  if (restoredData.sectionId) setNewHwSectionId(restoredData.sectionId);
+                  if (restoredData.subjectId) setNewHwSubjectId(restoredData.subjectId);
+                  if (restoredData.title) setNewHwTitle(restoredData.title);
+                  if (restoredData.description) setNewHwDescription(restoredData.description);
+                  if (restoredData.dueDate) setNewHwDueDate(restoredData.dueDate);
+                  toast.success('Offline homework draft restored.');
+                }
+              }}
+              onDiscard={() => {
+                discardHomeworkDraft();
+                toast.success('Offline homework draft discarded.');
+              }}
+            />
+
             <form onSubmit={handleCreateHomework} className="space-y-4 text-xs">
               <div>
                 <label className="block font-bold text-[#526477] mb-1">Class Section *</label>
                 <select
                   value={newHwSectionId}
                   onChange={(changeEvent) => {
-                    setNewHwSectionId(changeEvent.target.value);
+                    const val = changeEvent.target.value;
+                    setNewHwSectionId(val);
                     setNewHwSubjectId('');
+                    handleUpdateHomeworkDraft({ sectionId: val, subjectId: '' });
                   }}
                   required
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
@@ -1534,7 +1685,11 @@ export const TeacherDashboard = () => {
                 <label className="block font-bold text-[#526477] mb-1">Subject *</label>
                 <select
                   value={newHwSubjectId}
-                  onChange={(changeEvent) => setNewHwSubjectId(changeEvent.target.value)}
+                  onChange={(changeEvent) => {
+                    const val = changeEvent.target.value;
+                    setNewHwSubjectId(val);
+                    handleUpdateHomeworkDraft({ subjectId: val });
+                  }}
                   required
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
                 >
@@ -1556,7 +1711,11 @@ export const TeacherDashboard = () => {
                   type="text"
                   placeholder="e.g. Chapter 4 Exercise Questions"
                   value={newHwTitle}
-                  onChange={(changeEvent) => setNewHwTitle(changeEvent.target.value)}
+                  onChange={(changeEvent) => {
+                    const val = changeEvent.target.value;
+                    setNewHwTitle(val);
+                    handleUpdateHomeworkDraft({ title: val });
+                  }}
                   required
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
                 />
@@ -1568,7 +1727,11 @@ export const TeacherDashboard = () => {
                   rows="3"
                   placeholder="Provide specific exercises, page numbers, or guidelines..."
                   value={newHwDescription}
-                  onChange={(changeEvent) => setNewHwDescription(changeEvent.target.value)}
+                  onChange={(changeEvent) => {
+                    const val = changeEvent.target.value;
+                    setNewHwDescription(val);
+                    handleUpdateHomeworkDraft({ description: val });
+                  }}
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
                 />
               </div>
@@ -1579,7 +1742,11 @@ export const TeacherDashboard = () => {
                   type="date"
                   min={new Date().toISOString().split('T')[0]}
                   value={newHwDueDate}
-                  onChange={(changeEvent) => setNewHwDueDate(changeEvent.target.value)}
+                  onChange={(changeEvent) => {
+                    const val = changeEvent.target.value;
+                    setNewHwDueDate(val);
+                    handleUpdateHomeworkDraft({ dueDate: val });
+                  }}
                   required
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
                 />
