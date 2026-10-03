@@ -41,6 +41,7 @@ import PersonalScheduleView from '../../components/timetable/PersonalScheduleVie
 import HomeworkAttachmentUploader from '../../components/common/HomeworkAttachmentUploader.jsx';
 import HomeworkAttachmentsViewer from '../../components/common/HomeworkAttachmentsViewer.jsx';
 import { revokePreviewUrl } from '../../utils/imageCompressor.js';
+import { getErrorMessage } from '../../utils/errorUtils.js';
 import useReliabilityDraft from '../../hooks/useReliabilityDraft.js';
 import DraftRecoveryBanner from '../../components/common/DraftRecoveryBanner.jsx';
 import DraftStatusIndicator from '../../components/common/DraftStatusIndicator.jsx';
@@ -386,7 +387,7 @@ export const TeacherDashboard = () => {
       toast.success(`Attendance submitted: ${presentStudentsCount} Present, ${absentStudentsCount} Absent, ${leaveStudentsCount} Leave.`);
       dispatch(fetchTeacherSummary());
     } catch (errorObject) {
-      toast.error(errorObject || 'Failed to submit attendance.');
+      toast.error(getErrorMessage(errorObject, 'Failed to submit attendance.'));
     }
   };
 
@@ -479,7 +480,7 @@ export const TeacherDashboard = () => {
       discardMarksDraft();
       toast.success('Exam marks submitted successfully!');
     } catch (errorObject) {
-      toast.error(errorObject || 'Failed to submit exam marks.');
+      toast.error(getErrorMessage(errorObject, 'Failed to submit exam marks.'));
     }
   };
 
@@ -537,7 +538,7 @@ export const TeacherDashboard = () => {
       setNewHwDueDate('');
       dispatch(fetchMyHomework());
     } catch (errorObject) {
-      toast.error(errorObject || 'Failed to assign homework.');
+      toast.error(getErrorMessage(errorObject, 'Failed to assign homework.'));
     }
   };
 
@@ -548,7 +549,7 @@ export const TeacherDashboard = () => {
       toast.success('Homework cancelled.');
       dispatch(fetchMyHomework());
     } catch (errorObject) {
-      toast.error(errorObject || 'Failed to cancel homework.');
+      toast.error(getErrorMessage(errorObject, 'Failed to cancel homework.'));
     }
   };
 

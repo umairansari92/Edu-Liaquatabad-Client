@@ -26,6 +26,7 @@ import {
   Info,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getErrorMessage } from '../../utils/errorUtils.js';
 import apiClient from '../../services/apiClient.js';
 import {
   fetchMyWards,
@@ -123,7 +124,7 @@ export const ParentDashboard = () => {
       ).unwrap();
       toast.success('Official Marksheet PDF downloaded successfully.');
     } catch (errorObject) {
-      toast.error(errorObject || 'Failed to download official marksheet PDF.');
+      toast.error(getErrorMessage(errorObject, 'Failed to download official marksheet PDF.'));
     } finally {
       setDownloadingExamId(null);
     }
@@ -169,7 +170,7 @@ export const ParentDashboard = () => {
         dispatch(fetchMyWards());
       })
       .catch((errorObject) => {
-        toast.error(errorObject || 'OTP verification failed.');
+        toast.error(getErrorMessage(errorObject, 'OTP verification failed.'));
       });
   };
 

@@ -11,6 +11,7 @@ import {
   Briefcase,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getErrorMessage } from '../../utils/errorUtils.js';
 
 export const PdfAccessRequestModal = ({
   isOpen,
@@ -49,7 +50,7 @@ export const PdfAccessRequestModal = ({
       toast.success(`Access consent request dispatched to ${targetName || 'staff member'}.`);
       onClose();
     } catch (errorObject) {
-      toast.error(errorObject || 'Failed to submit official PDF access request.');
+      toast.error(getErrorMessage(errorObject, 'Failed to submit official PDF access request.'));
     }
   };
 

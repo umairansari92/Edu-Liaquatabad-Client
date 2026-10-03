@@ -22,6 +22,7 @@ import {
   X,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getErrorMessage } from '../../utils/errorUtils.js';
 
 const CATEGORIES = [
   { id: 'ALL', label: 'All' },
@@ -104,7 +105,7 @@ export const NotificationDropdown = ({ isOpen, onClose }) => {
           : 'Profile PDF download denied.'
       );
     } catch (consentError) {
-      toast.error(consentError || 'Failed to record consent response.');
+      toast.error(getErrorMessage(consentError, 'Failed to record consent response.'));
     }
   };
 

@@ -32,6 +32,7 @@ import {
   Shield,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getErrorMessage } from '../../utils/errorUtils.js';
 import PageContainer from '../../components/layout/PageContainer.jsx';
 import ProfilePrivacySettingsModal from '../../components/staff/ProfilePrivacySettingsModal.jsx';
 import PdfAccessRequestModal from '../../components/staff/PdfAccessRequestModal.jsx';
@@ -64,7 +65,7 @@ export const StaffProfilePage = () => {
 
   useEffect(() => {
     if (pdfDownloadError) {
-      toast.error(pdfDownloadError);
+      toast.error(getErrorMessage(pdfDownloadError, 'Failed to download official PDF.'));
     }
   }, [pdfDownloadError]);
 
@@ -82,7 +83,7 @@ export const StaffProfilePage = () => {
           toast.success('Official Service Record PDF downloaded successfully.');
         })
         .catch((downloadError) => {
-          toast.error(downloadError || 'Failed to download official PDF.');
+          toast.error(getErrorMessage(downloadError, 'Failed to download official PDF.'));
         });
     } else {
       // Consent required - open request modal

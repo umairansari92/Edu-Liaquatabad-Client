@@ -14,6 +14,7 @@ import {
   FileText,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { getErrorMessage } from '../../utils/errorUtils.js';
 
 export const ProfilePrivacySettingsModal = ({
   isOpen,
@@ -66,7 +67,7 @@ export const ProfilePrivacySettingsModal = ({
       toast.success('Privacy & consent settings updated successfully.');
       onClose();
     } catch (error) {
-      toast.error(error || 'Failed to update privacy settings.');
+      toast.error(getErrorMessage(error, 'Failed to update privacy settings.'));
     }
   };
 
