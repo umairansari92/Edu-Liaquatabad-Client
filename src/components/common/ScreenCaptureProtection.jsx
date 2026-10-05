@@ -19,6 +19,14 @@ const SENSITIVE_ROUTE_PREFIXES = [
 ];
 
 export const ScreenCaptureProtection = ({ children }) => {
+  // ── TEMPORARY BYPASS (FOR DEVELOPER TESTING & AUDITING) ──────────────────────
+  // Temporarily commented out per developer instruction to allow unrestricted screenshots
+  // and screen capture during dashboard audits and module finishing.
+  // Re-enable before final production deployment (Tracked in docs/TODO_MASTER.md Step 8).
+  return <>{children}</>;
+
+  /*
+  // ── ORIGINAL RESTRICTION LOGIC (RE-ENABLE BEFORE PRODUCTION LAUNCH) ───────────
   const location = useLocation();
   const { user } = useSelector((state) => state.auth);
   const isPrivileged = Boolean(user && PRIVILEGED_ROLES.includes(user.role));
@@ -273,6 +281,7 @@ export const ScreenCaptureProtection = ({ children }) => {
       )}
     </div>
   );
+  */
 };
 
 export default ScreenCaptureProtection;

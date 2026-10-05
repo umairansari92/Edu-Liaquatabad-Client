@@ -4,7 +4,9 @@ import { useDispatch } from 'react-redux';
 import { Toaster } from 'react-hot-toast';
 import AppRoutes from './routes/AppRoutes.jsx';
 import AppFooter from './components/layout/AppFooter.jsx';
-import ScreenCaptureProtection from './components/common/ScreenCaptureProtection.jsx';
+// TEMPORARY: ScreenCaptureProtection disabled during development & auditing so developer can take screenshots
+// TODO: Re-enable before final production deployment (Tracked in docs/TODO_MASTER.md Step 8)
+// import ScreenCaptureProtection from './components/common/ScreenCaptureProtection.jsx';
 import apiClient from './services/apiClient.js';
 import { setCredentials, setSessionChecked } from './store/slices/authSlice.js';
 
@@ -39,14 +41,19 @@ function App() {
 
   return (
     <BrowserRouter>
-      <ScreenCaptureProtection>
+      {/* 
+        TEMPORARY: ScreenCaptureProtection disabled during development & auditing
+        so developer can capture screenshots of dashboards, modals, marksheets, and reports.
+        TODO: Re-enable before production deployment (Tracked in docs/TODO_MASTER.md Step 8).
+      */}
+      {/* <ScreenCaptureProtection> */}
         <div className="min-h-screen flex flex-col bg-[#F8FBFD] text-[#102033]">
           <div className="flex-1">
             <AppRoutes />
           </div>
           <AppFooter />
         </div>
-      </ScreenCaptureProtection>
+      {/* </ScreenCaptureProtection> */}
       <Toaster
         position="top-right"
         toastOptions={{
