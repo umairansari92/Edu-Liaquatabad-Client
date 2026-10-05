@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { logoutUser } from '../../store/slices/authSlice.js';
-import { Bell, User, LogOut, School, Loader2, Shield, Download } from 'lucide-react';
+import { Bell, User, LogOut, School, Loader2, Shield, Download, Search } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import NotificationDropdown from '../notifications/NotificationDropdown.jsx';
@@ -51,7 +51,7 @@ export const Navbar = () => {
     <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-slate-200/80 text-[#102033] shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand / Logo */}
-        <Link to="/" className="flex items-center space-x-3 group">
+        <Link to="/" className="flex items-center space-x-3 group shrink-0">
           <div className="w-10 h-10 rounded-xl bg-[#006AC7] flex items-center justify-center shadow-md group-hover:bg-[#005299] transition-colors">
             <School className="w-6 h-6 text-white" />
           </div>
@@ -67,6 +67,25 @@ export const Navbar = () => {
             </p>
           </div>
         </Link>
+
+        {/* Global Search Bar (Supported directory search on Enter) */}
+        {isAuthenticated && user && (
+          <div className="hidden md:flex items-center flex-1 max-w-sm mx-6">
+            <div className="relative w-full">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search students, staff or records..."
+                className="w-full pl-9 pr-4 py-1.5 text-xs bg-slate-50 border border-slate-200/80 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#006AC7]/20 focus:border-[#006AC7] focus:bg-white transition"
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' && event.target.value.trim()) {
+                    navigate(`/directory?search=${encodeURIComponent(event.target.value.trim())}`);
+                  }
+                }}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Right Navigation Controls */}
         <div className="flex items-center space-x-3 sm:space-x-4">

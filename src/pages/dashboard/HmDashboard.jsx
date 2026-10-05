@@ -49,6 +49,11 @@ import toast from 'react-hot-toast';
 import PageContainer from '../../components/layout/PageContainer.jsx';
 import HmAddStudentModal from '../../components/hm/HmAddStudentModal.jsx';
 import HmTimetableBuilder from '../../components/timetable/HmTimetableBuilder.jsx';
+import HmNavigation from '../../components/hm/HmNavigation.jsx';
+import HmOverviewTab from '../../components/hm/HmOverviewTab.jsx';
+import HmSchoolProfileTab from '../../components/hm/HmSchoolProfileTab.jsx';
+import HmReportsTab from '../../components/hm/HmReportsTab.jsx';
+import HmActivityLogTab from '../../components/hm/HmActivityLogTab.jsx';
 import {
   fetchHmSummary,
   fetchPendingApprovals,
@@ -89,55 +94,6 @@ import {
   revokeHmParentLink,
 } from '../../store/slices/hmSlice.js';
 import hmService from '../../services/hmService.js';
-
-
-// ─── Stat Card Component ──────────────────────────────────────────────────────
-const StatCard = ({ icon: Icon, label, value, subtext, color = 'emerald', loading }) => {
-  const colors = {
-    emerald: 'bg-emerald-50 text-[#4B7F3A] border-emerald-200',
-    blue:    'bg-blue-50 text-[#006AC7] border-blue-200',
-    indigo:  'bg-indigo-50 text-indigo-700 border-indigo-200',
-    amber:   'bg-amber-50 text-amber-700 border-amber-200',
-    purple:  'bg-purple-50 text-purple-700 border-purple-200',
-    rose:    'bg-rose-50 text-rose-700 border-rose-200',
-  };
-  return (
-    <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm transition hover:shadow">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-[11px] font-bold uppercase text-[#8094A8] tracking-wider">{label}</span>
-        <div className={`p-2.5 rounded-xl border ${colors[color] || colors.emerald}`}>
-          <Icon className="w-4 h-4" />
-        </div>
-      </div>
-      {loading ? (
-        <div className="h-8 w-20 bg-slate-100 animate-pulse rounded my-1" />
-      ) : (
-        <p className="text-2xl font-black text-[#102033]">{value ?? '—'}</p>
-      )}
-      {subtext && <p className="text-xs text-[#526477] font-medium mt-1">{subtext}</p>}
-    </div>
-  );
-};
-
-// ─── Tab Button Component ─────────────────────────────────────────────────────
-const TabBtn = ({ label, active, onClick, badge, icon: Icon }) => (
-  <button
-    onClick={onClick}
-    className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 cursor-pointer ${
-      active
-        ? 'bg-[#006AC7] text-white shadow-sm'
-        : 'bg-white border border-slate-200/80 text-[#526477] hover:bg-slate-50 hover:text-[#102033]'
-    }`}
-  >
-    {Icon && <Icon className="w-4 h-4" />}
-    {label}
-    {badge != null && badge > 0 && (
-      <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${active ? 'bg-white/20 text-white' : 'bg-rose-600 text-white'}`}>
-        {badge}
-      </span>
-    )}
-  </button>
-);
 
 // ─── Main Head Master Operational Dashboard ───────────────────────────────────
 export const HmDashboard = () => {
@@ -1090,148 +1046,64 @@ export const HmDashboard = () => {
     (summary?.metrics?.pendingQueues?.totalPendingActions) ||
     ((staffApprovals?.length || 0) + (studentApprovals?.length || 0) + (parentClaims?.length || 0) + (transfers?.length || 0));
 
+  const navBadges = {
+    students: studentsPagination?.totalRecords ?? summary?.metrics?.totalStudents,
+    faculty: faculty?.length || summary?.metrics?.teachingStaff,
+    approvals: totalPendingCount,
+    transfers: pendingIncomingTransfers.length || transfers?.length || 0,
+  };
+
   return (
     <PageContainer
-      title="HEAD MASTER OPERATIONAL COMMAND CENTER"
-      subtitle={`Education Department Liaquatabad Town Centre (DMC) • ${user?.schoolId?.name || 'Assigned Municipal School'}`}
+      title="School overview"
+      subtitle={`${summary?.school?.name || user?.schoolId?.name || 'Assigned Municipal School'} • Education Department, Liaquatabad Town Centre (DMC)`}
       actions={
         <div className="flex items-center gap-2">
-          <span className="hidden sm:inline-block px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 border border-emerald-200 text-[#4B7F3A]">
-            School Jurisdiction: {user?.schoolId?.code || user?.schoolId?.schoolCode || 'Active'}
+          <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 border border-emerald-200 text-emerald-800">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
+            School access: Active
           </span>
           <button
+            type="button"
             onClick={handleRefreshAll}
-            className="p-2 rounded-xl bg-white border border-slate-200/80 text-[#526477] hover:text-[#102033] hover:bg-slate-50 transition shadow-sm cursor-pointer"
-            title="Refresh Command Center"
+            className="p-2 rounded-xl bg-white border border-slate-200/80 text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition shadow-2xs cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#006AC7]"
+            title="Refresh school metrics"
+            aria-label="Refresh school metrics"
           >
             <RefreshCw className="w-4 h-4" />
           </button>
         </div>
       }
     >
-      {/* ── Tabs Navigation ──────────────────────────────────────────────── */}
-      <div className="flex flex-wrap gap-2 mb-6 pb-2 border-b border-slate-200/60">
-        <TabBtn label="Command Center" active={activeTab === 'overview'} onClick={() => setActiveTab('overview')} icon={School} />
-        <TabBtn label="Student Directory" active={activeTab === 'students'} onClick={() => setActiveTab('students')} badge={studentsPagination?.totalRecords ?? summary?.metrics?.totalStudents} icon={GraduationCap} />
-        <TabBtn label="Faculty Roster" active={activeTab === 'faculty'} onClick={() => setActiveTab('faculty')} badge={faculty?.length || summary?.metrics?.teachingStaff} icon={Users} />
-        <TabBtn label="Approvals" active={activeTab === 'approvals'} onClick={() => setActiveTab('approvals')} badge={totalPendingCount} icon={UserCheck} />
-        <TabBtn label="Academic Setup" active={activeTab === 'academics'} onClick={() => setActiveTab('academics')} icon={BookMarked} />
-        <TabBtn label="Teaching Duties" active={activeTab === 'assignments'} onClick={() => setActiveTab('assignments')} icon={BookOpen} />
-        <TabBtn label="Attendance" active={activeTab === 'attendance'} onClick={() => setActiveTab('attendance')} icon={ClipboardCheck} />
-        <TabBtn label="Exams & Gazette" active={activeTab === 'exams'} onClick={() => setActiveTab('exams')} icon={Award} />
-        <TabBtn label="Incoming Transfers" active={activeTab === 'transfers'} onClick={() => setActiveTab('transfers')} badge={transfers?.length || 0} icon={ArrowLeftRight} />
-        <TabBtn label="School Circulars" active={activeTab === 'notices'} onClick={() => setActiveTab('notices')} icon={FileText} />
-        <TabBtn label="Timetable & Live Monitor" active={activeTab === 'timetable'} onClick={() => setActiveTab('timetable')} icon={CalendarDays} />
-      </div>
-
+      {/* ── 2026 Logical Navigation Architecture (6 Groups) ─────────────── */}
+      <HmNavigation
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
+        badges={navBadges}
+      />
 
       {/* ═══════════════════════════════════════════════════════════════════ */}
-      {/* TAB 1: COMMAND CENTER (OVERVIEW)                                    */}
+      {/* TAB 1: OVERVIEW (TODAY'S OPERATIONS & NEEDS ATTENTION)              */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {activeTab === 'overview' && (
-        <div className="space-y-6">
-          {/* Top KPI Metrics */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard
-              icon={GraduationCap}
-              label="Enrolled Students"
-              value={summary?.metrics?.totalStudents}
-              subtext="Active in this school"
-              color="blue"
-              loading={summaryLoading}
-            />
-            <StatCard
-              icon={Users}
-              label="Teaching Faculty"
-              value={summary?.metrics?.teachingStaff}
-              subtext={`Plus ${summary?.metrics?.nonTeachingStaff ?? 0} support staff`}
-              color="emerald"
-              loading={summaryLoading}
-            />
-            <StatCard
-              icon={ClipboardCheck}
-              label="Today Attendance"
-              value={summary?.metrics?.todayAttendance?.attendancePercentage != null ? `${summary.metrics.todayAttendance.attendancePercentage}%` : 'Pending'}
-              subtext={`${summary?.metrics?.todaySubmittedSections ?? 0} of ${summary?.metrics?.totalSections ?? 0} sections submitted`}
-              color="indigo"
-              loading={summaryLoading}
-            />
-            <StatCard
-              icon={AlertTriangle}
-              label="Pending Actions"
-              value={totalPendingCount}
-              subtext="Staff, students & transfers"
-              color={totalPendingCount > 0 ? 'rose' : 'emerald'}
-              loading={summaryLoading}
-            />
-          </div>
-
-          {/* Institutional Metadata & Authority Confirmation */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
-                  <Building className="w-5 h-5 text-[#006AC7]" />
-                  School Institutional Profile
-                </h3>
-                <span className="text-xs px-2.5 py-1 rounded-full bg-blue-50 text-[#006AC7] border border-blue-200 font-semibold">
-                  {summary?.school?.schoolType || 'MUNICIPAL'}
-                </span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/60">
-                  <span className="text-xs text-[#8094A8] font-semibold uppercase block">Institution Name</span>
-                  <span className="font-bold text-[#102033] text-sm">{summary?.school?.name || user?.schoolId?.name || '—'}</span>
-                </div>
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/60">
-                  <span className="text-xs text-[#8094A8] font-semibold uppercase block">SEMIS / School Code</span>
-                  <span className="font-mono font-bold text-[#006AC7] text-sm">{summary?.school?.code || '—'}</span>
-                </div>
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/60">
-                  <span className="text-xs text-[#8094A8] font-semibold uppercase block">Administrative Head (HM)</span>
-                  <span className="font-bold text-[#102033] text-sm">{user?.fullName}</span>
-                </div>
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/60">
-                  <span className="text-xs text-[#8094A8] font-semibold uppercase block">Jurisdiction Scope</span>
-                  <span className="font-mono font-bold text-[#4B7F3A] text-sm">SCHOOL ({user?.schoolId?._id || user?.schoolId})</span>
-                </div>
-              </div>
-
-              <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-xs text-[#4B7F3A] font-medium flex items-center gap-3">
-                <ShieldCheck className="w-5 h-5 shrink-0 text-[#4B7F3A]" />
-                <span>
-                  Authoritative school boundary active. Cross-school access and unauthorized escalations are blocked server-side.
-                </span>
-              </div>
-            </div>
-
-            {/* Quick Action Queue */}
-            <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-3">
-              <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
-                <Clock className="w-4 h-4 text-amber-600" />
-                Action Queues
-              </h3>
-              <div className="space-y-2 text-xs">
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center justify-between">
-                  <span className="text-[#526477] font-medium">Pending Staff Registrations</span>
-                  <span className="font-bold font-mono px-2 py-0.5 rounded bg-blue-50 text-[#006AC7]">{summary?.metrics?.pendingQueues?.staffApprovals ?? 0}</span>
-                </div>
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center justify-between">
-                  <span className="text-[#526477] font-medium">Student Admission Queue</span>
-                  <span className="font-bold font-mono px-2 py-0.5 rounded bg-indigo-50 text-indigo-700">{summary?.metrics?.pendingQueues?.studentAdmissions ?? 0}</span>
-                </div>
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center justify-between">
-                  <span className="text-[#526477] font-medium">Transfers Awaiting Joining</span>
-                  <span className="font-bold font-mono px-2 py-0.5 rounded bg-amber-50 text-amber-700">{summary?.metrics?.pendingQueues?.incomingTransfers ?? 0}</span>
-                </div>
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center justify-between">
-                  <span className="text-[#526477] font-medium">Unverified Attendance Records</span>
-                  <span className="font-bold font-mono px-2 py-0.5 rounded bg-rose-50 text-rose-700">{summary?.metrics?.pendingQueues?.unverifiedAttendance ?? 0}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <HmOverviewTab
+          user={user}
+          summary={summary}
+          summaryLoading={summaryLoading}
+          pendingIncomingTransfers={pendingIncomingTransfers}
+          parentClaims={parentClaims}
+          staffApprovals={staffApprovals}
+          studentApprovals={studentApprovals}
+          teacherAttendance={teacherAttendance}
+          onSelectTab={setActiveTab}
+          onRefresh={handleRefreshAll}
+          onOpenTransfer={(transfer) => {
+            setTransferViewDirection('incoming');
+            setActiveTab('transfers');
+          }}
+          onOpenParentClaim={(claim) => handleOpenVerifyModal(claim)}
+          onOpenApproval={(item, type) => setApprovalModal({ open: true, user: item, type })}
+        />
       )}
 
       {/* ═══════════════════════════════════════════════════════════════════ */}
@@ -4371,6 +4243,42 @@ export const HmDashboard = () => {
           </div>
         </div>
       )}
+
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {/* GROUP 6 TABS: SCHOOL PROFILE, REPORTS, ACTIVITY LOG                */}
+      {/* ═══════════════════════════════════════════════════════════════════ */}
+      {activeTab === 'profile' && (
+        <HmSchoolProfileTab
+          summary={summary}
+          user={user}
+          onEditSchoolCode={() => setSchoolCodeModalOpen(true)}
+        />
+      )}
+
+      {activeTab === 'reports' && (
+        <HmReportsTab
+          summary={summary}
+          attendanceAnalytics={attendanceAnalytics}
+          exams={exams}
+          onSelectTab={setActiveTab}
+        />
+      )}
+
+      {activeTab === 'activity' && (
+        <HmActivityLogTab
+          notices={notices}
+          transfers={transfers}
+          teacherAttendance={teacherAttendance}
+        />
+      )}
+
+      {/* ── Compact Municipal Footer ── */}
+      <div className="mt-12 pt-6 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+        <p>© {new Date().getFullYear()} Education Department, Liaquatabad Town Centre (DMC) • Government of Sindh</p>
+        <div className="flex items-center gap-4 text-xs">
+          <span className="text-slate-400">Official Municipal Education Portal</span>
+        </div>
+      </div>
     </PageContainer>
   );
 };
