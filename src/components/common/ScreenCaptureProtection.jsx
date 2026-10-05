@@ -18,15 +18,11 @@ const SENSITIVE_ROUTE_PREFIXES = [
   '/payroll',
 ];
 
-export const ScreenCaptureProtection = ({ children }) => {
-  // ── TEMPORARY BYPASS (FOR DEVELOPER TESTING & AUDITING) ──────────────────────
-  // Temporarily commented out per developer instruction to allow unrestricted screenshots
-  // and screen capture during dashboard audits and module finishing.
-  // Re-enable before final production deployment (Tracked in docs/TODO_MASTER.md Step 8).
-  return <>{children}</>;
-
-  /*
-  // ── ORIGINAL RESTRICTION LOGIC (RE-ENABLE BEFORE PRODUCTION LAUNCH) ───────────
+/**
+ * ProtectedScreenWrapper encapsulates all screen capture prevention heuristics,
+ * window blur detection, clipboard sanitization, and dynamic forensic watermarks.
+ */
+const ProtectedScreenWrapper = ({ children }) => {
   const location = useLocation();
   const { user } = useSelector((state) => state.auth);
   const isPrivileged = Boolean(user && PRIVILEGED_ROLES.includes(user.role));
@@ -281,7 +277,20 @@ export const ScreenCaptureProtection = ({ children }) => {
       )}
     </div>
   );
-  */
+};
+
+export const ScreenCaptureProtection = ({ children }) => {
+  // ── TEMPORARY BYPASS (FOR DEVELOPER TESTING & AUDITING) ──────────────────────
+  // Temporarily set to false per developer instruction to allow unrestricted screenshots
+  // and screen capture during dashboard audits and module finishing.
+  // Re-enable (set to true) before final production deployment (Tracked in docs/TODO_MASTER.md Step 8).
+  const IS_SCREEN_CAPTURE_PROTECTION_ENABLED = false;
+
+  if (!IS_SCREEN_CAPTURE_PROTECTION_ENABLED) {
+    return <>{children}</>;
+  }
+
+  return <ProtectedScreenWrapper>{children}</ProtectedScreenWrapper>;
 };
 
 export default ScreenCaptureProtection;
