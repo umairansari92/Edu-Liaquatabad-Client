@@ -44,6 +44,7 @@ import {
   Download,
   Printer,
   FileSpreadsheet,
+  UserX,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PageContainer from '../../components/layout/PageContainer.jsx';
@@ -84,6 +85,7 @@ import {
   archiveSchoolNotice,
   deleteSchoolNotice,
   fetchSchoolStudents,
+  strikeOffStudent,
   updateSchoolCode,
   fetchSchoolFaculty,
   fetchTeacherDailyAttendance,
@@ -251,13 +253,11 @@ export const HmDashboard = () => {
     reason: '',
   });
   const [processingParentLink, setProcessingParentLink] = useState(false);
-  const [newClassModal, setNewClassModal] = useState(false);
-  const [newClassName, setNewClassName] = useState('');
-  const [newClassGrade, setNewClassGrade] = useState('');
-  const [newSectionModal, setNewSectionModal] = useState(false);
-  const [newSectionData, setNewSectionData] = useState({ classId: '', name: '', capacity: 40, roomNumber: '' });
-  const [newSubjectModal, setNewSubjectModal] = useState(false);
-  const [newSubjectData, setNewSubjectData] = useState({ classId: '', name: '', code: '', totalMarks: 100, passingMarks: 33 });
+  // Student Strike-Off Modal State
+  const [strikeOffModalOpen, setStrikeOffModalOpen] = useState(false);
+  const [selectedStudentForStrikeOff, setSelectedStudentForStrikeOff] = useState(null);
+  const [strikeOffReason, setStrikeOffReason] = useState('');
+  const [strikeOffSubmitting, setStrikeOffSubmitting] = useState(false);
   const [assignDutyModal, setAssignDutyModal] = useState(false);
   const [dutyData, setDutyData] = useState({ teacherId: '', classId: '', sectionId: '', subjectId: '', academicSession: '2025-2026' });
 
@@ -657,58 +657,32 @@ export const HmDashboard = () => {
     }
   };
 
-  // ─── Academic Actions ───────────────────────────────────────────────────────
-  const handleCreateClassSubmit = async (submitEvent) => {
+  // ─── Student Strike-Off Handler ─────────────────────────────────────────────
+  const handleStrikeOffSubmit = async (submitEvent) => {
     submitEvent.preventDefault();
-    if (!newClassName || !newClassGrade) return;
-    try {
-      await dispatch(
-        createAcademicClass({
-          schoolId: user?.schoolId?._id || user?.schoolId,
-          name: newClassName.trim(),
-          numericGrade: parseInt(newClassGrade, 10),
-        })
-      ).unwrap();
-      toast.success(`Class "${newClassName}" created.`);
-      setNewClassName('');
-      setNewClassGrade('');
-      setNewClassModal(false);
-    } catch (errorObject) {
-      toast.error(errorObject || 'Failed to create class.');
+    if (!selectedStudentForStrikeOff) return;
+    if (!strikeOffReason.trim() || strikeOffReason.trim().length < 10) {
+      toast.error('Mandatory justification must be at least 10 characters.');
+      return;
     }
-  };
 
-  const handleCreateSectionSubmit = async (submitEvent) => {
-    submitEvent.preventDefault();
-    if (!newSectionData.classId || !newSectionData.name) return;
+    setStrikeOffSubmitting(true);
     try {
       await dispatch(
-        createAcademicSection({
-          schoolId: user?.schoolId?._id || user?.schoolId,
-          ...newSectionData,
+        strikeOffStudent({
+          studentId: selectedStudentForStrikeOff._id,
+          reason: strikeOffReason.trim(),
         })
       ).unwrap();
-      toast.success(`Section "${newSectionData.name}" created.`);
-      setNewSectionModal(false);
-    } catch (errorObject) {
-      toast.error(errorObject || 'Failed to create section.');
-    }
-  };
-
-  const handleCreateSubjectSubmit = async (submitEvent) => {
-    submitEvent.preventDefault();
-    if (!newSubjectData.classId || !newSubjectData.name) return;
-    try {
-      await dispatch(
-        createAcademicSubject({
-          schoolId: user?.schoolId?._id || user?.schoolId,
-          ...newSubjectData,
-        })
-      ).unwrap();
-      toast.success(`Subject "${newSubjectData.name}" added.`);
-      setNewSubjectModal(false);
-    } catch (errorObject) {
-      toast.error(errorObject || 'Failed to add subject.');
+      toast.success(`Student ${selectedStudentForStrikeOff.studentName || ''} marked as struck off.`);
+      setStrikeOffModalOpen(false);
+      setSelectedStudentForStrikeOff(null);
+      setStrikeOffReason('');
+      fetchStudentsDirectory();
+    } catch (strikeOffError) {
+      toast.error(strikeOffError || 'Failed to strike off student');
+    } finally {
+      setStrikeOffSubmitting(false);
     }
   };
 
@@ -1220,6 +1194,7 @@ export const HmDashboard = () => {
                   <option value="">All Statuses</option>
                   <option value="ACTIVE">Active (فعال)</option>
                   <option value="PENDING_APPROVAL">Pending Approval</option>
+                  <option value="STRUCK_OFF">Struck Off (خارج کردہ)</option>
                   <option value="TRANSFERRED">Transferred</option>
                   <option value="SUSPENDED">Suspended</option>
                   <option value="WITHDRAWN">Withdrawn</option>
@@ -1263,12 +1238,13 @@ export const HmDashboard = () => {
                     <th className="py-3.5 px-4">Father / Guardian</th>
                     <th className="py-3.5 px-4">Guardian Phone</th>
                     <th className="py-3.5 px-4">Status</th>
+                    <th className="py-3.5 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200/60">
                   {studentsLoading ? (
                     <tr>
-                      <td colSpan={8} className="py-12 text-center text-[#526477]">
+                      <td colSpan={9} className="py-12 text-center text-[#526477]">
                         <div className="flex flex-col items-center justify-center gap-2">
                           <Loader2 className="w-6 h-6 animate-spin text-[#006AC7]" />
                           <span className="text-xs font-semibold">Loading student records...</span>
@@ -1277,7 +1253,7 @@ export const HmDashboard = () => {
                     </tr>
                   ) : students.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="py-12 text-center text-[#8094A8]">
+                      <td colSpan={9} className="py-12 text-center text-[#8094A8]">
                         <div className="max-w-sm mx-auto flex flex-col items-center gap-2">
                           <GraduationCap className="w-10 h-10 text-slate-300" />
                           <p className="font-bold text-[#102033] text-sm">No students found</p>
@@ -1324,10 +1300,30 @@ export const HmDashboard = () => {
                               ? 'bg-emerald-50 text-[#4B7F3A] border border-emerald-200'
                               : studentItem.lifecycleStatus === 'PENDING_APPROVAL'
                               ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                              : studentItem.lifecycleStatus === 'STRUCK_OFF'
+                              ? 'bg-rose-50 text-rose-700 border border-rose-200'
                               : 'bg-slate-100 text-[#526477] border border-slate-200'
                           }`}>
                             {studentItem.lifecycleStatus}
                           </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-right">
+                          {studentItem.lifecycleStatus === 'ACTIVE' ? (
+                            <button
+                              onClick={() => {
+                                setSelectedStudentForStrikeOff(studentItem);
+                                setStrikeOffReason('');
+                                setStrikeOffModalOpen(true);
+                              }}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition cursor-pointer"
+                              title="Strike off student record"
+                            >
+                              <UserX className="w-3.5 h-3.5" />
+                              Strike off
+                            </button>
+                          ) : (
+                            <span className="text-[11px] text-slate-400 italic">No action</span>
+                          )}
                         </td>
                       </tr>
                     ))
@@ -1887,17 +1883,15 @@ export const HmDashboard = () => {
 
         <div className="space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h3 className="text-base font-bold text-[#102033]">School Academic Structure</h3>
-            <div className="flex gap-2">
-              <button onClick={() => setNewClassModal(true)} className="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#006AC7] text-white flex items-center gap-1.5 shadow-sm cursor-pointer">
-                <PlusCircle className="w-3.5 h-3.5" /> Add Class
-              </button>
-              <button onClick={() => setNewSectionModal(true)} className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white border border-slate-200 text-[#102033] flex items-center gap-1.5 shadow-sm cursor-pointer">
-                <PlusCircle className="w-3.5 h-3.5" /> Add Section
-              </button>
-              <button onClick={() => setNewSubjectModal(true)} className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white border border-slate-200 text-[#102033] flex items-center gap-1.5 shadow-sm cursor-pointer">
-                <PlusCircle className="w-3.5 h-3.5" /> Add Subject
-              </button>
+            <div>
+              <h3 className="text-base font-bold text-[#102033]">Academic structure</h3>
+              <p className="text-xs text-[#526477] mt-0.5">
+                Classes, sections and subjects configured for this school.
+              </p>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+              <ShieldCheck className="w-3.5 h-3.5 text-slate-500" />
+              <span>Configured by school administration</span>
             </div>
           </div>
 
@@ -3588,117 +3582,97 @@ export const HmDashboard = () => {
         </div>
       )}
 
-      {/* New Class Modal */}
-      {newClassModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-          <form onSubmit={handleCreateClassSubmit} className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4">
-            <h3 className="text-base font-bold text-[#102033]">Add Academic Class</h3>
-            <div>
-              <label className="text-xs font-bold text-[#102033] block mb-1">Class Name</label>
-              <input
-                type="text"
-                value={newClassName}
-                onChange={(changeEvent) => setNewClassName(changeEvent.target.value)}
-                placeholder="e.g. Class 6"
-                required
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
-              />
+      {/* Strike Off Student Confirmation Modal */}
+      {strikeOffModalOpen && selectedStudentForStrikeOff && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4 border border-slate-200">
+            <div className="flex items-center gap-3 text-rose-600">
+              <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-200">
+                <AlertTriangle className="w-5 h-5 text-rose-600" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-[#102033]">Strike Off Student Record</h3>
+                <p className="text-xs text-[#526477]">Controlled administrative action with audit trail</p>
+              </div>
             </div>
-            <div>
-              <label className="text-xs font-bold text-[#102033] block mb-1">
-                Numeric Grade Level ({hmMinGrade} - {hmMaxGrade})
-              </label>
-              <input
-                type="number"
-                min={hmMinGrade}
-                max={hmMaxGrade}
-                value={newClassGrade}
-                onChange={(changeEvent) => setNewClassGrade(changeEvent.target.value)}
-                placeholder={`e.g. ${hmMinGrade}`}
-                required
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
-              />
-              <p className="mt-1 text-[11px] text-slate-500">
-                Authorized for your school: Class {hmMinGrade} to Class {hmMaxGrade}
-              </p>
-            </div>
-            <div className="flex justify-end gap-2 pt-2">
-              <button type="button" onClick={() => setNewClassModal(false)} className="px-3 py-1.5 rounded-lg text-xs font-semibold text-[#526477]">Cancel</button>
-              <button type="submit" className="px-4 py-1.5 rounded-lg text-xs font-bold bg-[#006AC7] text-white">Create Class</button>
-            </div>
-          </form>
-        </div>
-      )}
 
-      {/* New Section Modal */}
-      {newSectionModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-          <form onSubmit={handleCreateSectionSubmit} className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4">
-            <h3 className="text-base font-bold text-[#102033]">Add Section</h3>
-            <div>
-              <label className="text-xs font-bold text-[#102033] block mb-1">Select Class</label>
-              <select
-                value={newSectionData.classId}
-                onChange={(changeEvent) => setNewSectionData({ ...newSectionData, classId: changeEvent.target.value })}
-                required
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200"
-              >
-                <option value="">-- Choose Class --</option>
-                {scopedClasses.map((classItem) => <option key={classItem._id} value={classItem._id}>{classItem.name}</option>)}
-              </select>
+            <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 text-xs space-y-1.5">
+              <div className="flex justify-between">
+                <span className="text-[#8094A8]">Student Name:</span>
+                <span className="font-bold text-[#102033]">{selectedStudentForStrikeOff.studentName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#8094A8]">GR Number:</span>
+                <span className="font-mono font-bold text-[#006AC7]">{selectedStudentForStrikeOff.grNumber}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#8094A8]">Global ID:</span>
+                <span className="font-mono text-slate-700">{selectedStudentForStrikeOff.globalStudentId}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#8094A8]">Class & Section:</span>
+                <span className="text-[#102033]">{selectedStudentForStrikeOff.className} ({selectedStudentForStrikeOff.sectionName})</span>
+              </div>
             </div>
-            <div>
-              <label className="text-xs font-bold text-[#102033] block mb-1">Section Name</label>
-              <input
-                type="text"
-                value={newSectionData.name}
-                onChange={(changeEvent) => setNewSectionData({ ...newSectionData, name: changeEvent.target.value })}
-                placeholder="e.g. A, B, Green"
-                required
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200"
-              />
-            </div>
-            <div className="flex justify-end gap-2 pt-2">
-              <button type="button" onClick={() => setNewSectionModal(false)} className="px-3 py-1.5 rounded-lg text-xs font-semibold text-[#526477]">Cancel</button>
-              <button type="submit" className="px-4 py-1.5 rounded-lg text-xs font-bold bg-[#006AC7] text-white">Create Section</button>
-            </div>
-          </form>
-        </div>
-      )}
 
-      {/* New Subject Modal */}
-      {newSubjectModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
-          <form onSubmit={handleCreateSubjectSubmit} className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl space-y-4">
-            <h3 className="text-base font-bold text-[#102033]">Add Subject</h3>
-            <div>
-              <label className="text-xs font-bold text-[#102033] block mb-1">Select Class</label>
-              <select
-                value={newSubjectData.classId}
-                onChange={(changeEvent) => setNewSubjectData({ ...newSubjectData, classId: changeEvent.target.value })}
-                required
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200"
-              >
-                <option value="">-- Choose Class --</option>
-                {scopedClasses.map((classItem) => <option key={classItem._id} value={classItem._id}>{classItem.name}</option>)}
-              </select>
+            <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800 leading-relaxed">
+              <strong>Notice:</strong> This action will mark the student's status as <code>STRUCK_OFF</code>, immediately invalidate any active user portal sessions, and automatically revoke parent linkage claims. The student's academic history and GR No remain preserved in the permanent institutional register.
             </div>
-            <div>
-              <label className="text-xs font-bold text-[#102033] block mb-1">Subject Name</label>
-              <input
-                type="text"
-                value={newSubjectData.name}
-                onChange={(changeEvent) => setNewSubjectData({ ...newSubjectData, name: changeEvent.target.value })}
-                placeholder="e.g. Mathematics, Science"
-                required
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200"
-              />
-            </div>
-            <div className="flex justify-end gap-2 pt-2">
-              <button type="button" onClick={() => setNewSubjectModal(false)} className="px-3 py-1.5 rounded-lg text-xs font-semibold text-[#526477]">Cancel</button>
-              <button type="submit" className="px-4 py-1.5 rounded-lg text-xs font-bold bg-[#006AC7] text-white">Add Subject</button>
-            </div>
-          </form>
+
+            <form onSubmit={handleStrikeOffSubmit} className="space-y-4">
+              <div>
+                <label className="text-xs font-bold text-[#102033] block mb-1">
+                  Official Reason / Justification <span className="text-rose-600">*</span>
+                </label>
+                <textarea
+                  rows={3}
+                  value={strikeOffReason}
+                  onChange={(changeEvent) => setStrikeOffReason(changeEvent.target.value)}
+                  placeholder="State the official justification (e.g. prolonged unexcused absence exceeding 30 consecutive days, disciplinary strike-off)..."
+                  required
+                  minLength={10}
+                  maxLength={500}
+                  className="w-full text-xs p-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition resize-none"
+                />
+                <div className="flex justify-between items-center mt-1 text-[11px] text-slate-500">
+                  <span>Minimum 10 characters required</span>
+                  <span>{strikeOffReason.trim().length} / 500</span>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  disabled={strikeOffSubmitting}
+                  onClick={() => {
+                    setStrikeOffModalOpen(false);
+                    setSelectedStudentForStrikeOff(null);
+                    setStrikeOffReason('');
+                  }}
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-[#526477] hover:bg-slate-100 transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={strikeOffSubmitting || strikeOffReason.trim().length < 10}
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white flex items-center gap-1.5 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  {strikeOffSubmitting ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <UserX className="w-3.5 h-3.5" />
+                      Confirm Strike-Off
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 

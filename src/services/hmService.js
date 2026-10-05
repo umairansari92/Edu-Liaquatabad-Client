@@ -253,6 +253,11 @@ export const hmService = {
     return response.data;
   },
 
+  strikeOffStudent: async (studentId, reason) => {
+    const response = await apiClient.patch(`/students/${studentId}/strike-off`, { reason });
+    return response.data;
+  },
+
   // ─── 10. Teaching Faculty & Daily Staff Attendance ───────────────────────────
   getSchoolFaculty: async (params = {}, options = {}) => {
     const response = await apiClient.get('/staff/school', {

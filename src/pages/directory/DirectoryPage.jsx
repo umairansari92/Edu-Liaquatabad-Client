@@ -47,6 +47,7 @@ const renderStatusBadge = (entityStatus) => {
     TRANSFERRED:        { label: 'Transferred',    icon: ArrowRightLeft,color:'text-[#006AC7] bg-blue-50 border-blue-200' },
     GRADUATED:          { label: 'Graduated',      icon: GraduationCap,color: 'text-cyan-700 bg-cyan-50 border-cyan-200' },
     DROPPED_OUT:        { label: 'Dropped Out',    icon: UserX,        color: 'text-slate-600 bg-slate-100 border-slate-200' },
+    STRUCK_OFF:         { label: 'Struck Off',     icon: UserX,        color: 'text-rose-700 bg-rose-50 border-rose-200' },
     INACTIVE:           { label: 'Inactive',       icon: UserX,        color: 'text-slate-600 bg-slate-100 border-slate-200' },
     RETIRED:            { label: 'Retired',        icon: CheckCircle2, color: 'text-purple-700 bg-purple-50 border-purple-200' },
   };
@@ -444,7 +445,7 @@ const StudentsDirectoryTab = ({ municipalSchoolsList, initialSearch = '' }) => {
           focusBorderColorClass="focus:border-[#006AC7]"
         >
           <option value="">All Statuses</option>
-          {['ACTIVE', 'PENDING_APPROVAL', 'TRANSFERRED', 'GRADUATED', 'DROPPED_OUT', 'INACTIVE'].map((statusName) => (
+          {['ACTIVE', 'PENDING_APPROVAL', 'STRUCK_OFF', 'TRANSFERRED', 'GRADUATED', 'DROPPED_OUT', 'INACTIVE'].map((statusName) => (
             <option key={statusName} value={statusName}>
               {statusName.replace(/_/g, ' ')}
             </option>

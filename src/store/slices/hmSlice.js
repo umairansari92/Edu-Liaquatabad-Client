@@ -413,6 +413,19 @@ export const updateSchoolCode = createAsyncThunk(
   }
 );
 
+export const strikeOffStudent = createAsyncThunk(
+  'hm/strikeOffStudent',
+  async ({ studentId, reason }, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await hmService.strikeOffStudent(studentId, reason);
+      dispatch(fetchHmSummary());
+      return response.data;
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to strike off student');
+    }
+  }
+);
+
 export const fetchSchoolFaculty = createAsyncThunk(
   'hm/fetchSchoolFaculty',
   async (params = {}, { rejectWithValue }) => {
@@ -706,6 +719,27 @@ const hmSlice = createSlice({
           state.studentsLoading = false;
           state.actionError = action.payload;
         }
+      })
+
+      // Student Strike-Off
+      .addCase(strikeOffStudent.pending, (state) => {
+        state.actionLoading = true;
+        state.actionError = null;
+      })
+      .addCase(strikeOffStudent.fulfilled, (state, action) => {
+        state.actionLoading = false;
+        const struckStudentId = action.payload?.studentId;
+        if (struckStudentId) {
+          state.students = state.students.map((studentItem) =>
+            String(studentItem._id) === String(struckStudentId)
+              ? { ...studentItem, lifecycleStatus: 'STRUCK_OFF' }
+              : studentItem
+          );
+        }
+      })
+      .addCase(strikeOffStudent.rejected, (state, action) => {
+        state.actionLoading = false;
+        state.actionError = action.payload;
       })
 
       // Faculty Directory
