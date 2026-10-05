@@ -19,7 +19,7 @@ import {
 export const HM_NAV_GROUPS = [
   {
     id: 'command',
-    label: 'Command',
+    label: 'Overview',
     items: [
       { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     ],
@@ -29,14 +29,14 @@ export const HM_NAV_GROUPS = [
     label: 'People',
     items: [
       { id: 'students', label: 'Students', icon: GraduationCap, badgeKey: 'students' },
-      { id: 'faculty', label: 'Faculty', icon: Users, badgeKey: 'faculty' },
+      { id: 'faculty', label: 'Teaching staff', icon: Users, badgeKey: 'faculty' },
     ],
   },
   {
     id: 'academics',
     label: 'Academics',
     items: [
-      { id: 'academics', label: 'Classes & subjects', icon: BookMarked },
+      { id: 'academics', label: 'Academic structure', icon: BookMarked },
       { id: 'assignments', label: 'Teaching assignments', icon: BookOpen },
       { id: 'timetable', label: 'Timetable', icon: CalendarDays },
       { id: 'exams', label: 'Exams & results', icon: Award },
@@ -48,7 +48,7 @@ export const HM_NAV_GROUPS = [
     items: [
       { id: 'attendance', label: 'Attendance', icon: ClipboardCheck },
       { id: 'approvals', label: 'Approvals', icon: UserCheck, badgeKey: 'approvals' },
-      { id: 'transfers', label: 'Student transfers', icon: ArrowLeftRight, badgeKey: 'transfers' },
+      { id: 'transfers', label: 'Incoming staff', icon: ArrowLeftRight, badgeKey: 'transfers' },
     ],
   },
   {

@@ -75,6 +75,11 @@ export const hmService = {
     return response.data;
   },
 
+  assignClassTeacher: async (sectionId, classTeacherId) => {
+    const response = await apiClient.patch(`/academic/sections/${sectionId}/class-teacher`, { classTeacherId });
+    return response.data;
+  },
+
   // ─── 4. Teaching Assignments (The Security Anchor) ────────────────────────────
   getSchoolTeachingAssignments: async () => {
     const response = await apiClient.get('/assignments/school');

@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import PageContainer from '../../components/layout/PageContainer.jsx';
 import TeacherTransferTab from '../dashboard/components/TeacherTransferTab.jsx';
 import apiClient from '../../services/apiClient.js';
 import { ArrowLeftRight, RefreshCw } from 'lucide-react';
 
 export const TransfersPage = () => {
+  const { user } = useSelector((state) => state.auth);
+  const isHM = user?.role === 'HM';
   const [schoolsList, setSchoolsList] = useState([]);
   const [teachersList, setTeachersList] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,8 +39,12 @@ export const TransfersPage = () => {
 
   return (
     <PageContainer
-      title="Teacher Transfers & Postings"
-      subtitle="Education Department Liaquatabad Town Centre (DMC) — Municipal transfer rosters, deputations, and school reassignments"
+      title={isHM ? 'Incoming Staff Transfers' : 'Teacher Transfers & Postings'}
+      subtitle={
+        isHM
+          ? 'Review staff members assigned to this school by the education administration.'
+          : 'Education Department Liaquatabad Town Centre (DMC) — Municipal transfer rosters, deputations, and school reassignments'
+      }
       actions={
         <button
           type="button"

@@ -63,7 +63,7 @@ export const Sidebar = () => {
       { label: 'Attendance', path: '/attendance', icon: ClipboardCheck },
       { label: 'Holidays & calendar', path: '/holidays', icon: Calendar },
       { label: 'Exams & results', path: '/exams', icon: Award },
-      { label: 'Student transfers', path: '/transfers', icon: ArrowLeftRight },
+      { label: user?.role === 'HM' ? 'Incoming staff' : 'Staff transfers', path: '/transfers', icon: ArrowLeftRight },
       { label: 'My profile', path: '/profile', icon: IdCard },
       { label: 'Notices & circulars', path: '/documents', icon: FileText },
     ];

@@ -379,22 +379,22 @@ export const HmOverviewTab = ({
             </div>
           ) : (
             <div className="space-y-3">
-              {/* 1. Pending Incoming Transfers */}
+              {/* 1. Pending Incoming Staff Transfers */}
               {pendingIncomingTransfers.length > 0 && (
                 <div className="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200/80 flex items-center justify-between gap-3">
                   <div className="space-y-0.5">
                     <div className="flex items-center gap-1.5">
                       <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-200/80 text-amber-900">
-                        Student transfer
+                        Incoming staff
                       </span>
                       <span className="text-xs font-semibold text-slate-900">
-                        {pendingIncomingTransfers[0]?.studentName || 'Student transfer application'}
+                        {pendingIncomingTransfers[0]?.teacherUserId?.fullName || pendingIncomingTransfers[0]?.userId?.fullName || 'Staff joining request'}
                       </span>
                     </div>
                     <p className="text-xs text-slate-600">
                       {pendingIncomingTransfers.length > 1
-                        ? `${pendingIncomingTransfers.length} incoming transfer requests awaiting review`
-                        : `Transfer from ${pendingIncomingTransfers[0]?.fromSchoolName || 'former school'}`}
+                        ? `${pendingIncomingTransfers.length} incoming staff joining requests awaiting review`
+                        : `Assigned from ${pendingIncomingTransfers[0]?.fromSchoolId?.name || 'former school'}`}
                     </p>
                   </div>
                   <button
@@ -408,7 +408,7 @@ export const HmOverviewTab = ({
                     }}
                     className="px-3 py-1.5 rounded-xl bg-amber-600 text-white text-xs font-semibold hover:bg-amber-700 transition shrink-0 cursor-pointer shadow-2xs"
                   >
-                    Review transfer
+                    Review request
                   </button>
                 </div>
               )}

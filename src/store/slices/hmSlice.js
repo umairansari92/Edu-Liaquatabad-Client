@@ -93,6 +93,19 @@ export const createAcademicSection = createAsyncThunk(
   }
 );
 
+export const assignClassTeacher = createAsyncThunk(
+  'hm/assignClassTeacher',
+  async ({ sectionId, classTeacherId }, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await hmService.assignClassTeacher(sectionId, classTeacherId);
+      dispatch(fetchAcademicSections());
+      return response.data;
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to designate Class Teacher');
+    }
+  }
+);
+
 export const fetchAcademicSubjects = createAsyncThunk(
   'hm/fetchAcademicSubjects',
   async (params = {}, { rejectWithValue }) => {

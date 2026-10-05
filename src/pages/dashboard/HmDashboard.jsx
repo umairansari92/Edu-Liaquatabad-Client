@@ -63,6 +63,7 @@ import {
   createAcademicClass,
   fetchAcademicSections,
   createAcademicSection,
+  assignClassTeacher,
   fetchAcademicSubjects,
   createAcademicSubject,
   fetchTeachingAssignments,
@@ -260,6 +261,16 @@ export const HmDashboard = () => {
   const [strikeOffSubmitting, setStrikeOffSubmitting] = useState(false);
   const [assignDutyModal, setAssignDutyModal] = useState(false);
   const [dutyData, setDutyData] = useState({ teacherId: '', classId: '', sectionId: '', subjectId: '', academicSession: '2025-2026' });
+
+  // Class Teacher Designation Modal State
+  const [classTeacherModal, setClassTeacherModal] = useState({
+    open: false,
+    sectionId: '',
+    classTeacherId: '',
+    sectionName: '',
+    className: '',
+  });
+  const [classTeacherSubmitting, setClassTeacherSubmitting] = useState(false);
 
   // Selected class & grade for teaching duty allocation
   const selectedDutyClass = scopedClasses.find((classItem) => String(classItem._id) === String(dutyData.classId));
@@ -712,6 +723,36 @@ export const HmDashboard = () => {
       toast.success('Teaching duty archived.');
     } catch (errorObject) {
       toast.error(errorObject || 'Failed to end duty.');
+    }
+  };
+
+  const handleAssignClassTeacherSubmit = async (submitEvent) => {
+    submitEvent.preventDefault();
+    if (!classTeacherModal.sectionId) return;
+    setClassTeacherSubmitting(true);
+    try {
+      await dispatch(
+        assignClassTeacher({
+          sectionId: classTeacherModal.sectionId,
+          classTeacherId: classTeacherModal.classTeacherId || null,
+        })
+      ).unwrap();
+      toast.success(
+        classTeacherModal.classTeacherId
+          ? 'Class Teacher designated successfully.'
+          : 'Class Teacher designation cleared.'
+      );
+      setClassTeacherModal({
+        open: false,
+        sectionId: '',
+        classTeacherId: '',
+        sectionName: '',
+        className: '',
+      });
+    } catch (errorObject) {
+      toast.error(errorObject || 'Failed to designate Class Teacher.');
+    } finally {
+      setClassTeacherSubmitting(false);
     }
   };
 
@@ -1884,9 +1925,9 @@ export const HmDashboard = () => {
         <div className="space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h3 className="text-base font-bold text-[#102033]">Academic structure</h3>
+              <h3 className="text-base font-bold text-[#102033]">Academic Structure</h3>
               <p className="text-xs text-[#526477] mt-0.5">
-                Classes, sections and subjects configured for this school.
+                Classes, sections, and subjects set up by school administration.
               </p>
             </div>
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
@@ -1917,9 +1958,11 @@ export const HmDashboard = () => {
                   <div key={sectionItem._id} className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center justify-between text-xs">
                     <div>
                       <p className="font-bold text-[#102033]">Section {sectionItem.name}</p>
-                      <p className="text-[10px] text-[#8094A8]">Room: {sectionItem.roomNumber || '—'}</p>
+                      <p className="text-[10px] text-[#8094A8]">Room: {sectionItem.roomNumber || '—'} • Cap: {sectionItem.capacity || 40}</p>
+                      <p className="text-[11px] text-[#006AC7] mt-0.5 font-medium">
+                        Class Teacher: {sectionItem.classTeacherId?.fullName || <span className="text-slate-400 font-normal">Not designated</span>}
+                      </p>
                     </div>
-                    <span className="text-xs text-[#526477]">Cap: {sectionItem.capacity || 40}</span>
                   </div>
                 ))}
               </div>
@@ -1942,39 +1985,143 @@ export const HmDashboard = () => {
       )}
 
       {/* ═══════════════════════════════════════════════════════════════════ */}
-      {/* TAB 4: TEACHING ASSIGNMENTS (THE SECURITY ANCHOR)                   */}
+      {/* TAB 4: TEACHING ASSIGNMENTS (HM OPERATIONAL AUTHORITY)              */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {activeTab === 'assignments' && (
         <div className="space-y-6">
+          {/* Top Banner */}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h3 className="text-base font-bold text-[#102033]">Authoritative Faculty Teaching Assignments</h3>
+              <h3 className="text-base font-bold text-[#102033]">Teaching Assignments</h3>
               <p className="text-xs text-[#526477]">
-                TeachingAssignment is the sole authorization anchor for marking attendance, entering homework, and inputting exam marks.
+                Assign your school's teachers to the classes, sections, and subjects they teach.
               </p>
             </div>
             <button
               onClick={() => setAssignDutyModal(true)}
-              className="px-4 py-2 rounded-xl text-xs font-bold bg-[#006AC7] text-white flex items-center gap-1.5 shadow-sm cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white flex items-center gap-1.5 shadow-sm transition cursor-pointer"
             >
-              <PlusCircle className="w-4 h-4" /> Allocate Assignment
+              <PlusCircle className="w-4 h-4" /> Assign Teacher to Subject
             </button>
           </div>
 
+          {/* Section 1: Designated Class Teachers */}
           <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-4">
-            <h4 className="text-xs font-bold uppercase text-[#8094A8] tracking-wider">
-              Active Allocations ({assignments?.activeAssignments?.length || 0})
-            </h4>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+              <div>
+                <h4 className="text-sm font-bold text-[#102033] flex items-center gap-2">
+                  <UserCheck className="w-4 h-4 text-[#006AC7]" />
+                  Designated Class Teachers
+                </h4>
+                <p className="text-xs text-[#526477] mt-0.5">
+                  The primary teacher designated for each section, responsible for routine daily student attendance, class records, student follow-up, and coordination.
+                </p>
+              </div>
+            </div>
+
+            {sections.length === 0 ? (
+              <div className="p-6 text-center text-sm text-[#8094A8] bg-slate-50 rounded-xl">
+                No sections set up for this school yet.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {sections.map((sectionItem) => {
+                  const parentClass = scopedClasses.find(
+                    (classItem) =>
+                      String(classItem._id) === String(sectionItem.classId?._id || sectionItem.classId)
+                  );
+                  const classTeacher = sectionItem.classTeacherId;
+                  const isDesignated = Boolean(classTeacher);
+
+                  return (
+                    <div
+                      key={sectionItem._id}
+                      className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-slate-50 transition space-y-3 flex flex-col justify-between"
+                    >
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-xs text-[#102033]">
+                            {parentClass?.name || 'Class'} — Section {sectionItem.name}
+                          </span>
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              isDesignated
+                                ? 'bg-emerald-50 text-[#4B7F3A] border border-emerald-200'
+                                : 'bg-amber-50 text-amber-700 border border-amber-200'
+                            }`}
+                          >
+                            {isDesignated ? 'Class Teacher' : 'Unassigned'}
+                          </span>
+                        </div>
+
+                        {isDesignated ? (
+                          <div className="text-xs text-[#102033] font-semibold">
+                            <p>{classTeacher.fullName || 'Teacher'}</p>
+                            <p className="text-[11px] text-[#526477] font-normal">
+                              {classTeacher.designation || 'Teacher'} {classTeacher.email ? `• ${classTeacher.email}` : ''}
+                            </p>
+                          </div>
+                        ) : (
+                          <p className="text-xs text-[#8094A8] italic">
+                            No Class Teacher designated for routine attendance & records.
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between">
+                        <span className="text-[10px] text-slate-400">
+                          Room {sectionItem.roomNumber || '—'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setClassTeacherModal({
+                              open: true,
+                              sectionId: sectionItem._id,
+                              classTeacherId: classTeacher?._id || classTeacher || '',
+                              sectionName: sectionItem.name,
+                              className: parentClass?.name || 'Class',
+                            })
+                          }
+                          className="px-2.5 py-1 text-xs font-semibold rounded-lg border border-slate-300 bg-white text-[#006AC7] hover:bg-blue-50/50 hover:border-[#006AC7] transition cursor-pointer shadow-2xs"
+                        >
+                          {isDesignated ? 'Change teacher' : 'Designate teacher'}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Section 2: Subject Teaching Assignments */}
+          <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-4">
+            <div>
+              <h4 className="text-sm font-bold text-[#102033] flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-[#006AC7]" />
+                Subject Teaching Assignments ({assignments?.activeAssignments?.length || 0})
+              </h4>
+              <p className="text-xs text-[#526477] mt-0.5">
+                Teachers assigned to teach specific subjects in each class and section.
+              </p>
+            </div>
+
             {assignmentsLoading ? (
-              <div className="flex items-center gap-2 text-sm text-[#526477]"><Loader2 className="w-4 h-4 animate-spin text-[#006AC7]" /> Loading allocations...</div>
+              <div className="flex items-center gap-2 text-sm text-[#526477]">
+                <Loader2 className="w-4 h-4 animate-spin text-[#006AC7]" /> Loading teaching assignments...
+              </div>
             ) : (assignments?.activeAssignments?.length || 0) === 0 ? (
-              <div className="p-6 text-center text-sm text-[#8094A8] bg-slate-50 rounded-xl">No active teaching allocations. Allocate duties above.</div>
+              <div className="p-6 text-center text-sm text-[#8094A8] bg-slate-50 rounded-xl">
+                No active teaching assignments. Click "Assign Teacher to Subject" above to assign teachers to curriculum subjects.
+              </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead>
                     <tr className="border-b border-slate-200/80 text-[#8094A8] uppercase text-[11px] font-bold">
-                      <th className="py-2.5 px-3">Faculty Teacher</th>
+                      <th className="py-2.5 px-3">Teacher</th>
+                      <th className="py-2.5 px-3">Responsibility</th>
                       <th className="py-2.5 px-3">Class</th>
                       <th className="py-2.5 px-3">Section</th>
                       <th className="py-2.5 px-3">Subject</th>
@@ -1983,23 +2130,49 @@ export const HmDashboard = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {assignments.activeAssignments.map((assignmentItem) => (
-                      <tr key={assignmentItem._id} className="hover:bg-slate-50/60">
-                        <td className="py-3 px-3 font-bold text-[#102033]">{assignmentItem.teacherId?.fullName}</td>
-                        <td className="py-3 px-3">{assignmentItem.classId?.name}</td>
-                        <td className="py-3 px-3">{assignmentItem.sectionId?.name ? `Section ${assignmentItem.sectionId.name}` : 'Whole Class'}</td>
-                        <td className="py-3 px-3 font-semibold text-[#006AC7]">{assignmentItem.subjectId?.name}</td>
-                        <td className="py-3 px-3 font-mono">{assignmentItem.academicSession}</td>
-                        <td className="py-3 px-3 text-right">
-                          <button
-                            onClick={() => handleEndDuty(assignmentItem._id)}
-                            className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition cursor-pointer"
-                          >
-                            End Duty
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                    {assignments.activeAssignments.map((assignmentItem) => {
+                      const sectionRecord = sections.find(
+                        (sec) => String(sec._id) === String(assignmentItem.sectionId?._id || assignmentItem.sectionId)
+                      );
+                      const isClassTeacher =
+                        sectionRecord?.classTeacherId &&
+                        String(sectionRecord.classTeacherId?._id || sectionRecord.classTeacherId) ===
+                          String(assignmentItem.teacherId?._id || assignmentItem.teacherId);
+
+                      return (
+                        <tr key={assignmentItem._id} className="hover:bg-slate-50/60 transition">
+                          <td className="py-3 px-3">
+                            <p className="font-bold text-[#102033]">{assignmentItem.teacherId?.fullName}</p>
+                            <p className="text-[10px] text-[#8094A8]">{assignmentItem.teacherId?.designation || 'Teacher'}</p>
+                          </td>
+                          <td className="py-3 px-3">
+                            {isClassTeacher ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-[#4B7F3A] border border-emerald-200">
+                                <CheckCircle2 className="w-3 h-3" /> Class Teacher
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600">
+                                Subject Teacher
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-3 px-3 font-medium text-[#102033]">{assignmentItem.classId?.name}</td>
+                          <td className="py-3 px-3 text-[#526477]">
+                            {assignmentItem.sectionId?.name ? `Section ${assignmentItem.sectionId.name}` : 'Whole Class'}
+                          </td>
+                          <td className="py-3 px-3 font-semibold text-[#006AC7]">{assignmentItem.subjectId?.name}</td>
+                          <td className="py-3 px-3 font-mono text-[#526477]">{assignmentItem.academicSession}</td>
+                          <td className="py-3 px-3 text-right">
+                            <button
+                              onClick={() => handleEndDuty(assignmentItem._id)}
+                              className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition cursor-pointer"
+                            >
+                              End assignment
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -2310,8 +2483,10 @@ export const HmDashboard = () => {
         <div className="space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h3 className="text-base font-bold text-[#102033]">School Examinations & Results Gazette</h3>
-              <p className="text-xs text-[#526477]">Documented lifecycle: DRAFT → SUBMITTED → VERIFIED_BY_HM → PUBLISHED</p>
+              <h3 className="text-base font-bold text-[#102033]">School Examinations & Results</h3>
+              <p className="text-xs text-[#526477]">
+                Manage school-level examinations, verify class teacher result tabulations, and publish official school report card results.
+              </p>
             </div>
             <button
               onClick={() => setNewExamModal(true)}
@@ -2844,10 +3019,10 @@ export const HmDashboard = () => {
             <div>
               <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
                 <ArrowLeftRight className="w-5 h-5 text-[#006AC7]" />
-                Faculty Transfer Lifecycle & Institutional Movement Ledger
+                Incoming Staff Transfers
               </h3>
               <p className="text-xs text-[#526477] mt-0.5">
-                Official DMC Liaquatabad Town transfer governance: certify asset clearance for departures and verify physical arrivals for joining.
+                Review staff members assigned to this school by the education administration.
               </p>
             </div>
             <button
@@ -2869,7 +3044,7 @@ export const HmDashboard = () => {
                   : 'text-[#526477] hover:text-[#102033]'
               }`}
             >
-              <span>Incoming Faculty (Arrivals)</span>
+              <span>Incoming Staff (Joining Requests)</span>
               {summary?.metrics?.pendingQueues?.incomingTransfers > 0 && (
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-100 text-amber-800">
                   {summary.metrics.pendingQueues.incomingTransfers}
@@ -2884,7 +3059,7 @@ export const HmDashboard = () => {
                   : 'text-[#526477] hover:text-[#102033]'
               }`}
             >
-              <span>Outgoing Faculty (Clearance & Relieving)</span>
+              <span>Departing Staff (Clearance & Relieving)</span>
             </button>
             <button
               onClick={() => setTransferViewDirection('history')}
@@ -2894,7 +3069,7 @@ export const HmDashboard = () => {
                   : 'text-[#526477] hover:text-[#102033]'
               }`}
             >
-              <span>Movement History & Archival Ledger</span>
+              <span>Transfer History</span>
             </button>
           </div>
 
@@ -2903,20 +3078,20 @@ export const HmDashboard = () => {
             {transfersLoading ? (
               <div className="py-12 text-center text-sm text-[#526477] flex items-center justify-center gap-2">
                 <Loader2 className="w-4 h-4 animate-spin text-[#006AC7]" />
-                Querying institutional transfer directive ledger...
+                Loading staff transfers...
               </div>
             ) : transfers.length === 0 ? (
               <div className="p-12 text-center text-sm text-[#8094A8] bg-slate-50 rounded-2xl space-y-2">
                 <ArrowLeftRight className="w-8 h-8 text-slate-300 mx-auto" />
                 <p className="font-semibold text-[#102033]">
                   {transferViewDirection === 'incoming'
-                    ? 'No incoming faculty transfers awaiting arrival for your school.'
+                    ? 'No incoming staff transfers awaiting joining at your school.'
                     : transferViewDirection === 'outgoing'
-                    ? 'No departing faculty members currently scheduled for relieving.'
-                    : 'No historical transfer movement records found for your school.'}
+                    ? 'No departing staff members currently scheduled for relieving.'
+                    : 'No historical staff transfer records found for your school.'}
                 </p>
                 <p className="text-xs text-[#8094A8]">
-                  Official transfer orders issued by Town Administration will appear in this registry.
+                  Official transfer orders issued by education administration will appear here.
                 </p>
               </div>
             ) : (
@@ -3011,7 +3186,7 @@ export const HmDashboard = () => {
                             }
                             className="px-4 py-2 rounded-xl text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white transition cursor-pointer shadow-sm"
                           >
-                            Certify Clearance & Relieve
+                            Relieve staff
                           </button>
                         )}
 
@@ -3027,7 +3202,7 @@ export const HmDashboard = () => {
                             }
                             className="px-4 py-2 rounded-xl text-xs font-bold bg-[#4B7F3A] hover:bg-[#3d682f] text-white transition cursor-pointer shadow-sm"
                           >
-                            {['PENDING_TARGET_HM_APPROVAL', 'TRANSFER_REQUESTED'].includes(tr.status) ? 'Approve Transfer' : 'Approve Physical Joining'}
+                            Approve joining
                           </button>
                         )}
 
@@ -3042,7 +3217,7 @@ export const HmDashboard = () => {
                             }
                             className="px-3.5 py-2 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 transition cursor-pointer border border-rose-200"
                           >
-                            {['PENDING_TARGET_HM_APPROVAL', 'TRANSFER_REQUESTED'].includes(tr.status) ? 'Reject Transfer' : 'Reject Arrival'}
+                            Reject joining
                           </button>
                         )}
                       </div>
@@ -3676,11 +3851,69 @@ export const HmDashboard = () => {
         </div>
       )}
 
+      {/* Class Teacher Designation Modal */}
+      {classTeacherModal.open && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 backdrop-blur-sm animate-modal-backdrop">
+          <form onSubmit={handleAssignClassTeacherSubmit} className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4 animate-modal-card text-[#102033]">
+            <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
+              <UserCheck className="w-5 h-5 text-[#006AC7]" />
+              <h3 className="text-base font-bold text-[#102033]">Designate Class Teacher</h3>
+            </div>
+
+            <div className="p-3 bg-blue-50/70 border border-blue-200/80 rounded-xl space-y-1 text-xs">
+              <p className="font-bold text-[#102033]">
+                {classTeacherModal.className} — Section {classTeacherModal.sectionName}
+              </p>
+              <p className="text-[#526477]">
+                The Class Teacher is the primary teacher responsible for daily student attendance, class records, student follow-up, and coordination for this section.
+              </p>
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-[#102033] block mb-1">
+                Select Teaching Staff Member *
+              </label>
+              <select
+                value={classTeacherModal.classTeacherId}
+                onChange={(changeEvent) =>
+                  setClassTeacherModal({ ...classTeacherModal, classTeacherId: changeEvent.target.value })
+                }
+                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+              >
+                <option value="">-- No Class Teacher (Unassigned) --</option>
+                {faculty.map((teacher) => (
+                  <option key={teacher.userId} value={teacher.userId}>
+                    {teacher.fullName} ({teacher.employeeId || 'ID Pending'}) — {teacher.designation || 'Teacher'}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setClassTeacherModal({ open: false, sectionId: '', classTeacherId: '', sectionName: '', className: '' })}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold text-[#526477] hover:bg-slate-100 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={classTeacherSubmitting}
+                className="px-4 py-1.5 rounded-lg text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white cursor-pointer shadow-xs disabled:opacity-50"
+              >
+                {classTeacherSubmitting ? 'Saving...' : 'Save designation'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
       {/* Assign Teaching Duty Modal */}
       {assignDutyModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
           <form onSubmit={handleAssignDutySubmit} className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
-            <h3 className="text-base font-bold text-[#102033]">Allocate Teaching Assignment</h3>
+            <h3 className="text-base font-bold text-[#102033]">Assign Teacher to Subject</h3>
             <div>
               <label className="text-xs font-bold text-[#102033] block mb-1">Select Class</label>
               <select
@@ -3845,11 +4078,11 @@ export const HmDashboard = () => {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
             <h3 className="text-base font-bold text-[#102033]">
-              Confirm Faculty Arrival & Joining
+              Approve Staff Joining
             </h3>
             <div className="text-xs text-[#526477] bg-slate-50 p-3 rounded-xl border space-y-1">
-              <p><span className="font-semibold text-[#102033]">Teacher:</span> {joiningModal.transfer.teacherUserId?.fullName}</p>
-              <p><span className="font-semibold text-[#102033]">Source School:</span> {joiningModal.transfer.fromSchoolId?.name}</p>
+              <p><span className="font-semibold text-[#102033]">Staff Member:</span> {joiningModal.transfer.teacherUserId?.fullName}</p>
+              <p><span className="font-semibold text-[#102033]">Previous School:</span> {joiningModal.transfer.fromSchoolId?.name}</p>
               <p><span className="font-semibold text-[#102033]">Destination:</span> {joiningModal.transfer.toSchoolId?.name}</p>
             </div>
             <div>
@@ -3862,7 +4095,7 @@ export const HmDashboard = () => {
               />
             </div>
             <div>
-              <label className="text-xs font-bold text-[#102033] block mb-1">Head Master Joining Remarks</label>
+              <label className="text-xs font-bold text-[#102033] block mb-1">HM Remarks (Optional)</label>
               <input
                 type="text"
                 value={joiningModal.remarks}
@@ -3873,7 +4106,7 @@ export const HmDashboard = () => {
             </div>
             <div className="flex justify-end gap-2 pt-2">
               <button onClick={() => setJoiningModal({ open: false, transfer: null, remarks: '', joiningDate: '' })} className="px-3 py-1.5 rounded-lg text-xs font-semibold text-[#526477]">Cancel</button>
-              <button onClick={handleConfirmJoining} className="px-4 py-1.5 rounded-lg text-xs font-bold bg-[#4B7F3A] text-white">Approve Joining</button>
+              <button onClick={handleConfirmJoining} className="px-4 py-1.5 rounded-lg text-xs font-bold bg-[#4B7F3A] hover:bg-[#3d682f] text-white cursor-pointer shadow-xs">Confirm joining</button>
             </div>
           </div>
         </div>
@@ -3885,10 +4118,10 @@ export const HmDashboard = () => {
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4 border border-slate-200">
             <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
               <ArrowLeftRight className="w-5 h-5 text-[#006AC7]" />
-              Issue Official Relieving Order
+              Relieve Departing Staff Member
             </h3>
             <div className="text-xs text-[#526477] bg-slate-50 p-3 rounded-xl border space-y-1">
-              <p><span className="font-semibold text-[#102033]">Departing Teacher:</span> {relieveModal.transfer.teacherUserId?.fullName}</p>
+              <p><span className="font-semibold text-[#102033]">Staff Member:</span> {relieveModal.transfer.teacherUserId?.fullName}</p>
               <p><span className="font-semibold text-[#102033]">Source School:</span> {relieveModal.transfer.fromSchoolId?.name}</p>
               <p><span className="font-semibold text-[#102033]">Target School:</span> {relieveModal.transfer.toSchoolId?.name}</p>
               {relieveModal.transfer.officialOrderNumber && (
@@ -3919,12 +4152,12 @@ export const HmDashboard = () => {
             </div>
 
             <div>
-              <label className="text-xs font-bold text-[#102033] block mb-1">Handover & Relieving Remarks</label>
+              <label className="text-xs font-bold text-[#102033] block mb-1">Clearance Remarks</label>
               <textarea
                 rows={2}
                 value={relieveModal.relievingRemarks}
                 onChange={(changeEvent) => setRelieveModal({ ...relieveModal, relievingRemarks: changeEvent.target.value })}
-                placeholder="Certified all gradebooks, examination registers, and municipal assets handed over."
+                placeholder="Certified all registers, keys, and municipal materials returned in good order."
                 className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
               />
             </div>
@@ -3938,7 +4171,7 @@ export const HmDashboard = () => {
                   className="mt-0.5 rounded text-[#006AC7] focus:ring-[#006AC7]"
                 />
                 <span className="text-xs font-semibold text-amber-900 leading-tight">
-                  I formally certify that this faculty member has completed all institutional clearances, returned school keys/registers, and has no pending disciplinary holds.
+                  I formally certify that this staff member has completed all institutional clearances and handed over duties.
                 </span>
               </label>
             </div>
@@ -3955,7 +4188,7 @@ export const HmDashboard = () => {
                 disabled={!relieveModal.clearanceCertified}
                 className="px-4 py-1.5 rounded-lg text-xs font-bold bg-[#006AC7] hover:bg-[#005299] disabled:bg-slate-300 text-white transition shadow-sm cursor-pointer"
               >
-                Issue Relieving Order
+                Confirm relieving
               </button>
             </div>
           </div>
@@ -3968,25 +4201,25 @@ export const HmDashboard = () => {
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4 border border-slate-200">
             <h3 className="text-base font-bold text-rose-700 flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-rose-600" />
-              Reject Faculty Physical Arrival
+              Reject Staff Joining Request
             </h3>
             <p className="text-xs text-[#526477]">
-              State the exact institutional, documentation, or procedural discrepancies observed. The transfer directive will be referred to Town Administration for formal inquiry.
+              Please explain why this staff member cannot join this school. This reason will be logged for administrative review.
             </p>
             <div className="text-xs text-[#526477] bg-slate-50 p-3 rounded-xl border space-y-1">
-              <p><span className="font-semibold text-[#102033]">Candidate:</span> {rejectJoiningModal.transfer.teacherUserId?.fullName}</p>
+              <p><span className="font-semibold text-[#102033]">Staff Member:</span> {rejectJoiningModal.transfer.teacherUserId?.fullName}</p>
               <p><span className="font-semibold text-[#102033]">Origin School:</span> {rejectJoiningModal.transfer.fromSchoolId?.name}</p>
             </div>
 
             <div>
               <label className="text-xs font-bold text-[#102033] block mb-1">
-                Detailed Rejection Reason <span className="text-rose-500">* (Min 10 chars)</span>
+                Rejection Reason <span className="text-rose-500">* (minimum 5 characters)</span>
               </label>
               <textarea
                 rows={3}
                 value={rejectJoiningModal.rejectionReason}
                 onChange={(changeEvent) => setRejectJoiningModal({ ...rejectJoiningModal, rejectionReason: changeEvent.target.value })}
-                placeholder="e.g. Discrepancy in relieving order credentials; subject quota full; identity mismatch."
+                placeholder="e.g. No sanctioned vacancy available; subject mismatch; discrepancy in order credentials."
                 className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-rose-500"
               />
             </div>
@@ -4002,7 +4235,7 @@ export const HmDashboard = () => {
                 onClick={handleConfirmRejectJoining}
                 className="px-4 py-1.5 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white transition shadow-sm cursor-pointer"
               >
-                Confirm Rejection & Refer
+                Confirm rejection
               </button>
             </div>
           </div>
