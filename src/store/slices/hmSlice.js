@@ -1,4 +1,4 @@
-﻿import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import hmService from '../../services/hmService.js';
 
 // ─── Async Thunks ─────────────────────────────────────────────────────────────
@@ -136,6 +136,7 @@ export const assignTeachingDuty = createAsyncThunk(
     try {
       const response = await hmService.addTeachingAssignment(assignmentData);
       dispatch(fetchTeachingAssignments());
+      dispatch(fetchSchoolFaculty());
       return response.data;
     } catch (apiRequestError) {
       return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to allocate teaching assignment');
@@ -149,6 +150,7 @@ export const terminateTeachingDuty = createAsyncThunk(
     try {
       const response = await hmService.endTeachingAssignment(id, reason);
       dispatch(fetchTeachingAssignments());
+      dispatch(fetchSchoolFaculty());
       return response.data;
     } catch (apiRequestError) {
       return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to end teaching duty');
