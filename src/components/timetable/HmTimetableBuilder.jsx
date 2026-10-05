@@ -96,6 +96,13 @@ export const HmTimetableBuilder = ({
     );
   }, [classes]);
 
+  // Normalized active teaching assignments list (handles array or object state)
+  const activeAssignmentsList = useMemo(() => {
+    if (Array.isArray(assignments)) return assignments;
+    if (Array.isArray(assignments?.activeAssignments)) return assignments.activeAssignments;
+    return [];
+  }, [assignments]);
+
   // Primary section lookup map per class (for database foreign key integrity)
   const primarySectionByClassId = useMemo(() => {
     const map = new Map();
@@ -110,6 +117,54 @@ export const HmTimetableBuilder = ({
     }
     return map;
   }, [classes, sections]);
+
+  // Helper to resolve designated class teacher (via Section classTeacherId OR active TeachingAssignments)
+  const getClassDesignatedTeacher = useCallback(
+    (classItem) => {
+      if (!classItem) return null;
+      const classIdString = String(classItem._id);
+      const primarySection = primarySectionByClassId.get(classIdString);
+
+      // 1. Check primary section's assigned classTeacherId
+      if (primarySection?.classTeacherId) {
+        const teacherIdString = String(
+          primarySection.classTeacherId._id ||
+          primarySection.classTeacherId.userId ||
+          primarySection.classTeacherId
+        );
+        const matchedFaculty = faculty.find(
+          (facultyMember) => String(facultyMember.userId || facultyMember._id) === teacherIdString
+        );
+        if (matchedFaculty) return matchedFaculty;
+        if (typeof primarySection.classTeacherId === 'object' && primarySection.classTeacherId.fullName) {
+          return primarySection.classTeacherId;
+        }
+      }
+
+      // 2. Check teaching duties assigned to this class
+      const matchingAssignment = activeAssignmentsList.find(
+        (assignmentRecord) =>
+          String(assignmentRecord.classId?._id || assignmentRecord.classId) === classIdString
+      );
+      if (matchingAssignment) {
+        const teacherIdString = String(
+          matchingAssignment.teacherId?._id ||
+          matchingAssignment.teacherId?.userId ||
+          matchingAssignment.teacherId
+        );
+        const matchedFaculty = faculty.find(
+          (facultyMember) => String(facultyMember.userId || facultyMember._id) === teacherIdString
+        );
+        if (matchedFaculty) return matchedFaculty;
+        if (typeof matchingAssignment.teacherId === 'object' && matchingAssignment.teacherId?.fullName) {
+          return matchingAssignment.teacherId;
+        }
+      }
+
+      return null;
+    },
+    [primarySectionByClassId, activeAssignmentsList, faculty]
+  );
 
   // Fetch school timetable on mount
   useEffect(() => {
@@ -181,17 +236,22 @@ export const HmTimetableBuilder = ({
       if (classTeachingEntries.length === 0) return null;
 
       const firstTeacherId = String(
-        classTeachingEntries[0].teacherId?._id || classTeachingEntries[0].teacherId || ''
+        classTeachingEntries[0].teacherId?._id ||
+        classTeachingEntries[0].teacherId?.userId ||
+        classTeachingEntries[0].teacherId ||
+        ''
       );
       if (!firstTeacherId) return null;
 
       const allMatch = classTeachingEntries.every(
-        (entry) => String(entry.teacherId?._id || entry.teacherId || '') === firstTeacherId
+        (entry) =>
+          String(entry.teacherId?._id || entry.teacherId?.userId || entry.teacherId || '') ===
+          firstTeacherId
       );
 
       if (allMatch && classTeachingEntries.length >= Math.min(3, teachingSlots.length)) {
         const teacherObj = faculty.find(
-          (facultyMember) => String(facultyMember._id) === firstTeacherId
+          (facultyMember) => String(facultyMember.userId || facultyMember._id) === firstTeacherId
         );
         return teacherObj || { fullName: 'Assigned Class Teacher' };
       }
@@ -202,13 +262,14 @@ export const HmTimetableBuilder = ({
 
   // Dynamic Real-Time Teacher Free Periods Register (Matching Image 2 footer)
   const teacherFreePeriodsSummary = useMemo(() => {
-    return faculty.map((teacher) => {
+    return faculty.map((teacher, teacherIndex) => {
+      const teacherIdentifier = String(teacher.userId || teacher._id || `teacher_${teacherIndex}`);
       const assignedPeriods = new Set(
         editableSchedule
           .filter(
             (entry) =>
               entry.dayOfWeek === selectedDay &&
-              String(entry.teacherId?._id || entry.teacherId) === String(teacher._id)
+              String(entry.teacherId?._id || entry.teacherId?.userId || entry.teacherId) === teacherIdentifier
           )
           .map((entry) => entry.periodNumber)
       );
@@ -223,7 +284,7 @@ export const HmTimetableBuilder = ({
         .join(', ');
 
       return {
-        teacherId: teacher._id,
+        teacherId: teacherIdentifier,
         fullName: teacher.fullName,
         designation: teacher.designation || 'Teacher',
         freePeriods: freeSlotNumbers,
@@ -236,19 +297,28 @@ export const HmTimetableBuilder = ({
 
   // Open Cell Editor
   const handleOpenCellEditor = (classItem, periodSlot) => {
-    if (['ASSEMBLY', 'RECESS'].includes(periodSlot.slotType)) {
+    if (['ASSEMBLY', 'RECESS', 'BREAK'].includes(periodSlot.slotType)) {
       toast.error(`Cannot assign subject during ${periodSlot.label} (${periodSlot.slotType})`);
       return;
     }
 
     const existingEntry = getEntryForCell(classItem._id, selectedDay, periodSlot.periodNumber);
+    const designatedTeacher = getClassDesignatedTeacher(classItem);
+
     setActiveCellTarget({
       classItem,
       dayOfWeek: selectedDay,
       periodSlot,
     });
     setCellSubjectId(existingEntry?.subjectId?._id || existingEntry?.subjectId || '');
-    setCellTeacherId(existingEntry?.teacherId?._id || existingEntry?.teacherId || '');
+    setCellTeacherId(
+      existingEntry?.teacherId?._id ||
+      existingEntry?.teacherId?.userId ||
+      existingEntry?.teacherId ||
+      designatedTeacher?.userId ||
+      designatedTeacher?._id ||
+      ''
+    );
     setCellRoomNumber(existingEntry?.roomNumber || '');
     setCellModalOpen(true);
   };
@@ -272,7 +342,7 @@ export const HmTimetableBuilder = ({
       (scheduleEntry) =>
         scheduleEntry.dayOfWeek === dayOfWeek &&
         scheduleEntry.periodNumber === periodSlot.periodNumber &&
-        String(scheduleEntry.teacherId?._id || scheduleEntry.teacherId) === String(cellTeacherId) &&
+        String(scheduleEntry.teacherId?._id || scheduleEntry.teacherId?.userId || scheduleEntry.teacherId) === String(cellTeacherId) &&
         String(scheduleEntry.classId?._id || scheduleEntry.classId) !== String(classItem._id)
     );
 
@@ -654,8 +724,11 @@ export const HmTimetableBuilder = ({
               sortedClasses.map((classItem) => {
                 const isEarlyClass = (classItem.numericGrade || 0) <= 3;
                 const earlyClassSingleTeacher = getSingleTeacherForEarlyClass(classItem, selectedDay);
-                const primarySection = primarySectionByClassId.get(String(classItem._id));
-                const inchargeTeacher = primarySection?.classTeacherId;
+                const designatedTeacher = getClassDesignatedTeacher(classItem);
+                const teacherDisplayName =
+                  designatedTeacher?.fullName ||
+                  earlyClassSingleTeacher?.fullName ||
+                  'Teacher: Not assigned';
 
                 return (
                   <tr key={classItem._id} className="hover:bg-slate-50/70 transition">
@@ -666,7 +739,9 @@ export const HmTimetableBuilder = ({
                           <div className="text-sm font-black text-[#102033]">{classItem.name}</div>
                           <div className="text-[11px] font-medium text-[#526477] flex items-center gap-1 mt-0.5">
                             <User className="w-3 h-3 text-[#8094A8]" />
-                            <span>{inchargeTeacher?.fullName || 'Teacher: Not assigned'}</span>
+                            <span className={designatedTeacher ? 'font-bold text-[#102033]' : 'text-[#8094A8]'}>
+                              {teacherDisplayName}
+                            </span>
                           </div>
                         </div>
 
@@ -675,18 +750,20 @@ export const HmTimetableBuilder = ({
                           <button
                             type="button"
                             onClick={() => {
-                              const promptTeacher = faculty.find(
-                                (facultyMember) => String(facultyMember._id) === String(inchargeTeacher?._id || '')
-                              );
-                              if (promptTeacher) {
-                                handleAssignAllSubjectsToTeacher(classItem, promptTeacher._id);
-                              } else if (faculty.length > 0) {
-                                handleAssignAllSubjectsToTeacher(classItem, faculty[0]._id);
+                              const targetTeacher =
+                                designatedTeacher ||
+                                (faculty.length > 0 ? faculty[0] : null);
+                              const targetTeacherId =
+                                targetTeacher?.userId ||
+                                targetTeacher?._id;
+
+                              if (targetTeacherId) {
+                                handleAssignAllSubjectsToTeacher(classItem, targetTeacherId);
                               } else {
                                 toast.error('No faculty members available to assign.');
                               }
                             }}
-                            className="p-1.5 rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 text-[#006AC7] text-[10px] font-bold cursor-pointer"
+                            className="p-1.5 rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 text-[#006AC7] text-[10px] font-bold cursor-pointer transition active:scale-95"
                             title="Assign Single Teacher to All Subjects"
                           >
                             All Subj
@@ -724,7 +801,8 @@ export const HmTimetableBuilder = ({
                       );
                       const teacherObj = faculty.find(
                         (facultyMember) =>
-                          String(facultyMember._id) === String(entry?.teacherId?._id || entry?.teacherId)
+                          String(facultyMember.userId || facultyMember._id) ===
+                          String(entry?.teacherId?._id || entry?.teacherId?.userId || entry?.teacherId)
                       );
 
                       const isAllocated = Boolean(entry && (subjectObj || teacherObj));
@@ -799,9 +877,9 @@ export const HmTimetableBuilder = ({
 
         {/* Free Periods Grid Display (Identical to Image 2 footer) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {teacherFreePeriodsSummary.map((teacherSummary) => (
+          {teacherFreePeriodsSummary.map((teacherSummary, summaryIndex) => (
             <div
-              key={teacherSummary.teacherId}
+              key={teacherSummary.teacherId || `teacher_summary_${summaryIndex}`}
               className="p-3.5 rounded-2xl border border-slate-200/90 bg-slate-50/60 hover:bg-white hover:border-[#006AC7]/60 hover:shadow-sm transition flex items-center justify-between gap-3"
             >
               <div>
@@ -883,11 +961,16 @@ export const HmTimetableBuilder = ({
                   className="w-full p-2.5 rounded-xl border border-slate-200 font-bold text-[#102033] bg-white"
                 >
                   <option value="">-- Choose Faculty Member --</option>
-                  {faculty.map((facultyMember) => (
-                    <option key={facultyMember._id} value={facultyMember._id}>
-                      {facultyMember.fullName} ({facultyMember.designation || 'Teacher'})
-                    </option>
-                  ))}
+                  {faculty.map((facultyMember, facultyIndex) => {
+                    const memberIdentifier = String(
+                      facultyMember.userId || facultyMember._id || `faculty_${facultyIndex}`
+                    );
+                    return (
+                      <option key={memberIdentifier} value={memberIdentifier}>
+                        {facultyMember.fullName} ({facultyMember.designation || 'Teacher'})
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
 

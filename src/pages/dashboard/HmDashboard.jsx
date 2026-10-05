@@ -426,8 +426,14 @@ export const HmDashboard = () => {
       dispatch(fetchIncomingTransfers({ direction: transferViewDirection }));
     } else if (activeTab === 'notices') {
       loadNotices();
+    } else if (activeTab === 'timetable') {
+      dispatch(fetchSchoolFaculty());
+      dispatch(fetchTeachingAssignments());
+      dispatch(fetchAcademicClasses({ schoolId: userSchoolId }));
+      dispatch(fetchAcademicSections({ schoolId: userSchoolId }));
+      dispatch(fetchAcademicSubjects({ schoolId: userSchoolId }));
     }
-  }, [activeTab, dispatch, teacherAttendanceDate, loadNotices, transferViewDirection, parentClaimsFilter]);
+  }, [activeTab, dispatch, teacherAttendanceDate, loadNotices, transferViewDirection, parentClaimsFilter, userSchoolId]);
 
   // Ensure academic entities and faculty are loaded whenever assignDutyModal opens
   useEffect(() => {
