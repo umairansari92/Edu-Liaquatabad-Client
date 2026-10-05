@@ -15,8 +15,8 @@ export const AcademicPage = () => {
       if (response.data?.success) {
         setSchoolsList(response.data.data?.schools || response.data.data || []);
       }
-    } catch (error) {
-      console.error('Failed to load schools for academic tab:', error);
+    } catch (schoolFetchError) {
+      console.error('Failed to load schools for academic tab:', schoolFetchError);
     } finally {
       setIsLoading(false);
     }

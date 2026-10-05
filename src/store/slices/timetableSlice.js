@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+﻿import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import timetableService from '../../services/timetableService.js';
 
 export const fetchSchoolTimetable = createAsyncThunk(
@@ -7,7 +7,7 @@ export const fetchSchoolTimetable = createAsyncThunk(
     try {
       const response = await timetableService.getSchoolTimetable(schoolId, academicYear);
       return response.data;
-    } catch (error) {
+    } catch (apiRequestError) {
       const errorMessage =
         error.response?.data?.message || 'Failed to retrieve school timetable.';
       return rejectWithValue(errorMessage);
@@ -21,7 +21,7 @@ export const saveTimetable = createAsyncThunk(
     try {
       const response = await timetableService.manageTimetable(timetablePayload);
       return response.data;
-    } catch (error) {
+    } catch (apiRequestError) {
       const errorData = error.response?.data;
       const errorMessage =
         errorData?.message || 'Failed to save timetable.';
@@ -36,7 +36,7 @@ export const fetchTownLiveMonitor = createAsyncThunk(
     try {
       const response = await timetableService.getTownLiveMonitor();
       return response.data;
-    } catch (error) {
+    } catch (apiRequestError) {
       const errorMessage =
         error.response?.data?.message || 'Failed to fetch live monitoring matrix.';
       return rejectWithValue(errorMessage);
@@ -50,7 +50,7 @@ export const fetchMySchedule = createAsyncThunk(
     try {
       const response = await timetableService.getMySchedule(queryParams);
       return response.data;
-    } catch (error) {
+    } catch (apiRequestError) {
       const errorMessage =
         error.response?.data?.message || 'Failed to load personal schedule.';
       return rejectWithValue(errorMessage);

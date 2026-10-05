@@ -63,8 +63,8 @@ export const UserAuthorityModal = ({
         if (response.data?.success) {
           setSchoolsList(response.data.data?.schools || response.data.data || []);
         }
-      } catch (error) {
-        console.error('Failed to load schools for authority modal:', error);
+      } catch (fetchSchoolsError) {
+        console.error('Failed to load schools for authority modal:', fetchSchoolsError);
       }
     };
     if (isOpen) {
@@ -152,9 +152,9 @@ export const UserAuthorityModal = ({
         onAuthorityUpdated(response.data?.data?.user || targetUser);
       }
       onClose();
-    } catch (error) {
+    } catch (authorityUpdateError) {
       const errorMessage =
-        error.response?.data?.message || 'Failed to update user authorization.';
+        authorityUpdateError.response?.data?.message || 'Failed to update user authorization.';
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);

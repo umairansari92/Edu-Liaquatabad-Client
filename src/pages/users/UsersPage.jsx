@@ -167,9 +167,9 @@ export const UsersPage = () => {
         setTotalCount(response.data.data?.total || response.data.data?.users?.length || 0);
         setTotalPages(response.data.data?.totalPages || 1);
       }
-    } catch (error) {
-      console.error('Failed to load personnel:', error);
-      toast.error(error.response?.data?.message || 'Unable to retrieve personnel directory.');
+    } catch (personnelFetchError) {
+      console.error('Failed to load personnel:', personnelFetchError);
+      toast.error(personnelFetchError.response?.data?.message || 'Unable to retrieve personnel directory.');
     } finally {
       setIsLoading(false);
     }
@@ -232,8 +232,8 @@ export const UsersPage = () => {
         setSelectedUserIds([]);
         handleFullRefresh();
       }
-    } catch (error) {
-      toast.error(error.response?.data?.message || `Failed to execute bulk ${actionType}.`);
+    } catch (bulkUserActionError) {
+      toast.error(bulkUserActionError.response?.data?.message || `Failed to execute bulk ${actionType}.`);
     } finally {
       setIsBulkOperating(false);
     }
@@ -251,8 +251,8 @@ export const UsersPage = () => {
         toast.success(`User status updated to ${newStatus}.`);
         handleFullRefresh();
       }
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Status transition failed.');
+    } catch (lifecycleTransitionError) {
+      toast.error(lifecycleTransitionError.response?.data?.message || 'Status transition failed.');
     } finally {
       setActionProcessingUserId(null);
     }

@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+﻿import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import teacherService from '../../services/teacherService.js';
 
 // ─── Async Thunks ─────────────────────────────────────────────────────────────
@@ -8,8 +8,8 @@ export const fetchTeacherSummary = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       return await teacherService.getTeacherWorkspaceSummary();
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch teacher summary');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch teacher summary');
     }
   }
 );
@@ -19,8 +19,8 @@ export const fetchTeachingAssignments = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       return await teacherService.getMyTeachingAssignments();
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch teaching assignments');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch teaching assignments');
     }
   }
 );
@@ -30,8 +30,8 @@ export const fetchSectionRoster = createAsyncThunk(
   async (sectionId, { rejectWithValue }) => {
     try {
       return await teacherService.getSectionStudentRoster(sectionId);
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch student roster');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch student roster');
     }
   }
 );
@@ -41,8 +41,8 @@ export const fetchAttendanceSheet = createAsyncThunk(
   async ({ sectionId, date }, { rejectWithValue }) => {
     try {
       return await teacherService.getAttendanceSheet(sectionId, date);
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch attendance sheet');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch attendance sheet');
     }
   }
 );
@@ -54,8 +54,8 @@ export const submitStudentAttendance = createAsyncThunk(
       const response = await teacherService.submitStudentAttendance(payload);
       dispatch(fetchTeacherSummary());
       return response;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to submit attendance');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to submit attendance');
     }
   }
 );
@@ -65,8 +65,8 @@ export const fetchSchoolExams = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       return await teacherService.getSchoolExams();
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch exams list');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch exams list');
     }
   }
 );
@@ -76,8 +76,8 @@ export const fetchExamMarksRoster = createAsyncThunk(
   async ({ examId, classId, sectionId, subjectId }, { rejectWithValue }) => {
     try {
       return await teacherService.getExamMarksEntryRoster(examId, classId, sectionId, subjectId);
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch exam marks roster');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch exam marks roster');
     }
   }
 );
@@ -89,8 +89,8 @@ export const bulkSubmitExamMarks = createAsyncThunk(
       const response = await teacherService.bulkSubmitExamMarks(examId, payload);
       dispatch(fetchExamMarksRoster({ examId, classId, sectionId, subjectId }));
       return response;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to submit exam marks');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to submit exam marks');
     }
   }
 );
@@ -100,8 +100,8 @@ export const fetchMyHomework = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       return await teacherService.getMyHomework();
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch homework');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch homework');
     }
   }
 );
@@ -114,8 +114,8 @@ export const createHomework = createAsyncThunk(
       dispatch(fetchMyHomework());
       dispatch(fetchTeacherSummary());
       return response;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to create homework');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to create homework');
     }
   }
 );
@@ -128,8 +128,8 @@ export const cancelHomework = createAsyncThunk(
       dispatch(fetchMyHomework());
       dispatch(fetchTeacherSummary());
       return response;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to cancel homework');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to cancel homework');
     }
   }
 );
@@ -139,8 +139,8 @@ export const fetchTeacherCirculars = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       return await teacherService.getTeacherCirculars();
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch circulars');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch circulars');
     }
   }
 );
@@ -150,8 +150,8 @@ export const fetchTeacherSelfAttendance = createAsyncThunk(
   async ({ month, year } = {}, { rejectWithValue }) => {
     try {
       return await teacherService.getTeacherSelfAttendance(month, year);
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch attendance history');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch attendance history');
     }
   }
 );

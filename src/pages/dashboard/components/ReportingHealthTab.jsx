@@ -34,8 +34,8 @@ export const ReportingHealthTab = () => {
         setHealthData(response.data.data);
         setLastRefreshed(new Date().toLocaleTimeString());
       }
-    } catch (error) {
-      console.error('Failed to fetch health telemetry:', error);
+    } catch (healthFetchError) {
+      console.error('Failed to fetch health telemetry:', healthFetchError);
       toast.error('Unable to retrieve real-time system metrics.');
     } finally {
       setIsHealthLoading(false);
@@ -66,8 +66,8 @@ export const ReportingHealthTab = () => {
       window.URL.revokeObjectURL(url);
 
       toast.success(`Schools exported: ${filename}`);
-    } catch (error) {
-      console.error('Schools export error:', error);
+    } catch (schoolsExportError) {
+      console.error('Schools export error:', schoolsExportError);
       toast.error('Failed to export municipal schools CSV.');
     } finally {
       setIsExportingSchools(false);
@@ -92,8 +92,8 @@ export const ReportingHealthTab = () => {
       window.URL.revokeObjectURL(url);
 
       toast.success(`Personnel directory exported: ${filename}`);
-    } catch (error) {
-      console.error('Users export error:', error);
+    } catch (usersExportError) {
+      console.error('Users export error:', usersExportError);
       toast.error('Failed to export platform personnel CSV.');
     } finally {
       setIsExportingUsers(false);

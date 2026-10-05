@@ -71,9 +71,9 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
       } else {
         toast.error(response.data?.message || 'Failed to update school record.');
       }
-    } catch (error) {
-      console.error('Error updating school:', error);
-      toast.error(error.response?.data?.message || 'Server error while updating municipal school.');
+    } catch (schoolUpdateError) {
+      console.error('Error updating school:', schoolUpdateError);
+      toast.error(schoolUpdateError.response?.data?.message || 'Server error while updating municipal school.');
     } finally {
       setIsSubmitting(false);
     }

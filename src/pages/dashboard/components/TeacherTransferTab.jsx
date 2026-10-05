@@ -43,8 +43,8 @@ export const TeacherTransferTab = ({ schoolsList = [], teachersList = [] }) => {
       if (response.data?.success) {
         setTransfers(response.data.data?.transfers || []);
       }
-    } catch (error) {
-      console.error('Failed to load transfers:', error);
+    } catch (transfersFetchError) {
+      console.error('Failed to load transfers:', transfersFetchError);
     } finally {
       setIsLoading(false);
     }
@@ -109,8 +109,8 @@ export const TeacherTransferTab = ({ schoolsList = [], teachersList = [] }) => {
       } else {
         toast.error(response.data?.message || 'Transfer request failed.');
       }
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Server error initiating faculty transfer.');
+    } catch (transferSubmitError) {
+      toast.error(transferSubmitError.response?.data?.message || 'Server error initiating faculty transfer.');
     } finally {
       setIsSubmitting(false);
     }

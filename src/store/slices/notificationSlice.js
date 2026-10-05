@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+﻿import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import notificationService from '../../services/notificationService.js';
 
 export const fetchNotifications = createAsyncThunk(
@@ -7,8 +7,8 @@ export const fetchNotifications = createAsyncThunk(
     try {
       const response = await notificationService.getNotifications(params);
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch notifications');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch notifications');
     }
   }
 );
@@ -19,8 +19,8 @@ export const markNotificationAsRead = createAsyncThunk(
     try {
       await notificationService.markAsRead(notificationId);
       return notificationId;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to mark notification as read');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to mark notification as read');
     }
   }
 );
@@ -31,8 +31,8 @@ export const markAllNotificationsAsRead = createAsyncThunk(
     try {
       await notificationService.markAllAsRead();
       return true;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to mark all as read');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to mark all as read');
     }
   }
 );
@@ -46,8 +46,8 @@ export const respondToAccessRequest = createAsyncThunk(
         decisionRemarks,
       });
       return { requestId, decision, updatedRequest: response.data };
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to respond to consent request');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to respond to consent request');
     }
   }
 );

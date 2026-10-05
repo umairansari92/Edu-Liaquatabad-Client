@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+﻿import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import supervisorService from '../../services/supervisorService.js';
 
 // ─── Async Thunks ─────────────────────────────────────────────────────────────
@@ -8,8 +8,8 @@ export const fetchAssignedSchools = createAsyncThunk(
   async (params = {}, { rejectWithValue }) => {
     try {
       return await supervisorService.getAssignedSchools(params);
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch assigned schools');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch assigned schools');
     }
   }
 );
@@ -19,8 +19,8 @@ export const fetchSchoolDetails = createAsyncThunk(
   async (schoolId, { rejectWithValue }) => {
     try {
       return await supervisorService.getSchoolDetails(schoolId);
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch school details');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch school details');
     }
   }
 );
@@ -30,8 +30,8 @@ export const fetchClusterAttendance = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       return await supervisorService.getTownAttendanceOverview();
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch cluster attendance');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch cluster attendance');
     }
   }
 );
@@ -41,8 +41,8 @@ export const fetchSchoolAttendance = createAsyncThunk(
   async (schoolId, { rejectWithValue }) => {
     try {
       return await supervisorService.getSchoolAttendanceAnalytics(schoolId);
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch school attendance');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch school attendance');
     }
   }
 );
@@ -52,8 +52,8 @@ export const fetchInspections = createAsyncThunk(
   async (params = {}, { rejectWithValue }) => {
     try {
       return await supervisorService.getInspections(params);
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch inspections');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch inspections');
     }
   }
 );
@@ -63,8 +63,8 @@ export const fetchInspectionById = createAsyncThunk(
   async (inspectionId, { rejectWithValue }) => {
     try {
       return await supervisorService.getInspectionById(inspectionId);
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch inspection report');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch inspection report');
     }
   }
 );
@@ -76,8 +76,8 @@ export const createInspection = createAsyncThunk(
       const response = await supervisorService.createInspection(payload);
       dispatch(fetchInspections());
       return response;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to create inspection report');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to create inspection report');
     }
   }
 );
@@ -89,8 +89,8 @@ export const updateInspection = createAsyncThunk(
       const response = await supervisorService.updateInspection(id, payload);
       dispatch(fetchInspections());
       return response;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to update inspection report');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to update inspection report');
     }
   }
 );
@@ -102,8 +102,8 @@ export const submitInspection = createAsyncThunk(
       const response = await supervisorService.submitInspection(inspectionId);
       dispatch(fetchInspections());
       return response;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to submit inspection report');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to submit inspection report');
     }
   }
 );
@@ -115,8 +115,8 @@ export const closeInspection = createAsyncThunk(
       const response = await supervisorService.closeInspection(id, payload);
       dispatch(fetchInspections());
       return response;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to close inspection report');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to close inspection report');
     }
   }
 );
@@ -126,8 +126,8 @@ export const fetchClusterTransfers = createAsyncThunk(
   async (params = {}, { rejectWithValue }) => {
     try {
       return await supervisorService.getTransfers(params);
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch transfers');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch transfers');
     }
   }
 );
@@ -137,8 +137,8 @@ export const fetchClusterFaculty = createAsyncThunk(
   async (params = {}, { rejectWithValue }) => {
     try {
       return await supervisorService.getFacultyUsers(params);
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch cluster faculty');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch cluster faculty');
     }
   }
 );

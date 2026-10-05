@@ -37,8 +37,8 @@ export const useReliabilityDraft = (module, entityId = 'primary') => {
           setDraftData(existingDraft.payload);
           setDraftTimestamp(existingDraft.updatedAt || existingDraft.clientUpdatedAt);
         }
-      } catch (err) {
-        console.warn('[useReliabilityDraft] Error checking draft:', err);
+      } catch (draftLoadError) {
+        console.warn('[useReliabilityDraft] Error checking draft:', draftLoadError);
       }
     };
 

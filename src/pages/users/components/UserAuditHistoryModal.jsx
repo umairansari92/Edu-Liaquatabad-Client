@@ -31,8 +31,8 @@ export const UserAuditHistoryModal = ({ isOpen, onClose, targetUser }) => {
         } else {
           setAuditLogs([]);
         }
-      } catch (error) {
-        console.error('Failed to load user audit history:', error);
+      } catch (auditHistoryFetchError) {
+        console.error('Failed to load user audit history:', auditHistoryFetchError);
         toast.error('Unable to retrieve user audit history.');
         setAuditLogs([]);
       } finally {

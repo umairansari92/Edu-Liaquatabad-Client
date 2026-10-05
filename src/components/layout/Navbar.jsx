@@ -21,18 +21,29 @@ export const Navbar = () => {
   const { canInstallApplication, triggerInstallPrompt } = usePwaInstall();
 
   const handleLogout = async () => {
+    setLoggingOut(true);
+
+    // Clear IndexedDB offline queue for this user session.
+    // This is deliberately non-blocking: an IndexedDB failure must NEVER
+    // prevent the server-side session from being terminated. The server
+    // holds the authoritative session state; local storage is secondary.
+    const userSessionBinding = user?._id || user?.userId;
+    if (userSessionBinding) {
+      clearUserRecords(userSessionBinding).catch((storageCleanupError) => {
+        console.warn('[Logout] IndexedDB offline queue cleanup failed (non-blocking):', storageCleanupError);
+      });
+    }
+
     try {
-      setLoggingOut(true);
-      const userSessionBinding = user?._id || user?.userId;
-      if (userSessionBinding) {
-        await clearUserRecords(userSessionBinding);
-      }
       await dispatch(logoutUser()).unwrap();
-      navigate('/login');
-    } catch (error) {
-      console.error('Logout failed:', error);
+    } catch (logoutDispatchError) {
+      // Log dispatch failure but do NOT abort navigation.
+      // The server may have already invalidated the session cookie;
+      // keeping the user on the authenticated page would be worse.
+      console.error('[Logout] Server session termination failed:', logoutDispatchError);
     } finally {
       setLoggingOut(false);
+      navigate('/login');
     }
   };
 

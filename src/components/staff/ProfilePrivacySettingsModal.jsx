@@ -66,8 +66,8 @@ export const ProfilePrivacySettingsModal = ({
 
       toast.success('Privacy & consent settings updated successfully.');
       onClose();
-    } catch (error) {
-      toast.error(getErrorMessage(error, 'Failed to update privacy settings.'));
+    } catch (privacyUpdateError) {
+      toast.error(getErrorMessage(privacyUpdateError, 'Failed to update privacy settings.'));
     }
   };
 

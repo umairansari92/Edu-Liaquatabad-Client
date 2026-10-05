@@ -66,8 +66,8 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
       if (response.data?.success) {
         setClasses(response.data.data?.classes || []);
       }
-    } catch (error) {
-      console.error('Failed to load classes:', error);
+    } catch (fetchClassesError) {
+      console.error('Failed to load classes:', fetchClassesError);
     } finally {
       setIsLoading(false);
     }
@@ -84,8 +84,8 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
       if (response.data?.success) {
         setSections(response.data.data?.sections || []);
       }
-    } catch (error) {
-      console.error('Failed to load sections:', error);
+    } catch (fetchSectionsError) {
+      console.error('Failed to load sections:', fetchSectionsError);
     }
   }, [selectedSchoolId, selectedClassId]);
 
@@ -100,8 +100,8 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
       if (response.data?.success) {
         setSubjects(response.data.data?.subjects || []);
       }
-    } catch (error) {
-      console.error('Failed to load subjects:', error);
+    } catch (fetchSubjectsError) {
+      console.error('Failed to load subjects:', fetchSubjectsError);
     }
   }, [selectedSchoolId, selectedClassId]);
 
@@ -167,8 +167,8 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
       }
       setIsClassModalOpen(false);
       fetchClasses();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to save class.');
+    } catch (saveClassError) {
+      toast.error(saveClassError.response?.data?.message || 'Failed to save class.');
     }
   };
 
@@ -178,8 +178,8 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
       await apiClient.patch(`/academic/classes/${classItem._id}`, { status: 'ARCHIVED' });
       toast.success(`Class "${classItem.name}" archived.`);
       fetchClasses();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to archive class.');
+    } catch (archiveClassError) {
+      toast.error(archiveClassError.response?.data?.message || 'Failed to archive class.');
     }
   };
 
@@ -209,8 +209,8 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
       setIsSectionModalOpen(false);
       fetchSections();
       fetchClasses(); // Update section count badge
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to save section.');
+    } catch (saveSectionError) {
+      toast.error(saveSectionError.response?.data?.message || 'Failed to save section.');
     }
   };
 
@@ -221,8 +221,8 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
       toast.success(`Section "${sectionItem.name}" archived.`);
       fetchSections();
       fetchClasses();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to archive section.');
+    } catch (archiveSectionError) {
+      toast.error(archiveSectionError.response?.data?.message || 'Failed to archive section.');
     }
   };
 
@@ -263,8 +263,8 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
       }
       setIsSubjectModalOpen(false);
       fetchSubjects();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to save subject.');
+    } catch (saveSubjectError) {
+      toast.error(saveSubjectError.response?.data?.message || 'Failed to save subject.');
     }
   };
 
@@ -274,8 +274,8 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
       await apiClient.patch(`/academic/subjects/${subjectItem._id}`, { status: 'ARCHIVED' });
       toast.success(`Subject "${subjectItem.name}" archived.`);
       fetchSubjects();
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to archive subject.');
+    } catch (archiveSubjectError) {
+      toast.error(archiveSubjectError.response?.data?.message || 'Failed to archive subject.');
     }
   };
 

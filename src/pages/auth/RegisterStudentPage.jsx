@@ -369,8 +369,8 @@ export const RegisterStudentPage = () => {
           toast.success('Student portal account activated successfully!');
         }
       }
-    } catch (error) {
-      setErrorMessage(error.response?.data?.message || 'Submission failed. Please try again.');
+    } catch (registrationError) {
+      setErrorMessage(registrationError.response?.data?.message || 'Submission failed. Please try again.');
     } finally {
       setLoading(false);
     }

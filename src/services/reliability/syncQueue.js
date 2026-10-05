@@ -34,7 +34,7 @@ const broadcastSyncMessage = (type, payload = {}) => {
   if (broadcastChannelInstance) {
     try {
       broadcastChannelInstance.postMessage({ type, payload, timestamp: Date.now() });
-    } catch (e) {
+    } catch (broadcastDispatchError) {
       // Ignore broadcast errors
     }
   }

@@ -311,9 +311,9 @@ export const RootAdminDashboard = () => {
       } else {
         toast.error(response.data?.message || 'Bulk operation encountered errors.');
       }
-    } catch (error) {
-      console.error('Bulk user action failed:', error);
-      toast.error(error.response?.data?.message || 'Bulk user operation failed.');
+    } catch (bulkActionError) {
+      console.error('Bulk user action failed:', bulkActionError);
+      toast.error(bulkActionError.response?.data?.message || 'Bulk user operation failed.');
     } finally {
       setIsBulkOperating(false);
     }

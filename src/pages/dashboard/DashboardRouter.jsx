@@ -50,8 +50,8 @@ export const DashboardRouter = () => {
         if (response.data?.success && response.data?.data && isMounted) {
           setStats(response.data.data);
         }
-      } catch (error) {
-        console.error('Failed to load live statistics:', error);
+      } catch (statsFetchError) {
+        console.error('Failed to load live statistics:', statsFetchError);
       } finally {
         if (isMounted) setIsStatsLoading(false);
       }

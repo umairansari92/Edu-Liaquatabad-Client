@@ -23,8 +23,8 @@ export const TransfersPage = () => {
       if (teachersRes.data?.success) {
         setTeachersList(teachersRes.data.data?.users || teachersRes.data.data || []);
       }
-    } catch (error) {
-      console.error('Failed to load aux data for transfers:', error);
+    } catch (transfersAuxFetchError) {
+      console.error('Failed to load aux data for transfers:', transfersAuxFetchError);
     } finally {
       setIsLoading(false);
     }

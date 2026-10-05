@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+﻿import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import adminService from '../../services/adminService.js';
 
 // ─── Async Thunks ─────────────────────────────────────────────────────────────
@@ -9,8 +9,8 @@ export const fetchAdminOverview = createAsyncThunk(
     try {
       const response = await adminService.getOverview();
       return response.data?.overview || response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch platform governance overview');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch platform governance overview');
     }
   }
 );
@@ -21,8 +21,8 @@ export const fetchAdminAnalytics = createAsyncThunk(
     try {
       const response = await adminService.getAnalytics();
       return response.data?.analytics || response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch platform analytics');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch platform analytics');
     }
   }
 );
@@ -33,8 +33,8 @@ export const fetchSuperAdminsList = createAsyncThunk(
     try {
       const response = await adminService.getSuperAdmins();
       return response.data?.superAdmins || [];
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch Super Admins list');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch Super Admins list');
     }
   }
 );
@@ -46,8 +46,8 @@ export const disableSuperAdminAccount = createAsyncThunk(
       const response = await adminService.disableSuperAdmin(id, reason);
       dispatch(fetchSuperAdminsList());
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to suspend Super Admin account');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to suspend Super Admin account');
     }
   }
 );
@@ -59,8 +59,8 @@ export const demoteSuperAdminAccount = createAsyncThunk(
       const response = await adminService.demoteSuperAdmin(id, reason);
       dispatch(fetchSuperAdminsList());
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to demote Super Admin account');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to demote Super Admin account');
     }
   }
 );
@@ -72,8 +72,8 @@ export const grantUserAuthority = createAsyncThunk(
       const response = await adminService.grantAuthority(userId, { authority, reason, scope });
       dispatch(fetchSuperAdminsList());
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to grant authority to user');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to grant authority to user');
     }
   }
 );
@@ -84,8 +84,8 @@ export const fetchAdminUsersList = createAsyncThunk(
     try {
       const response = await adminService.getUsers(params);
       return response.data || { users: [], total: 0 };
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch users list');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch users list');
     }
   }
 );
@@ -96,8 +96,8 @@ export const fetchAdminSchoolsList = createAsyncThunk(
     try {
       const response = await adminService.getSchools(params);
       return response.data?.schools || response.data || [];
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch municipal schools registry');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch municipal schools registry');
     }
   }
 );
@@ -109,8 +109,8 @@ export const createSchoolEntity = createAsyncThunk(
       const response = await adminService.createSchool(formData);
       dispatch(fetchAdminSchoolsList());
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to register municipal school');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to register municipal school');
     }
   }
 );
@@ -121,8 +121,8 @@ export const fetchPendingApprovalsList = createAsyncThunk(
     try {
       const response = await adminService.getPendingUsers();
       return response.data?.pendingUsers || [];
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch pending approvals');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch pending approvals');
     }
   }
 );
@@ -133,8 +133,8 @@ export const fetchSystemAuditLogs = createAsyncThunk(
     try {
       const response = await adminService.getAuditLogs(params);
       return response.data || { auditLogs: [], totalRecords: 0 };
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch system audit logs');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch system audit logs');
     }
   }
 );
@@ -146,8 +146,8 @@ export const updateUserLifecycleState = createAsyncThunk(
       const response = await adminService.updateUserLifecycle(id, { status, reason });
       dispatch(fetchAdminUsersList());
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to update user lifecycle state');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to update user lifecycle state');
     }
   }
 );

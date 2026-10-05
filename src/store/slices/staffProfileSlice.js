@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+﻿import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import staffProfileService from '../../services/staffProfileService.js';
 
 export const fetchStaffProfile = createAsyncThunk(
@@ -7,8 +7,8 @@ export const fetchStaffProfile = createAsyncThunk(
     try {
       const response = await staffProfileService.getStaffProfile(targetId);
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch staff profile dossier');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch staff profile dossier');
     }
   }
 );
@@ -19,8 +19,8 @@ export const updateStaffPrivacySettings = createAsyncThunk(
     try {
       const response = await staffProfileService.updatePrivacySettings(targetId, privacySettings);
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to update privacy settings');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to update privacy settings');
     }
   }
 );
@@ -31,8 +31,8 @@ export const requestPdfAccess = createAsyncThunk(
     try {
       const response = await staffProfileService.requestPdfAccess(targetId, payload);
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to submit official PDF access request');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to submit official PDF access request');
     }
   }
 );
@@ -48,8 +48,8 @@ export const downloadStaffPdf = createAsyncThunk(
     try {
       const result = await staffProfileService.downloadProfilePdf(targetId, employeeId);
       return result; // { success: true, downloadedAt: '...' }
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to download official PDF service record');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to download official PDF service record');
     }
   }
 );
@@ -60,8 +60,8 @@ export const fetchStaffAccessHistory = createAsyncThunk(
     try {
       const response = await staffProfileService.getStaffAccessHistory(targetId);
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch access audit history');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch access audit history');
     }
   }
 );

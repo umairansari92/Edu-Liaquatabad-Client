@@ -70,9 +70,9 @@ export const HolidaysGovernancePage = () => {
       if (weeklyOffRes.data?.success) {
         setWeeklyOffs(weeklyOffRes.data.data?.patterns || []);
       }
-    } catch (error) {
-      console.error('Failed to load holidays:', error);
-      toast.error(error.response?.data?.message || 'Unable to retrieve holiday schedule.');
+    } catch (holidayFetchError) {
+      console.error('Failed to load holidays:', holidayFetchError);
+      toast.error(holidayFetchError.response?.data?.message || 'Unable to retrieve holiday schedule.');
     } finally {
       setLoading(false);
     }

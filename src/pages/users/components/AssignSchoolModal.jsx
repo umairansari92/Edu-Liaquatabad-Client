@@ -70,8 +70,8 @@ export const AssignSchoolModal = ({
       } else {
         toast.error(response.data?.message || 'Failed to assign school.');
       }
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Server error assigning school.');
+    } catch (schoolAssignmentError) {
+      toast.error(schoolAssignmentError.response?.data?.message || 'Server error assigning school.');
     } finally {
       setIsSubmitting(false);
     }

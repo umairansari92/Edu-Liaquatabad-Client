@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+﻿import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import hmService from '../../services/hmService.js';
 
 // ─── Async Thunks ─────────────────────────────────────────────────────────────
@@ -9,8 +9,8 @@ export const fetchHmSummary = createAsyncThunk(
     try {
       const response = await hmService.getSchoolSummary();
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch school summary');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch school summary');
     }
   }
 );
@@ -21,8 +21,8 @@ export const fetchPendingApprovals = createAsyncThunk(
     try {
       const response = await hmService.getPendingApprovals(type);
       return { type, items: response.data?.items || [] };
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch pending approvals');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch pending approvals');
     }
   }
 );
@@ -35,8 +35,8 @@ export const submitApprovalDecision = createAsyncThunk(
       dispatch(fetchPendingApprovals(type));
       dispatch(fetchHmSummary());
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to process approval decision');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to process approval decision');
     }
   }
 );
@@ -47,8 +47,8 @@ export const fetchAcademicClasses = createAsyncThunk(
     try {
       const response = await hmService.getClasses(params);
       return response.data?.classes || [];
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch classes');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch classes');
     }
   }
 );
@@ -61,8 +61,8 @@ export const createAcademicClass = createAsyncThunk(
       dispatch(fetchAcademicClasses());
       dispatch(fetchHmSummary());
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to create class');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to create class');
     }
   }
 );
@@ -73,8 +73,8 @@ export const fetchAcademicSections = createAsyncThunk(
     try {
       const response = await hmService.getSections(params);
       return response.data?.sections || [];
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch sections');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch sections');
     }
   }
 );
@@ -87,8 +87,8 @@ export const createAcademicSection = createAsyncThunk(
       dispatch(fetchAcademicSections());
       dispatch(fetchHmSummary());
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to create section');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to create section');
     }
   }
 );
@@ -99,8 +99,8 @@ export const fetchAcademicSubjects = createAsyncThunk(
     try {
       const response = await hmService.getSubjects(params);
       return response.data?.subjects || [];
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch subjects');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch subjects');
     }
   }
 );
@@ -112,8 +112,8 @@ export const createAcademicSubject = createAsyncThunk(
       const response = await hmService.createSubject(subjectData);
       dispatch(fetchAcademicSubjects());
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to create subject');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to create subject');
     }
   }
 );
@@ -124,8 +124,8 @@ export const fetchTeachingAssignments = createAsyncThunk(
     try {
       const response = await hmService.getSchoolTeachingAssignments();
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch teaching assignments');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch teaching assignments');
     }
   }
 );
@@ -137,8 +137,8 @@ export const assignTeachingDuty = createAsyncThunk(
       const response = await hmService.addTeachingAssignment(assignmentData);
       dispatch(fetchTeachingAssignments());
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to allocate teaching assignment');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to allocate teaching assignment');
     }
   }
 );
@@ -150,8 +150,8 @@ export const terminateTeachingDuty = createAsyncThunk(
       const response = await hmService.endTeachingAssignment(id, reason);
       dispatch(fetchTeachingAssignments());
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to end teaching duty');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to end teaching duty');
     }
   }
 );
@@ -162,8 +162,8 @@ export const fetchAttendanceAnalytics = createAsyncThunk(
     try {
       const response = await hmService.getSchoolAttendanceAnalytics();
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch attendance analytics');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch attendance analytics');
     }
   }
 );
@@ -175,8 +175,8 @@ export const verifyAttendanceRecord = createAsyncThunk(
       const response = await hmService.verifyAttendance(id, remarks);
       dispatch(fetchHmSummary());
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to verify attendance');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to verify attendance');
     }
   }
 );
@@ -187,8 +187,8 @@ export const fetchExamsList = createAsyncThunk(
     try {
       const response = await hmService.getExams();
       return response.data?.exams || [];
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch examinations');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch examinations');
     }
   }
 );
@@ -200,8 +200,8 @@ export const scheduleExam = createAsyncThunk(
       const response = await hmService.createExam(examData);
       dispatch(fetchExamsList());
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to schedule exam');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to schedule exam');
     }
   }
 );
@@ -212,8 +212,8 @@ export const fetchExamResults = createAsyncThunk(
     try {
       const response = await hmService.getExamResults(examId, params);
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch exam results');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch exam results');
     }
   }
 );
@@ -225,8 +225,8 @@ export const verifyStudentResult = createAsyncThunk(
       const response = await hmService.verifyExamResult(resultId, remarks);
       if (examId) dispatch(fetchExamResults({ examId }));
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to verify student result');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to verify student result');
     }
   }
 );
@@ -238,8 +238,8 @@ export const batchVerifyStudentResults = createAsyncThunk(
       const response = await hmService.batchVerifyExamResults(examId, { classId, sectionId, remarks });
       if (examId) dispatch(fetchExamResults({ examId, params: { classId, sectionId } }));
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to batch verify student results');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to batch verify student results');
     }
   }
 );
@@ -251,8 +251,8 @@ export const submitStudentMarksAction = createAsyncThunk(
       const response = await hmService.submitStudentMarks(examId, payload);
       if (examId) dispatch(fetchExamResults({ examId }));
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to submit student marks');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to submit student marks');
     }
   }
 );
@@ -265,8 +265,8 @@ export const publishExamGazette = createAsyncThunk(
       dispatch(fetchExamsList());
       dispatch(fetchExamResults({ examId }));
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to publish exam gazette');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to publish exam gazette');
     }
   }
 );
@@ -277,8 +277,8 @@ export const fetchIncomingTransfers = createAsyncThunk(
     try {
       const response = await hmService.getTransfers(params);
       return response.data?.transfers || [];
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch incoming transfers');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch incoming transfers');
     }
   }
 );
@@ -291,8 +291,8 @@ export const approveTransferJoining = createAsyncThunk(
       dispatch(fetchIncomingTransfers());
       dispatch(fetchHmSummary());
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to approve transfer joining');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to approve transfer joining');
     }
   }
 );
@@ -310,8 +310,8 @@ export const relieveTransferFaculty = createAsyncThunk(
       dispatch(fetchIncomingTransfers());
       dispatch(fetchHmSummary());
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to relieve faculty member');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to relieve faculty member');
     }
   }
 );
@@ -324,8 +324,8 @@ export const rejectTransferJoining = createAsyncThunk(
       dispatch(fetchIncomingTransfers());
       dispatch(fetchHmSummary());
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to reject faculty joining');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to reject faculty joining');
     }
   }
 );
@@ -336,8 +336,8 @@ export const fetchSchoolNotices = createAsyncThunk(
     try {
       const response = await hmService.getDocuments(params);
       return response.data?.documents || [];
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch school circulars');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch school circulars');
     }
   }
 );
@@ -349,8 +349,8 @@ export const publishSchoolNotice = createAsyncThunk(
       const response = await hmService.createDocument(noticeData);
       dispatch(fetchSchoolNotices());
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to publish circular');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to publish circular');
     }
   }
 );
@@ -362,8 +362,8 @@ export const archiveSchoolNotice = createAsyncThunk(
       const response = await hmService.archiveDocument(documentId);
       dispatch(fetchSchoolNotices());
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to archive circular');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to archive circular');
     }
   }
 );
@@ -377,8 +377,8 @@ export const deleteSchoolNotice = createAsyncThunk(
       const response = await hmService.deleteDocument(id, reason);
       dispatch(fetchSchoolNotices());
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to delete circular');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to delete circular');
     }
   }
 );
@@ -389,11 +389,11 @@ export const fetchSchoolStudents = createAsyncThunk(
     try {
       const response = await hmService.getSchoolStudents(params, { signal });
       return response.data;
-    } catch (error) {
-      if (error.name === 'CanceledError' || error.name === 'AbortError' || error.code === 'ERR_CANCELED') {
+    } catch (apiRequestError) {
+      if (apiRequestError.name === 'CanceledError' || apiRequestError.name === 'AbortError' || apiRequestError.code === 'ERR_CANCELED') {
         return rejectWithValue('REQUEST_ABORTED');
       }
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch student directory');
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch student directory');
     }
   }
 );
@@ -405,8 +405,8 @@ export const updateSchoolCode = createAsyncThunk(
       const response = await hmService.setSchoolCode(schoolId, schoolCode);
       dispatch(fetchHmSummary());
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to update school code');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to update school code');
     }
   }
 );
@@ -417,8 +417,8 @@ export const fetchSchoolFaculty = createAsyncThunk(
     try {
       const response = await hmService.getSchoolFaculty(params);
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch faculty roster');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch faculty roster');
     }
   }
 );
@@ -429,8 +429,8 @@ export const fetchTeacherDailyAttendance = createAsyncThunk(
     try {
       const response = await hmService.getTeacherDailyAttendance(params);
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch teacher daily attendance');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch teacher daily attendance');
     }
   }
 );
@@ -443,8 +443,8 @@ export const saveTeacherDailyAttendance = createAsyncThunk(
       dispatch(fetchTeacherDailyAttendance({ date: payload.date }));
       dispatch(fetchHmSummary());
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to record teacher attendance');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to record teacher attendance');
     }
   }
 );
@@ -455,8 +455,8 @@ export const fetchHmParentLinks = createAsyncThunk(
     try {
       const response = await hmService.getParentLinks(params);
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch parent link verification queue');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch parent link verification queue');
     }
   }
 );
@@ -469,8 +469,8 @@ export const verifyHmParentLink = createAsyncThunk(
       dispatch(fetchHmParentLinks());
       dispatch(fetchHmSummary());
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to verify parent-student link');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to verify parent-student link');
     }
   }
 );
@@ -483,8 +483,8 @@ export const rejectHmParentLink = createAsyncThunk(
       dispatch(fetchHmParentLinks());
       dispatch(fetchHmSummary());
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to reject parent claim');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to reject parent claim');
     }
   }
 );
@@ -497,8 +497,8 @@ export const revokeHmParentLink = createAsyncThunk(
       dispatch(fetchHmParentLinks());
       dispatch(fetchHmSummary());
       return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to revoke parent link');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to revoke parent link');
     }
   }
 );

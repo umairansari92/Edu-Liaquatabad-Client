@@ -31,9 +31,9 @@ export const AuditLogsPage = () => {
       if (response.data?.success) {
         setLogsList(response.data.data?.auditLogs || []);
       }
-    } catch (error) {
-      console.error('Failed to load audit logs:', error);
-      toast.error(error.response?.data?.message || 'Unable to retrieve audit ledger.');
+    } catch (auditFetchError) {
+      console.error('Failed to load audit logs:', auditFetchError);
+      toast.error(auditFetchError.response?.data?.message || 'Unable to retrieve audit ledger.');
     } finally {
       setIsLoading(false);
     }

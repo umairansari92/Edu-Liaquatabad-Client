@@ -88,8 +88,8 @@ export const TransferEmployeeModal = ({
       } else {
         toast.error(response.data?.message || 'Transfer initiation failed.');
       }
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Server error initiating faculty transfer.');
+    } catch (employeeTransferError) {
+      toast.error(employeeTransferError.response?.data?.message || 'Server error initiating faculty transfer.');
     } finally {
       setIsSubmitting(false);
     }

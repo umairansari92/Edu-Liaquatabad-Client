@@ -62,9 +62,9 @@ export const SchoolsPage = () => {
       if (response.data?.success) {
         setSchoolsList(response.data.data?.schools || response.data.data || []);
       }
-    } catch (error) {
-      console.error('Failed to load schools:', error);
-      toast.error(error.response?.data?.message || 'Unable to retrieve municipal schools directory.');
+    } catch (schoolsFetchError) {
+      console.error('Failed to load schools:', schoolsFetchError);
+      toast.error(schoolsFetchError.response?.data?.message || 'Unable to retrieve municipal schools directory.');
     } finally {
       setIsSchoolsLoading(false);
     }
@@ -115,8 +115,8 @@ export const SchoolsPage = () => {
         });
         fetchSchools();
       }
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to register school.');
+    } catch (schoolRegistrationError) {
+      toast.error(schoolRegistrationError.response?.data?.message || 'Failed to register school.');
     } finally {
       setIsSubmitting(false);
     }

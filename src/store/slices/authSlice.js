@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+﻿import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import authService from '../../services/authService.js';
 
 export const logoutUser = createAsyncThunk(
@@ -7,8 +7,8 @@ export const logoutUser = createAsyncThunk(
     try {
       await authService.logout();
       return true;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Logout failed');
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Logout failed');
     }
   }
 );

@@ -53,9 +53,9 @@ export const SchoolTimingsModal = ({ isOpen, onClose, school, onTimingsUpdated }
         if (onTimingsUpdated) onTimingsUpdated(response.data.data?.school);
         onClose();
       }
-    } catch (error) {
-      console.error('Failed to update school timings:', error);
-      toast.error(error.response?.data?.message || 'Failed to update school timings.');
+    } catch (timingsUpdateError) {
+      console.error('Failed to update school timings:', timingsUpdateError);
+      toast.error(timingsUpdateError.response?.data?.message || 'Failed to update school timings.');
     } finally {
       setIsSubmitting(false);
     }
