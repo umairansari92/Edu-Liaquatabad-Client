@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { useSearchParams } from 'react-router-dom';
 import {
   Users, GraduationCap, Heart, Search, Download, RefreshCw,
   Building2, Mail, Phone, CalendarDays, IdCard, Hash,
@@ -166,16 +167,23 @@ const DirectoryFilterToolbar = ({
 
 // ── Tab 1: Staff Directory ────────────────────────────────────────────────────
 
-const StaffDirectoryTab = ({ municipalSchoolsList }) => {
+const StaffDirectoryTab = ({ municipalSchoolsList, initialSearch = '' }) => {
   const [staffRecords, setStaffRecords] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(initialSearch);
   const [selectedSchoolId, setSelectedSchoolId] = useState('');
   const [selectedRole, setSelectedRole] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
+
+  useEffect(() => {
+    if (initialSearch) {
+      setSearchQuery(initialSearch);
+      setDebouncedSearchQuery(initialSearch);
+    }
+  }, [initialSearch]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -344,13 +352,19 @@ const StaffDirectoryTab = ({ municipalSchoolsList }) => {
 
 // ── Tab 2: Students Directory ─────────────────────────────────────────────────
 
-const StudentsDirectoryTab = ({ municipalSchoolsList }) => {
+const StudentsDirectoryTab = ({ municipalSchoolsList, initialSearch = '' }) => {
   const [rawStudents, setRawStudents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [selectedSchoolId, setSelectedSchoolId] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
+
+  useEffect(() => {
+    if (initialSearch) {
+      setSearchQuery(initialSearch);
+    }
+  }, [initialSearch]);
 
   const fetchStudentsData = useCallback(async () => {
     setIsLoading(true);
@@ -715,6 +729,8 @@ const TAB_ACCENT_STYLES = {
 export const DirectoryPage = () => {
   const { user: authenticatedUser } = useSelector((state) => state.auth);
   const isPlatformAdministrator = ['ROOT_ADMIN', 'SUPER_ADMIN', 'ADMIN'].includes(authenticatedUser?.role);
+  const [searchParams] = useSearchParams();
+  const searchParamValue = searchParams.get('search') || '';
   const [activeTabId, setActiveTabId] = useState('staff');
   const [municipalSchoolsList, setMunicipalSchoolsList] = useState([]);
 
@@ -762,8 +778,18 @@ export const DirectoryPage = () => {
           })}
         </div>
 
-        {activeTabId === 'staff' && <StaffDirectoryTab municipalSchoolsList={municipalSchoolsList} />}
-        {activeTabId === 'students' && <StudentsDirectoryTab municipalSchoolsList={municipalSchoolsList} />}
+        {activeTabId === 'staff' && (
+          <StaffDirectoryTab
+            municipalSchoolsList={municipalSchoolsList}
+            initialSearch={searchParamValue}
+          />
+        )}
+        {activeTabId === 'students' && (
+          <StudentsDirectoryTab
+            municipalSchoolsList={municipalSchoolsList}
+            initialSearch={searchParamValue}
+          />
+        )}
         {activeTabId === 'guardians' && <GuardiansDirectoryTab />}
       </div>
     </PageContainer>
