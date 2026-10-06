@@ -2011,10 +2011,10 @@ export const HmDashboard = () => {
               <div>
                 <h4 className="text-sm font-bold text-[#102033] flex items-center gap-2">
                   <UserCheck className="w-4 h-4 text-[#006AC7]" />
-                  Designated Class Teachers
+                  Class Teachers
                 </h4>
                 <p className="text-xs text-[#526477] mt-0.5">
-                  The primary teacher designated for each section, responsible for routine daily student attendance, class records, student follow-up, and coordination.
+                  Each section has one primary Class Teacher responsible for daily attendance, class records, and student follow-up. In subject-wise scheduling, the teacher assigned to Period 1 in the timetable automatically becomes the Class Teacher. You can also assign or update the primary Class Teacher directly below.
                 </p>
               </div>
             </div>
@@ -2063,7 +2063,7 @@ export const HmDashboard = () => {
                           </div>
                         ) : (
                           <p className="text-xs text-[#8094A8] italic">
-                            No Class Teacher designated for routine attendance & records.
+                            No Class Teacher assigned for routine attendance & records.
                           </p>
                         )}
                       </div>
@@ -2085,7 +2085,7 @@ export const HmDashboard = () => {
                           }
                           className="px-2.5 py-1 text-xs font-semibold rounded-lg border border-slate-300 bg-white text-[#006AC7] hover:bg-blue-50/50 hover:border-[#006AC7] transition cursor-pointer shadow-2xs"
                         >
-                          {isDesignated ? 'Change teacher' : 'Designate teacher'}
+                          {isDesignated ? 'Change teacher' : 'Assign teacher'}
                         </button>
                       </div>
                     </div>
@@ -2515,7 +2515,12 @@ export const HmDashboard = () => {
                         {ex.status}
                       </span>
                     </div>
-                    <p className="text-[11px] text-[#526477] mt-1">{ex.examType} • {ex.academicYear}</p>
+                    <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${ex.examScope === 'CENTRALIZED' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-slate-100 text-slate-700 border border-slate-200'}`}>
+                        {ex.examScope === 'CENTRALIZED' ? 'Centralized' : 'School-Level'}
+                      </span>
+                      <p className="text-[11px] text-[#526477]">{ex.examType} • {ex.academicYear}</p>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -2543,12 +2548,16 @@ export const HmDashboard = () => {
                       </h4>
                       {selectedExam && (
                         <p className="text-[11px] text-[#526477] mt-0.5">
-                          Session: <span className="font-semibold text-[#102033]">{selectedExam.academicYear}</span> • Type: <span className="font-semibold text-[#102033]">{selectedExam.examType}</span>
+                          Scope: <span className="font-semibold text-[#102033]">{selectedExam.examScope === 'CENTRALIZED' ? 'Centralized (Town-Wide)' : 'School-Level Exam'}</span> • Session: <span className="font-semibold text-[#102033]">{selectedExam.academicYear}</span> • Type: <span className="font-semibold text-[#102033]">{selectedExam.examType}</span>
                         </p>
                       )}
                     </div>
                     <div className="flex items-center gap-2">
-                      {selectedExam?.status === 'PUBLISHED' ? (
+                      {selectedExam?.examScope === 'CENTRALIZED' ? (
+                        <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200">
+                          <ShieldCheck className="w-3.5 h-3.5" /> Centralized (Admin Governed)
+                        </span>
+                      ) : selectedExam?.status === 'PUBLISHED' ? (
                         <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                           <Lock className="w-3.5 h-3.5" /> Sealed & Published
                         </span>
@@ -2574,6 +2583,12 @@ export const HmDashboard = () => {
                       )}
                     </div>
                   </div>
+
+                  {selectedExam?.examScope === 'CENTRALIZED' && (
+                    <div className="p-3.5 rounded-xl bg-purple-50 border border-purple-200 text-xs text-purple-900 leading-relaxed">
+                      <strong>Centralized Town Examination:</strong> This exam is conducted town-wide under Town Education Administration. Evaluation and marks tabulation take place at designated central centers. Gazette publication is handled centrally by Town Administration.
+                    </div>
+                  )}
 
                   {selectedExamId && totalCandidates > 0 && (
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 bg-slate-50/80 rounded-xl border border-slate-200/60">
@@ -3766,8 +3781,8 @@ export const HmDashboard = () => {
                 <AlertTriangle className="w-5 h-5 text-rose-600" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-[#102033]">Strike Off Student Record</h3>
-                <p className="text-xs text-[#526477]">Controlled administrative action with audit trail</p>
+                <h3 className="text-base font-bold text-[#102033]">Strike Off Student</h3>
+                <p className="text-xs text-[#526477]">Record official student strike-off with school audit log</p>
               </div>
             </div>
 
@@ -3791,19 +3806,19 @@ export const HmDashboard = () => {
             </div>
 
             <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800 leading-relaxed">
-              <strong>Notice:</strong> This action will mark the student's status as <code>STRUCK_OFF</code>, immediately invalidate any active user portal sessions, and automatically revoke parent linkage claims. The student's academic history and GR No remain preserved in the permanent institutional register.
+              <strong>Notice:</strong> This action updates the student's status to <strong>Struck Off</strong>. The student's complete academic history, GR Number, and admission records remain permanently archived and preserved in the official school register.
             </div>
 
             <form onSubmit={handleStrikeOffSubmit} className="space-y-4">
               <div>
                 <label className="text-xs font-bold text-[#102033] block mb-1">
-                  Official Reason / Justification <span className="text-rose-600">*</span>
+                  Reason for Strike-Off <span className="text-rose-600">*</span>
                 </label>
                 <textarea
                   rows={3}
                   value={strikeOffReason}
                   onChange={(changeEvent) => setStrikeOffReason(changeEvent.target.value)}
-                  placeholder="State the official justification (e.g. prolonged unexcused absence exceeding 30 consecutive days, disciplinary strike-off)..."
+                  placeholder="Enter the official reason (e.g. continuous unexcused absence exceeding 30 consecutive days, family relocated)..."
                   required
                   minLength={10}
                   maxLength={500}

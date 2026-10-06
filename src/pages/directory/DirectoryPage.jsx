@@ -168,14 +168,16 @@ const DirectoryFilterToolbar = ({
 
 // ── Tab 1: Staff Directory ────────────────────────────────────────────────────
 
-const StaffDirectoryTab = ({ municipalSchoolsList, initialSearch = '' }) => {
+const StaffDirectoryTab = ({ municipalSchoolsList, initialSearch = '', authenticatedUser }) => {
+  const isHM = authenticatedUser?.role === 'HM';
+  const userSchoolId = authenticatedUser?.schoolId?._id || authenticatedUser?.schoolId || '';
   const [staffRecords, setStaffRecords] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(initialSearch);
-  const [selectedSchoolId, setSelectedSchoolId] = useState('');
+  const [selectedSchoolId, setSelectedSchoolId] = useState(isHM ? String(userSchoolId) : '');
   const [selectedRole, setSelectedRole] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
 
@@ -198,7 +200,8 @@ const StaffDirectoryTab = ({ municipalSchoolsList, initialSearch = '' }) => {
     try {
       const queryParameters = new URLSearchParams({ limit: '200' });
       if (debouncedSearchQuery.trim()) queryParameters.append('search', debouncedSearchQuery.trim());
-      if (selectedSchoolId) queryParameters.append('schoolId', selectedSchoolId);
+      const effectiveSchoolId = isHM ? String(userSchoolId) : selectedSchoolId;
+      if (effectiveSchoolId) queryParameters.append('schoolId', effectiveSchoolId);
       if (selectedRole) queryParameters.append('role', selectedRole);
       if (selectedStatus) queryParameters.append('status', selectedStatus);
 
@@ -215,7 +218,7 @@ const StaffDirectoryTab = ({ municipalSchoolsList, initialSearch = '' }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [debouncedSearchQuery, selectedSchoolId, selectedRole, selectedStatus]);
+  }, [debouncedSearchQuery, selectedSchoolId, selectedRole, selectedStatus, isHM, userSchoolId]);
 
   useEffect(() => {
     fetchStaffData();
@@ -224,7 +227,8 @@ const StaffDirectoryTab = ({ municipalSchoolsList, initialSearch = '' }) => {
   const handleExportStaffCsv = () => {
     const exportParameters = {};
     if (searchQuery.trim()) exportParameters.search = searchQuery.trim();
-    if (selectedSchoolId) exportParameters.schoolId = selectedSchoolId;
+    const effectiveSchoolId = isHM ? String(userSchoolId) : selectedSchoolId;
+    if (effectiveSchoolId) exportParameters.schoolId = effectiveSchoolId;
     if (selectedRole) exportParameters.role = selectedRole;
     if (selectedStatus) exportParameters.status = selectedStatus;
 
@@ -248,18 +252,20 @@ const StaffDirectoryTab = ({ municipalSchoolsList, initialSearch = '' }) => {
           placeholderText="Search name or email..."
           focusBorderColorClass="focus:border-[#006AC7]"
         />
-        <FilterDropdownSelect
-          value={selectedSchoolId}
-          onChange={setSelectedSchoolId}
-          focusBorderColorClass="focus:border-[#006AC7]"
-        >
-          <option value="">All Schools</option>
-          {municipalSchoolsList.map((schoolItem) => (
-            <option key={schoolItem._id} value={schoolItem._id}>
-              {schoolItem.name}
-            </option>
-          ))}
-        </FilterDropdownSelect>
+        {!isHM && (
+          <FilterDropdownSelect
+            value={selectedSchoolId}
+            onChange={setSelectedSchoolId}
+            focusBorderColorClass="focus:border-[#006AC7]"
+          >
+            <option value="">All Schools</option>
+            {municipalSchoolsList.map((schoolItem) => (
+              <option key={schoolItem._id} value={schoolItem._id}>
+                {schoolItem.name}
+              </option>
+            ))}
+          </FilterDropdownSelect>
+        )}
         <FilterDropdownSelect
           value={selectedRole}
           onChange={setSelectedRole}
@@ -353,12 +359,14 @@ const StaffDirectoryTab = ({ municipalSchoolsList, initialSearch = '' }) => {
 
 // ── Tab 2: Students Directory ─────────────────────────────────────────────────
 
-const StudentsDirectoryTab = ({ municipalSchoolsList, initialSearch = '' }) => {
+const StudentsDirectoryTab = ({ municipalSchoolsList, initialSearch = '', authenticatedUser }) => {
+  const isHM = authenticatedUser?.role === 'HM';
+  const userSchoolId = authenticatedUser?.schoolId?._id || authenticatedUser?.schoolId || '';
   const [rawStudents, setRawStudents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
   const [searchQuery, setSearchQuery] = useState(initialSearch);
-  const [selectedSchoolId, setSelectedSchoolId] = useState('');
+  const [selectedSchoolId, setSelectedSchoolId] = useState(isHM ? String(userSchoolId) : '');
   const [selectedStatus, setSelectedStatus] = useState('');
 
   useEffect(() => {
@@ -371,7 +379,8 @@ const StudentsDirectoryTab = ({ municipalSchoolsList, initialSearch = '' }) => {
     setIsLoading(true);
     try {
       const queryParameters = new URLSearchParams({ role: 'STUDENT', limit: '500' });
-      if (selectedSchoolId) queryParameters.append('schoolId', selectedSchoolId);
+      const effectiveSchoolId = isHM ? String(userSchoolId) : selectedSchoolId;
+      if (effectiveSchoolId) queryParameters.append('schoolId', effectiveSchoolId);
       if (selectedStatus) queryParameters.append('status', selectedStatus);
 
       const response = await apiClient.get(`/users?${queryParameters.toString()}`);
@@ -383,7 +392,7 @@ const StudentsDirectoryTab = ({ municipalSchoolsList, initialSearch = '' }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedSchoolId, selectedStatus]);
+  }, [selectedSchoolId, selectedStatus, isHM, userSchoolId]);
 
   useEffect(() => {
     fetchStudentsData();
@@ -404,7 +413,8 @@ const StudentsDirectoryTab = ({ municipalSchoolsList, initialSearch = '' }) => {
   const handleExportStudentsCsv = () => {
     const exportParameters = {};
     if (searchQuery.trim()) exportParameters.search = searchQuery.trim();
-    if (selectedSchoolId) exportParameters.schoolId = selectedSchoolId;
+    const effectiveSchoolId = isHM ? String(userSchoolId) : selectedSchoolId;
+    if (effectiveSchoolId) exportParameters.schoolId = effectiveSchoolId;
     if (selectedStatus) exportParameters.status = selectedStatus;
 
     downloadCsvFile('/exports/students.csv', `students_directory_${formatDisplayDate(new Date())}.csv`, exportParameters, setIsExporting);
@@ -427,18 +437,20 @@ const StudentsDirectoryTab = ({ municipalSchoolsList, initialSearch = '' }) => {
           placeholderText="Search student name, GR No..."
           focusBorderColorClass="focus:border-[#006AC7]"
         />
-        <FilterDropdownSelect
-          value={selectedSchoolId}
-          onChange={setSelectedSchoolId}
-          focusBorderColorClass="focus:border-[#006AC7]"
-        >
-          <option value="">All Schools</option>
-          {municipalSchoolsList.map((schoolItem) => (
-            <option key={schoolItem._id} value={schoolItem._id}>
-              {schoolItem.name}
-            </option>
-          ))}
-        </FilterDropdownSelect>
+        {!isHM && (
+          <FilterDropdownSelect
+            value={selectedSchoolId}
+            onChange={setSelectedSchoolId}
+            focusBorderColorClass="focus:border-[#006AC7]"
+          >
+            <option value="">All Schools</option>
+            {municipalSchoolsList.map((schoolItem) => (
+              <option key={schoolItem._id} value={schoolItem._id}>
+                {schoolItem.name}
+              </option>
+            ))}
+          </FilterDropdownSelect>
+        )}
         <FilterDropdownSelect
           value={selectedStatus}
           onChange={setSelectedStatus}
@@ -730,10 +742,19 @@ const TAB_ACCENT_STYLES = {
 export const DirectoryPage = () => {
   const { user: authenticatedUser } = useSelector((state) => state.auth);
   const isPlatformAdministrator = ['ROOT_ADMIN', 'SUPER_ADMIN', 'ADMIN'].includes(authenticatedUser?.role);
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const searchParamValue = searchParams.get('search') || '';
-  const [activeTabId, setActiveTabId] = useState('staff');
+  const tabParamValue = searchParams.get('tab');
+  const [activeTabId, setActiveTabId] = useState(
+    tabParamValue && ['staff', 'students', 'guardians'].includes(tabParamValue) ? tabParamValue : 'staff'
+  );
   const [municipalSchoolsList, setMunicipalSchoolsList] = useState([]);
+
+  useEffect(() => {
+    if (tabParamValue && ['staff', 'students', 'guardians'].includes(tabParamValue) && tabParamValue !== activeTabId) {
+      setActiveTabId(tabParamValue);
+    }
+  }, [tabParamValue, activeTabId]);
 
   useEffect(() => {
     apiClient
@@ -750,10 +771,25 @@ export const DirectoryPage = () => {
     (tabConfig) => !tabConfig.requiresAdminRole || isPlatformAdministrator
   );
 
+  const handleTabChange = (targetTabId) => {
+    setActiveTabId(targetTabId);
+    setSearchParams((prevParams) => {
+      const nextParams = new URLSearchParams(prevParams);
+      nextParams.set('tab', targetTabId);
+      return nextParams;
+    });
+  };
+
+  const isHM = authenticatedUser?.role === 'HM';
+  const pageTitle = isHM ? 'School Directory' : 'Institutional Directory';
+  const pageSubtitle = isHM
+    ? `${authenticatedUser?.schoolId?.name || 'School'} — Staff and Students directory with CSV export`
+    : 'Education Department Liaquatabad Town — Staff, Students & Guardian records with CSV export';
+
   return (
     <PageContainer
-      title="Institutional Directory"
-      subtitle="Education Department Liaquatabad Town — Staff, Students & Guardian records with CSV export"
+      title={pageTitle}
+      subtitle={pageSubtitle}
     >
       <div className="space-y-6">
         <div className="flex items-center gap-0 border-b border-slate-200 overflow-x-auto">
@@ -765,7 +801,7 @@ export const DirectoryPage = () => {
               <button
                 key={tabConfig.id}
                 type="button"
-                onClick={() => setActiveTabId(tabConfig.id)}
+                onClick={() => handleTabChange(tabConfig.id)}
                 className={`flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-2 whitespace-nowrap transition-all ${
                   isTabActive
                     ? accentStyleConfig.activeStyle
@@ -783,12 +819,14 @@ export const DirectoryPage = () => {
           <StaffDirectoryTab
             municipalSchoolsList={municipalSchoolsList}
             initialSearch={searchParamValue}
+            authenticatedUser={authenticatedUser}
           />
         )}
         {activeTabId === 'students' && (
           <StudentsDirectoryTab
             municipalSchoolsList={municipalSchoolsList}
             initialSearch={searchParamValue}
+            authenticatedUser={authenticatedUser}
           />
         )}
         {activeTabId === 'guardians' && <GuardiansDirectoryTab />}

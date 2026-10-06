@@ -53,17 +53,30 @@ export const Sidebar = () => {
       { label: 'Holidays & Calendar', path: '/holidays', icon: Calendar },
       { label: 'Official Circulars', path: '/documents', icon: FileText },
     ];
+  } else if (user?.role === 'HM') {
+    navigationItems = [
+      { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+      { label: 'Student directory', path: '/directory?tab=students', icon: BookUser },
+      { label: 'Teaching staff', path: '/directory?tab=staff', icon: Users },
+      { label: 'Attendance', path: '/attendance', icon: ClipboardCheck },
+      { label: 'Incoming staff', path: '/transfers', icon: ArrowLeftRight },
+      { label: 'Exams & results', path: '/exams', icon: Award },
+      { label: 'Approvals', path: '/approvals', icon: ShieldCheck },
+      { label: 'Holidays & calendar', path: '/holidays', icon: Calendar },
+      { label: 'Notices & circulars', path: '/documents', icon: FileText },
+      { label: 'My profile', path: '/profile', icon: IdCard },
+    ];
   } else {
     navigationItems = [
       { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
       { label: 'Approvals', path: '/approvals', icon: ShieldCheck },
       { label: 'Schools & classes', path: '/schools', icon: Building2 },
-      { label: 'Faculty & staff', path: '/users', icon: Users },
-      { label: 'Student directory', path: '/directory', icon: BookUser },
+      { label: 'Account governance', path: '/users', icon: Users },
+      { label: 'Institutional directory', path: '/directory', icon: BookUser },
       { label: 'Attendance', path: '/attendance', icon: ClipboardCheck },
       { label: 'Holidays & calendar', path: '/holidays', icon: Calendar },
       { label: 'Exams & results', path: '/exams', icon: Award },
-      { label: user?.role === 'HM' ? 'Incoming staff' : 'Staff transfers', path: '/transfers', icon: ArrowLeftRight },
+      { label: 'Staff transfers', path: '/transfers', icon: ArrowLeftRight },
       { label: 'My profile', path: '/profile', icon: IdCard },
       { label: 'Notices & circulars', path: '/documents', icon: FileText },
     ];
@@ -95,7 +108,10 @@ export const Sidebar = () => {
 
         {navigationItems.map((navItem) => {
           const Icon = navItem.icon;
-          const isActive = location.pathname === navItem.path;
+          const currentUrl = location.pathname + location.search;
+          const isActive = navItem.path.includes('?')
+            ? currentUrl === navItem.path
+            : location.pathname === navItem.path && (!location.search || !location.search.includes('tab='));
           return (
             <Link
               key={navItem.path}

@@ -33,6 +33,7 @@ export const EmployeesTable = ({
   onOpenProfileDrawer,
   onOpenAuditModal,
 }) => {
+  const isPlatformAdministrator = ['ROOT_ADMIN', 'SUPER_ADMIN', 'ADMIN'].includes(authenticatedUser?.role);
   const isUserBulkEligible = (targetUser) =>
     targetUser.role !== 'ROOT_ADMIN' && String(targetUser._id) !== String(authenticatedUser?._id);
 
@@ -46,20 +47,22 @@ export const EmployeesTable = ({
         <table className="w-full text-left text-xs text-[#526477]">
           <thead className="border-b border-slate-200/80 bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-[#526477]">
             <tr>
-              <th className="w-10 px-4 py-3.5">
-                <button
-                  type="button"
-                  onClick={onSelectAll}
-                  className="text-slate-400 hover:text-[#102033]"
-                  title="Select All Eligible Employees"
-                >
-                  {isAllSelected ? (
-                    <CheckSquare className="h-4 w-4 text-[#006AC7]" />
-                  ) : (
-                    <Square className="h-4 w-4" />
-                  )}
-                </button>
-              </th>
+              {isPlatformAdministrator && (
+                <th className="w-10 px-4 py-3.5">
+                  <button
+                    type="button"
+                    onClick={onSelectAll}
+                    className="text-slate-400 hover:text-[#102033]"
+                    title="Select All Eligible Employees"
+                  >
+                    {isAllSelected ? (
+                      <CheckSquare className="h-4 w-4 text-[#006AC7]" />
+                    ) : (
+                      <Square className="h-4 w-4" />
+                    )}
+                  </button>
+                </th>
+              )}
               <th className="px-4 py-3.5">Employee Identity</th>
               <th className="px-4 py-3.5">Civil Designation</th>
               <th className="px-4 py-3.5">Base Role</th>
@@ -73,14 +76,14 @@ export const EmployeesTable = ({
           <tbody className="divide-y divide-slate-100">
             {isLoading ? (
               <tr>
-                <td colSpan={9} className="py-12 text-center text-[#526477]">
+                <td colSpan={isPlatformAdministrator ? 9 : 8} className="py-12 text-center text-[#526477]">
                   <RefreshCw className="mx-auto h-6 w-6 animate-spin text-[#006AC7]" />
                   <p className="mt-2 font-medium">Retrieving employee roster...</p>
                 </td>
               </tr>
             ) : usersList.length === 0 ? (
               <tr>
-                <td colSpan={9} className="py-12 text-center text-[#526477]">
+                <td colSpan={isPlatformAdministrator ? 9 : 8} className="py-12 text-center text-[#526477]">
                   <Users className="mx-auto h-8 w-8 text-slate-300 mb-2" />
                   <p className="font-bold text-[#102033]">No employee records found</p>
                   <p className="mt-1 text-xs text-[#8094A8]">
@@ -108,32 +111,34 @@ export const EmployeesTable = ({
                     className={`transition hover:bg-blue-50/40 ${isSelected ? 'bg-blue-50/60' : ''}`}
                   >
                     {/* Checkbox */}
-                    <td className="px-4 py-3.5">
-                      {isEligible ? (
-                        <button
-                          type="button"
-                          onClick={() => onToggleSelect(employee)}
-                          className="text-slate-400 hover:text-[#102033]"
-                        >
-                          {isSelected ? (
-                            <CheckSquare className="h-4 w-4 text-[#006AC7]" />
-                          ) : (
-                            <Square className="h-4 w-4" />
-                          )}
-                        </button>
-                      ) : (
-                        <span
-                          className="text-slate-300 cursor-not-allowed"
-                          title={
-                            isProtectedRoot
-                              ? 'Root Admin accounts are exempt from bulk actions'
-                              : 'Self-selection is prohibited'
-                          }
-                        >
-                          <Square className="h-4 w-4 opacity-35" />
-                        </span>
-                      )}
-                    </td>
+                    {isPlatformAdministrator && (
+                      <td className="px-4 py-3.5">
+                        {isEligible ? (
+                          <button
+                            type="button"
+                            onClick={() => onToggleSelect(employee)}
+                            className="text-slate-400 hover:text-[#102033]"
+                          >
+                            {isSelected ? (
+                              <CheckSquare className="h-4 w-4 text-[#006AC7]" />
+                            ) : (
+                              <Square className="h-4 w-4" />
+                            )}
+                          </button>
+                        ) : (
+                          <span
+                            className="text-slate-300 cursor-not-allowed"
+                            title={
+                              isProtectedRoot
+                                ? 'Root Admin accounts are exempt from bulk actions'
+                                : 'Self-selection is prohibited'
+                            }
+                          >
+                            <Square className="h-4 w-4 opacity-35" />
+                          </span>
+                        )}
+                      </td>
+                    )}
 
                     {/* Employee Identity */}
                     <td className="px-4 py-3.5">
@@ -250,106 +255,110 @@ export const EmployeesTable = ({
                           <Eye className="h-4 w-4" />
                         </button>
 
-                        {/* Assign School */}
-                        <button
-                          type="button"
-                          onClick={() => onOpenAssignSchoolModal(employee)}
-                          className={`rounded-lg p-1.5 ${
-                            isUnassigned
-                              ? 'text-amber-700 bg-amber-50 hover:bg-amber-100 font-bold'
-                              : 'text-slate-400 hover:text-[#006AC7] hover:bg-blue-50'
-                          } transition`}
-                          title={isUnassigned ? 'Assign School (Pending)' : 'Change School'}
-                        >
-                          <School className="h-4 w-4" />
-                        </button>
-
-                        {/* Transfer Employee */}
-                        {!isUnassigned && (
-                          <button
-                            type="button"
-                            onClick={() => onOpenTransferModal(employee)}
-                            className="rounded-lg p-1.5 text-slate-400 hover:text-[#006AC7] hover:bg-blue-50 transition"
-                            title="Transfer Employee"
-                          >
-                            <ArrowLeftRight className="h-4 w-4" />
-                          </button>
-                        )}
-
-                        {/* Change Designation & Authority */}
-                        <button
-                          type="button"
-                          disabled={isSelf || isProtectedRoot}
-                          onClick={() => onOpenAuthorityModal(employee)}
-                          className={`rounded-lg p-1.5 ${
-                            isSelf || isProtectedRoot
-                              ? 'text-slate-300 cursor-not-allowed opacity-50'
-                              : 'text-slate-400 hover:text-[#102033] hover:bg-slate-100'
-                          } transition`}
-                          title="Change Designation & Authority"
-                        >
-                          <ShieldCheck className="h-4 w-4" />
-                        </button>
-
-                        {/* Lifecycle Action */}
-                        {!isProtectedRoot && (
+                        {isPlatformAdministrator && (
                           <>
-                            {employee.status === 'PENDING_APPROVAL' && (
+                            {/* Assign School */}
+                            <button
+                              type="button"
+                              onClick={() => onOpenAssignSchoolModal(employee)}
+                              className={`rounded-lg p-1.5 ${
+                                isUnassigned
+                                  ? 'text-amber-700 bg-amber-50 hover:bg-amber-100 font-bold'
+                                  : 'text-slate-400 hover:text-[#006AC7] hover:bg-blue-50'
+                              } transition`}
+                              title={isUnassigned ? 'Assign School (Pending)' : 'Change School'}
+                            >
+                              <School className="h-4 w-4" />
+                            </button>
+
+                            {/* Transfer Employee */}
+                            {!isUnassigned && (
                               <button
                                 type="button"
-                                disabled={isProcessing}
-                                onClick={() =>
-                                  onProcessLifecycle(
-                                    employee._id,
-                                    'ACTIVE',
-                                    'Administrative onboarding approval'
-                                  )
-                                }
-                                className="rounded-lg p-1.5 text-[#4B7F3A] hover:bg-emerald-50 transition"
-                                title="Approve Employee"
+                                onClick={() => onOpenTransferModal(employee)}
+                                className="rounded-lg p-1.5 text-slate-400 hover:text-[#006AC7] hover:bg-blue-50 transition"
+                                title="Transfer Employee"
                               >
-                                <UserCheck className="h-4 w-4" />
+                                <ArrowLeftRight className="h-4 w-4" />
                               </button>
                             )}
 
-                            {employee.status === 'ACTIVE' && (
-                              <button
-                                type="button"
-                                disabled={isProcessing || isSelf}
-                                onClick={() =>
-                                  onProcessLifecycle(
-                                    employee._id,
-                                    'SUSPENDED',
-                                    'Administrative suspension'
-                                  )
-                                }
-                                className={`rounded-lg p-1.5 ${
-                                  isSelf
-                                    ? 'text-slate-300 cursor-not-allowed opacity-50'
-                                    : 'text-rose-600 hover:bg-rose-50'
-                                } transition`}
-                                title={isSelf ? 'Self-suspension is prohibited' : 'Suspend Account'}
-                              >
-                                <UserX className="h-4 w-4" />
-                              </button>
-                            )}
+                            {/* Change Designation & Authority */}
+                            <button
+                              type="button"
+                              disabled={isSelf || isProtectedRoot}
+                              onClick={() => onOpenAuthorityModal(employee)}
+                              className={`rounded-lg p-1.5 ${
+                                isSelf || isProtectedRoot
+                                  ? 'text-slate-300 cursor-not-allowed opacity-50'
+                                  : 'text-slate-400 hover:text-[#102033] hover:bg-slate-100'
+                              } transition`}
+                              title="Change Designation & Authority"
+                            >
+                              <ShieldCheck className="h-4 w-4" />
+                            </button>
 
-                            {employee.status === 'SUSPENDED' && (
-                              <button
-                                type="button"
-                                disabled={isProcessing}
-                                onClick={() =>
-                                  onProcessLifecycle(
-                                    employee._id,
-                                    'ACTIVE',
-                                    'Reinstated by administrator'
-                                  )
-                                }
-                                className="rounded-lg p-1.5 text-[#4B7F3A] hover:bg-emerald-50 transition"
-                                title="Reactivate Account"
-                              >
-                                <CheckCircle2 className="h-4 w-4" />
-                              </button>
+                            {/* Lifecycle Action */}
+                            {!isProtectedRoot && (
+                              <>
+                                {employee.status === 'PENDING_APPROVAL' && (
+                                  <button
+                                    type="button"
+                                    disabled={isProcessing}
+                                    onClick={() =>
+                                      onProcessLifecycle(
+                                        employee._id,
+                                        'ACTIVE',
+                                        'Administrative onboarding approval'
+                                      )
+                                    }
+                                    className="rounded-lg p-1.5 text-[#4B7F3A] hover:bg-emerald-50 transition"
+                                    title="Approve Employee"
+                                  >
+                                    <UserCheck className="h-4 w-4" />
+                                  </button>
+                                )}
+
+                                {employee.status === 'ACTIVE' && (
+                                  <button
+                                    type="button"
+                                    disabled={isProcessing || isSelf}
+                                    onClick={() =>
+                                      onProcessLifecycle(
+                                        employee._id,
+                                        'SUSPENDED',
+                                        'Administrative suspension'
+                                      )
+                                    }
+                                    className={`rounded-lg p-1.5 ${
+                                      isSelf
+                                        ? 'text-slate-300 cursor-not-allowed opacity-50'
+                                        : 'text-rose-600 hover:bg-rose-50'
+                                    } transition`}
+                                    title={isSelf ? 'Self-suspension is prohibited' : 'Suspend Account'}
+                                  >
+                                    <UserX className="h-4 w-4" />
+                                  </button>
+                                )}
+
+                                {employee.status === 'SUSPENDED' && (
+                                  <button
+                                    type="button"
+                                    disabled={isProcessing}
+                                    onClick={() =>
+                                      onProcessLifecycle(
+                                        employee._id,
+                                        'ACTIVE',
+                                        'Reinstated by administrator'
+                                      )
+                                    }
+                                    className="rounded-lg p-1.5 text-[#4B7F3A] hover:bg-emerald-50 transition"
+                                    title="Reactivate Account"
+                                  >
+                                    <CheckCircle2 className="h-4 w-4" />
+                                  </button>
+                                )}
+                              </>
                             )}
                           </>
                         )}
