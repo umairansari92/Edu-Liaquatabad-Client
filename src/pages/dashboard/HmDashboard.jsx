@@ -47,10 +47,10 @@ import {
   UserX,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useLocation } from 'react-router-dom';
 import PageContainer from '../../components/layout/PageContainer.jsx';
 import HmAddStudentModal from '../../components/hm/HmAddStudentModal.jsx';
 import HmTimetableBuilder from '../../components/timetable/HmTimetableBuilder.jsx';
-import HmNavigation from '../../components/hm/HmNavigation.jsx';
 import HmOverviewTab from '../../components/hm/HmOverviewTab.jsx';
 import HmSchoolProfileTab from '../../components/hm/HmSchoolProfileTab.jsx';
 import HmReportsTab from '../../components/hm/HmReportsTab.jsx';
@@ -136,6 +136,20 @@ export const HmDashboard = () => {
   } = useSelector((state) => state.hm);
 
   const [activeTab, setActiveTab] = useState('overview');
+  const location = useLocation();
+
+  // Reset to overview or tab param when navigating to /dashboard
+  useEffect(() => {
+    if (location.pathname === '/dashboard') {
+      const searchParams = new URLSearchParams(location.search);
+      const tabParam = searchParams.get('tab');
+      if (tabParam) {
+        setActiveTab(tabParam);
+      } else {
+        setActiveTab('overview');
+      }
+    }
+  }, [location.pathname, location.key, location.search]);
 
   const userSchoolId = user?.schoolId?._id || user?.schoolId;
 
@@ -1057,17 +1071,6 @@ export const HmDashboard = () => {
     });
   };
 
-  const totalPendingCount =
-    (summary?.metrics?.pendingQueues?.totalPendingActions) ||
-    ((staffApprovals?.length || 0) + (studentApprovals?.length || 0) + (parentClaims?.length || 0) + (transfers?.length || 0));
-
-  const navBadges = {
-    students: studentsPagination?.totalRecords ?? summary?.metrics?.totalStudents,
-    faculty: faculty?.length || summary?.metrics?.teachingStaff,
-    approvals: totalPendingCount,
-    transfers: pendingIncomingTransfers.length || transfers?.length || 0,
-  };
-
   return (
     <PageContainer
       title="School overview"
@@ -1090,12 +1093,22 @@ export const HmDashboard = () => {
         </div>
       }
     >
-      {/* ── 2026 Logical Navigation Architecture (6 Groups) ─────────────── */}
-      <HmNavigation
-        activeTab={activeTab}
-        onSelectTab={setActiveTab}
-        badges={navBadges}
-      />
+      {/* Sub-tab navigation breadcrumb when navigated from contextual Quick Actions */}
+      {activeTab !== 'overview' && (
+        <div className="mb-6 flex items-center justify-between p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
+          <button
+            type="button"
+            onClick={() => setActiveTab('overview')}
+            className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-[#006AC7] hover:text-[#005299] transition cursor-pointer"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span>Back to Dashboard Overview</span>
+          </button>
+          <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 capitalize">
+            {activeTab === 'assignments' ? 'Teaching Duties' : activeTab === 'transfers' ? 'Incoming Staff' : activeTab === 'notices' ? 'Circulars & Notices' : activeTab}
+          </span>
+        </div>
+      )}
 
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* TAB 1: OVERVIEW (TODAY'S OPERATIONS & NEEDS ATTENTION)              */}

@@ -732,20 +732,20 @@ export const HmOverviewTab = ({
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="h-64 flex flex-col items-center justify-center text-center p-6 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
-              <Calendar className="w-10 h-10 text-slate-300 mb-2" />
-              <h3 className="text-sm font-semibold text-slate-800">
-                No attendance records for the past 14 days
+            <div className="py-6 px-4 flex flex-col items-center justify-center text-center bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+              <Calendar className="w-8 h-8 text-slate-300 mb-1.5" />
+              <h3 className="text-sm font-bold text-slate-800">
+                No attendance records yet
               </h3>
-              <p className="text-xs text-slate-500 max-w-sm mt-1">
-                Historical trends will visualize here once daily student attendance registers are marked.
+              <p className="text-xs text-slate-500 max-w-xs mt-0.5">
+                Start today's attendance to build the 14-day trend.
               </p>
               <button
                 type="button"
                 onClick={() => onSelectTab('attendance')}
-                className="mt-4 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-[#006AC7] hover:bg-blue-50 transition cursor-pointer shadow-2xs"
+                className="mt-3 px-3.5 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-[#006AC7] hover:bg-blue-50 transition cursor-pointer shadow-2xs"
               >
-                Record Daily Attendance
+                Record Attendance
               </button>
             </div>
           )}
@@ -802,18 +802,18 @@ export const HmOverviewTab = ({
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="h-64 flex flex-col items-center justify-center text-center p-6 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
-              <BookOpen className="w-10 h-10 text-slate-300 mb-2" />
-              <h3 className="text-sm font-semibold text-slate-800">
+            <div className="py-6 px-4 flex flex-col items-center justify-center text-center bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+              <BookOpen className="w-8 h-8 text-slate-300 mb-1.5" />
+              <h3 className="text-sm font-bold text-slate-800">
                 No enrolled students across classes
               </h3>
-              <p className="text-xs text-slate-500 max-w-sm mt-1">
-                Student distribution by grade will appear once students are enrolled into academic classes.
+              <p className="text-xs text-slate-500 max-w-xs mt-0.5">
+                Enroll students to see grade distribution.
               </p>
               <button
                 type="button"
                 onClick={() => onSelectTab('students')}
-                className="mt-4 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-indigo-600 hover:bg-indigo-50 transition cursor-pointer shadow-2xs"
+                className="mt-3 px-3.5 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-indigo-600 hover:bg-indigo-50 transition cursor-pointer shadow-2xs"
               >
                 Enroll New Student
               </button>
@@ -892,10 +892,10 @@ export const HmOverviewTab = ({
             </div>
 
             {/* Operating Hours / Session Status */}
-            <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200/60 flex items-center justify-between">
+            <div className="p-3.5 rounded-xl bg-slate-50/80 border border-slate-200/60 flex items-center justify-between">
               <div>
                 <span className="text-xs font-semibold text-slate-700 block">Operating Hours</span>
-                <span className="text-xs text-slate-500 mt-0.5 block font-mono">
+                <span className="text-xs text-slate-600 mt-0.5 block font-mono">
                   {summary?.school?.timings?.regular?.startTime && summary?.school?.timings?.regular?.endTime
                     ? `${summary.school.timings.regular.startTime} – ${summary.school.timings.regular.endTime}`
                     : summary?.school?.timings?.startTime && summary?.school?.timings?.endTime
@@ -903,22 +903,17 @@ export const HmOverviewTab = ({
                     : '08:00 – 13:30 (Regular Hours)'}
                 </span>
               </div>
-              <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span className="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
                 Operating
               </span>
             </div>
 
             {/* Class Teacher Policy Explanatory Note */}
-            <div className="p-3.5 rounded-xl bg-blue-50/60 border border-blue-200/70 text-xs text-slate-700 flex items-start gap-2.5">
+            <div className="p-3 rounded-xl bg-blue-50/60 border border-blue-200/70 text-xs text-slate-700 flex items-start gap-2.5">
               <Info className="w-4 h-4 text-[#006AC7] shrink-0 mt-0.5" />
-              <div>
-                <span className="font-semibold text-slate-900 block mb-0.5">
-                  Class Teacher Designation Rule
-                </span>
-                <p className="text-[11px] leading-relaxed text-slate-600">
-                  Each section has one primary Class Teacher who handles daily attendance, registers, and student follow-up. When the school timetable is used, the Period 1 teacher becomes the Class Teacher automatically.
-                </p>
-              </div>
+              <p className="text-xs leading-relaxed text-slate-600 font-medium">
+                Each section has one primary Class Teacher. When a timetable is used, the Period 1 teacher becomes the Class Teacher automatically.
+              </p>
             </div>
           </div>
         </motion.div>
@@ -939,7 +934,7 @@ export const HmOverviewTab = ({
               </p>
             </div>
             {hasSchedule && (
-              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 font-mono">
                 {todaySchedule.length} Periods
               </span>
             )}
@@ -960,39 +955,39 @@ export const HmOverviewTab = ({
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-slate-900">{slot.label || `Period ${slot.periodNumber}`}</span>
                         {slot.subjectName && (
-                          <span className="px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 font-semibold text-[10px]">
+                          <span className="px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 font-semibold text-xs">
                             {slot.subjectName}
                           </span>
                         )}
                       </div>
-                      <p className="text-[11px] text-slate-500 mt-0.5">
+                      <p className="text-xs text-slate-600 mt-0.5">
                         {slot.teacherName ? `Teacher: ${slot.teacherName}` : 'No teacher assigned'}
                         {slot.className ? ` • ${slot.className}` : ''}
                         {slot.roomNumber ? ` • Room ${slot.roomNumber}` : ''}
                       </p>
                     </div>
                   </div>
-                  <span className="font-mono text-slate-500 text-[11px] shrink-0 font-medium">
+                  <span className="font-mono text-slate-500 text-xs shrink-0 font-medium">
                     {slot.startTime} – {slot.endTime}
                   </span>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="h-64 flex flex-col items-center justify-center text-center p-6 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
-              <Clock className="w-10 h-10 text-slate-300 mb-2" />
-              <h3 className="text-sm font-semibold text-slate-800">
+            <div className="py-6 px-4 flex flex-col items-center justify-center text-center bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+              <Clock className="w-8 h-8 text-slate-300 mb-1.5" />
+              <h3 className="text-sm font-bold text-slate-800">
                 No timetable scheduled for today
               </h3>
-              <p className="text-xs text-slate-500 max-w-sm mt-1">
-                Configure the school timetable to view today's periods and automatic Class Teacher assignments.
+              <p className="text-xs text-slate-500 max-w-xs mt-0.5">
+                Set up the school timetable to see today's periods here.
               </p>
               <button
                 type="button"
                 onClick={() => onSelectTab('timetable')}
-                className="mt-4 px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-[#006AC7] hover:bg-blue-50 transition cursor-pointer shadow-2xs"
+                className="mt-3 px-3.5 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-[#006AC7] hover:bg-blue-50 transition cursor-pointer shadow-2xs"
               >
-                Open Timetable Builder
+                Open Timetable
               </button>
             </div>
           )}
@@ -1104,15 +1099,15 @@ export const HmOverviewTab = ({
             {
               id: 'students',
               label: 'Student Directory',
-              desc: 'Enrolled students & records',
+              desc: 'Students and records',
               icon: GraduationCap,
               color: 'text-blue-600 bg-blue-50 border-blue-200/60',
               tab: 'students',
             },
             {
               id: 'faculty',
-              label: 'Faculty & Staff',
-              desc: 'School staff roster & status',
+              label: 'Teaching Staff',
+              desc: 'Staff roster and status',
               icon: Users,
               color: 'text-emerald-600 bg-emerald-50 border-emerald-200/60',
               tab: 'faculty',
@@ -1120,7 +1115,7 @@ export const HmOverviewTab = ({
             {
               id: 'attendance',
               label: 'Record Attendance',
-              desc: 'Daily student attendance',
+              desc: "Today's student attendance",
               icon: ClipboardCheck,
               color: 'text-indigo-600 bg-indigo-50 border-indigo-200/60',
               tab: 'attendance',
@@ -1128,7 +1123,7 @@ export const HmOverviewTab = ({
             {
               id: 'assignments',
               label: 'Teaching Duties',
-              desc: 'Class teachers & subjects',
+              desc: 'Class teachers and subjects',
               icon: UserCheck,
               color: 'text-purple-600 bg-purple-50 border-purple-200/60',
               tab: 'assignments',
@@ -1136,7 +1131,7 @@ export const HmOverviewTab = ({
             {
               id: 'transfers',
               label: 'Incoming Staff',
-              desc: 'Joining & relieving reviews',
+              desc: 'Joining and relieving reviews',
               icon: ArrowLeftRight,
               color: 'text-amber-600 bg-amber-50 border-amber-200/60',
               tab: 'transfers',
@@ -1144,7 +1139,7 @@ export const HmOverviewTab = ({
             {
               id: 'exams',
               label: 'Exams & Results',
-              desc: 'School exams & marksheets',
+              desc: 'School exams and marksheets',
               icon: Award,
               color: 'text-rose-600 bg-rose-50 border-rose-200/60',
               tab: 'exams',
@@ -1152,7 +1147,7 @@ export const HmOverviewTab = ({
             {
               id: 'notices',
               label: 'Circulars & Notices',
-              desc: 'School circulars & orders',
+              desc: 'School notices and orders',
               icon: FileText,
               color: 'text-teal-600 bg-teal-50 border-teal-200/60',
               tab: 'notices',
@@ -1160,7 +1155,7 @@ export const HmOverviewTab = ({
             {
               id: 'timetable',
               label: 'School Timetable',
-              desc: 'Daily period schedules',
+              desc: 'Daily period schedule',
               icon: CalendarDays,
               color: 'text-sky-600 bg-sky-50 border-sky-200/60',
               tab: 'timetable',
@@ -1179,10 +1174,10 @@ export const HmOverviewTab = ({
                 <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-900 group-hover:translate-x-0.5 transition" />
               </div>
               <div>
-                <span className="font-bold text-xs text-slate-900 block group-hover:text-[#006AC7] transition">
+                <span className="font-bold text-xs sm:text-sm text-slate-900 block group-hover:text-[#006AC7] transition">
                   {action.label}
                 </span>
-                <span className="text-[11px] text-slate-500 block mt-0.5 truncate">
+                <span className="text-xs text-slate-500 block mt-0.5 truncate">
                   {action.desc}
                 </span>
               </div>
@@ -1230,13 +1225,13 @@ export const HmOverviewTab = ({
                     <span className="font-bold text-slate-900 block">
                       {humanizeAction(log.action)}
                     </span>
-                    <p className="text-[11px] text-slate-600">
+                    <p className="text-xs text-slate-600">
                       by <span className="font-semibold">{log.actorName}</span>
                       {log.actorRole ? ` (${log.actorRole})` : ''}
                       {log.targetName ? ` • ${log.targetName}` : ''}
                     </p>
                   </div>
-                  <span className="text-[10px] text-slate-400 font-mono shrink-0">
+                  <span className="text-xs text-slate-400 font-mono shrink-0">
                     {new Date(log.createdAt).toLocaleDateString('en-US', {
                       month: 'short',
                       day: 'numeric',
@@ -1246,13 +1241,13 @@ export const HmOverviewTab = ({
               ))}
             </div>
           ) : (
-            <div className="h-56 flex flex-col items-center justify-center text-center p-6 bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
-              <FileText className="w-10 h-10 text-slate-300 mb-2" />
-              <h3 className="text-sm font-semibold text-slate-800">
+            <div className="py-6 px-4 flex flex-col items-center justify-center text-center bg-slate-50/50 rounded-xl border border-dashed border-slate-200">
+              <FileText className="w-8 h-8 text-slate-300 mb-1.5" />
+              <h3 className="text-sm font-bold text-slate-800">
                 No recent activity recorded yet
               </h3>
-              <p className="text-xs text-slate-500 max-w-sm mt-1">
-                Official actions such as attendance submissions, notices, and approvals will generate audit records here.
+              <p className="text-xs text-slate-500 max-w-xs mt-0.5">
+                Official school administration actions will generate records here.
               </p>
             </div>
           )}
@@ -1276,7 +1271,7 @@ export const HmOverviewTab = ({
 
             <div className="grid grid-cols-2 gap-3 mt-4 text-xs">
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60">
-                <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block">
+                <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider block">
                   Institution Name
                 </span>
                 <span className="font-bold text-slate-900 text-xs mt-0.5 block truncate">
@@ -1285,7 +1280,7 @@ export const HmOverviewTab = ({
               </div>
 
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60">
-                <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block">
+                <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider block">
                   School Type
                 </span>
                 <span className="font-bold text-slate-900 text-xs mt-0.5 block">
@@ -1294,7 +1289,7 @@ export const HmOverviewTab = ({
               </div>
 
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60">
-                <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block">
+                <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider block">
                   Head Master
                 </span>
                 <span className="font-bold text-slate-900 text-xs mt-0.5 block truncate">
@@ -1303,8 +1298,8 @@ export const HmOverviewTab = ({
               </div>
 
               <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/60">
-                <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider block">
-                  School Access
+                <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider block">
+                  School Status
                 </span>
                 <span className="font-semibold text-emerald-700 text-xs mt-0.5 flex items-center gap-1">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
@@ -1315,7 +1310,7 @@ export const HmOverviewTab = ({
           </div>
 
           <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-            <span className="text-[11px] truncate mr-2">
+            <span className="text-xs text-slate-500 truncate mr-2">
               DMC Liaquatabad Town Centre • Government of Sindh
             </span>
             <button
