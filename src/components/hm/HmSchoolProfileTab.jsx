@@ -129,10 +129,10 @@ export const HmSchoolProfileTab = ({ summary, user, onEditSchoolCode }) => {
               </span>
             </div>
             <div>
-              <span className="text-xs text-slate-500 block">Jurisdiction boundary</span>
+              <span className="text-xs text-slate-500 block">Municipal area</span>
               <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 mt-0.5">
                 <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                Active municipal school boundary
+                Assigned school boundary
               </span>
             </div>
           </div>

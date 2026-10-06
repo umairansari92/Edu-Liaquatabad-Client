@@ -349,7 +349,7 @@ export const StaffProfilePage = () => {
                 <span className="text-[#102033] font-medium">{user?.school?.name || 'Unassigned'}</span>
               </div>
               <div>
-                <span className="text-[#526477] block text-[11px] font-medium">Jurisdiction Scope</span>
+                <span className="text-[#526477] block text-[11px] font-medium">Role & Access Level</span>
                 <span className="text-[#102033] font-medium">
                   {user?.role} ({user?.baseRole})
                 </span>

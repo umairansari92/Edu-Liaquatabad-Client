@@ -4332,9 +4332,9 @@ export const HmDashboard = () => {
               </div>
 
               <div>
-                <label className="text-xs font-bold text-[#102033] block mb-1">Jurisdiction Scope</label>
-                <div className="text-xs p-2.5 rounded-xl bg-slate-50 border border-slate-200 font-mono font-bold text-[#4B7F3A]">
-                  SCHOOL (Locked)
+                <label className="text-xs font-bold text-[#102033] block mb-1">Notice Scope</label>
+                <div className="text-xs p-2.5 rounded-xl bg-slate-50 border border-slate-200 font-bold text-emerald-700">
+                  School-Wide (This School Only)
                 </div>
               </div>
             </div>
