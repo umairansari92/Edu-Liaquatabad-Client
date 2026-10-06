@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import LivePeriodBadge from './LivePeriodBadge.jsx';
+import ConfirmModal from '../common/ConfirmModal.jsx';
 import {
   fetchSchoolTimetable,
   saveTimetable,
@@ -88,6 +89,7 @@ export const HmTimetableBuilder = ({
   const [newSlotLabel, setNewSlotLabel] = useState('');
   const [newSlotStartTime, setNewSlotStartTime] = useState('08:00');
   const [newSlotEndTime, setNewSlotEndTime] = useState('08:45');
+  const [resetSlotsModalOpen, setResetSlotsModalOpen] = useState(false);
 
   // Sorted classes (strictly by numericGrade, clean names without sections)
   const sortedClasses = useMemo(() => {
@@ -469,10 +471,13 @@ export const HmTimetableBuilder = ({
 
   // Reset to Standard DMC Liaquatabad Period Slots
   const handleResetToStandardSlots = () => {
-    if (window.confirm('Reset period slots to standard 7-period + Break DMC timing (08:00 to 12:20)?')) {
-      setEditableSlots(DEFAULT_GOVERNMENT_PERIOD_SLOTS);
-      toast.success('Period slots reset to standard government school timings.');
-    }
+    setResetSlotsModalOpen(true);
+  };
+
+  const handleConfirmResetSlots = () => {
+    setEditableSlots(DEFAULT_GOVERNMENT_PERIOD_SLOTS);
+    toast.success('Period slots reset to standard government school timings.');
+    setResetSlotsModalOpen(false);
   };
 
   // Save & Publish Timetable to Server
@@ -1017,6 +1022,17 @@ export const HmTimetableBuilder = ({
           </div>
         </div>
       )}
+      {/* Reset Standard Timings Confirmation Dialog */}
+      <ConfirmModal
+        isOpen={resetSlotsModalOpen}
+        title="Reset Standard DMC Period Slots"
+        message="Reset period slots to standard 7-period + Break DMC timing (08:00 to 12:20)?"
+        note="This will restore the standard municipal school bell schedule with 35-minute instructional periods and a 20-minute recess."
+        confirmText="Reset Schedule"
+        confirmVariant="warning"
+        onConfirm={handleConfirmResetSlots}
+        onCancel={() => setResetSlotsModalOpen(false)}
+      />
     </div>
   );
 };

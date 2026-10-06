@@ -17,6 +17,8 @@ import {
   Trash2,
   Info,
   CalendarDays,
+  X,
+  Loader2,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import apiClient from '../../services/apiClient.js';
@@ -33,6 +35,15 @@ export const HolidaysGovernancePage = () => {
   const [isHolidayModalOpen, setIsHolidayModalOpen] = useState(false);
   const [isWeeklyOffModalOpen, setIsWeeklyOffModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Modal State for Holiday Revocation / Cancellation
+  const [cancelModal, setCancelModal] = useState({
+    isOpen: false,
+    id: null,
+    title: '',
+    reason: '',
+    isSubmitting: false,
+  });
 
   const isTownAdmin = ['ROOT_ADMIN', 'SUPER_ADMIN', 'ADMIN'].includes(user?.role);
   const isHm = user?.role === 'HM';
@@ -198,23 +209,38 @@ export const HolidaysGovernancePage = () => {
     }
   };
 
-  // Handle Holiday Cancellation
-  const handleCancelHoliday = async (id, title) => {
-    const reason = window.prompt(`Please provide a formal cancellation reason for "${title}" (minimum 5 characters):`);
-    if (!reason || reason.trim().length < 5) {
-      if (reason !== null) toast.error('A cancellation reason of at least 5 characters is required.');
+  // Handle Holiday Cancellation (Replaces native browser prompt with accessible dialog)
+  const handleOpenCancelModal = (holidayRecord) => {
+    setCancelModal({
+      isOpen: true,
+      id: holidayRecord._id,
+      title: holidayRecord.title,
+      reason: '',
+      isSubmitting: false,
+    });
+  };
+
+  const handleConfirmCancelHoliday = async (event) => {
+    event?.preventDefault();
+    if (!cancelModal.reason || cancelModal.reason.trim().length < 5) {
+      toast.error('A cancellation reason of at least 5 characters is required.');
       return;
     }
 
+    setCancelModal((prev) => ({ ...prev, isSubmitting: true }));
     try {
-      const cancelResponse = await apiClient.patch(`/holidays/${id}/cancel`, { reason: reason.trim() });
+      const cancelResponse = await apiClient.patch(`/holidays/${cancelModal.id}/cancel`, {
+        reason: cancelModal.reason.trim(),
+      });
       if (cancelResponse.data?.success) {
-        toast.success(`Holiday "${title}" cancelled.`);
+        toast.success(`Holiday "${cancelModal.title}" cancelled.`);
+        setCancelModal({ isOpen: false, id: null, title: '', reason: '', isSubmitting: false });
         fetchData();
       }
     } catch (cancelError) {
       console.error('Failed to cancel holiday:', cancelError);
       toast.error(cancelError.response?.data?.message || 'Failed to cancel holiday.');
+      setCancelModal((prev) => ({ ...prev, isSubmitting: false }));
     }
   };
 
@@ -555,8 +581,8 @@ export const HolidaysGovernancePage = () => {
                           {holidayRecord.status === 'ACTIVE' && (isTownAdmin || isHm) && (
                             <button
                               type="button"
-                              onClick={() => handleCancelHoliday(holidayRecord._id, holidayRecord.title)}
-                              className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition"
+                              onClick={() => handleOpenCancelModal(holidayRecord)}
+                              className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition cursor-pointer"
                               title="Revoke / Cancel Holiday"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -797,6 +823,101 @@ export const HolidaysGovernancePage = () => {
                     className="rounded-xl bg-[#006AC7] px-5 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#00529B] disabled:opacity-50"
                   >
                     {isSubmitting ? 'Saving...' : 'Apply Weekend Policy'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal: Revoke / Cancel Holiday (Modern & Accessible) */}
+        {cancelModal.isOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-xs">
+            <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-4 text-[#102033]">
+              <div className="flex items-start justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-xl bg-rose-50 p-2.5 text-rose-600 border border-rose-200/60">
+                    <AlertTriangle className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900">
+                      Revoke Holiday Declaration
+                    </h3>
+                    <p className="text-xs text-slate-500 font-medium truncate max-w-[240px]">
+                      {cancelModal.title}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setCancelModal({ isOpen: false, id: null, title: '', reason: '', isSubmitting: false })}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                  disabled={cancelModal.isSubmitting}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <form onSubmit={handleConfirmCancelHoliday} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700">
+                    Formal Cancellation Reason <span className="text-rose-500">*</span>
+                  </label>
+                  <textarea
+                    rows={3}
+                    required
+                    value={cancelModal.reason}
+                    onChange={(event) =>
+                      setCancelModal((prev) => ({ ...prev, reason: event.target.value }))
+                    }
+                    placeholder="Provide official administrative reason (minimum 5 characters)..."
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-[#006AC7] focus:outline-hidden focus:ring-2 focus:ring-[#006AC7]/20 transition resize-none"
+                    disabled={cancelModal.isSubmitting}
+                    autoFocus
+                  />
+                  <div className="flex justify-between items-center text-[11px] text-slate-400">
+                    <span>Minimum 5 characters required</span>
+                    <span
+                      className={`font-mono font-medium ${
+                        cancelModal.reason.trim().length >= 5 ? 'text-emerald-600' : 'text-slate-400'
+                      }`}
+                    >
+                      {cancelModal.reason.trim().length}/5
+                    </span>
+                  </div>
+                </div>
+
+                <div className="rounded-xl bg-amber-50/70 border border-amber-200/70 p-3 text-xs text-amber-900">
+                  <p className="leading-relaxed">
+                    This will transition the holiday status to <strong className="font-semibold text-rose-700">CANCELLED</strong> and preserve an immutable audit record for municipal compliance.
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+                  <button
+                    type="button"
+                    onClick={() => setCancelModal({ isOpen: false, id: null, title: '', reason: '', isSubmitting: false })}
+                    disabled={cancelModal.isSubmitting}
+                    className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={cancelModal.isSubmitting || cancelModal.reason.trim().length < 5}
+                    className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white text-xs font-bold transition shadow-xs flex items-center gap-1.5 cursor-pointer"
+                  >
+                    {cancelModal.isSubmitting ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Revoking...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Confirm Revocation</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </form>

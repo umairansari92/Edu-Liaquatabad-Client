@@ -55,6 +55,7 @@ import HmOverviewTab from '../../components/hm/HmOverviewTab.jsx';
 import HmSchoolProfileTab from '../../components/hm/HmSchoolProfileTab.jsx';
 import HmReportsTab from '../../components/hm/HmReportsTab.jsx';
 import HmActivityLogTab from '../../components/hm/HmActivityLogTab.jsx';
+import ConfirmModal from '../../components/common/ConfirmModal.jsx';
 import {
   fetchHmSummary,
   fetchPendingApprovals,
@@ -253,6 +254,17 @@ export const HmDashboard = () => {
   }, [dispatch, studentPage, studentLimit, studentSearchQuery, studentClassFilter, studentSectionFilter, studentGenderFilter, studentStatusFilter]);
 
   // Modal States
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    note: null,
+    confirmText: 'Confirm',
+    cancelText: 'Cancel',
+    confirmVariant: 'primary',
+    isLoading: false,
+    onConfirm: () => {},
+  });
   const [approvalModal, setApprovalModal] = useState({ open: false, user: null, type: 'staff' });
   const [approvalRemarks, setApprovalRemarks] = useState('');
 
@@ -275,6 +287,16 @@ export const HmDashboard = () => {
   const [strikeOffSubmitting, setStrikeOffSubmitting] = useState(false);
   const [assignDutyModal, setAssignDutyModal] = useState(false);
   const [dutyData, setDutyData] = useState({ teacherId: '', classId: '', sectionId: '', subjectId: '', academicSession: '2025-2026' });
+
+  // End Teaching Duty Modal State
+  const [endDutyModal, setEndDutyModal] = useState({
+    open: false,
+    assignmentId: null,
+    teacherName: '',
+    subjectName: '',
+    reason: '',
+    submitting: false,
+  });
 
   // Class Teacher Designation Modal State
   const [classTeacherModal, setClassTeacherModal] = useState({
@@ -729,14 +751,44 @@ export const HmDashboard = () => {
     }
   };
 
-  const handleEndDuty = async (assignmentId) => {
-    const reason = window.prompt('Enter reason for concluding teaching assignment:');
-    if (!reason || !reason.trim()) return;
+  const handleOpenEndDutyModal = (assignmentItem) => {
+    setEndDutyModal({
+      open: true,
+      assignmentId: assignmentItem._id,
+      teacherName: assignmentItem.teacherId?.fullName || 'Teacher',
+      subjectName: assignmentItem.subjectId?.name || 'Subject',
+      reason: '',
+      submitting: false,
+    });
+  };
+
+  const handleConfirmEndDuty = async (submitEvent) => {
+    submitEvent?.preventDefault();
+    if (!endDutyModal.reason || !endDutyModal.reason.trim()) {
+      toast.error('Reason for concluding teaching assignment is required.');
+      return;
+    }
+
+    setEndDutyModal((prev) => ({ ...prev, submitting: true }));
     try {
-      await dispatch(terminateTeachingDuty({ id: assignmentId, reason: reason.trim() })).unwrap();
+      await dispatch(
+        terminateTeachingDuty({
+          id: endDutyModal.assignmentId,
+          reason: endDutyModal.reason.trim(),
+        })
+      ).unwrap();
       toast.success('Teaching duty archived.');
+      setEndDutyModal({
+        open: false,
+        assignmentId: null,
+        teacherName: '',
+        subjectName: '',
+        reason: '',
+        submitting: false,
+      });
     } catch (errorObject) {
       toast.error(errorObject || 'Failed to end duty.');
+      setEndDutyModal((prev) => ({ ...prev, submitting: false }));
     }
   };
 
@@ -965,14 +1017,28 @@ export const HmDashboard = () => {
     }
   };
 
-  const handlePublishGazette = async (examId) => {
-    if (!window.confirm('Publish officially verified results for this examination?')) return;
-    try {
-      await dispatch(publishExamGazette(examId)).unwrap();
-      toast.success('Exam gazette officially published.');
-    } catch (errorObject) {
-      toast.error(errorObject || 'Failed to publish gazette.');
-    }
+  const handlePublishGazette = (examId) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Publish Official Exam Gazette',
+      message: 'Are you sure you want to officially publish verified results for this examination?',
+      note: 'Verified student marks and positions will be committed to the published gazette for official stakeholder access.',
+      confirmText: 'Publish Gazette',
+      cancelText: 'Cancel',
+      confirmVariant: 'primary',
+      isLoading: false,
+      onConfirm: async () => {
+        setConfirmDialog((prev) => ({ ...prev, isLoading: true }));
+        try {
+          await dispatch(publishExamGazette(examId)).unwrap();
+          toast.success('Exam gazette officially published.');
+          setConfirmDialog((prev) => ({ ...prev, isOpen: false, isLoading: false }));
+        } catch (errorObject) {
+          toast.error(errorObject || 'Failed to publish gazette.');
+          setConfirmDialog((prev) => ({ ...prev, isLoading: false }));
+        }
+      },
+    });
   };
 
   // ─── Notice Board Handlers ──────────────────────────────────────────────────
@@ -1023,26 +1089,53 @@ export const HmDashboard = () => {
     }
   };
 
-  const handleArchiveNoticeSubmit = async (docId) => {
-    if (!window.confirm('Archive this circular? It will be moved to archived records.')) return;
-    try {
-      await dispatch(archiveSchoolNotice(docId)).unwrap();
-      toast.success('Circular moved to archive.');
-      loadNotices();
-    } catch (errorObject) {
-      toast.error(errorObject || 'Failed to archive circular.');
-    }
+  const handleArchiveNoticeSubmit = (docId) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Archive Circular',
+      message: 'Are you sure you want to archive this circular? It will be moved to archived records and hidden from active boards.',
+      confirmText: 'Archive Circular',
+      cancelText: 'Cancel',
+      confirmVariant: 'warning',
+      isLoading: false,
+      onConfirm: async () => {
+        setConfirmDialog((prev) => ({ ...prev, isLoading: true }));
+        try {
+          await dispatch(archiveSchoolNotice(docId)).unwrap();
+          toast.success('Circular moved to archive.');
+          loadNotices();
+          setConfirmDialog((prev) => ({ ...prev, isOpen: false, isLoading: false }));
+        } catch (errorObject) {
+          toast.error(errorObject || 'Failed to archive circular.');
+          setConfirmDialog((prev) => ({ ...prev, isLoading: false }));
+        }
+      },
+    });
   };
 
-  const handleDeleteNoticeSubmit = async (docId) => {
-    if (!window.confirm('Permanently delete this circular? This will purge the document and any attached files. An audit record will be preserved.')) return;
-    try {
-      await dispatch(deleteSchoolNotice(docId)).unwrap();
-      toast.success('Circular permanently deleted.');
-      loadNotices();
-    } catch (errorObject) {
-      toast.error(errorObject || 'Failed to delete circular.');
-    }
+  const handleDeleteNoticeSubmit = (docId) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Permanently Delete Circular',
+      message: 'Are you sure you want to permanently delete this circular? This will purge the document and any attached files.',
+      note: 'An immutable municipal audit record will be preserved for governance compliance.',
+      confirmText: 'Permanently Delete',
+      cancelText: 'Cancel',
+      confirmVariant: 'danger',
+      isLoading: false,
+      onConfirm: async () => {
+        setConfirmDialog((prev) => ({ ...prev, isLoading: true }));
+        try {
+          await dispatch(deleteSchoolNotice(docId)).unwrap();
+          toast.success('Circular permanently deleted.');
+          loadNotices();
+          setConfirmDialog((prev) => ({ ...prev, isOpen: false, isLoading: false }));
+        } catch (errorObject) {
+          toast.error(errorObject || 'Failed to delete circular.');
+          setConfirmDialog((prev) => ({ ...prev, isLoading: false }));
+        }
+      },
+    });
   };
 
   const handleViewNoticeAttachment = async (docId) => {
@@ -2177,7 +2270,7 @@ export const HmDashboard = () => {
                           <td className="py-3 px-3 font-mono text-[#526477]">{assignmentItem.academicSession}</td>
                           <td className="py-3 px-3 text-right">
                             <button
-                              onClick={() => handleEndDuty(assignmentItem._id)}
+                              onClick={() => handleOpenEndDutyModal(assignmentItem)}
                               className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition cursor-pointer"
                             >
                               End assignment
@@ -4031,6 +4124,79 @@ export const HmDashboard = () => {
         </div>
       )}
 
+      {/* End Teaching Duty Modal */}
+      {endDutyModal.open && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 backdrop-blur-xs">
+          <form onSubmit={handleConfirmEndDuty} className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4 text-[#102033]">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-rose-50 text-rose-600 border border-rose-200">
+                  <UserX className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-[#102033]">Conclude Teaching Duty</h3>
+                  <p className="text-xs text-[#526477]">
+                    {endDutyModal.teacherName} • {endDutyModal.subjectName}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEndDutyModal({ open: false, assignmentId: null, teacherName: '', subjectName: '', reason: '', submitting: false })}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl space-y-1 text-xs text-amber-900">
+              <p className="leading-relaxed">
+                Ending this assignment archives the teacher's responsibility for this subject. A formal administrative justification is recorded in the school audit log.
+              </p>
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-[#102033] block mb-1">
+                Reason for Concluding Assignment *
+              </label>
+              <textarea
+                rows={3}
+                required
+                value={endDutyModal.reason}
+                onChange={(event) => setEndDutyModal((prev) => ({ ...prev, reason: event.target.value }))}
+                placeholder="Enter justification (e.g., Curriculum reassignment, session conclusion)..."
+                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7] resize-none"
+                autoFocus
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setEndDutyModal({ open: false, assignmentId: null, teacherName: '', subjectName: '', reason: '', submitting: false })}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold text-[#526477] hover:bg-slate-100 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={endDutyModal.submitting || !endDutyModal.reason.trim()}
+                className="px-4 py-1.5 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white cursor-pointer shadow-xs disabled:opacity-50 flex items-center gap-1.5"
+              >
+                {endDutyModal.submitting ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Archiving...</span>
+                  </>
+                ) : (
+                  <span>Conclude Duty</span>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
       {/* Schedule Exam Modal */}
       {newExamModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
@@ -4506,6 +4672,20 @@ export const HmDashboard = () => {
           teacherAttendance={teacherAttendance}
         />
       )}
+
+      {/* ── Global Accessible Confirmation Dialog ── */}
+      <ConfirmModal
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        note={confirmDialog.note}
+        confirmText={confirmDialog.confirmText}
+        cancelText={confirmDialog.cancelText}
+        confirmVariant={confirmDialog.confirmVariant}
+        isLoading={confirmDialog.isLoading}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog((prev) => ({ ...prev, isOpen: false }))}
+      />
 
       {/* ── Compact Municipal Footer ── */}
       <div className="mt-12 pt-6 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">

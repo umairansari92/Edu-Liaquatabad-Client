@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import apiClient from '../../../services/apiClient.js';
+import ConfirmModal from '../../../components/common/ConfirmModal.jsx';
 
 export const AcademicManagementTab = ({ schoolsList = [] }) => {
   // Cascading Selection State
@@ -49,6 +50,16 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
   const [isSubjectModalOpen, setIsSubjectModalOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState(null);
   const [subjectForm, setSubjectForm] = useState({ name: '', code: '', schoolId: '', classId: '', isElective: false });
+  const [confirmDialog, setConfirmDialog] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    note: null,
+    confirmText: 'Archive',
+    confirmVariant: 'danger',
+    isLoading: false,
+    onConfirm: () => {},
+  });
 
   // Initialize selected school if available
   useEffect(() => {
@@ -172,15 +183,28 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
     }
   };
 
-  const handleArchiveClass = async (classItem) => {
-    if (!window.confirm(`Are you sure you want to archive "${classItem.name}"? This is a soft-delete.`)) return;
-    try {
-      await apiClient.patch(`/academic/classes/${classItem._id}`, { status: 'ARCHIVED' });
-      toast.success(`Class "${classItem.name}" archived.`);
-      fetchClasses();
-    } catch (archiveClassError) {
-      toast.error(archiveClassError.response?.data?.message || 'Failed to archive class.');
-    }
+  const handleArchiveClass = (classItem) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Archive Class',
+      message: `Are you sure you want to archive "${classItem.name}"?`,
+      note: 'This is a soft-delete operation that preserves historical enrollment records.',
+      confirmText: 'Archive Class',
+      confirmVariant: 'danger',
+      isLoading: false,
+      onConfirm: async () => {
+        setConfirmDialog((prev) => ({ ...prev, isLoading: true }));
+        try {
+          await apiClient.patch(`/academic/classes/${classItem._id}`, { status: 'ARCHIVED' });
+          toast.success(`Class "${classItem.name}" archived.`);
+          fetchClasses();
+          setConfirmDialog((prev) => ({ ...prev, isOpen: false, isLoading: false }));
+        } catch (archiveClassError) {
+          toast.error(archiveClassError.response?.data?.message || 'Failed to archive class.');
+          setConfirmDialog((prev) => ({ ...prev, isLoading: false }));
+        }
+      },
+    });
   };
 
   // --- Section Operations ---
@@ -214,16 +238,29 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
     }
   };
 
-  const handleArchiveSection = async (sectionItem) => {
-    if (!window.confirm(`Are you sure you want to archive section "${sectionItem.name}"?`)) return;
-    try {
-      await apiClient.patch(`/academic/sections/${sectionItem._id}`, { status: 'ARCHIVED' });
-      toast.success(`Section "${sectionItem.name}" archived.`);
-      fetchSections();
-      fetchClasses();
-    } catch (archiveSectionError) {
-      toast.error(archiveSectionError.response?.data?.message || 'Failed to archive section.');
-    }
+  const handleArchiveSection = (sectionItem) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Archive Section',
+      message: `Are you sure you want to archive section "${sectionItem.name}"?`,
+      note: 'This is a soft-delete operation that preserves student assignments and attendance history.',
+      confirmText: 'Archive Section',
+      confirmVariant: 'danger',
+      isLoading: false,
+      onConfirm: async () => {
+        setConfirmDialog((prev) => ({ ...prev, isLoading: true }));
+        try {
+          await apiClient.patch(`/academic/sections/${sectionItem._id}`, { status: 'ARCHIVED' });
+          toast.success(`Section "${sectionItem.name}" archived.`);
+          fetchSections();
+          fetchClasses();
+          setConfirmDialog((prev) => ({ ...prev, isOpen: false, isLoading: false }));
+        } catch (archiveSectionError) {
+          toast.error(archiveSectionError.response?.data?.message || 'Failed to archive section.');
+          setConfirmDialog((prev) => ({ ...prev, isLoading: false }));
+        }
+      },
+    });
   };
 
   // --- Subject Operations ---
@@ -268,15 +305,28 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
     }
   };
 
-  const handleArchiveSubject = async (subjectItem) => {
-    if (!window.confirm(`Are you sure you want to archive subject "${subjectItem.name}"?`)) return;
-    try {
-      await apiClient.patch(`/academic/subjects/${subjectItem._id}`, { status: 'ARCHIVED' });
-      toast.success(`Subject "${subjectItem.name}" archived.`);
-      fetchSubjects();
-    } catch (archiveSubjectError) {
-      toast.error(archiveSubjectError.response?.data?.message || 'Failed to archive subject.');
-    }
+  const handleArchiveSubject = (subjectItem) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Archive Subject',
+      message: `Are you sure you want to archive subject "${subjectItem.name}"?`,
+      note: 'This is a soft-delete operation that preserves historical marks and curricula.',
+      confirmText: 'Archive Subject',
+      confirmVariant: 'danger',
+      isLoading: false,
+      onConfirm: async () => {
+        setConfirmDialog((prev) => ({ ...prev, isLoading: true }));
+        try {
+          await apiClient.patch(`/academic/subjects/${subjectItem._id}`, { status: 'ARCHIVED' });
+          toast.success(`Subject "${subjectItem.name}" archived.`);
+          fetchSubjects();
+          setConfirmDialog((prev) => ({ ...prev, isOpen: false, isLoading: false }));
+        } catch (archiveSubjectError) {
+          toast.error(archiveSubjectError.response?.data?.message || 'Failed to archive subject.');
+          setConfirmDialog((prev) => ({ ...prev, isLoading: false }));
+        }
+      },
+    });
   };
 
   // Filter lists based on search
@@ -972,6 +1022,19 @@ export const AcademicManagementTab = ({ schoolsList = [] }) => {
           </div>
         </div>
       )}
+      {/* Accessible Confirmation Dialog */}
+      <ConfirmModal
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        note={confirmDialog.note}
+        confirmText={confirmDialog.confirmText}
+        cancelText={confirmDialog.cancelText}
+        confirmVariant={confirmDialog.confirmVariant}
+        isLoading={confirmDialog.isLoading}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog((prev) => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 };

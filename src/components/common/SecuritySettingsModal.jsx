@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { authService } from '../../services/authService.js';
+import PromptModal from './PromptModal.jsx';
 
 export const SecuritySettingsModal = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
@@ -45,6 +46,19 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
   const [hasCopiedSecret, setHasCopiedSecret] = useState(false);
   const [hasCopiedRecovery, setHasCopiedRecovery] = useState(false);
   const [actionError, setActionError] = useState('');
+  const [promptDialog, setPromptDialog] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    inputType: 'password',
+    placeholder: '',
+    minLength: 1,
+    confirmText: 'Confirm',
+    confirmVariant: 'primary',
+    note: null,
+    isLoading: false,
+    onSubmit: () => {},
+  });
 
   // Device Rotation State
   const [isRotatingDevice, setIsRotatingDevice] = useState(false);
@@ -162,47 +176,69 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
   };
 
   // Regenerate Recovery Codes (Requires step-up password)
-  const handleRegenerateCodes = async () => {
-    const password = prompt('Enter your account login password to regenerate emergency recovery codes (NOT a 6-digit TOTP code):');
-    if (!password) return;
-    setLoading(true);
-    try {
-      const regenerateResponse = await authService.regenerateRecoveryCodes(password);
-      if (regenerateResponse.success && regenerateResponse.data) {
-        if (regenerateResponse.data.accessToken) {
-          dispatch(setAccessToken(regenerateResponse.data.accessToken));
+  const handleRegenerateCodes = () => {
+    setPromptDialog({
+      isOpen: true,
+      title: 'Regenerate Emergency Recovery Codes',
+      message: 'Enter your account login password to verify identity and generate fresh recovery codes:',
+      inputType: 'password',
+      placeholder: 'Enter account password',
+      minLength: 1,
+      confirmText: 'Generate Codes',
+      confirmVariant: 'primary',
+      note: 'Existing recovery codes will become permanently invalidated once new codes are generated.',
+      onSubmit: async (password) => {
+        setPromptDialog((prev) => ({ ...prev, isLoading: true }));
+        try {
+          const regenerateResponse = await authService.regenerateRecoveryCodes(password);
+          if (regenerateResponse.success && regenerateResponse.data) {
+            if (regenerateResponse.data.accessToken) {
+              dispatch(setAccessToken(regenerateResponse.data.accessToken));
+            }
+            setFreshRecoveryCodes(regenerateResponse.data.recoveryCodes || []);
+            toast.success('New emergency recovery codes generated.');
+            await loadMfaStatus();
+            setPromptDialog((prev) => ({ ...prev, isOpen: false, isLoading: false }));
+          }
+        } catch (regenerationError) {
+          toast.error(regenerationError.response?.data?.message || 'Failed to regenerate recovery codes.');
+          setPromptDialog((prev) => ({ ...prev, isLoading: false }));
         }
-        setFreshRecoveryCodes(regenerateResponse.data.recoveryCodes || []);
-        toast.success('New emergency recovery codes generated.');
-        await loadMfaStatus();
-      }
-    } catch (regenerationError) {
-      toast.error(regenerationError.response?.data?.message || 'Failed to regenerate recovery codes.');
-    } finally {
-      setLoading(false);
-    }
+      },
+    });
   };
 
   // Disable MFA (Requires step-up password)
-  const handleDisableMfa = async () => {
+  const handleDisableMfa = () => {
     if (mfaStatus?.requiresMfa) {
       toast.error('MFA is mandatory for your role level and cannot be disabled.');
       return;
     }
-    const password = prompt('Enter your account login password to disable Two-Factor Authentication:');
-    if (!password) return;
-    setLoading(true);
-    try {
-      const disableResponse = await authService.disableMfa(password);
-      if (disableResponse.success) {
-        toast.success('Two-Factor Authentication disabled.');
-        await loadMfaStatus();
-      }
-    } catch (disableError) {
-      toast.error(disableError.response?.data?.message || 'Failed to disable MFA.');
-    } finally {
-      setLoading(false);
-    }
+    setPromptDialog({
+      isOpen: true,
+      title: 'Disable Two-Factor Authentication',
+      message: 'Enter your account login password to disable Two-Factor Authentication:',
+      inputType: 'password',
+      placeholder: 'Enter account password',
+      minLength: 1,
+      confirmText: 'Disable 2FA',
+      confirmVariant: 'danger',
+      note: 'Disabling 2FA lowers your account security. You can re-enable it at any time.',
+      onSubmit: async (password) => {
+        setPromptDialog((prev) => ({ ...prev, isLoading: true }));
+        try {
+          const disableResponse = await authService.disableMfa(password);
+          if (disableResponse.success) {
+            toast.success('Two-Factor Authentication disabled.');
+            await loadMfaStatus();
+            setPromptDialog((prev) => ({ ...prev, isOpen: false, isLoading: false }));
+          }
+        } catch (disableError) {
+          toast.error(disableError.response?.data?.message || 'Failed to disable MFA.');
+          setPromptDialog((prev) => ({ ...prev, isLoading: false }));
+        }
+      },
+    });
   };
 
   // Device Rotation: Step 1 Initiate
@@ -880,6 +916,21 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
           </button>
         </div>
       </div>
+      {/* Accessible Step-up Authentication Prompt Modal */}
+      <PromptModal
+        isOpen={promptDialog.isOpen}
+        title={promptDialog.title}
+        message={promptDialog.message}
+        inputType={promptDialog.inputType}
+        placeholder={promptDialog.placeholder}
+        minLength={promptDialog.minLength}
+        confirmText={promptDialog.confirmText}
+        confirmVariant={promptDialog.confirmVariant}
+        note={promptDialog.note}
+        isLoading={promptDialog.isLoading}
+        onSubmit={promptDialog.onSubmit}
+        onCancel={() => setPromptDialog((prev) => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 };
