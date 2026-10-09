@@ -350,7 +350,7 @@ export const fetchSchoolNotices = createAsyncThunk(
   async (params = {}, { rejectWithValue }) => {
     try {
       const response = await hmService.getDocuments(params);
-      return response.data?.documents || [];
+      return response.data?.documents || response.documents || [];
     } catch (apiRequestError) {
       return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch school circulars');
     }

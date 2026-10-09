@@ -441,7 +441,7 @@ export const HmDashboard = () => {
     } else if (activeTab === 'transfers') {
       dispatch(fetchIncomingTransfers({ direction: transferViewDirection }));
     } else if (activeTab === 'notices') {
-      loadNotices();
+      // Managed by dedicated debounced notices effect below
     } else if (activeTab === 'timetable') {
       dispatch(fetchSchoolFaculty());
       dispatch(fetchTeachingAssignments());
