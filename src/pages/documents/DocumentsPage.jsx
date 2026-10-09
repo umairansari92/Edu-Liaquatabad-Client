@@ -18,6 +18,11 @@ export const DocumentsPage = () => {
     return <Navigate to="/dashboard?tab=circulars" replace />;
   }
 
+  // If user is HM, redirect to dedicated HM school notices tab
+  if (user?.role === 'HM') {
+    return <Navigate to="/dashboard?tab=notices" replace />;
+  }
+
   return (
     <PageContainer
       title="Municipal Circulars, Documents & Reporting Exports"

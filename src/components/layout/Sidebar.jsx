@@ -63,7 +63,7 @@ export const Sidebar = () => {
       { label: 'Exams & results', path: '/exams', icon: Award },
       { label: 'Approvals', path: '/approvals', icon: ShieldCheck },
       { label: 'Holidays & calendar', path: '/holidays', icon: Calendar },
-      { label: 'Notices & circulars', path: '/documents', icon: FileText },
+      { label: 'Notices & circulars', path: '/dashboard?tab=notices', icon: FileText },
       { label: 'My profile', path: '/profile', icon: IdCard },
     ];
   } else {
@@ -100,7 +100,10 @@ export const Sidebar = () => {
     null;
 
   const currentParams = new URLSearchParams(location.search);
-  const currentTab = currentParams.get('tab') || (user?.role === 'HM' ? 'students' : 'staff');
+  let currentTab = currentParams.get('tab');
+  if (!currentTab && location.pathname === '/directory') {
+    currentTab = user?.role === 'HM' ? 'students' : 'staff';
+  }
 
   return (
     <aside className="w-64 bg-white border-r border-slate-200 text-[#526477] h-[calc(100vh-4rem)] sticky top-16 shrink-0 flex flex-col justify-between p-4 overflow-y-auto z-30 select-none shadow-xs">

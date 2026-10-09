@@ -47,7 +47,7 @@ import {
   UserX,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import PageContainer from '../../components/layout/PageContainer.jsx';
 import HmAddStudentModal from '../../components/hm/HmAddStudentModal.jsx';
 import HmTimetableBuilder from '../../components/timetable/HmTimetableBuilder.jsx';
@@ -138,6 +138,7 @@ export const HmDashboard = () => {
 
   const [activeTab, setActiveTab] = useState('overview');
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Reset to overview or tab param when navigating to /dashboard
   useEffect(() => {
@@ -151,6 +152,18 @@ export const HmDashboard = () => {
       }
     }
   }, [location.pathname, location.key, location.search]);
+
+  const handleSelectTab = useCallback(
+    (newTab) => {
+      setActiveTab(newTab);
+      if (newTab === 'overview') {
+        navigate('/dashboard', { replace: false });
+      } else {
+        navigate(`/dashboard?tab=${newTab}`, { replace: false });
+      }
+    },
+    [navigate]
+  );
 
   const userSchoolId = user?.schoolId?._id || user?.schoolId;
 
@@ -1191,7 +1204,7 @@ export const HmDashboard = () => {
         <div className="mb-6 flex items-center justify-between p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
           <button
             type="button"
-            onClick={() => setActiveTab('overview')}
+            onClick={() => handleSelectTab('overview')}
             className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-[#006AC7] hover:text-[#005299] transition cursor-pointer"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -1216,11 +1229,11 @@ export const HmDashboard = () => {
           staffApprovals={staffApprovals}
           studentApprovals={studentApprovals}
           teacherAttendance={teacherAttendance}
-          onSelectTab={setActiveTab}
+          onSelectTab={handleSelectTab}
           onRefresh={handleRefreshAll}
           onOpenTransfer={(transfer) => {
             setTransferViewDirection('incoming');
-            setActiveTab('transfers');
+            handleSelectTab('transfers');
           }}
           onOpenParentClaim={(claim) => handleOpenVerifyModal(claim)}
           onOpenApproval={(item, type) => setApprovalModal({ open: true, user: item, type })}
@@ -4661,7 +4674,7 @@ export const HmDashboard = () => {
           summary={summary}
           attendanceAnalytics={attendanceAnalytics}
           exams={exams}
-          onSelectTab={setActiveTab}
+          onSelectTab={handleSelectTab}
         />
       )}
 
