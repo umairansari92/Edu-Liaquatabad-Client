@@ -56,8 +56,8 @@ export const Sidebar = () => {
   } else if (user?.role === 'HM') {
     navigationItems = [
       { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-      { label: 'Student directory', path: '/directory?tab=students', icon: BookUser },
-      { label: 'Teaching staff', path: '/directory?tab=staff', icon: Users },
+      { label: 'Student Records', path: '/directory?tab=students', icon: BookUser },
+      { label: 'Staff Directory', path: '/directory?tab=staff', icon: Users },
       { label: 'Attendance', path: '/attendance', icon: ClipboardCheck },
       { label: 'Incoming staff', path: '/transfers', icon: ArrowLeftRight },
       { label: 'Exams & results', path: '/exams', icon: Award },
@@ -99,6 +99,9 @@ export const Sidebar = () => {
     hmSchool?.code ||
     null;
 
+  const currentParams = new URLSearchParams(location.search);
+  const currentTab = currentParams.get('tab') || (user?.role === 'HM' ? 'students' : 'staff');
+
   return (
     <aside className="w-64 bg-white border-r border-slate-200 text-[#526477] h-[calc(100vh-4rem)] sticky top-16 shrink-0 flex flex-col justify-between p-4 overflow-y-auto z-30 select-none shadow-xs">
       <div className="space-y-1">
@@ -108,10 +111,15 @@ export const Sidebar = () => {
 
         {navigationItems.map((navItem) => {
           const Icon = navItem.icon;
-          const currentUrl = location.pathname + location.search;
-          const isActive = navItem.path.includes('?')
-            ? currentUrl === navItem.path
-            : location.pathname === navItem.path && (!location.search || !location.search.includes('tab='));
+          let isActive = false;
+          if (navItem.path.includes('?')) {
+            const [targetPath, targetQuery] = navItem.path.split('?');
+            const targetParams = new URLSearchParams(targetQuery);
+            const targetTab = targetParams.get('tab');
+            isActive = location.pathname === targetPath && currentTab === targetTab;
+          } else {
+            isActive = location.pathname === navItem.path && (!location.search || !location.search.includes('tab='));
+          }
           return (
             <Link
               key={navItem.path}
