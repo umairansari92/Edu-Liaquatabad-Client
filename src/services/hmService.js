@@ -224,7 +224,7 @@ export const hmService = {
     // Automatically handles FormData (multipart/form-data) or JSON payload
     const isFormData = typeof FormData !== 'undefined' && documentPayload instanceof FormData;
     const response = await apiClient.post('/documents', documentPayload, {
-      headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {},
+      headers: isFormData ? { 'Content-Type': undefined } : {},
     });
     return response.data;
   },

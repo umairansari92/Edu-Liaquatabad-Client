@@ -49,6 +49,13 @@ apiClient.interceptors.request.use(
       }
     }
 
+    // Allow browser / Axios to automatically set multipart/form-data boundary
+    if (typeof FormData !== 'undefined' && requestConfig.data instanceof FormData) {
+      if (requestConfig.headers) {
+        delete requestConfig.headers['Content-Type'];
+      }
+    }
+
     return requestConfig;
   },
   (error) => Promise.reject(error)
