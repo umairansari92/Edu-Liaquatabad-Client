@@ -37,6 +37,12 @@ export const isRetryableError = (error) => {
     return true;
   }
 
+  // 409 Conflict with explicit retryable flag (e.g. server-side MUTATION_IN_FLIGHT in-flight lease)
+  // allows client to backoff and reconcile the in-flight execution result rather than hard-failing
+  if (statusCode === 409 && error.response?.data?.retryable === true) {
+    return true;
+  }
+
   // 5xx Server Errors
   if (statusCode >= 500 && statusCode <= 504) {
     return true;
