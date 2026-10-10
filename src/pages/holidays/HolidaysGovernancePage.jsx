@@ -72,7 +72,7 @@ export const HolidaysGovernancePage = () => {
     setLoading(true);
     try {
       const [holidaysRes, weeklyOffRes] = await Promise.all([
-        apiClient.get('/holidays'),
+        apiClient.get('/holidays?status=ALL'),
         apiClient.get('/weekly-off'),
       ]);
       if (holidaysRes.data?.success) {
@@ -244,7 +244,14 @@ export const HolidaysGovernancePage = () => {
     }
   };
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  // Deterministic Asia/Karachi (PKT) calendar date calculation (YYYY-MM-DD)
+  const todayStr = (() => {
+    try {
+      return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Karachi' }).format(new Date());
+    } catch {
+      return new Date().toISOString().split('T')[0];
+    }
+  })();
   const activeTodayHoliday = holidays.find(
     (holidayItem) => holidayItem.status === 'ACTIVE' && todayStr >= holidayItem.startDate && todayStr <= holidayItem.endDate
   );
@@ -500,7 +507,7 @@ export const HolidaysGovernancePage = () => {
               <h3 className="text-base font-bold text-[#102033]">Scheduled Breaks &amp; Official Closures</h3>
             </div>
             <div className="flex items-center gap-2">
-              {['ALL', 'ACTIVE', 'CANCELLED'].map((tab) => (
+              {['ALL', 'ACTIVE', 'SCHEDULED', 'EXPIRED', 'CANCELLED'].map((tab) => (
                 <button
                   key={tab}
                   type="button"
@@ -571,6 +578,12 @@ export const HolidaysGovernancePage = () => {
                             className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${
                               holidayRecord.status === 'ACTIVE'
                                 ? 'bg-emerald-50 text-[#4B7F3A] border-emerald-200'
+                                : holidayRecord.status === 'SCHEDULED'
+                                ? 'bg-blue-50 text-[#006AC7] border-blue-200'
+                                : holidayRecord.status === 'EXPIRED'
+                                ? 'bg-slate-100 text-slate-600 border-slate-200'
+                                : holidayRecord.status === 'CANCELLED'
+                                ? 'bg-rose-50 text-rose-700 border-rose-200'
                                 : 'bg-slate-100 text-slate-700 border-slate-200'
                             }`}
                           >
@@ -578,7 +591,7 @@ export const HolidaysGovernancePage = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-right">
-                          {holidayRecord.status === 'ACTIVE' && (isTownAdmin || isHm) && (
+                          {['ACTIVE', 'SCHEDULED'].includes(holidayRecord.status) && (isTownAdmin || isHm) && (
                             <button
                               type="button"
                               onClick={() => handleOpenCancelModal(holidayRecord)}
