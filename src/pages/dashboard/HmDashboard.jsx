@@ -51,11 +51,13 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import PageContainer from '../../components/layout/PageContainer.jsx';
 import HmAddStudentModal from '../../components/hm/HmAddStudentModal.jsx';
 import HmTimetableBuilder from '../../components/timetable/HmTimetableBuilder.jsx';
+import ClassWiseScheduleViewer from '../../components/timetable/ClassWiseScheduleViewer.jsx';
 import HmOverviewTab from '../../components/hm/HmOverviewTab.jsx';
 import HmSchoolProfileTab from '../../components/hm/HmSchoolProfileTab.jsx';
 import HmReportsTab from '../../components/hm/HmReportsTab.jsx';
 import HmActivityLogTab from '../../components/hm/HmActivityLogTab.jsx';
 import ConfirmModal from '../../components/common/ConfirmModal.jsx';
+import { fetchSchoolTimetable } from '../../store/slices/timetableSlice.js';
 import {
   fetchHmSummary,
   fetchPendingApprovals,
@@ -135,6 +137,7 @@ export const HmDashboard = () => {
     parentClaimsLoading,
     parentClaimsPagination,
   } = useSelector((state) => state.hm);
+  const { schoolTimetable } = useSelector((state) => state.timetable);
 
   const [activeTab, setActiveTab] = useState('overview');
   const location = useLocation();
@@ -449,6 +452,7 @@ export const HmDashboard = () => {
       dispatch(fetchAcademicClasses({ schoolId: userSchoolId }));
       dispatch(fetchAcademicSections({ schoolId: userSchoolId }));
       dispatch(fetchAcademicSubjects({ schoolId: userSchoolId }));
+      dispatch(fetchSchoolTimetable({ schoolId: userSchoolId }));
     }
   }, [activeTab, dispatch, teacherAttendanceDate, loadNotices, transferViewDirection, parentClaimsFilter, userSchoolId]);
 
