@@ -104,7 +104,7 @@ const TableCell = ({ children, className = '' }) => (
   <td className={`px-4 py-3.5 align-middle ${className}`}>{children}</td>
 );
 
-const LoadingSkeletonRow = ({ columnsCount, message = 'Loading records from municipal directory...' }) => (
+const LoadingSkeletonRow = ({ columnsCount, message = 'Loading records...' }) => (
   <tr>
     <td colSpan={columnsCount} className="py-12 text-center text-[#526477]">
       <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2 text-[#006AC7]" />
@@ -113,7 +113,7 @@ const LoadingSkeletonRow = ({ columnsCount, message = 'Loading records from muni
   </tr>
 );
 
-const EmptyStateRow = ({ columnsCount, title = 'No matching records found.', description = 'Try clearing or adjusting search filters.' }) => (
+const EmptyStateRow = ({ columnsCount, title = 'No records found.', description = 'Try adjusting your search or filters.' }) => (
   <tr>
     <td colSpan={columnsCount} className="py-12 text-center text-[#526477]">
       <Users className="h-8 w-8 mx-auto mb-2 text-slate-300" />
@@ -139,7 +139,7 @@ const downloadCsvFile = async (endpointUrl, targetFilename, queryParameters, set
     URL.revokeObjectURL(downloadAnchorElement.href);
     toast.success(`${targetFilename} downloaded successfully.`);
   } catch (downloadError) {
-    const errorMessage = downloadError.response?.data?.message || 'Export failed. Please verify administrative permissions.';
+    const errorMessage = downloadError.response?.data?.message || 'Export failed. Please check your permissions.';
     toast.error(errorMessage);
   } finally {
     setExportingState(false);
@@ -217,7 +217,7 @@ const DirectoryFilterToolbar = ({
         onClick={onRefreshTriggered}
         disabled={isLoadingData}
         className="rounded-xl border border-slate-200 bg-white p-2 text-[#526477] hover:text-[#102033] hover:bg-slate-50 shadow-sm transition cursor-pointer disabled:opacity-50"
-        title="Refresh Records"
+        title="Refresh records"
       >
         <RefreshCw className={`h-3.5 w-3.5 ${isLoadingData ? 'animate-spin text-[#006AC7]' : ''}`} />
       </button>
@@ -338,7 +338,7 @@ const StudentRecordDetailsModal = ({ studentRecord, onClose }) => {
             onClick={onClose}
             className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700 transition cursor-pointer"
           >
-            Close Details
+            Close
           </button>
         </div>
       </div>
@@ -516,7 +516,7 @@ const StudentRecordsView = ({ municipalSchoolsList, initialSearch = '', authenti
         <SearchInputField
           value={searchQuery}
           onChange={setSearchQuery}
-          placeholderText="Search by student name, GR No, or Global ID..."
+          placeholderText="Search by name or student ID..."
           focusBorderColorClass="focus:border-[#006AC7]"
         />
 
@@ -629,12 +629,12 @@ const StudentRecordsView = ({ municipalSchoolsList, initialSearch = '', authenti
             </thead>
             <tbody className="divide-y divide-slate-100">
               {isLoading ? (
-                <LoadingSkeletonRow columnsCount={8} message="Loading official student records from municipal register..." />
+                <LoadingSkeletonRow columnsCount={8} message="Loading student records..." />
               ) : students.length === 0 ? (
                 <EmptyStateRow
                   columnsCount={8}
-                  title={hasActiveFilters ? 'No matching student records found.' : 'No students registered in this school roster yet.'}
-                  description={hasActiveFilters ? 'Try adjusting your search query or clearing active dropdown filters.' : 'Newly enrolled students will appear here.'}
+                  title={hasActiveFilters ? 'No students found.' : 'No students registered yet.'}
+                  description={hasActiveFilters ? 'Try adjusting your search or filters.' : 'Newly enrolled students will appear here.'}
                 />
               ) : (
                 students.map((studentRecord) => (
@@ -712,7 +712,7 @@ const StudentRecordsView = ({ municipalSchoolsList, initialSearch = '', authenti
                         type="button"
                         onClick={() => setViewingStudent(studentRecord)}
                         className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 text-[#006AC7] hover:bg-blue-50 hover:border-blue-200 transition text-[11px] font-bold cursor-pointer"
-                        title="View Student Record Particulars"
+                        title="View student details"
                       >
                         <Eye className="h-3.5 w-3.5" />
                         <span>View</span>
@@ -869,7 +869,7 @@ const StaffDirectoryView = ({ municipalSchoolsList, initialSearch = '', authenti
         <SearchInputField
           value={searchQuery}
           onChange={setSearchQuery}
-          placeholderText="Search staff by name or email..."
+          placeholderText="Search by name or email..."
           focusBorderColorClass="focus:border-[#006AC7]"
         />
 
@@ -935,12 +935,12 @@ const StaffDirectoryView = ({ municipalSchoolsList, initialSearch = '', authenti
             </thead>
             <tbody className="divide-y divide-slate-100">
               {isLoading ? (
-                <LoadingSkeletonRow columnsCount={7} message="Loading school staff records..." />
+                <LoadingSkeletonRow columnsCount={7} message="Loading staff records..." />
               ) : staffRecords.length === 0 ? (
                 <EmptyStateRow
                   columnsCount={7}
-                  title="No matching staff records found."
-                  description="Try adjusting your search criteria or clearing filters."
+                  title="No staff members found."
+                  description="Try adjusting your search or filters."
                 />
               ) : (
                 staffRecords.map((staffMember) => (
@@ -1074,7 +1074,7 @@ const GuardiansDirectoryView = () => {
         <SearchInputField
           value={searchQuery}
           onChange={setSearchQuery}
-          placeholderText="Search guardian name, email, or phone..."
+          placeholderText="Search by name, email, or phone..."
           focusBorderColorClass="focus:border-[#006AC7]"
         />
 
@@ -1107,9 +1107,9 @@ const GuardiansDirectoryView = () => {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {isLoading ? (
-                <LoadingSkeletonRow columnsCount={6} message="Loading guardian accounts..." />
+                <LoadingSkeletonRow columnsCount={6} message="Loading guardians..." />
               ) : filteredGuardians.length === 0 ? (
-                <EmptyStateRow columnsCount={6} title="No matching guardian accounts found." description="Adjust your filters or search." />
+                <EmptyStateRow columnsCount={6} title="No guardians found." description="Try adjusting your search or filters." />
               ) : (
                 filteredGuardians.map((guardianAccount) => (
                   <tr key={guardianAccount._id} className="hover:bg-blue-50/40 transition">
@@ -1218,25 +1218,27 @@ export const DirectoryPage = () => {
 
   // Dynamic Page Title & Plain-English Subtitle reflecting the selected category
   const getPageHeaderInfo = () => {
+    if (isHM) {
+      return {
+        title: 'School Directory',
+        subtitle: 'View and manage student and staff records for your school.',
+      };
+    }
     if (activeTabId === 'students') {
       return {
-        title: 'Student Records',
-        subtitle: isHM
-          ? `${schoolName} — Official student admission, class enrollment, and academic status records.`
-          : 'Education Department Liaquatabad Town — Municipal student admission and academic records.',
+        title: 'Student Directory',
+        subtitle: 'View and manage student admission and academic records.',
       };
     }
     if (activeTabId === 'staff') {
       return {
         title: 'Staff Directory',
-        subtitle: isHM
-          ? `${schoolName} — School faculty and non-teaching administrative personnel records.`
-          : 'Education Department Liaquatabad Town — Teaching faculty and institutional staff directory.',
+        subtitle: 'View and manage school faculty and administrative staff records.',
       };
     }
     return {
       title: 'Guardians Directory',
-      subtitle: 'Education Department Liaquatabad Town — Parent accounts and verified student link records.',
+      subtitle: 'View and manage parent accounts and student link records.',
     };
   };
 
@@ -1258,7 +1260,7 @@ export const DirectoryPage = () => {
               }`}
             >
               <GraduationCap className="h-4 w-4" />
-              <span>Student Records</span>
+              <span>Students</span>
             </button>
 
             <button
@@ -1271,7 +1273,7 @@ export const DirectoryPage = () => {
               }`}
             >
               <Users className="h-4 w-4" />
-              <span>Staff Directory</span>
+              <span>Staff</span>
             </button>
 
             {isPlatformAdministrator && (
@@ -1285,7 +1287,7 @@ export const DirectoryPage = () => {
                 }`}
               >
                 <Heart className="h-4 w-4" />
-                <span>Guardians Directory</span>
+                <span>Guardians</span>
               </button>
             )}
           </div>

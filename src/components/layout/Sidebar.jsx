@@ -56,8 +56,7 @@ export const Sidebar = () => {
   } else if (user?.role === 'HM') {
     navigationItems = [
       { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-      { label: 'Student Records', path: '/directory?tab=students', icon: BookUser },
-      { label: 'Staff Directory', path: '/directory?tab=staff', icon: Users },
+      { label: 'School Directory', path: '/directory', icon: BookUser },
       { label: 'Attendance', path: '/attendance', icon: ClipboardCheck },
       { label: 'Incoming staff', path: '/transfers', icon: ArrowLeftRight },
       { label: 'Exams & results', path: '/exams', icon: Award },
@@ -120,6 +119,8 @@ export const Sidebar = () => {
             const targetParams = new URLSearchParams(targetQuery);
             const targetTab = targetParams.get('tab');
             isActive = location.pathname === targetPath && currentTab === targetTab;
+          } else if (navItem.path === '/directory') {
+            isActive = location.pathname === '/directory';
           } else {
             isActive = location.pathname === navItem.path && (!location.search || !location.search.includes('tab='));
           }
