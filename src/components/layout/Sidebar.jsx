@@ -14,6 +14,10 @@ import {
   ShieldCheck,
   IdCard,
   Calendar,
+  GraduationCap,
+  BookOpen,
+  CalendarDays,
+  BookMarked,
 } from 'lucide-react';
 
 export const Sidebar = () => {
@@ -56,14 +60,19 @@ export const Sidebar = () => {
   } else if (user?.role === 'HM') {
     navigationItems = [
       { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-      { label: 'School Directory', path: '/directory', icon: BookUser },
-      { label: 'Attendance', path: '/attendance', icon: ClipboardCheck },
-      { label: 'Incoming staff', path: '/transfers', icon: ArrowLeftRight },
+      { label: 'Student directory', path: '/directory?tab=students', icon: GraduationCap },
+      { label: 'Teaching staff', path: '/directory?tab=staff', icon: Users },
+      { label: 'Teaching duties', path: '/dashboard?tab=assignments', icon: BookOpen },
+      { label: 'School timetable', path: '/dashboard?tab=timetable', icon: CalendarDays },
+      { label: 'Daily attendance', path: '/dashboard?tab=attendance', icon: ClipboardCheck },
+      { label: 'Academic structure', path: '/dashboard?tab=academics', icon: BookMarked },
       { label: 'Exams & results', path: '/exams', icon: Award },
-      { label: 'Approvals', path: '/approvals', icon: ShieldCheck },
-      { label: 'Holidays & calendar', path: '/holidays', icon: Calendar },
+      { label: 'Incoming staff', path: '/transfers', icon: ArrowLeftRight },
+      { label: 'Approvals queue', path: '/approvals', icon: ShieldCheck },
       { label: 'Notices & circulars', path: '/dashboard?tab=notices', icon: FileText },
-      { label: 'My profile', path: '/profile', icon: IdCard },
+      { label: 'School profile', path: '/dashboard?tab=profile', icon: Building2 },
+      { label: 'Holidays & calendar', path: '/holidays', icon: Calendar },
+      { label: 'My service profile', path: '/profile', icon: IdCard },
     ];
   } else {
     navigationItems = [
@@ -119,10 +128,23 @@ export const Sidebar = () => {
             const targetParams = new URLSearchParams(targetQuery);
             const targetTab = targetParams.get('tab');
             isActive = location.pathname === targetPath && currentTab === targetTab;
+
+            // Also match if user is viewing this tab within /dashboard
+            if (!isActive && location.pathname === '/dashboard') {
+              if (navItem.path === '/directory?tab=students' && currentTab === 'students') isActive = true;
+              if (navItem.path === '/directory?tab=staff' && currentTab === 'faculty') isActive = true;
+            }
           } else if (navItem.path === '/directory') {
             isActive = location.pathname === '/directory';
           } else {
-            isActive = location.pathname === navItem.path && (!location.search || !location.search.includes('tab='));
+            // Also match standalone pages when accessed via dashboard tabs
+            const isTabAlias =
+              location.pathname === '/dashboard' &&
+              ((navItem.path === '/transfers' && currentTab === 'transfers') ||
+               (navItem.path === '/exams' && currentTab === 'exams') ||
+               (navItem.path === '/approvals' && currentTab === 'approvals') ||
+               (navItem.path === '/documents' && currentTab === 'notices'));
+            isActive = isTabAlias || (location.pathname === navItem.path && (!location.search || !location.search.includes('tab=')));
           }
           return (
             <Link

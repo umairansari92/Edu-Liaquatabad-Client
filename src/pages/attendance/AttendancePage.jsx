@@ -644,8 +644,8 @@ const AdminAttendanceWorkspace = ({ user }) => {
 export const AttendancePage = () => {
   const { user } = useSelector((state) => state.auth);
 
-  // If user is STUDENT or PARENT, redirect to dedicated attendance intelligence tab
-  if (user?.role === 'STUDENT' || user?.role === 'PARENT') {
+  // If user is STUDENT, PARENT, or HM, redirect to dedicated attendance intelligence tab
+  if (user?.role === 'STUDENT' || user?.role === 'PARENT' || user?.role === 'HM') {
     return <Navigate to="/dashboard?tab=attendance" replace />;
   }
 

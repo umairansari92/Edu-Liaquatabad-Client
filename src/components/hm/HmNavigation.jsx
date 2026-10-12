@@ -37,7 +37,7 @@ export const HM_NAV_GROUPS = [
     label: 'Academics',
     items: [
       { id: 'academics', label: 'Academic structure', icon: BookMarked },
-      { id: 'assignments', label: 'Teaching assignments', icon: BookOpen },
+      { id: 'assignments', label: 'Teaching duties', icon: BookOpen },
       { id: 'timetable', label: 'Timetable', icon: CalendarDays },
       { id: 'exams', label: 'Exams & results', icon: Award },
     ],

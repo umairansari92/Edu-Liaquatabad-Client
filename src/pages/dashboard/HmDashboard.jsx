@@ -53,6 +53,7 @@ import HmAddStudentModal from '../../components/hm/HmAddStudentModal.jsx';
 import HmTimetableBuilder from '../../components/timetable/HmTimetableBuilder.jsx';
 import ClassWiseScheduleViewer from '../../components/timetable/ClassWiseScheduleViewer.jsx';
 import HmOverviewTab from '../../components/hm/HmOverviewTab.jsx';
+import HmNavigation from '../../components/hm/HmNavigation.jsx';
 import HmSchoolProfileTab from '../../components/hm/HmSchoolProfileTab.jsx';
 import HmReportsTab from '../../components/hm/HmReportsTab.jsx';
 import HmActivityLogTab from '../../components/hm/HmActivityLogTab.jsx';
