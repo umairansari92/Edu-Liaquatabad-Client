@@ -45,6 +45,7 @@ import {
   Printer,
   FileSpreadsheet,
   UserX,
+  History,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -106,6 +107,7 @@ import {
   fetchPendingLeaveRequests,
   approveLeaveRequest,
   rejectLeaveRequest,
+  correctLeaveRequest,
   hmInitiateLeaveOrAbsent,
   fetchSchoolLeaveSummary,
 } from '../../store/slices/hmSlice.js';
@@ -359,10 +361,11 @@ export const HmDashboard = () => {
     reason: '',
     submitting: false,
   });
+  const [leaveStatusFilter, setLeaveStatusFilter] = useState('PENDING'); // 'PENDING' | 'SUPERSEDED,REJECTED'
   const [leaveDecisionModal, setLeaveDecisionModal] = useState({
     open: false,
     request: null,
-    action: 'approve', // 'approve' | 'reject'
+    action: 'approve', // 'approve' | 'reject' | 'correct'
     reason: '',
     submitting: false,
   });
@@ -728,8 +731,12 @@ export const HmDashboard = () => {
 
   const handleExecuteLeaveDecision = async () => {
     const { request: leaveRequestItem, action, reason } = leaveDecisionModal;
-    if (action === 'reject' && (!reason || reason.trim().length < 5)) {
-      toast.error('Rejection reason is mandatory and must be at least 5 characters.');
+    if ((action === 'reject' || action === 'correct') && (!reason || reason.trim().length < 5)) {
+      toast.error(
+        action === 'correct'
+          ? 'Correction reason is mandatory and must be at least 5 characters.'
+          : 'Rejection reason is mandatory and must be at least 5 characters.'
+      );
       return;
     }
     setLeaveDecisionModal((prev) => ({ ...prev, submitting: true }));
@@ -737,11 +744,20 @@ export const HmDashboard = () => {
       if (action === 'approve') {
         await dispatch(approveLeaveRequest({ leaveRequestId: leaveRequestItem._id, reason: reason.trim() })).unwrap();
         toast.success('Casual leave approved successfully.');
+      } else if (action === 'correct') {
+        await dispatch(
+          correctLeaveRequest({
+            leaveRequestId: leaveRequestItem._id,
+            correctionReason: reason.trim(),
+          })
+        ).unwrap();
+        toast.success('Late correction approved. Prior absent provenance retained in audit trail.');
       } else {
         await dispatch(rejectLeaveRequest({ leaveRequestId: leaveRequestItem._id, reason: reason.trim() })).unwrap();
         toast.success('Leave request rejected.');
       }
       setLeaveDecisionModal({ open: false, request: null, action: 'approve', reason: '', submitting: false });
+      dispatch(fetchPendingLeaveRequests({ status: leaveStatusFilter }));
     } catch (apiError) {
       toast.error(apiError || `Failed to ${action} leave request`);
       setLeaveDecisionModal((prev) => ({ ...prev, submitting: false }));
@@ -2993,12 +3009,44 @@ export const HmDashboard = () => {
               {/* Leave Requests Table/Cards */}
               <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
-                  <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
-                    <ClipboardCheck className="w-5 h-5 text-[#4B7F3A]" />
-                    Pending Faculty Leave Applications
-                  </h3>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
+                      <ClipboardCheck className="w-5 h-5 text-[#4B7F3A]" />
+                      Faculty Leave Applications
+                    </h3>
+                    <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-xl border border-slate-200/60 self-start">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLeaveStatusFilter('PENDING');
+                          dispatch(fetchPendingLeaveRequests({ status: 'PENDING' }));
+                        }}
+                        className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                          leaveStatusFilter === 'PENDING'
+                            ? 'bg-white text-[#102033] shadow-xs'
+                            : 'text-[#526477] hover:text-[#102033]'
+                        }`}
+                      >
+                        Pending Queue
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLeaveStatusFilter('SUPERSEDED,REJECTED');
+                          dispatch(fetchPendingLeaveRequests({ status: 'SUPERSEDED,REJECTED' }));
+                        }}
+                        className={`px-3 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
+                          leaveStatusFilter === 'SUPERSEDED,REJECTED'
+                            ? 'bg-white text-indigo-700 shadow-xs'
+                            : 'text-[#526477] hover:text-indigo-600'
+                        }`}
+                      >
+                        Rollover & Rejected (Late Correction)
+                      </button>
+                    </div>
+                  </div>
                   <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200/60 self-start sm:self-auto">
-                    {pendingLeaveRequests.length} Pending
+                    {pendingLeaveRequests.length} {leaveStatusFilter === 'PENDING' ? 'Pending' : 'Records'}
                   </span>
                 </div>
 
@@ -3008,7 +3056,9 @@ export const HmDashboard = () => {
                   </div>
                 ) : pendingLeaveRequests.length === 0 ? (
                   <div className="p-8 text-center text-sm text-[#8094A8] bg-slate-50 rounded-xl border border-slate-200/60">
-                    No pending leave applications from faculty members.
+                    {leaveStatusFilter === 'PENDING'
+                      ? 'No pending leave applications from faculty members.'
+                      : 'No superseded or rejected leave applications eligible for late correction.'}
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -3048,6 +3098,16 @@ export const HmDashboard = () => {
                                   HM-Initiated
                                 </span>
                               )}
+                              {leaveReq.status === 'SUPERSEDED' && (
+                                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100/80 text-amber-900 border border-amber-300">
+                                  Superseded by Absent
+                                </span>
+                              )}
+                              {leaveReq.status === 'REJECTED' && (
+                                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
+                                  Rejected
+                                </span>
+                              )}
                             </div>
                             <div className="text-xs text-[#526477] flex items-center gap-3">
                               <span><strong className="text-[#102033]">Duration:</strong> {startStr} to {endStr}</span>
@@ -3062,38 +3122,59 @@ export const HmDashboard = () => {
                           </div>
                           {!isEl && (
                             <div className="flex items-center gap-2 self-end md:self-center shrink-0">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setLeaveDecisionModal({
-                                    open: true,
-                                    request: leaveReq,
-                                    action: 'approve',
-                                    reason: '',
-                                    submitting: false,
-                                  })
-                                }
-                                disabled={leaveActionLoading}
-                                className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#4B7F3A] hover:bg-[#3d682f] text-white shadow-xs transition cursor-pointer disabled:opacity-50"
-                              >
-                                Approve CL
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setLeaveDecisionModal({
-                                    open: true,
-                                    request: leaveReq,
-                                    action: 'reject',
-                                    reason: '',
-                                    submitting: false,
-                                  })
-                                }
-                                disabled={leaveActionLoading}
-                                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition cursor-pointer disabled:opacity-50"
-                              >
-                                Reject
-                              </button>
+                              {leaveStatusFilter === 'PENDING' ? (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setLeaveDecisionModal({
+                                        open: true,
+                                        request: leaveReq,
+                                        action: 'approve',
+                                        reason: '',
+                                        submitting: false,
+                                      })
+                                    }
+                                    disabled={leaveActionLoading}
+                                    className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#4B7F3A] hover:bg-[#3d682f] text-white shadow-xs transition cursor-pointer disabled:opacity-50"
+                                  >
+                                    Approve CL
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setLeaveDecisionModal({
+                                        open: true,
+                                        request: leaveReq,
+                                        action: 'reject',
+                                        reason: '',
+                                        submitting: false,
+                                      })
+                                    }
+                                    disabled={leaveActionLoading}
+                                    className="px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition cursor-pointer disabled:opacity-50"
+                                  >
+                                    Reject
+                                  </button>
+                                </>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setLeaveDecisionModal({
+                                      open: true,
+                                      request: leaveReq,
+                                      action: 'correct',
+                                      reason: '',
+                                      submitting: false,
+                                    })
+                                  }
+                                  disabled={leaveActionLoading}
+                                  className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                                >
+                                  <History className="w-3.5 h-3.5" /> Late Correction
+                                </button>
+                              )}
                             </div>
                           )}
                         </div>
@@ -5438,6 +5519,11 @@ export const HmDashboard = () => {
                     <CheckCircle2 className="w-5 h-5 text-[#4B7F3A]" />
                     Approve Casual Leave
                   </>
+                ) : leaveDecisionModal.action === 'correct' ? (
+                  <>
+                    <History className="w-5 h-5 text-indigo-600" />
+                    Late Correction & Approval (CL)
+                  </>
                 ) : (
                   <>
                     <XCircle className="w-5 h-5 text-rose-600" />
@@ -5467,6 +5553,11 @@ export const HmDashboard = () => {
                 <p className="text-[11px]">
                   <strong>Reason:</strong> {leaveDecisionModal.request.reason}
                 </p>
+                {leaveDecisionModal.action === 'correct' && (
+                  <p className="text-[11px] text-indigo-700 bg-indigo-50 p-2 rounded-lg border border-indigo-200/60 font-medium">
+                    Note: Approving late correction will convert the status to Approved and update attendance while preserving the original Absent provenance in the audit log.
+                  </p>
+                )}
               </div>
             )}
 
@@ -5479,8 +5570,12 @@ export const HmDashboard = () => {
             >
               <div>
                 <label className="block text-xs font-bold text-[#102033] mb-1.5">
-                  {leaveDecisionModal.action === 'approve' ? 'Remarks / Endorsement (Optional)' : 'Rejection Reason'}
-                  {leaveDecisionModal.action === 'reject' && <span className="text-rose-500"> *</span>}
+                  {leaveDecisionModal.action === 'approve'
+                    ? 'Remarks / Endorsement (Optional)'
+                    : leaveDecisionModal.action === 'correct'
+                    ? 'Mandatory Correction Justification'
+                    : 'Rejection Reason'}
+                  {leaveDecisionModal.action !== 'approve' && <span className="text-rose-500"> *</span>}
                 </label>
                 <textarea
                   rows={3}
@@ -5491,17 +5586,21 @@ export const HmDashboard = () => {
                   placeholder={
                     leaveDecisionModal.action === 'approve'
                       ? 'e.g. Reliever arrangement made for timetable coverage...'
+                      : leaveDecisionModal.action === 'correct'
+                      ? 'e.g. Teacher provided valid medical certificate in person; rectifying Absent to approved Casual Leave...'
                       : 'e.g. Critical exam duty scheduled; please reschedule...'
                   }
                   className={`w-full p-3 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 transition ${
                     leaveDecisionModal.action === 'approve'
                       ? 'focus:ring-[#006AC7]/20 focus:border-[#006AC7]'
+                      : leaveDecisionModal.action === 'correct'
+                      ? 'focus:ring-indigo-500/20 focus:border-indigo-500'
                       : 'focus:ring-rose-500/20 focus:border-rose-500'
                   }`}
-                  required={leaveDecisionModal.action === 'reject'}
-                  minLength={leaveDecisionModal.action === 'reject' ? 5 : 0}
+                  required={leaveDecisionModal.action !== 'approve'}
+                  minLength={leaveDecisionModal.action !== 'approve' ? 5 : 0}
                 />
-                {leaveDecisionModal.action === 'reject' && (
+                {leaveDecisionModal.action !== 'approve' && (
                   <span className="text-[10px] text-slate-400">Minimum 5 characters required.</span>
                 )}
               </div>
@@ -5521,6 +5620,8 @@ export const HmDashboard = () => {
                   className={`px-4 py-2 rounded-xl text-xs font-bold text-white shadow-xs transition cursor-pointer flex items-center gap-1.5 disabled:opacity-60 ${
                     leaveDecisionModal.action === 'approve'
                       ? 'bg-[#4B7F3A] hover:bg-[#3d682f]'
+                      : leaveDecisionModal.action === 'correct'
+                      ? 'bg-indigo-600 hover:bg-indigo-700'
                       : 'bg-rose-600 hover:bg-rose-700'
                   }`}
                 >
@@ -5531,6 +5632,8 @@ export const HmDashboard = () => {
                     </>
                   ) : leaveDecisionModal.action === 'approve' ? (
                     'Confirm Approval'
+                  ) : leaveDecisionModal.action === 'correct' ? (
+                    'Confirm Late Correction'
                   ) : (
                     'Confirm Rejection'
                   )}

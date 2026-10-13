@@ -345,6 +345,11 @@ export const hmService = {
     return response.data;
   },
 
+  correctLeaveRequest: async (leaveRequestId, payload = {}) => {
+    const response = await apiClient.post(`/leave/${leaveRequestId}/correct`, payload);
+    return response.data;
+  },
+
   hmInitiateLeaveOrAbsent: async (payload = {}) => {
     const response = await apiClient.post('/leave/hm-initiate', payload);
     return response.data;
