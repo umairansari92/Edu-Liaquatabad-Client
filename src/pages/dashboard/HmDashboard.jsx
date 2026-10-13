@@ -99,6 +99,15 @@ import {
   verifyHmParentLink,
   rejectHmParentLink,
   revokeHmParentLink,
+  markHmSelfAttendance,
+  fetchPendingStaffAttendance,
+  approveStaffAttendance,
+  rejectStaffAttendance,
+  fetchPendingLeaveRequests,
+  approveLeaveRequest,
+  rejectLeaveRequest,
+  hmInitiateLeaveOrAbsent,
+  fetchSchoolLeaveSummary,
 } from '../../store/slices/hmSlice.js';
 import hmService from '../../services/hmService.js';
 
@@ -137,6 +146,16 @@ export const HmDashboard = () => {
     parentClaims,
     parentClaimsLoading,
     parentClaimsPagination,
+    pendingStaffAttendance,
+    pendingStaffAttendanceTotal,
+    staffAttendanceLoading,
+    staffAttendanceActionLoading,
+    pendingLeaveRequests,
+    pendingLeaveRequestsTotal,
+    leaveRequestsLoading,
+    leaveActionLoading,
+    schoolLeaveSummary,
+    leaveSummaryLoading,
   } = useSelector((state) => state.hm);
   const { schoolTimetable } = useSelector((state) => state.timetable);
 
@@ -325,6 +344,37 @@ export const HmDashboard = () => {
   });
   const [classTeacherSubmitting, setClassTeacherSubmitting] = useState(false);
 
+  // ─── Staff Attendance & Leave Management Local State ──────────────────────────
+  const [hmSelfMarkedToday, setHmSelfMarkedToday] = useState(false);
+  const [hmSelfMarking, setHmSelfMarking] = useState(false);
+  const [staffLateApprovalModal, setStaffLateApprovalModal] = useState({
+    open: false,
+    record: null,
+    reason: '',
+    submitting: false,
+  });
+  const [staffRejectionModal, setStaffRejectionModal] = useState({
+    open: false,
+    record: null,
+    reason: '',
+    submitting: false,
+  });
+  const [leaveDecisionModal, setLeaveDecisionModal] = useState({
+    open: false,
+    request: null,
+    action: 'approve', // 'approve' | 'reject'
+    reason: '',
+    submitting: false,
+  });
+  const [hmInitiateModal, setHmInitiateModal] = useState({
+    open: false,
+    targetTeacherUserId: '',
+    attendanceDate: new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Karachi' }),
+    hmInitiatedAbsentInstead: false,
+    hmInitiatedReason: '',
+    submitting: false,
+  });
+
   // Selected class & grade for teaching duty allocation
   const selectedDutyClass = scopedClasses.find((classItem) => String(classItem._id) === String(dutyData.classId));
   const selectedDutyGrade = selectedDutyClass ? Number(selectedDutyClass.numericGrade) : null;
@@ -426,6 +476,8 @@ export const HmDashboard = () => {
       dispatch(fetchPendingApprovals('student'));
       dispatch(fetchHmParentLinks({ status: parentClaimsFilter }));
       dispatch(fetchIncomingTransfers({ direction: 'incoming' }));
+      dispatch(fetchPendingStaffAttendance());
+      dispatch(fetchPendingLeaveRequests());
     } else if (activeTab === 'academics') {
       dispatch(fetchAcademicClasses({ schoolId: userSchoolId }));
       dispatch(fetchAcademicSections({ schoolId: userSchoolId }));
@@ -439,6 +491,9 @@ export const HmDashboard = () => {
     } else if (activeTab === 'attendance') {
       dispatch(fetchTeacherDailyAttendance({ date: teacherAttendanceDate }));
       dispatch(fetchAttendanceAnalytics());
+      dispatch(fetchPendingStaffAttendance());
+      dispatch(fetchPendingLeaveRequests());
+      checkHmAttendanceStatus();
     } else if (activeTab === 'exams') {
       dispatch(fetchExamsList());
       dispatch(fetchAcademicClasses());
@@ -577,6 +632,9 @@ export const HmDashboard = () => {
     dispatch(fetchSchoolFaculty());
     if (activeTab === 'attendance') {
       dispatch(fetchTeacherDailyAttendance({ date: teacherAttendanceDate }));
+      dispatch(fetchPendingStaffAttendance());
+      dispatch(fetchPendingLeaveRequests());
+      checkHmAttendanceStatus();
     }
     if (activeTab === 'notices') {
       loadNotices();
@@ -585,8 +643,154 @@ export const HmDashboard = () => {
       dispatch(fetchPendingApprovals('staff'));
       dispatch(fetchPendingApprovals('student'));
       dispatch(fetchHmParentLinks({ status: parentClaimsFilter }));
+      dispatch(fetchPendingStaffAttendance());
+      dispatch(fetchPendingLeaveRequests());
     }
     toast.success('School command center updated.');
+  };
+
+  // ─── Staff Attendance & Leave Handlers ─────────────────────────────────────────
+  const checkHmAttendanceStatus = useCallback(async () => {
+    try {
+      const todayPkt = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Karachi' });
+      const historyResponse = await hmService.getMyStaffAttendanceHistory();
+      const records = historyResponse?.data?.records || historyResponse?.records || [];
+      const hasToday = records.some((attendanceRecord) => {
+        const attendanceRecordDate = attendanceRecord.attendanceDate
+          ? new Date(attendanceRecord.attendanceDate).toLocaleDateString('en-CA', { timeZone: 'Asia/Karachi' })
+          : '';
+        return attendanceRecordDate === todayPkt && attendanceRecord.approvalStatus === 'APPROVED';
+      });
+      setHmSelfMarkedToday(hasToday);
+    } catch (_) {
+      // Non-fatal probe
+    }
+  }, []);
+
+  const handleMarkHmSelfToday = async () => {
+    const todayPkt = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Karachi' });
+    setHmSelfMarking(true);
+    try {
+      await dispatch(markHmSelfAttendance({ attendanceDate: todayPkt })).unwrap();
+      toast.success('HM attendance recorded and self-approved (Instant Self-Effective).');
+      setHmSelfMarkedToday(true);
+    } catch (apiError) {
+      if (typeof apiError === 'string' && apiError.includes('already recorded')) {
+        setHmSelfMarkedToday(true);
+        toast.success('Attendance already recorded for today.');
+      } else {
+        toast.error(apiError || 'Failed to mark self-attendance');
+      }
+    } finally {
+      setHmSelfMarking(false);
+    }
+  };
+
+  const handleApproveStaffAttendanceClick = (attendanceRecord) => {
+    if (attendanceRecord.lateApprovalReasonRequired) {
+      setStaffLateApprovalModal({
+        open: true,
+        record: attendanceRecord,
+        reason: '',
+        submitting: false,
+      });
+    } else {
+      handleExecuteApproveStaff(attendanceRecord._id, '');
+    }
+  };
+
+  const handleExecuteApproveStaff = async (recordId, lateApprovalReason) => {
+    try {
+      await dispatch(approveStaffAttendance({ recordId, lateApprovalReason })).unwrap();
+      toast.success('Staff attendance approved successfully.');
+      setStaffLateApprovalModal({ open: false, record: null, reason: '', submitting: false });
+    } catch (apiError) {
+      toast.error(apiError || 'Failed to approve attendance');
+    }
+  };
+
+  const handleExecuteRejectStaff = async () => {
+    const { record: attendanceRecord, reason } = staffRejectionModal;
+    if (!reason || reason.trim().length < 5) {
+      toast.error('Rejection reason is mandatory and must be at least 5 characters.');
+      return;
+    }
+    setStaffRejectionModal((prev) => ({ ...prev, submitting: true }));
+    try {
+      await dispatch(rejectStaffAttendance({ recordId: attendanceRecord._id, rejectionReason: reason.trim() })).unwrap();
+      toast.success('Staff attendance rejected.');
+      setStaffRejectionModal({ open: false, record: null, reason: '', submitting: false });
+    } catch (apiError) {
+      toast.error(apiError || 'Failed to reject attendance');
+      setStaffRejectionModal((prev) => ({ ...prev, submitting: false }));
+    }
+  };
+
+  const handleExecuteLeaveDecision = async () => {
+    const { request: leaveRequestItem, action, reason } = leaveDecisionModal;
+    if (action === 'reject' && (!reason || reason.trim().length < 5)) {
+      toast.error('Rejection reason is mandatory and must be at least 5 characters.');
+      return;
+    }
+    setLeaveDecisionModal((prev) => ({ ...prev, submitting: true }));
+    try {
+      if (action === 'approve') {
+        await dispatch(approveLeaveRequest({ leaveRequestId: leaveRequestItem._id, reason: reason.trim() })).unwrap();
+        toast.success('Casual leave approved successfully.');
+      } else {
+        await dispatch(rejectLeaveRequest({ leaveRequestId: leaveRequestItem._id, reason: reason.trim() })).unwrap();
+        toast.success('Leave request rejected.');
+      }
+      setLeaveDecisionModal({ open: false, request: null, action: 'approve', reason: '', submitting: false });
+    } catch (apiError) {
+      toast.error(apiError || `Failed to ${action} leave request`);
+      setLeaveDecisionModal((prev) => ({ ...prev, submitting: false }));
+    }
+  };
+
+  const handleExecuteHmInitiateLeave = async () => {
+    const { targetTeacherUserId, attendanceDate, hmInitiatedAbsentInstead, hmInitiatedReason } = hmInitiateModal;
+    if (!targetTeacherUserId) {
+      toast.error('Please select a teacher.');
+      return;
+    }
+    if (!attendanceDate) {
+      toast.error('Attendance date is required.');
+      return;
+    }
+    if (!hmInitiatedReason || hmInitiatedReason.trim().length < 3) {
+      toast.error('Reason is required (at least 3 characters).');
+      return;
+    }
+    setHmInitiateModal((prev) => ({ ...prev, submitting: true }));
+    try {
+      await dispatch(
+        hmInitiateLeaveOrAbsent({
+          targetTeacherUserId,
+          attendanceDate,
+          hmInitiatedAbsentInstead,
+          hmInitiatedReason: hmInitiatedReason.trim(),
+        })
+      ).unwrap();
+      toast.success(
+        hmInitiatedAbsentInstead
+          ? 'Teacher unnotified absence recorded successfully.'
+          : 'Casual leave initiated and approved on behalf of teacher.'
+      );
+      setHmInitiateModal({
+        open: false,
+        targetTeacherUserId: '',
+        attendanceDate: new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Karachi' }),
+        hmInitiatedAbsentInstead: false,
+        hmInitiatedReason: '',
+        submitting: false,
+      });
+      dispatch(fetchSchoolFaculty());
+      dispatch(fetchPendingLeaveRequests());
+    } catch (apiError) {
+      toast.error(apiError || 'Failed to record teacher leave/absent');
+      setHmInitiateModal((prev) => ({ ...prev, submitting: false }));
+    }
   };
 
   // ─── Approval Decision Handler ──────────────────────────────────────────────
@@ -1877,16 +2081,35 @@ export const HmDashboard = () => {
                 Official service records, government employee IDs, BPS scales, and teaching allocations.
               </p>
             </div>
-            <button
-              id="hm-faculty-allocate-duty-btn"
-              onClick={() => {
-                setDutyData({ teacherId: '', classId: '', sectionId: '', subjectId: '', academicSession: '2025-2026' });
-                setAssignDutyModal(true);
-              }}
-              className="px-4 py-2 rounded-xl text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white flex items-center gap-1.5 shadow-sm transition cursor-pointer"
-            >
-              <PlusCircle className="w-4 h-4" /> Allocate Teaching Assignment
-            </button>
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                id="hm-faculty-record-leave-absent-btn"
+                onClick={() => {
+                  setHmInitiateModal({
+                    open: true,
+                    targetTeacherUserId: '',
+                    attendanceDate: new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Karachi' }),
+                    hmInitiatedAbsentInstead: false,
+                    hmInitiatedReason: '',
+                    submitting: false,
+                  });
+                }}
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-[#4B7F3A] hover:bg-[#3d682f] text-white flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+              >
+                <ClipboardCheck className="w-4 h-4" /> Record Teacher CL / Absent (HM-Initiated)
+              </button>
+              <button
+                id="hm-faculty-allocate-duty-btn"
+                onClick={() => {
+                  setDutyData({ teacherId: '', classId: '', sectionId: '', subjectId: '', academicSession: '2025-2026' });
+                  setAssignDutyModal(true);
+                }}
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+              >
+                <PlusCircle className="w-4 h-4" /> Allocate Teaching Assignment
+              </button>
+            </div>
           </div>
 
           {/* Search & Status Filters */}
@@ -2315,6 +2538,45 @@ export const HmDashboard = () => {
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {activeTab === 'attendance' && (
         <div className="space-y-6">
+          {/* HM Daily Self-Attendance Bar */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-blue-50/80 via-slate-50 to-white border border-blue-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-11 h-11 rounded-2xl bg-[#006AC7] text-white flex items-center justify-center font-black shadow-sm">
+                HM
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h4 className="text-sm font-bold text-[#102033]">Head Master Daily Self-Attendance</h4>
+                  <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                    Self-Effective (No Approval Needed)
+                  </span>
+                </div>
+                <p className="text-xs text-[#526477] mt-0.5">
+                  Regular daily attendance takes immediate effect upon recording. Note: Casual Leave (CL) requires Supervisor/Admin approval.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+              {hmSelfMarkedToday ? (
+                <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-50 text-[#4B7F3A] border border-emerald-200 text-xs font-bold shadow-2xs">
+                  <CheckCircle2 className="w-4 h-4 text-[#4B7F3A]" />
+                  Attendance Recorded for Today
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  id="hm-self-attendance-mark-btn"
+                  onClick={handleMarkHmSelfToday}
+                  disabled={hmSelfMarking}
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white shadow-xs transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {hmSelfMarking ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
+                  Record My Attendance Today
+                </button>
+              )}
+            </div>
+          </div>
+
           {/* Header & Sub-Navigation Toggle */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -2323,10 +2585,10 @@ export const HmDashboard = () => {
                 School Attendance Governance Portal
               </h3>
               <p className="text-xs text-[#526477] mt-0.5">
-                Daily faculty physical register sign-off and student section attendance analytics.
+                Daily faculty physical register sign-off, staff self-submissions approval queue, and CL/EL leave records.
               </p>
             </div>
-            <div className="flex p-1 bg-slate-100 rounded-xl border border-slate-200/80 self-start sm:self-auto">
+            <div className="flex flex-wrap p-1 bg-slate-100 rounded-xl border border-slate-200/80 gap-1 self-start sm:self-auto">
               <button
                 id="attendance-subtab-faculty-btn"
                 onClick={() => setAttendanceSubTab('faculty')}
@@ -2337,6 +2599,38 @@ export const HmDashboard = () => {
                 }`}
               >
                 Faculty Daily Register
+              </button>
+              <button
+                id="attendance-subtab-staff-queue-btn"
+                onClick={() => setAttendanceSubTab('staff-queue')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                  attendanceSubTab === 'staff-queue'
+                    ? 'bg-white text-[#006AC7] shadow-sm'
+                    : 'text-[#526477] hover:text-[#102033]'
+                }`}
+              >
+                Staff Submissions Queue
+                {pendingStaffAttendance.length > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-[#006AC7] text-white">
+                    {pendingStaffAttendance.length}
+                  </span>
+                )}
+              </button>
+              <button
+                id="attendance-subtab-leave-btn"
+                onClick={() => setAttendanceSubTab('leave-approvals')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                  attendanceSubTab === 'leave-approvals'
+                    ? 'bg-white text-[#006AC7] shadow-sm'
+                    : 'text-[#526477] hover:text-[#102033]'
+                }`}
+              >
+                Faculty Leaves (CL)
+                {pendingLeaveRequests.length > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-amber-600 text-white">
+                    {pendingLeaveRequests.length}
+                  </span>
+                )}
               </button>
               <button
                 id="attendance-subtab-analytics-btn"
@@ -2562,7 +2856,256 @@ export const HmDashboard = () => {
             </div>
           )}
 
-          {/* Sub-Tab 2: Student Section Analytics */}
+          {/* Sub-Tab 2: Staff Attendance Self-Submissions Queue */}
+          {attendanceSubTab === 'staff-queue' && (
+            <div className="space-y-6">
+              <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                  <div>
+                    <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
+                      <Clock className="w-5 h-5 text-[#006AC7]" />
+                      Staff Attendance Submissions Queue
+                    </h3>
+                    <p className="text-xs text-[#526477] mt-0.5">
+                      Daily self-submitted attendance records from school staff. 5-minute approval relaxation applies: reason optional within 5m, mandatory thereafter.
+                    </p>
+                  </div>
+                  <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-[#006AC7] border border-blue-200/60 self-start sm:self-auto">
+                    {pendingStaffAttendance.length} Pending
+                  </span>
+                </div>
+
+                {staffAttendanceLoading ? (
+                  <div className="flex items-center gap-2 p-8 text-sm text-[#526477] justify-center">
+                    <Loader2 className="w-4 h-4 animate-spin text-[#006AC7]" /> Loading pending staff attendance...
+                  </div>
+                ) : pendingStaffAttendance.length === 0 ? (
+                  <div className="p-8 text-center text-sm text-[#8094A8] bg-slate-50 rounded-xl border border-slate-200/60">
+                    No pending staff attendance submissions awaiting your approval.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {pendingStaffAttendance.map((record) => {
+                      const staffUser = record.staffUserId;
+                      const isLate = record.lateApprovalReasonRequired;
+                      const dateStr = record.attendanceDate
+                        ? new Date(record.attendanceDate).toLocaleDateString('en-CA', { timeZone: 'Asia/Karachi' })
+                        : '';
+                      const submittedTimeStr = record.submittedAt
+                        ? new Date(record.submittedAt).toLocaleTimeString('en-US', { timeZone: 'Asia/Karachi', hour: '2-digit', minute: '2-digit' })
+                        : '';
+
+                      return (
+                        <div
+                          key={record._id}
+                          className="p-4 rounded-xl border border-slate-200/80 hover:bg-slate-50/60 transition flex flex-col md:flex-row md:items-center justify-between gap-4"
+                        >
+                          <div className="space-y-1.5 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-bold text-[#102033] text-sm">
+                                {staffUser?.fullName || 'Staff Member'}
+                              </span>
+                              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-[#526477]">
+                                {staffUser?.designation || record.staffRole || 'Faculty'}
+                              </span>
+                              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-[#006AC7] border border-blue-200/60 uppercase">
+                                {record.staffCategory || 'SCHOOL_STAFF'}
+                              </span>
+                              {isLate ? (
+                                <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1">
+                                  <AlertTriangle className="w-3 h-3 text-amber-600" />
+                                  Late Approval ({record.pendingDurationMinutes || Math.round((Date.now() - new Date(record.submittedAt).getTime()) / 60000)}m elapsed) — Mandatory Reason
+                                </span>
+                              ) : (
+                                <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-[#4B7F3A] border border-emerald-200 flex items-center gap-1">
+                                  <Clock className="w-3 h-3 text-emerald-600" />
+                                  Within 5-min Window (Reason Optional)
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-xs text-[#526477] flex items-center gap-3">
+                              <span><strong className="text-[#102033]">Date:</strong> {dateStr}</span>
+                              <span>•</span>
+                              <span><strong className="text-[#102033]">Submitted:</strong> {submittedTimeStr} PKT</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 self-end md:self-center shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => handleApproveStaffAttendanceClick(record)}
+                              disabled={staffAttendanceActionLoading}
+                              className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#4B7F3A] hover:bg-[#3d682f] text-white shadow-xs transition cursor-pointer disabled:opacity-50"
+                            >
+                              Approve Attendance
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setStaffRejectionModal({ open: true, record, reason: '', submitting: false })}
+                              disabled={staffAttendanceActionLoading}
+                              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition cursor-pointer disabled:opacity-50"
+                            >
+                              Reject
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Sub-Tab 3: Faculty Casual Leave (CL) & Earned Leave (EL) Queue */}
+          {attendanceSubTab === 'leave-approvals' && (
+            <div className="space-y-6">
+              {/* Policy Banner */}
+              <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="space-y-0.5">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5 text-amber-700" />
+                    Institutional Leave Regulations (DMC Education Department)
+                  </h4>
+                  <p className="text-xs text-amber-800">
+                    <strong>Casual Leave (CL):</strong> 24 calendar days annual entitlement, resets 1 January, zero carry-forward. Head Master approves for school staff.
+                    <br />
+                    <strong>Earned Leave (EL):</strong> Minimum 3 consecutive calendar days. Approved exclusively by Town Administration (Admin level 80+).
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setHmInitiateModal({
+                      open: true,
+                      targetTeacherUserId: '',
+                      attendanceDate: new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Karachi' }),
+                      hmInitiatedAbsentInstead: false,
+                      hmInitiatedReason: '',
+                      submitting: false,
+                    });
+                  }}
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white shadow-xs transition flex items-center gap-1.5 cursor-pointer shrink-0"
+                >
+                  <PlusCircle className="w-4 h-4" /> Record Teacher CL / Absent
+                </button>
+              </div>
+
+              {/* Leave Requests Table/Cards */}
+              <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                  <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
+                    <ClipboardCheck className="w-5 h-5 text-[#4B7F3A]" />
+                    Pending Faculty Leave Applications
+                  </h3>
+                  <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200/60 self-start sm:self-auto">
+                    {pendingLeaveRequests.length} Pending
+                  </span>
+                </div>
+
+                {leaveRequestsLoading ? (
+                  <div className="flex items-center gap-2 p-8 text-sm text-[#526477] justify-center">
+                    <Loader2 className="w-4 h-4 animate-spin text-[#006AC7]" /> Loading leave applications...
+                  </div>
+                ) : pendingLeaveRequests.length === 0 ? (
+                  <div className="p-8 text-center text-sm text-[#8094A8] bg-slate-50 rounded-xl border border-slate-200/60">
+                    No pending leave applications from faculty members.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {pendingLeaveRequests.map((leaveReq) => {
+                      const staffUser = leaveReq.staffUserId;
+                      const isEl = leaveReq.leaveType === 'EARNED_LEAVE';
+                      const startStr = leaveReq.startDate ? new Date(leaveReq.startDate).toLocaleDateString('en-CA', { timeZone: 'Asia/Karachi' }) : '';
+                      const endStr = leaveReq.endDate ? new Date(leaveReq.endDate).toLocaleDateString('en-CA', { timeZone: 'Asia/Karachi' }) : '';
+
+                      return (
+                        <div
+                          key={leaveReq._id}
+                          className="p-4 rounded-xl border border-slate-200/80 hover:bg-slate-50/60 transition flex flex-col md:flex-row md:items-center justify-between gap-4"
+                        >
+                          <div className="space-y-1.5 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-bold text-[#102033] text-sm">
+                                {staffUser?.fullName || 'Faculty Member'}
+                              </span>
+                              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-[#526477]">
+                                {staffUser?.designation || leaveReq.staffRole || 'Teacher'}
+                              </span>
+                              <span
+                                className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                                  isEl
+                                    ? 'bg-purple-50 text-purple-700 border border-purple-200'
+                                    : 'bg-blue-50 text-[#006AC7] border border-blue-200'
+                                }`}
+                              >
+                                {isEl ? 'Earned Leave (EL)' : 'Casual Leave (CL)'}
+                              </span>
+                              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                                {leaveReq.durationDays} Day(s)
+                              </span>
+                              {leaveReq.source === 'HM_INITIATED' && (
+                                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                                  HM-Initiated
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-xs text-[#526477] flex items-center gap-3">
+                              <span><strong className="text-[#102033]">Duration:</strong> {startStr} to {endStr}</span>
+                              <span>•</span>
+                              <span><strong className="text-[#102033]">Reason:</strong> {leaveReq.reason}</span>
+                            </div>
+                            {isEl && (
+                              <p className="text-[11px] text-purple-700 bg-purple-50/70 p-1.5 rounded border border-purple-200/50">
+                                Note: Earned Leave requires Admin-level authority. This record is displayed for institutional visibility; HM cannot approve EL.
+                              </p>
+                            )}
+                          </div>
+                          {!isEl && (
+                            <div className="flex items-center gap-2 self-end md:self-center shrink-0">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setLeaveDecisionModal({
+                                    open: true,
+                                    request: leaveReq,
+                                    action: 'approve',
+                                    reason: '',
+                                    submitting: false,
+                                  })
+                                }
+                                disabled={leaveActionLoading}
+                                className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#4B7F3A] hover:bg-[#3d682f] text-white shadow-xs transition cursor-pointer disabled:opacity-50"
+                              >
+                                Approve CL
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setLeaveDecisionModal({
+                                    open: true,
+                                    request: leaveReq,
+                                    action: 'reject',
+                                    reason: '',
+                                    submitting: false,
+                                  })
+                                }
+                                disabled={leaveActionLoading}
+                                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition cursor-pointer disabled:opacity-50"
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Sub-Tab 4: Student Section Analytics */}
           {attendanceSubTab === 'analytics' && (
             <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-4">
               <div className="flex items-center justify-between">
@@ -4704,6 +5247,492 @@ export const HmDashboard = () => {
           transfers={transfers}
           teacherAttendance={teacherAttendance}
         />
+      )}
+
+      {/* ── Modal 1: Staff Late Approval Justification Modal ── */}
+      {staffLateApprovalModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
+                <Clock className="w-5 h-5 text-amber-600" />
+                Late Approval Justification
+              </h3>
+              <button
+                type="button"
+                onClick={() => setStaffLateApprovalModal({ open: false, record: null, reason: '', submitting: false })}
+                className="text-[#8094A8] hover:text-[#102033] p-1 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-3 bg-amber-50/80 border border-amber-200/70 rounded-xl space-y-1 text-xs text-amber-900">
+              <p className="font-bold flex items-center gap-1.5">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                5-Minute Relaxation Window Expired
+              </p>
+              <p className="text-amber-800/90 leading-relaxed">
+                This attendance submission was received more than 5 minutes ago. Municipal audit policy mandates a recorded reason for delayed sign-off.
+              </p>
+              {staffLateApprovalModal.record && (
+                <div className="pt-1.5 border-t border-amber-200/50 mt-1.5 text-[11px] font-medium text-amber-900">
+                  Staff: <strong>{staffLateApprovalModal.record.staffUserId?.fullName || 'Staff Member'}</strong> ({staffLateApprovalModal.record.staffRole})
+                </div>
+              )}
+            </div>
+
+            <form
+              onSubmit={(formSubmitEvent) => {
+                formSubmitEvent.preventDefault();
+                if (!staffLateApprovalModal.reason || staffLateApprovalModal.reason.trim().length < 5) {
+                  toast.error('Justification must be at least 5 characters long.');
+                  return;
+                }
+                handleExecuteApproveStaff(staffLateApprovalModal.record._id, staffLateApprovalModal.reason.trim());
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <label className="block text-xs font-bold text-[#102033] mb-1.5">
+                  Approval Reason / Delay Explanation <span className="text-rose-500">*</span>
+                </label>
+                <textarea
+                  rows={3}
+                  value={staffLateApprovalModal.reason}
+                  onChange={(textEvent) =>
+                    setStaffLateApprovalModal((previousState) => ({ ...previousState, reason: textEvent.target.value }))
+                  }
+                  placeholder="e.g. Verified physically on assembly ground, delayed due to morning inspection rounds..."
+                  className="w-full p-3 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#006AC7]/20 focus:border-[#006AC7] transition"
+                  required
+                  minLength={5}
+                />
+                <span className="text-[10px] text-slate-400">Minimum 5 characters required for audit trail.</span>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  disabled={staffLateApprovalModal.submitting}
+                  onClick={() => setStaffLateApprovalModal({ open: false, record: null, reason: '', submitting: false })}
+                  className="px-4 py-2 rounded-xl text-xs font-bold border border-slate-200 text-[#526477] hover:bg-slate-50 transition cursor-pointer disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={staffLateApprovalModal.submitting}
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white shadow-xs transition cursor-pointer flex items-center gap-1.5 disabled:opacity-60"
+                >
+                  {staffLateApprovalModal.submitting ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      Approving...
+                    </>
+                  ) : (
+                    'Record & Approve'
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal 2: Staff Attendance Rejection Modal ── */}
+      {staffRejectionModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
+                <XCircle className="w-5 h-5 text-rose-600" />
+                Reject Attendance Submission
+              </h3>
+              <button
+                type="button"
+                onClick={() => setStaffRejectionModal({ open: false, record: null, reason: '', submitting: false })}
+                className="text-[#8094A8] hover:text-[#102033] p-1 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-3 bg-rose-50/80 border border-rose-200/70 rounded-xl space-y-1 text-xs text-rose-900">
+              <p className="font-bold flex items-center gap-1.5">
+                <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0" />
+                Rejection Will Mark Record as Absent
+              </p>
+              <p className="text-rose-800/90 leading-relaxed">
+                Rejecting this submission converts the record status to REJECTED (Absent). A clear institutional reason is mandatory.
+              </p>
+              {staffRejectionModal.record && (
+                <div className="pt-1.5 border-t border-rose-200/50 mt-1.5 text-[11px] font-medium text-rose-900">
+                  Staff: <strong>{staffRejectionModal.record.staffUserId?.fullName || 'Staff Member'}</strong> ({staffRejectionModal.record.staffRole})
+                </div>
+              )}
+            </div>
+
+            <form
+              onSubmit={(formSubmitEvent) => {
+                formSubmitEvent.preventDefault();
+                handleExecuteRejectStaff();
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <label className="block text-xs font-bold text-[#102033] mb-1.5">
+                  Rejection Reason <span className="text-rose-500">*</span>
+                </label>
+                <textarea
+                  rows={3}
+                  value={staffRejectionModal.reason}
+                  onChange={(textEvent) =>
+                    setStaffRejectionModal((previousState) => ({ ...previousState, reason: textEvent.target.value }))
+                  }
+                  placeholder="e.g. Not present on school premises at reported check-in time..."
+                  className="w-full p-3 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition"
+                  required
+                  minLength={5}
+                />
+                <span className="text-[10px] text-slate-400">Minimum 5 characters required.</span>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  disabled={staffRejectionModal.submitting}
+                  onClick={() => setStaffRejectionModal({ open: false, record: null, reason: '', submitting: false })}
+                  className="px-4 py-2 rounded-xl text-xs font-bold border border-slate-200 text-[#526477] hover:bg-slate-50 transition cursor-pointer disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={staffRejectionModal.submitting}
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-xs transition cursor-pointer flex items-center gap-1.5 disabled:opacity-60"
+                >
+                  {staffRejectionModal.submitting ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      Rejecting...
+                    </>
+                  ) : (
+                    'Confirm Rejection'
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal 3: Faculty Leave Decision Modal ── */}
+      {leaveDecisionModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
+                {leaveDecisionModal.action === 'approve' ? (
+                  <>
+                    <CheckCircle2 className="w-5 h-5 text-[#4B7F3A]" />
+                    Approve Casual Leave
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="w-5 h-5 text-rose-600" />
+                    Reject Casual Leave Request
+                  </>
+                )}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setLeaveDecisionModal({ open: false, request: null, action: 'approve', reason: '', submitting: false })}
+                className="text-[#8094A8] hover:text-[#102033] p-1 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {leaveDecisionModal.request && (
+              <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-1.5 text-xs text-[#526477]">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-[#102033]">
+                    {leaveDecisionModal.request.staffUserId?.fullName || 'Faculty Member'}
+                  </span>
+                  <span className="font-semibold text-slate-600">
+                    {leaveDecisionModal.request.durationDays} Day(s)
+                  </span>
+                </div>
+                <p className="text-[11px]">
+                  <strong>Reason:</strong> {leaveDecisionModal.request.reason}
+                </p>
+              </div>
+            )}
+
+            <form
+              onSubmit={(formSubmitEvent) => {
+                formSubmitEvent.preventDefault();
+                handleExecuteLeaveDecision();
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <label className="block text-xs font-bold text-[#102033] mb-1.5">
+                  {leaveDecisionModal.action === 'approve' ? 'Remarks / Endorsement (Optional)' : 'Rejection Reason'}
+                  {leaveDecisionModal.action === 'reject' && <span className="text-rose-500"> *</span>}
+                </label>
+                <textarea
+                  rows={3}
+                  value={leaveDecisionModal.reason}
+                  onChange={(textEvent) =>
+                    setLeaveDecisionModal((previousState) => ({ ...previousState, reason: textEvent.target.value }))
+                  }
+                  placeholder={
+                    leaveDecisionModal.action === 'approve'
+                      ? 'e.g. Reliever arrangement made for timetable coverage...'
+                      : 'e.g. Critical exam duty scheduled; please reschedule...'
+                  }
+                  className={`w-full p-3 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 transition ${
+                    leaveDecisionModal.action === 'approve'
+                      ? 'focus:ring-[#006AC7]/20 focus:border-[#006AC7]'
+                      : 'focus:ring-rose-500/20 focus:border-rose-500'
+                  }`}
+                  required={leaveDecisionModal.action === 'reject'}
+                  minLength={leaveDecisionModal.action === 'reject' ? 5 : 0}
+                />
+                {leaveDecisionModal.action === 'reject' && (
+                  <span className="text-[10px] text-slate-400">Minimum 5 characters required.</span>
+                )}
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  disabled={leaveDecisionModal.submitting}
+                  onClick={() => setLeaveDecisionModal({ open: false, request: null, action: 'approve', reason: '', submitting: false })}
+                  className="px-4 py-2 rounded-xl text-xs font-bold border border-slate-200 text-[#526477] hover:bg-slate-50 transition cursor-pointer disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={leaveDecisionModal.submitting}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold text-white shadow-xs transition cursor-pointer flex items-center gap-1.5 disabled:opacity-60 ${
+                    leaveDecisionModal.action === 'approve'
+                      ? 'bg-[#4B7F3A] hover:bg-[#3d682f]'
+                      : 'bg-rose-600 hover:bg-rose-700'
+                  }`}
+                >
+                  {leaveDecisionModal.submitting ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      Processing...
+                    </>
+                  ) : leaveDecisionModal.action === 'approve' ? (
+                    'Confirm Approval'
+                  ) : (
+                    'Confirm Rejection'
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal 4: HM-Initiated Teacher CL / Absent Modal ── */}
+      {hmInitiateModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
+                <PlusCircle className="w-5 h-5 text-[#006AC7]" />
+                Record Teacher CL / Absent
+              </h3>
+              <button
+                type="button"
+                onClick={() =>
+                  setHmInitiateModal({
+                    open: false,
+                    targetTeacherUserId: '',
+                    attendanceDate: new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Karachi' }),
+                    hmInitiatedAbsentInstead: false,
+                    hmInitiatedReason: '',
+                    submitting: false,
+                  })
+                }
+                className="text-[#8094A8] hover:text-[#102033] p-1 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-[#526477]">
+              As Head Master, record an approved Casual Leave on verbal notice or document an unnotified Absence directly into the institutional record.
+            </p>
+
+            <form
+              onSubmit={(formSubmitEvent) => {
+                formSubmitEvent.preventDefault();
+                handleExecuteHmInitiateLeave();
+              }}
+              className="space-y-4"
+            >
+              {/* Select Teacher */}
+              <div>
+                <label className="block text-xs font-bold text-[#102033] mb-1.5">
+                  Select Faculty Member <span className="text-rose-500">*</span>
+                </label>
+                <select
+                  value={hmInitiateModal.targetTeacherUserId}
+                  onChange={(selectEvent) =>
+                    setHmInitiateModal((previousState) => ({
+                      ...previousState,
+                      targetTeacherUserId: selectEvent.target.value,
+                    }))
+                  }
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-[#006AC7]/20 focus:border-[#006AC7]"
+                  required
+                >
+                  <option value="">-- Select Teacher --</option>
+                  {faculty.map((teacherMember) => (
+                    <option key={teacherMember.userId} value={teacherMember.userId}>
+                      {teacherMember.fullName} ({teacherMember.employeeId || 'ID Pending'}) — {teacherMember.designation || 'Teacher'}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Attendance Date */}
+              <div>
+                <label className="block text-xs font-bold text-[#102033] mb-1.5">
+                  Attendance Date <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={hmInitiateModal.attendanceDate}
+                  onChange={(dateChangeEvent) =>
+                    setHmInitiateModal((previousState) => ({
+                      ...previousState,
+                      attendanceDate: dateChangeEvent.target.value,
+                    }))
+                  }
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-[#006AC7]/20 focus:border-[#006AC7]"
+                  required
+                />
+              </div>
+
+              {/* Action Type: Casual Leave vs Direct Absent */}
+              <div>
+                <label className="block text-xs font-bold text-[#102033] mb-2">Recording Classification</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setHmInitiateModal((previousState) => ({
+                        ...previousState,
+                        hmInitiatedAbsentInstead: false,
+                      }))
+                    }
+                    className={`p-3 rounded-xl border text-xs font-bold text-left transition flex items-center gap-2 cursor-pointer ${
+                      !hmInitiateModal.hmInitiatedAbsentInstead
+                        ? 'border-[#006AC7] bg-blue-50/70 text-[#006AC7]'
+                        : 'border-slate-200 hover:bg-slate-50 text-[#526477]'
+                    }`}
+                  >
+                    <ClipboardCheck className="w-4 h-4 shrink-0" />
+                    <div>
+                      <div>Casual Leave (CL)</div>
+                      <div className="text-[10px] font-normal opacity-80">Counts against 24-day quota</div>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setHmInitiateModal((previousState) => ({
+                        ...previousState,
+                        hmInitiatedAbsentInstead: true,
+                      }))
+                    }
+                    className={`p-3 rounded-xl border text-xs font-bold text-left transition flex items-center gap-2 cursor-pointer ${
+                      hmInitiateModal.hmInitiatedAbsentInstead
+                        ? 'border-rose-600 bg-rose-50/70 text-rose-700'
+                        : 'border-slate-200 hover:bg-slate-50 text-[#526477]'
+                    }`}
+                  >
+                    <UserX className="w-4 h-4 shrink-0" />
+                    <div>
+                      <div>Direct Absent</div>
+                      <div className="text-[10px] font-normal opacity-80">Unnotified absence record</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              {/* Free-text Reason */}
+              <div>
+                <label className="block text-xs font-bold text-[#102033] mb-1.5">
+                  Institutional Reason / Justification <span className="text-rose-500">*</span>
+                </label>
+                <textarea
+                  rows={2}
+                  value={hmInitiateModal.hmInitiatedReason}
+                  onChange={(reasonChangeEvent) =>
+                    setHmInitiateModal((previousState) => ({
+                      ...previousState,
+                      hmInitiatedReason: reasonChangeEvent.target.value,
+                    }))
+                  }
+                  placeholder={
+                    hmInitiateModal.hmInitiatedAbsentInstead
+                      ? 'e.g. Teacher failed to report for duty without notification or leave approval...'
+                      : 'e.g. Verbal emergency leave request received via phone...'
+                  }
+                  className="w-full p-2.5 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#006AC7]/20 focus:border-[#006AC7]"
+                  required
+                  minLength={3}
+                />
+                <span className="text-[10px] text-slate-400">Minimum 3 characters required.</span>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  disabled={hmInitiateModal.submitting}
+                  onClick={() =>
+                    setHmInitiateModal({
+                      open: false,
+                      targetTeacherUserId: '',
+                      attendanceDate: new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Karachi' }),
+                      hmInitiatedAbsentInstead: false,
+                      hmInitiatedReason: '',
+                      submitting: false,
+                    })
+                  }
+                  className="px-4 py-2 rounded-xl text-xs font-bold border border-slate-200 text-[#526477] hover:bg-slate-50 transition cursor-pointer disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={hmInitiateModal.submitting}
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white shadow-xs transition cursor-pointer flex items-center gap-1.5 disabled:opacity-60"
+                >
+                  {hmInitiateModal.submitting ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      Recording...
+                    </>
+                  ) : (
+                    'Record Entry'
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
       {/* ── Global Accessible Confirmation Dialog ── */}

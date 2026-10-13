@@ -302,6 +302,58 @@ export const hmService = {
     const response = await apiClient.post(`/hm/parent-links/${linkId}/revoke`, { revocationReason });
     return response.data;
   },
+
+  // ─── 12. Staff Attendance Approvals & HM Self-Attendance ───────────────────────
+  markHmSelfAttendance: async (payload = {}) => {
+    const response = await apiClient.post('/staff-attendance/hm-self', payload);
+    return response.data;
+  },
+
+  getPendingStaffAttendance: async (params = {}) => {
+    const response = await apiClient.get('/staff-attendance/pending', { params });
+    return response.data;
+  },
+
+  approveStaffAttendance: async (recordId, payload = {}) => {
+    const response = await apiClient.post(`/staff-attendance/${recordId}/approve`, payload);
+    return response.data;
+  },
+
+  rejectStaffAttendance: async (recordId, payload = {}) => {
+    const response = await apiClient.post(`/staff-attendance/${recordId}/reject`, payload);
+    return response.data;
+  },
+
+  getMyStaffAttendanceHistory: async (params = {}) => {
+    const response = await apiClient.get('/staff-attendance/my-history', { params });
+    return response.data;
+  },
+
+  // ─── 13. Faculty Casual Leave (CL) & Earned Leave (EL) Governance ─────────────
+  getPendingLeaveRequests: async (params = {}) => {
+    const response = await apiClient.get('/leave/pending', { params });
+    return response.data;
+  },
+
+  approveLeaveRequest: async (leaveRequestId, payload = {}) => {
+    const response = await apiClient.post(`/leave/${leaveRequestId}/approve`, payload);
+    return response.data;
+  },
+
+  rejectLeaveRequest: async (leaveRequestId, payload = {}) => {
+    const response = await apiClient.post(`/leave/${leaveRequestId}/reject`, payload);
+    return response.data;
+  },
+
+  hmInitiateLeaveOrAbsent: async (payload = {}) => {
+    const response = await apiClient.post('/leave/hm-initiate', payload);
+    return response.data;
+  },
+
+  getSchoolLeaveSummary: async (params = {}) => {
+    const response = await apiClient.get('/leave/school-summary', { params });
+    return response.data;
+  },
 };
 
 export default hmService;

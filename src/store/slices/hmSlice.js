@@ -531,6 +531,121 @@ export const revokeHmParentLink = createAsyncThunk(
   }
 );
 
+// ─── Staff Attendance & Leave Management Async Thunks ─────────────────────────
+
+export const markHmSelfAttendance = createAsyncThunk(
+  'hm/markSelfAttendance',
+  async (payload = {}, { rejectWithValue }) => {
+    try {
+      const response = await hmService.markHmSelfAttendance(payload);
+      return response.data;
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to record HM self-attendance');
+    }
+  }
+);
+
+export const fetchPendingStaffAttendance = createAsyncThunk(
+  'hm/fetchPendingStaffAttendance',
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const response = await hmService.getPendingStaffAttendance(params);
+      return response.data;
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch pending staff attendance');
+    }
+  }
+);
+
+export const approveStaffAttendance = createAsyncThunk(
+  'hm/approveStaffAttendance',
+  async ({ recordId, lateApprovalReason }, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await hmService.approveStaffAttendance(recordId, { lateApprovalReason });
+      dispatch(fetchPendingStaffAttendance());
+      return response.data;
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to approve staff attendance');
+    }
+  }
+);
+
+export const rejectStaffAttendance = createAsyncThunk(
+  'hm/rejectStaffAttendance',
+  async ({ recordId, rejectionReason }, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await hmService.rejectStaffAttendance(recordId, { rejectionReason });
+      dispatch(fetchPendingStaffAttendance());
+      return response.data;
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to reject staff attendance');
+    }
+  }
+);
+
+export const fetchPendingLeaveRequests = createAsyncThunk(
+  'hm/fetchPendingLeaveRequests',
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const response = await hmService.getPendingLeaveRequests(params);
+      return response.data;
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch pending leave requests');
+    }
+  }
+);
+
+export const approveLeaveRequest = createAsyncThunk(
+  'hm/approveLeaveRequest',
+  async ({ leaveRequestId, reason }, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await hmService.approveLeaveRequest(leaveRequestId, { reason });
+      dispatch(fetchPendingLeaveRequests());
+      return response.data;
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to approve leave request');
+    }
+  }
+);
+
+export const rejectLeaveRequest = createAsyncThunk(
+  'hm/rejectLeaveRequest',
+  async ({ leaveRequestId, reason }, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await hmService.rejectLeaveRequest(leaveRequestId, { reason });
+      dispatch(fetchPendingLeaveRequests());
+      return response.data;
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to reject leave request');
+    }
+  }
+);
+
+export const hmInitiateLeaveOrAbsent = createAsyncThunk(
+  'hm/initiateLeaveOrAbsent',
+  async (payload, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await hmService.hmInitiateLeaveOrAbsent(payload);
+      dispatch(fetchPendingLeaveRequests());
+      return response.data;
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to initiate leave or absent record');
+    }
+  }
+);
+
+export const fetchSchoolLeaveSummary = createAsyncThunk(
+  'hm/fetchSchoolLeaveSummary',
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const response = await hmService.getSchoolLeaveSummary(params);
+      return response.data;
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch school leave summary');
+    }
+  }
+);
+
 // ─── HM Redux Slice ───────────────────────────────────────────────────────────
 
 const initialState = {
@@ -564,6 +679,20 @@ const initialState = {
   teacherAttendance: null,
   teacherAttendanceLoading: false,
   teacherAttendanceSaving: false,
+
+  // Staff Attendance Self-Submissions Queue
+  pendingStaffAttendance: [],
+  pendingStaffAttendanceTotal: 0,
+  staffAttendanceLoading: false,
+  staffAttendanceActionLoading: false,
+
+  // Faculty Leave Requests Queue
+  pendingLeaveRequests: [],
+  pendingLeaveRequestsTotal: 0,
+  leaveRequestsLoading: false,
+  leaveActionLoading: false,
+  schoolLeaveSummary: [],
+  leaveSummaryLoading: false,
 
   classes: [],
   sections: [],
@@ -810,6 +939,95 @@ const hmSlice = createSlice({
       })
       .addCase(fetchHmParentLinks.rejected, (state, action) => {
         state.parentClaimsLoading = false;
+        state.actionError = action.payload;
+      })
+
+      // Staff Attendance Self-Submissions Queue
+      .addCase(fetchPendingStaffAttendance.pending, (state) => {
+        state.staffAttendanceLoading = true;
+      })
+      .addCase(fetchPendingStaffAttendance.fulfilled, (state, action) => {
+        state.staffAttendanceLoading = false;
+        state.pendingStaffAttendance = action.payload?.records || [];
+        state.pendingStaffAttendanceTotal = action.payload?.total || 0;
+      })
+      .addCase(fetchPendingStaffAttendance.rejected, (state, action) => {
+        state.staffAttendanceLoading = false;
+        state.actionError = action.payload;
+      })
+      .addCase(approveStaffAttendance.pending, (state) => {
+        state.staffAttendanceActionLoading = true;
+      })
+      .addCase(approveStaffAttendance.fulfilled, (state) => {
+        state.staffAttendanceActionLoading = false;
+      })
+      .addCase(approveStaffAttendance.rejected, (state, action) => {
+        state.staffAttendanceActionLoading = false;
+        state.actionError = action.payload;
+      })
+      .addCase(rejectStaffAttendance.pending, (state) => {
+        state.staffAttendanceActionLoading = true;
+      })
+      .addCase(rejectStaffAttendance.fulfilled, (state) => {
+        state.staffAttendanceActionLoading = false;
+      })
+      .addCase(rejectStaffAttendance.rejected, (state, action) => {
+        state.staffAttendanceActionLoading = false;
+        state.actionError = action.payload;
+      })
+
+      // Faculty Leave Requests Queue
+      .addCase(fetchPendingLeaveRequests.pending, (state) => {
+        state.leaveRequestsLoading = true;
+      })
+      .addCase(fetchPendingLeaveRequests.fulfilled, (state, action) => {
+        state.leaveRequestsLoading = false;
+        state.pendingLeaveRequests = action.payload?.leaveRequests || [];
+        state.pendingLeaveRequestsTotal = action.payload?.total || 0;
+      })
+      .addCase(fetchPendingLeaveRequests.rejected, (state, action) => {
+        state.leaveRequestsLoading = false;
+        state.actionError = action.payload;
+      })
+      .addCase(approveLeaveRequest.pending, (state) => {
+        state.leaveActionLoading = true;
+      })
+      .addCase(approveLeaveRequest.fulfilled, (state) => {
+        state.leaveActionLoading = false;
+      })
+      .addCase(approveLeaveRequest.rejected, (state, action) => {
+        state.leaveActionLoading = false;
+        state.actionError = action.payload;
+      })
+      .addCase(rejectLeaveRequest.pending, (state) => {
+        state.leaveActionLoading = true;
+      })
+      .addCase(rejectLeaveRequest.fulfilled, (state) => {
+        state.leaveActionLoading = false;
+      })
+      .addCase(rejectLeaveRequest.rejected, (state, action) => {
+        state.leaveActionLoading = false;
+        state.actionError = action.payload;
+      })
+      .addCase(hmInitiateLeaveOrAbsent.pending, (state) => {
+        state.leaveActionLoading = true;
+      })
+      .addCase(hmInitiateLeaveOrAbsent.fulfilled, (state) => {
+        state.leaveActionLoading = false;
+      })
+      .addCase(hmInitiateLeaveOrAbsent.rejected, (state, action) => {
+        state.leaveActionLoading = false;
+        state.actionError = action.payload;
+      })
+      .addCase(fetchSchoolLeaveSummary.pending, (state) => {
+        state.leaveSummaryLoading = true;
+      })
+      .addCase(fetchSchoolLeaveSummary.fulfilled, (state, action) => {
+        state.leaveSummaryLoading = false;
+        state.schoolLeaveSummary = action.payload?.summary || [];
+      })
+      .addCase(fetchSchoolLeaveSummary.rejected, (state, action) => {
+        state.leaveSummaryLoading = false;
         state.actionError = action.payload;
       });
 
