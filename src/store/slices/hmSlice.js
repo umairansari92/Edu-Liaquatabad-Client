@@ -538,7 +538,7 @@ export const markHmSelfAttendance = createAsyncThunk(
   async (payload = {}, { rejectWithValue }) => {
     try {
       const response = await hmService.markHmSelfAttendance(payload);
-      return response?.data || response;
+      return response;
     } catch (apiRequestError) {
       return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to record HM self-attendance');
     }
@@ -550,7 +550,7 @@ export const fetchPendingStaffAttendance = createAsyncThunk(
   async (params = {}, { rejectWithValue }) => {
     try {
       const response = await hmService.getPendingStaffAttendance(params);
-      return response?.data || response;
+      return response;
     } catch (apiRequestError) {
       return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch pending staff attendance');
     }
@@ -563,7 +563,7 @@ export const approveStaffAttendance = createAsyncThunk(
     try {
       const response = await hmService.approveStaffAttendance(recordId, { lateApprovalReason });
       dispatch(fetchPendingStaffAttendance());
-      return response?.data || response;
+      return response;
     } catch (apiRequestError) {
       return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to approve staff attendance');
     }
@@ -576,7 +576,7 @@ export const rejectStaffAttendance = createAsyncThunk(
     try {
       const response = await hmService.rejectStaffAttendance(recordId, { rejectionReason });
       dispatch(fetchPendingStaffAttendance());
-      return response?.data || response;
+      return response;
     } catch (apiRequestError) {
       return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to reject staff attendance');
     }
@@ -588,7 +588,7 @@ export const fetchPendingLeaveRequests = createAsyncThunk(
   async (params = {}, { rejectWithValue }) => {
     try {
       const response = await hmService.getPendingLeaveRequests(params);
-      return response?.data || response;
+      return response;
     } catch (apiRequestError) {
       return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch pending leave requests');
     }
@@ -601,7 +601,7 @@ export const approveLeaveRequest = createAsyncThunk(
     try {
       const response = await hmService.approveLeaveRequest(leaveRequestId, { reason });
       dispatch(fetchPendingLeaveRequests());
-      return response?.data || response;
+      return response;
     } catch (apiRequestError) {
       return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to approve leave request');
     }
@@ -614,7 +614,7 @@ export const rejectLeaveRequest = createAsyncThunk(
     try {
       const response = await hmService.rejectLeaveRequest(leaveRequestId, { reason });
       dispatch(fetchPendingLeaveRequests());
-      return response?.data || response;
+      return response;
     } catch (apiRequestError) {
       return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to reject leave request');
     }
@@ -627,7 +627,7 @@ export const correctLeaveRequest = createAsyncThunk(
     try {
       const response = await hmService.correctLeaveRequest(leaveRequestId, { correctionReason });
       dispatch(fetchPendingLeaveRequests());
-      return response?.data || response;
+      return response;
     } catch (apiRequestError) {
       return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to correct leave request');
     }
@@ -640,7 +640,7 @@ export const hmInitiateLeaveOrAbsent = createAsyncThunk(
     try {
       const response = await hmService.hmInitiateLeaveOrAbsent(payload);
       dispatch(fetchPendingLeaveRequests());
-      return response?.data || response;
+      return response;
     } catch (apiRequestError) {
       return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to initiate leave or absent record');
     }
@@ -652,7 +652,7 @@ export const fetchSchoolLeaveSummary = createAsyncThunk(
   async (params = {}, { rejectWithValue }) => {
     try {
       const response = await hmService.getSchoolLeaveSummary(params);
-      return response?.data || response;
+      return response;
     } catch (apiRequestError) {
       return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch school leave summary');
     }
@@ -961,8 +961,12 @@ const hmSlice = createSlice({
       })
       .addCase(fetchPendingStaffAttendance.fulfilled, (state, action) => {
         state.staffAttendanceLoading = false;
-        state.pendingStaffAttendance = action.payload?.records || action.payload?.data?.records || [];
-        state.pendingStaffAttendanceTotal = action.payload?.totalCount || action.payload?.total || action.payload?.records?.length || 0;
+        state.pendingStaffAttendance = Array.isArray(action.payload?.records)
+          ? action.payload.records
+          : [];
+        state.pendingStaffAttendanceTotal = typeof action.payload?.total === 'number'
+          ? action.payload.total
+          : state.pendingStaffAttendance.length;
       })
       .addCase(fetchPendingStaffAttendance.rejected, (state, action) => {
         state.staffAttendanceLoading = false;
@@ -995,8 +999,12 @@ const hmSlice = createSlice({
       })
       .addCase(fetchPendingLeaveRequests.fulfilled, (state, action) => {
         state.leaveRequestsLoading = false;
-        state.pendingLeaveRequests = action.payload?.leaveRequests || action.payload?.data?.leaveRequests || [];
-        state.pendingLeaveRequestsTotal = action.payload?.totalCount || action.payload?.total || action.payload?.leaveRequests?.length || 0;
+        state.pendingLeaveRequests = Array.isArray(action.payload?.leaveRequests)
+          ? action.payload.leaveRequests
+          : [];
+        state.pendingLeaveRequestsTotal = typeof action.payload?.total === 'number'
+          ? action.payload.total
+          : state.pendingLeaveRequests.length;
       })
       .addCase(fetchPendingLeaveRequests.rejected, (state, action) => {
         state.leaveRequestsLoading = false;
