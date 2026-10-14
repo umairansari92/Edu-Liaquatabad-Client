@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { logoutUser } from '../../store/slices/authSlice.js';
+import { fetchNotifications } from '../../store/slices/notificationSlice.js';
 import { Bell, User, LogOut, School, Loader2, Shield, Download, Search } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -19,6 +20,30 @@ export const Navbar = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showSecurityModal, setShowSecurityModal] = useState(false);
   const { canInstallApplication, triggerInstallPrompt } = usePwaInstall();
+
+  // Initial and periodic refresh of in-app notifications
+  useEffect(() => {
+    if (!isAuthenticated || !user) return;
+
+    // Initial fetch on mount
+    dispatch(fetchNotifications({ limit: 20 }));
+
+    // Periodic 60s background refresh (non-blocking)
+    const pollInterval = setInterval(() => {
+      dispatch(fetchNotifications({ limit: 20 }));
+    }, 60000);
+
+    // Refresh when user returns to tab
+    const handleWindowFocus = () => {
+      dispatch(fetchNotifications({ limit: 20 }));
+    };
+    window.addEventListener('focus', handleWindowFocus);
+
+    return () => {
+      clearInterval(pollInterval);
+      window.removeEventListener('focus', handleWindowFocus);
+    };
+  }, [isAuthenticated, user?._id, dispatch]);
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -111,13 +136,24 @@ export const Navbar = () => {
               <div className="relative">
                 <button
                   onClick={() => setShowNotifications((prev) => !prev)}
-                  className="relative p-2 text-[#526477] hover:text-[#006AC7] rounded-xl hover:bg-slate-100 transition-colors"
-                  title="Notifications"
-                  aria-label="View notifications"
+                  className={`relative p-2 rounded-xl transition-all ${
+                    showNotifications
+                      ? 'text-[#006AC7] bg-blue-50 ring-2 ring-[#006AC7]/20'
+                      : 'text-[#526477] hover:text-[#006AC7] hover:bg-slate-100'
+                  }`}
+                  title={unreadCount > 0 ? `${unreadCount} unread notification${unreadCount === 1 ? '' : 's'}` : 'Notifications'}
+                  aria-label={unreadCount > 0 ? `Notifications (${unreadCount} unread)` : 'Notifications'}
+                  aria-expanded={showNotifications}
+                  aria-haspopup="dialog"
                 >
-                  <Bell className="w-5 h-5" />
+                  <Bell className="w-5 h-5 transition-transform active:scale-95" />
                   {unreadCount > 0 && (
-                    <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#006AC7] ring-2 ring-white" />
+                    <span
+                      className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center text-[10px] font-extrabold text-white bg-rose-600 rounded-full shadow-xs ring-2 ring-white animate-in zoom-in-75 duration-150"
+                      aria-hidden="true"
+                    >
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
                   )}
                 </button>
 

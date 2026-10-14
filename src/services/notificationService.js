@@ -11,11 +11,12 @@ export const notificationService = {
   },
 
   /**
-   * Mark a single notification as read
+   * Mark a single notification as read or unread
    * @param {string} notificationId
+   * @param {boolean} [isRead=true]
    */
-  markAsRead: async (notificationId) => {
-    const response = await apiClient.patch(`/notifications/${notificationId}/read`);
+  markAsRead: async (notificationId, isRead = true) => {
+    const response = await apiClient.patch(`/notifications/${notificationId}/read`, { isRead });
     return response.data;
   },
 

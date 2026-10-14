@@ -1,4 +1,4 @@
-﻿import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import notificationService from '../../services/notificationService.js';
 
 export const fetchNotifications = createAsyncThunk(
@@ -15,12 +15,18 @@ export const fetchNotifications = createAsyncThunk(
 
 export const markNotificationAsRead = createAsyncThunk(
   'notifications/markNotificationAsRead',
-  async (notificationId, { rejectWithValue }) => {
+  async (payload, { rejectWithValue }) => {
+    const notificationId = typeof payload === 'string' ? payload : payload?.notificationId;
+    const isRead = typeof payload === 'object' && payload?.isRead !== undefined ? payload.isRead : true;
     try {
-      await notificationService.markAsRead(notificationId);
-      return notificationId;
+      const response = await notificationService.markAsRead(notificationId, isRead);
+      return {
+        notificationId,
+        isRead,
+        unreadCount: response.data?.unreadCount,
+      };
     } catch (apiRequestError) {
-      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to mark notification as read');
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to update notification');
     }
   }
 );
@@ -57,6 +63,7 @@ const initialState = {
   unreadCount: 0,
   isLoading: false,
   error: null,
+  activeTab: 'ALL', // 'ALL' | 'UNREAD'
   activeCategory: 'ALL',
   pagination: {
     page: 1,
@@ -72,21 +79,27 @@ const notificationSlice = createSlice({
   initialState,
   reducers: {
     setNotifications: (state, action) => {
-      state.notifications = action.payload;
-      state.unreadCount = action.payload.filter((notification) => !notification.isRead).length;
+      state.notifications = action.payload || [];
+      state.unreadCount = (action.payload || []).filter((notification) => !notification.isRead).length;
     },
     markAsRead: (state, action) => {
-      const targetNotificationId = action.payload;
+      const targetNotificationId = typeof action.payload === 'string' ? action.payload : action.payload?.id;
+      const targetIsRead = typeof action.payload === 'object' && action.payload?.isRead !== undefined ? action.payload.isRead : true;
       const targetNotification = state.notifications.find(
         (notification) => notification._id === targetNotificationId
       );
-      if (targetNotification && !targetNotification.isRead) {
-        targetNotification.isRead = true;
-        state.unreadCount = Math.max(0, state.unreadCount - 1);
+      if (targetNotification && targetNotification.isRead !== targetIsRead) {
+        targetNotification.isRead = targetIsRead;
+        state.unreadCount = targetIsRead
+          ? Math.max(0, state.unreadCount - 1)
+          : state.unreadCount + 1;
       }
     },
     setActiveCategory: (state, action) => {
       state.activeCategory = action.payload;
+    },
+    setActiveTab: (state, action) => {
+      state.activeTab = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -98,22 +111,26 @@ const notificationSlice = createSlice({
       })
       .addCase(fetchNotifications.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.notifications = action.payload.notifications;
-        state.unreadCount = action.payload.unreadCount;
-        state.pagination = action.payload.pagination;
+        state.notifications = action.payload?.notifications || [];
+        state.unreadCount = action.payload?.unreadCount ?? 0;
+        state.pagination = action.payload?.pagination || state.pagination;
       })
       .addCase(fetchNotifications.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload;
       })
 
-      // Mark single read
+      // Mark single read / unread toggle
       .addCase(markNotificationAsRead.fulfilled, (state, action) => {
-        const id = action.payload;
-        const target = state.notifications.find((notificationItem) => notificationItem._id === id);
-        if (target && !target.isRead) {
-          target.isRead = true;
-          state.unreadCount = Math.max(0, state.unreadCount - 1);
+        const { notificationId, isRead, unreadCount } = action.payload;
+        const target = state.notifications.find((notificationItem) => notificationItem._id === notificationId);
+        if (target) {
+          target.isRead = isRead;
+        }
+        if (typeof unreadCount === 'number') {
+          state.unreadCount = unreadCount;
+        } else {
+          state.unreadCount = state.notifications.filter((notificationItem) => !notificationItem.isRead).length;
         }
       })
 
@@ -151,5 +168,5 @@ const notificationSlice = createSlice({
   },
 });
 
-export const { setNotifications, markAsRead, setActiveCategory } = notificationSlice.actions;
+export const { setNotifications, markAsRead, setActiveCategory, setActiveTab } = notificationSlice.actions;
 export default notificationSlice.reducer;
