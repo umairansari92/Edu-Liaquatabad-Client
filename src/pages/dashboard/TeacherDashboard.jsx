@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useSearchParams } from 'react-router-dom';
 import {
   GraduationCap,
   Users,
@@ -16,7 +17,6 @@ import {
   Info,
   CalendarDays,
   School,
-  TrendingUp,
   Award,
   PlusCircle,
   Search,
@@ -25,15 +25,10 @@ import {
   FileSpreadsheet,
   IdCard,
   Send,
-  Calendar,
-  Lock,
-  ChevronRight,
-  UserCheck,
-  Eye,
   Trash2,
   Download,
   RotateCcw,
-  Filter,
+  Eye,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PageContainer from '../../components/layout/PageContainer.jsx';
@@ -47,7 +42,6 @@ import DraftRecoveryBanner from '../../components/common/DraftRecoveryBanner.jsx
 import DraftStatusIndicator from '../../components/common/DraftStatusIndicator.jsx';
 import {
   fetchTeacherSummary,
-  fetchTeachingAssignments,
   fetchSectionRoster,
   fetchAttendanceSheet,
   submitStudentAttendance,
@@ -76,28 +70,24 @@ import {
 } from '../../store/slices/teacherSlice.js';
 
 // ─── Utility Helpers ─────────────────────────────────────────────────────────
-const fmtDate = (dateVal) => {
-  const d = dateVal ? new Date(dateVal) : new Date();
-  return d.toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' });
+const formatDate = (dateValue) => {
+  const dateInstance = dateValue ? new Date(dateValue) : new Date();
+  return dateInstance.toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
-const getStatusBadge = (status) => {
-  switch (status) {
-    case 'PRESENT':
-      return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-    case 'ABSENT':
-      return 'bg-rose-50 text-rose-700 border-rose-200';
-    case 'LEAVE':
-      return 'bg-amber-50 text-amber-700 border-amber-200';
-    case 'LATE':
-      return 'bg-blue-50 text-blue-700 border-blue-200';
-    default:
-      return 'bg-slate-50 text-slate-700 border-slate-200';
-  }
-};
+// ─── Dashboard Tabs Definition ────────────────────────────────────────────────
+const DASHBOARD_TABS = [
+  { id: 'CLASSES', label: 'My Classes', icon: GraduationCap },
+  { id: 'ATTENDANCE', label: 'Daily Attendance', icon: ClipboardList },
+  { id: 'EXAMS', label: 'Exam Marks', icon: Award },
+  { id: 'HOMEWORK', label: 'Homework', icon: FileText },
+  { id: 'TIMETABLE', label: 'Timetable', icon: CalendarDays },
+  { id: 'CIRCULARS', label: 'Notice Board', icon: FileSpreadsheet },
+  { id: 'SERVICE', label: 'My Service Record', icon: IdCard },
+];
 
-// ─── KPI Card ─────────────────────────────────────────────────────────────────
-const KpiCard = ({ icon: Icon, label, value, sub, color = 'blue' }) => {
+// ─── KPI Summary Card ────────────────────────────────────────────────────────
+const KpiCard = ({ icon: IconComponent, label, value, sub, color = 'blue', loading = false }) => {
   const colorMap = {
     blue: { bg: 'bg-blue-50', text: 'text-[#006AC7]', border: 'border-blue-100' },
     emerald: { bg: 'bg-emerald-50', text: 'text-[#4B7F3A]', border: 'border-emerald-100' },
@@ -105,15 +95,22 @@ const KpiCard = ({ icon: Icon, label, value, sub, color = 'blue' }) => {
     indigo: { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-100' },
   };
   const theme = colorMap[color] || colorMap.blue;
+
   return (
-    <div className="relative p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm overflow-hidden hover:shadow transition-all">
+    <div className="relative p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs overflow-hidden hover:shadow-sm transition-all">
       <div className="flex items-center justify-between mb-3">
-        <span className="text-xs font-bold uppercase tracking-wider text-[#526477]">{label}</span>
+        <span className="text-xs font-semibold uppercase tracking-wider text-[#526477]">{label}</span>
         <div className={`p-2.5 rounded-xl ${theme.bg}`}>
-          <Icon className={`w-4 h-4 ${theme.text}`} />
+          <IconComponent className={`w-4 h-4 ${theme.text}`} />
         </div>
       </div>
-      <p className="text-2xl sm:text-3xl font-black text-[#102033] tracking-tight">{value}</p>
+      {loading ? (
+        <div className="h-8 flex items-center">
+          <Loader2 className="w-5 h-5 animate-spin text-slate-300" />
+        </div>
+      ) : (
+        <p className="text-2xl sm:text-3xl font-black text-[#102033] tracking-tight">{value}</p>
+      )}
       {sub && <p className="text-xs text-[#8094A8] mt-1 font-medium">{sub}</p>}
     </div>
   );
@@ -122,6 +119,7 @@ const KpiCard = ({ icon: Icon, label, value, sub, color = 'blue' }) => {
 // ─── Main Teacher Dashboard ──────────────────────────────────────────────────
 export const TeacherDashboard = () => {
   const dispatch = useDispatch();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user: authenticatedUser } = useSelector((state) => state.auth);
 
   // Redux Selectors
@@ -140,8 +138,34 @@ export const TeacherDashboard = () => {
   const selfAttendance = useSelector(selectTeacherSelfAttendance);
   const sectionRosterData = useSelector(selectTeacherSectionRoster);
 
-  // Active Tab
-  const [activeTab, setActiveTab] = useState('CLASSES'); // CLASSES, ATTENDANCE, EXAMS, HOMEWORK, CIRCULARS, SERVICE
+  // Derive initial tab from URL param or default to CLASSES
+  const resolveTabFromParam = useCallback((paramValue) => {
+    if (!paramValue) return 'CLASSES';
+    const normalized = paramValue.toUpperCase();
+    if (normalized === 'ATTENDANCE') return 'ATTENDANCE';
+    if (normalized === 'EXAMS' || normalized === 'RESULTS') return 'EXAMS';
+    if (normalized === 'HOMEWORK') return 'HOMEWORK';
+    if (normalized === 'TIMETABLE' || normalized === 'SCHEDULE') return 'TIMETABLE';
+    if (normalized === 'CIRCULARS' || normalized === 'NOTICES') return 'CIRCULARS';
+    if (normalized === 'SERVICE' || normalized === 'PROFILE') return 'SERVICE';
+    return 'CLASSES';
+  }, []);
+
+  const urlTab = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState(() => resolveTabFromParam(urlTab));
+
+  // Sync activeTab with URL search params
+  useEffect(() => {
+    if (urlTab) {
+      const resolvedTab = resolveTabFromParam(urlTab);
+      setActiveTab(resolvedTab);
+    }
+  }, [urlTab, resolveTabFromParam]);
+
+  const handleTabChange = (tabIdentifier) => {
+    setActiveTab(tabIdentifier);
+    setSearchParams({ tab: tabIdentifier.toLowerCase() });
+  };
 
   // Modal States
   const [rosterModalSection, setRosterModalSection] = useState(null);
@@ -554,91 +578,99 @@ export const TeacherDashboard = () => {
   };
 
   // ─── Roster Modal ──────────────────────────────────────────────────────────
-  const handleOpenRosterModal = (section) => {
-    setRosterModalSection(section);
-    dispatch(fetchSectionRoster(section._id));
+  const handleOpenRosterModal = (sectionRecord) => {
+    setRosterModalSection(sectionRecord);
+    dispatch(fetchSectionRoster(sectionRecord._id));
   };
 
-  // Summary Metrics
-  const activeKPIs = summary?.summary || {};
-  const totalAssignedStudents = activeKPIs.totalAssignedStudents || 0;
-  const assignedSectionCount = activeKPIs.assignedSectionCount || 0;
-  const pendingAttendanceCount = activeKPIs.pendingAttendanceCount || 0;
-  const activeAssignmentsCount = activeKPIs.activeAssignmentsCount || 0;
+  // Summary Metrics Derived from Active Data
+  const summaryData = summary?.summary || {};
+  const totalAssignedStudents = summaryData.totalAssignedStudents || 0;
+  const assignedSectionCount = summaryData.assignedSectionCount || 0;
+  const pendingAttendanceCount = summaryData.pendingAttendanceCount || 0;
+  const activeAssignmentsCount = summaryData.activeAssignmentsCount || 0;
 
   return (
     <PageContainer
-      title="TEACHER OPERATIONAL WORKSPACE"
-      subtitle={`Education Department Liaquatabad Town Centre (DMC) · ${authenticatedUser?.fullName || 'Faculty Member'}`}
+      title="Teacher Dashboard"
+      subtitle={`${authenticatedUser?.fullName || 'Teacher'} · ${summary?.school?.name || authenticatedUser?.schoolName || 'Liaquatabad Town'}`}
       actions={
         <div className="flex items-center gap-3">
           <button
-            onClick={() => dispatch(fetchTeacherSummary())}
-            className="p-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/80 text-[#526477] hover:text-[#102033] shadow-sm transition"
-            title="Refresh Workspace Data"
+            type="button"
+            onClick={() => {
+              dispatch(fetchTeacherSummary());
+              toast.success('Dashboard refreshed');
+            }}
+            className="p-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/80 text-[#526477] hover:text-[#102033] shadow-xs transition"
+            title="Refresh dashboard"
+            aria-label="Refresh dashboard data"
           >
-            <RefreshCw className={`w-4 h-4 ${summaryLoading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${summaryLoading ? 'animate-spin text-[#006AC7]' : ''}`} />
           </button>
         </div>
       }
     >
-      {/* ─── Top KPI Bar ──────────────────────────────────────────────────────── */}
+      {/* ─── Top Summary Cards ───────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <KpiCard
           icon={School}
           label="My Classes"
           value={assignedSectionCount}
-          sub="Authorized Sections"
+          sub="Assigned classes & sections"
           color="blue"
+          loading={summaryLoading}
         />
         <KpiCard
           icon={Users}
           label="Total Students"
           value={totalAssignedStudents}
-          sub="Active Section Enrollment"
+          sub="Enrolled across your classes"
           color="emerald"
+          loading={summaryLoading}
         />
         <KpiCard
           icon={ClipboardList}
-          label="Attendance Pending"
-          value={pendingAttendanceCount}
-          sub={pendingAttendanceCount === 0 ? 'All Completed Today ✓' : 'Sections Needing Roster'}
+          label="Today's Attendance"
+          value={pendingAttendanceCount === 0 ? 'All Done ✓' : `${pendingAttendanceCount} Pending`}
+          sub={pendingAttendanceCount === 0 ? 'Completed for today' : `${pendingAttendanceCount} class${pendingAttendanceCount > 1 ? 'es' : ''} pending`}
           color={pendingAttendanceCount > 0 ? 'amber' : 'emerald'}
+          loading={summaryLoading}
         />
         <KpiCard
           icon={BookOpen}
-          label="Teaching Duties"
+          label="Assigned Subjects"
           value={activeAssignmentsCount}
-          sub="Active Subject Assignments"
+          sub="Active subject allocations"
           color="indigo"
+          loading={summaryLoading}
         />
       </div>
 
-      {/* ─── Tabs Navigation ─────────────────────────────────────────────────── */}
-      <div className="flex overflow-x-auto gap-2 p-1.5 bg-slate-100/80 rounded-2xl mb-6 border border-slate-200/60 text-sm font-semibold">
-        {[
-          { id: 'CLASSES', label: 'My Classes', icon: GraduationCap },
-          { id: 'ATTENDANCE', label: 'Classroom Attendance', icon: ClipboardList },
-          { id: 'EXAMS', label: 'Internal Examination', icon: Award },
-          { id: 'HOMEWORK', label: 'Homework Workspace', icon: FileText },
-          { id: 'TIMETABLE', label: 'My Timetable', icon: CalendarDays },
-          { id: 'CIRCULARS', label: 'Official Circulars', icon: FileSpreadsheet },
-          { id: 'SERVICE', label: 'My Service Record', icon: IdCard },
-        ].map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
+      {/* ─── Responsive Tab Navigation Bar ───────────────────────────────────── */}
+      <div
+        role="tablist"
+        aria-label="Dashboard sections"
+        className="flex items-center gap-1.5 p-1.5 bg-slate-100/90 rounded-2xl mb-6 border border-slate-200/70 overflow-x-auto scrollbar-thin select-none"
+      >
+        {DASHBOARD_TABS.map((tabItem) => {
+          const IconComponent = tabItem.icon;
+          const isActiveTab = activeTab === tabItem.id;
           return (
             <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all whitespace-nowrap ${
-                isActive
-                  ? 'bg-white text-[#006AC7] shadow-sm font-bold'
-                  : 'text-[#526477] hover:text-[#102033] hover:bg-white/50'
+              key={tabItem.id}
+              role="tab"
+              aria-selected={isActiveTab}
+              type="button"
+              onClick={() => handleTabChange(tabItem.id)}
+              className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl transition-all whitespace-nowrap text-xs sm:text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-[#006AC7] shrink-0 ${
+                isActiveTab
+                  ? 'bg-white text-[#006AC7] shadow-xs font-bold border border-slate-200/60'
+                  : 'text-[#526477] hover:text-[#102033] hover:bg-white/60'
               }`}
             >
-              <Icon className="w-4 h-4" />
-              {tab.label}
+              <IconComponent className="w-4 h-4 shrink-0" />
+              <span>{tabItem.label}</span>
             </button>
           );
         })}
@@ -647,20 +679,20 @@ export const TeacherDashboard = () => {
       {/* ─── TAB 1: MY CLASSES ───────────────────────────────────────────────── */}
       {activeTab === 'CLASSES' && (
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <h2 className="text-lg font-bold text-[#102033]">Assigned Classes & Academic Duties</h2>
-              <p className="text-xs text-[#526477]">Unified view of Class Teacher roles and Subject Teaching assignments</p>
+              <h2 className="text-lg font-bold text-[#102033]">My Classes</h2>
+              <p className="text-xs text-[#526477]">Classes and sections assigned to you for this academic year</p>
             </div>
-            <span className="text-xs font-semibold text-[#8094A8]">{fmtDate()}</span>
+            <span className="text-xs font-semibold text-[#8094A8]">{formatDate()}</span>
           </div>
 
           {assignedSections.length === 0 ? (
             <div className="p-12 rounded-2xl bg-white border border-slate-200/80 text-center shadow-sm">
               <School className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <h3 className="text-base font-bold text-[#102033]">No Active Teaching Assignments</h3>
+              <h3 className="text-base font-bold text-[#102033]">No Classes Assigned</h3>
               <p className="text-sm text-[#526477] max-w-md mx-auto mt-1">
-                You are currently not designated as Class Teacher or assigned subjects for any section. Please contact your Head Master.
+                You are not currently assigned to any classes or sections. Please contact your Head Master if you need your teaching schedule updated.
               </p>
             </div>
           ) : (
@@ -669,6 +701,10 @@ export const TeacherDashboard = () => {
                 const isClassTeacher = sectionItem.isClassTeacher;
                 const assignedSubjects = sectionItem.assignedSubjects || [];
                 const todayAttendance = sectionItem.todayAttendance;
+                const sectionDisplayName = sectionItem.name && sectionItem.name !== 'null' && sectionItem.name.toLowerCase() !== 'default'
+                  ? `Section ${sectionItem.name}`
+                  : 'Whole Class (Single Cohort)';
+
                 return (
                   <div
                     key={String(sectionItem._id)}
@@ -680,7 +716,7 @@ export const TeacherDashboard = () => {
                           <span className="text-xs font-bold text-[#006AC7] uppercase tracking-wide">
                             {sectionItem.class?.name || 'Class'}
                           </span>
-                          <h3 className="text-xl font-black text-[#102033] mt-0.5">Section {sectionItem.name}</h3>
+                          <h3 className="text-xl font-black text-[#102033] mt-0.5">{sectionDisplayName}</h3>
                           {sectionItem.roomNumber && (
                             <p className="text-xs text-[#8094A8] mt-0.5">Room {sectionItem.roomNumber}</p>
                           )}
@@ -718,7 +754,7 @@ export const TeacherDashboard = () => {
                             ))
                           ) : (
                             <span className="text-xs text-slate-400 italic">
-                              {isClassTeacher ? 'General Classroom Oversight' : 'None specified'}
+                              {isClassTeacher ? 'Class Teacher (All subjects)' : 'No subjects assigned'}
                             </span>
                           )}
                         </div>
@@ -730,11 +766,11 @@ export const TeacherDashboard = () => {
                         {todayAttendance?.submitted ? (
                           <span className="font-bold text-emerald-700 flex items-center gap-1">
                             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                            Submitted ({todayAttendance.presentCount}P / {todayAttendance.absentCount}A)
+                            Submitted ({todayAttendance.presentCount} Present, {todayAttendance.absentCount} Absent)
                           </span>
                         ) : (
-                          <span className="font-bold text-rose-600 flex items-center gap-1">
-                            <Clock className="w-3.5 h-3.5 text-rose-500" /> Pending
+                          <span className="font-bold text-amber-700 flex items-center gap-1">
+                            <Clock className="w-3.5 h-3.5 text-amber-600" /> Pending
                           </span>
                         )}
                       </div>
@@ -742,17 +778,19 @@ export const TeacherDashboard = () => {
 
                     <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
                       <button
+                        type="button"
                         onClick={() => {
                           setSelectedAttendanceSectionId(String(sectionItem._id));
-                          setActiveTab('ATTENDANCE');
+                          handleTabChange('ATTENDANCE');
                         }}
-                        className="py-2 px-3 rounded-xl bg-[#006AC7] hover:bg-[#00529B] text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm"
+                        className="py-2 px-3 rounded-xl bg-[#006AC7] hover:bg-[#00529B] text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
                       >
-                        <ClipboardList className="w-3.5 h-3.5" /> Mark Roster
+                        <ClipboardList className="w-3.5 h-3.5" /> Mark Attendance
                       </button>
                       <button
+                        type="button"
                         onClick={() => handleOpenRosterModal(sectionItem)}
-                        className="py-2 px-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200 transition flex items-center justify-center gap-1.5"
+                        className="py-2 px-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200 transition flex items-center justify-center gap-1.5 cursor-pointer"
                       >
                         <Eye className="w-3.5 h-3.5" /> View Students
                       </button>
@@ -765,7 +803,7 @@ export const TeacherDashboard = () => {
         </div>
       )}
 
-      {/* ─── TAB 2: ATTENDANCE (SMART ATTENDANCE / MINIMUM WORKLOAD) ───────── */}
+      {/* ─── TAB 2: ATTENDANCE (DAILY ATTENDANCE) ───────────────────────────── */}
       {activeTab === 'ATTENDANCE' && (
         <div className="space-y-6">
           <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
@@ -774,31 +812,36 @@ export const TeacherDashboard = () => {
               <div>
                 <h2 className="text-lg font-bold text-[#102033] flex items-center gap-2">
                   <ClipboardList className="w-5 h-5 text-[#006AC7]" />
-                  Smart Classroom Attendance
+                  Daily Student Attendance
                 </h2>
                 <p className="text-xs text-[#526477] mt-0.5">
-                  Minimum Workload: All active enrolled students default to <strong className="text-emerald-700 font-bold">Present (P)</strong>. Mark only <strong className="text-rose-700 font-bold">Absent (A)</strong> or <strong className="text-amber-700 font-bold">Leave (L)</strong> exceptions.
+                  All enrolled students default to <strong className="text-emerald-700 font-bold">Present (P)</strong>. Mark any students who are <strong className="text-rose-700 font-bold">Absent (A)</strong> or on <strong className="text-amber-700 font-bold">Approved Leave (L)</strong>, then submit.
                 </p>
               </div>
 
               {/* Controls: Section & Date */}
               <div className="flex flex-wrap items-center gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-[#526477] mb-1">Section</label>
+                  <label className="block text-xs font-bold text-[#526477] mb-1">Class & Section</label>
                   <select
                     value={selectedAttendanceSectionId}
                     onChange={(changeEvent) => setSelectedAttendanceSectionId(changeEvent.target.value)}
                     className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-[#102033] focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
                   >
-                    {assignedSections.map((sectionItem) => (
-                      <option key={String(sectionItem._id)} value={String(sectionItem._id)}>
-                        {sectionItem.class?.name} - Section {sectionItem.name} ({sectionItem.studentCount} students)
-                      </option>
-                    ))}
+                    {assignedSections.map((sectionItem) => {
+                      const sectionLabel = sectionItem.name && sectionItem.name !== 'null' && sectionItem.name.toLowerCase() !== 'default'
+                        ? `Section ${sectionItem.name}`
+                        : 'Whole Class';
+                      return (
+                        <option key={String(sectionItem._id)} value={String(sectionItem._id)}>
+                          {sectionItem.class?.name} - {sectionLabel} ({sectionItem.studentCount} students)
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[#526477] mb-1">Date</label>
+                  <label className="block text-xs font-bold text-[#526477] mb-1">Attendance Date</label>
                   <input
                     type="date"
                     value={attendanceDate}
@@ -810,44 +853,45 @@ export const TeacherDashboard = () => {
               </div>
             </div>
 
-            {/* Live Exception Counters */}
+            {/* Attendance Summary Counters */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 my-5">
               <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-center">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#526477]">Total Roster</span>
+                <span className="text-xs font-bold uppercase tracking-wider text-[#526477]">Total Students</span>
                 <p className="text-2xl font-black text-[#102033] mt-0.5">{totalStudentsCount}</p>
-                <span className="text-[11px] text-[#8094A8] font-medium">Enrolled Students</span>
+                <span className="text-[11px] text-[#8094A8] font-medium">Enrolled in class</span>
               </div>
               <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-center">
                 <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">Present (P)</span>
                 <p className="text-2xl font-black text-emerald-700 mt-0.5">{presentStudentsCount}</p>
-                <span className="text-[11px] text-emerald-600 font-medium">Default Auto-Derived</span>
+                <span className="text-[11px] text-emerald-600 font-medium">In attendance</span>
               </div>
               <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-center">
                 <span className="text-xs font-bold uppercase tracking-wider text-rose-800">Absent (A)</span>
                 <p className="text-2xl font-black text-rose-700 mt-0.5">{absentStudentsCount}</p>
-                <span className="text-[11px] text-rose-600 font-medium">Exception Marked</span>
+                <span className="text-[11px] text-rose-600 font-medium">Marked absent</span>
               </div>
               <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-center">
-                <span className="text-xs font-bold uppercase tracking-wider text-amber-800">Leave (L)</span>
+                <span className="text-xs font-bold uppercase tracking-wider text-amber-800">On Leave (L)</span>
                 <p className="text-2xl font-black text-amber-700 mt-0.5">{leaveStudentsCount}</p>
-                <span className="text-[11px] text-amber-600 font-medium">Approved Leave</span>
+                <span className="text-[11px] text-amber-600 font-medium">Approved leave</span>
               </div>
             </div>
 
-            {/* Search Bar & Exception Filters */}
+            {/* Search Bar & Filters */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 py-3 border-y border-slate-100">
               {/* Search Box */}
               <div className="relative flex-1 max-w-md">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
                   type="text"
-                  placeholder="Search by GR #, Roll # or Student Name…"
+                  placeholder="Search by name, roll number, or GR number…"
                   value={attendanceSearchQuery}
                   onChange={(changeEvent) => setAttendanceSearchQuery(changeEvent.target.value)}
                   className="w-full pl-9 pr-8 py-2 rounded-xl border border-slate-200 text-xs font-medium text-[#102033] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
                 />
                 {attendanceSearchQuery && (
                   <button
+                    type="button"
                     onClick={() => setAttendanceSearchQuery('')}
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                     title="Clear search"
@@ -862,7 +906,7 @@ export const TeacherDashboard = () => {
                 <div className="flex items-center p-1 rounded-xl bg-slate-100 border border-slate-200 text-xs font-bold">
                   {[
                     { id: 'ALL', label: `All (${totalStudentsCount})` },
-                    { id: 'EXCEPTIONS', label: `Exceptions (${absentStudentsCount + leaveStudentsCount})` },
+                    { id: 'EXCEPTIONS', label: `Absences & Leave (${absentStudentsCount + leaveStudentsCount})` },
                     { id: 'PRESENT', label: `P (${presentStudentsCount})` },
                     { id: 'ABSENT', label: `A (${absentStudentsCount})` },
                     { id: 'LEAVE', label: `L (${leaveStudentsCount})` },
@@ -885,11 +929,11 @@ export const TeacherDashboard = () => {
                 <button
                   type="button"
                   onClick={handleResetAllToPresent}
-                  className="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold transition flex items-center gap-1.5"
-                  title="Clear all A/L exceptions and reset everyone to Present"
+                  className="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                  title="Reset all students to Present"
                 >
                   <RotateCcw className="w-3.5 h-3.5 text-slate-500" />
-                  Reset to P
+                  Reset All to Present
                 </button>
               </div>
             </div>
@@ -915,53 +959,52 @@ export const TeacherDashboard = () => {
             {attendanceLoading ? (
               <div className="py-16 flex flex-col items-center justify-center gap-3 text-[#526477]">
                 <Loader2 className="w-8 h-8 animate-spin text-[#006AC7]" />
-                <p className="text-xs font-medium">Loading classroom attendance roster…</p>
+                <p className="text-xs font-medium">Loading class attendance roster…</p>
               </div>
             ) : filteredAttendanceRecords.length === 0 ? (
               <div className="py-12 text-center text-[#8094A8] text-sm">
                 {attendanceSearchQuery || attendanceStatusFilter !== 'ALL'
-                  ? 'No students found matching your search / filter criteria.'
+                  ? 'No students found matching your search or filter.'
                   : 'No active students enrolled in this section.'}
               </div>
             ) : (
               <div className="mt-3 divide-y divide-slate-100">
-                {filteredAttendanceRecords.map((student, studentIndex) => (
+                {filteredAttendanceRecords.map((studentRecord, studentIndex) => (
                   <div
-                    key={String(student.studentProfileId)}
+                    key={String(studentRecord.studentProfileId)}
                     className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/80 px-2 rounded-xl transition"
                   >
                     {/* Student Identity */}
                     <div className="flex items-center gap-3">
                       <span className="w-8 text-center text-xs font-mono font-bold text-[#8094A8] bg-slate-100 py-1 rounded-lg">
-                        #{student.rollNumber || studentIndex + 1}
+                        #{studentRecord.rollNumber || studentIndex + 1}
                       </span>
                       <div>
-                        <p className="text-sm font-bold text-[#102033]">{student.fullName}</p>
-                        <p className="text-xs text-[#8094A8]">GR: {student.grNumber || '—'}</p>
+                        <p className="text-sm font-bold text-[#102033]">{studentRecord.fullName}</p>
+                        <p className="text-xs text-[#8094A8]">GR: {studentRecord.grNumber || '—'}</p>
                       </div>
                     </div>
 
-                    {/* Exceptions Control (P / A / L) & Remarks */}
+                    {/* Status Controls (P / A / L) & Remarks */}
                     <div className="flex flex-wrap items-center gap-3">
-                      {/* Compact 3-State Controls */}
                       <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200">
                         <button
                           type="button"
-                          onClick={() => handleUpdateRecordStatus(student.studentProfileId, 'PRESENT')}
-                          className={`px-3 py-1 rounded-lg text-xs font-black transition-all ${
-                            student.status === 'PRESENT'
+                          onClick={() => handleUpdateRecordStatus(studentRecord.studentProfileId, 'PRESENT')}
+                          className={`px-3 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                            studentRecord.status === 'PRESENT'
                               ? 'bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-400 ring-offset-1'
                               : 'text-slate-600 hover:bg-emerald-50 hover:text-emerald-700'
                           }`}
-                          title="Mark Present (Default)"
+                          title="Mark Present"
                         >
                           P
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleUpdateRecordStatus(student.studentProfileId, 'ABSENT')}
-                          className={`px-3 py-1 rounded-lg text-xs font-black transition-all ${
-                            student.status === 'ABSENT'
+                          onClick={() => handleUpdateRecordStatus(studentRecord.studentProfileId, 'ABSENT')}
+                          className={`px-3 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                            studentRecord.status === 'ABSENT'
                               ? 'bg-rose-600 text-white shadow-sm ring-2 ring-rose-400 ring-offset-1'
                               : 'text-slate-600 hover:bg-rose-50 hover:text-rose-700'
                           }`}
@@ -971,9 +1014,9 @@ export const TeacherDashboard = () => {
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleUpdateRecordStatus(student.studentProfileId, 'LEAVE')}
-                          className={`px-3 py-1 rounded-lg text-xs font-black transition-all ${
-                            student.status === 'LEAVE'
+                          onClick={() => handleUpdateRecordStatus(studentRecord.studentProfileId, 'LEAVE')}
+                          className={`px-3 py-1 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                            studentRecord.status === 'LEAVE'
                               ? 'bg-amber-500 text-white shadow-sm ring-2 ring-amber-400 ring-offset-1'
                               : 'text-slate-600 hover:bg-amber-50 hover:text-amber-700'
                           }`}
@@ -986,10 +1029,10 @@ export const TeacherDashboard = () => {
                       {/* Remarks Input */}
                       <input
                         type="text"
-                        placeholder="Remarks (e.g. sick leave, late)"
-                        value={student.remarks}
+                        placeholder="Notes (optional, e.g. sick leave, late)"
+                        value={studentRecord.remarks}
                         onChange={(changeEvent) =>
-                          handleUpdateRecordRemarks(student.studentProfileId, changeEvent.target.value)
+                          handleUpdateRecordRemarks(studentRecord.studentProfileId, changeEvent.target.value)
                         }
                         className="px-3 py-1.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#006AC7] w-48 sm:w-56 text-[#102033]"
                       />
@@ -1008,14 +1051,14 @@ export const TeacherDashboard = () => {
                   hasDraft={hasAttendanceDraft}
                 />
                 <div className="text-xs text-[#526477]">
-                  Ready to submit: <strong className="text-emerald-700 font-bold">{presentStudentsCount} Present</strong>, <strong className="text-rose-700 font-bold">{absentStudentsCount} Absent</strong>, <strong className="text-amber-700 font-bold">{leaveStudentsCount} Leave</strong>
+                  Ready to submit: <strong className="text-emerald-700 font-bold">{presentStudentsCount} Present</strong>, <strong className="text-rose-700 font-bold">{absentStudentsCount} Absent</strong>, <strong className="text-amber-700 font-bold">{leaveStudentsCount} On Leave</strong>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={handleSubmitAttendanceForm}
                 disabled={attendanceSubmitting || localAttendanceRecords.length === 0}
-                className="px-6 py-2.5 rounded-xl bg-[#4B7F3A] hover:bg-[#3D692F] disabled:opacity-50 text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm"
+                className="px-6 py-2.5 rounded-xl bg-[#4B7F3A] hover:bg-[#3D692F] disabled:opacity-50 text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm cursor-pointer"
               >
                 {attendanceSubmitting ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -1023,37 +1066,37 @@ export const TeacherDashboard = () => {
                   <CheckCircle2 className="w-4 h-4" />
                 )}
                 {attendanceSubmitting
-                  ? 'Submitting…'
-                  : `Submit Daily Attendance (${presentStudentsCount} P, ${absentStudentsCount} A, ${leaveStudentsCount} L)`}
+                  ? 'Submitting Attendance…'
+                  : `Submit Attendance (${presentStudentsCount} Present, ${absentStudentsCount} Absent, ${leaveStudentsCount} On Leave)`}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ─── TAB 3: EXAMINATION ──────────────────────────────────────────────── */}
+      {/* ─── TAB 3: EXAMINATION (ENTER EXAM MARKS) ─────────────────────────── */}
       {activeTab === 'EXAMS' && (
         <div className="space-y-6">
           <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
             <div className="pb-5 border-b border-slate-100">
               <h2 className="text-lg font-bold text-[#102033] flex items-center gap-2">
                 <Award className="w-5 h-5 text-[#006AC7]" />
-                Internal School Examination Marks Entry
+                Enter Exam Marks
               </h2>
               <p className="text-xs text-[#526477] mt-0.5">
-                School-level 700-mark evaluation with Islamiat (Nazra 20 / Written 80), Drawing grade, and HM verification gate
+                Enter student marks for school examinations. Marks are submitted to the Head Master for review and final approval.
               </p>
 
               {/* Selector Filters */}
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mt-4">
                 <div>
-                  <label className="block text-xs font-bold text-[#526477] mb-1">Select Exam</label>
+                  <label className="block text-xs font-bold text-[#526477] mb-1">Examination</label>
                   <select
                     value={selectedExamId}
                     onChange={(changeEvent) => setSelectedExamId(changeEvent.target.value)}
                     className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-[#102033] focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
                   >
-                    <option value="">-- Choose Exam --</option>
+                    <option value="">-- Select Examination --</option>
                     {examsList.map((examItem) => (
                       <option key={String(examItem._id)} value={String(examItem._id)}>
                         {examItem.title} ({examItem.status})
@@ -1063,7 +1106,7 @@ export const TeacherDashboard = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#526477] mb-1">Select Section</label>
+                  <label className="block text-xs font-bold text-[#526477] mb-1">Class & Section</label>
                   <select
                     value={selectedExamSectionId}
                     onChange={(changeEvent) => {
@@ -1072,23 +1115,28 @@ export const TeacherDashboard = () => {
                     }}
                     className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-[#102033] focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
                   >
-                    <option value="">-- Choose Section --</option>
-                    {assignedSections.map((sectionItem) => (
-                      <option key={String(sectionItem._id)} value={String(sectionItem._id)}>
-                        {sectionItem.class?.name} - {sectionItem.name} {sectionItem.isClassTeacher ? '(Class Teacher)' : ''}
-                      </option>
-                    ))}
+                    <option value="">-- Select Class & Section --</option>
+                    {assignedSections.map((sectionItem) => {
+                      const sectionLabel = sectionItem.name && sectionItem.name !== 'null' && sectionItem.name.toLowerCase() !== 'default'
+                        ? `Section ${sectionItem.name}`
+                        : 'Whole Class';
+                      return (
+                        <option key={String(sectionItem._id)} value={String(sectionItem._id)}>
+                          {sectionItem.class?.name} - {sectionLabel} {sectionItem.isClassTeacher ? '(Class Teacher)' : ''}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-[#526477] mb-1">Select Subject</label>
+                  <label className="block text-xs font-bold text-[#526477] mb-1">Subject</label>
                   <select
                     value={selectedExamSubjectId}
                     onChange={(changeEvent) => setSelectedExamSubjectId(changeEvent.target.value)}
                     className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-[#102033] focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
                   >
-                    <option value="">-- Single Subject (or Multi if CT) --</option>
+                    <option value="">-- Select Subject --</option>
                     {(() => {
                       const matchedSection = assignedSections.find((sectionItem) => String(sectionItem._id) === String(selectedExamSectionId));
                       const assignedSubjectsList = matchedSection?.assignedSubjects || [];
@@ -1106,9 +1154,9 @@ export const TeacherDashboard = () => {
                     type="button"
                     onClick={handleLoadExamMarksRoster}
                     disabled={!selectedExamId || !selectedExamSectionId}
-                    className="w-full py-2 px-4 rounded-xl bg-[#006AC7] hover:bg-[#00529B] disabled:opacity-50 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm"
+                    className="w-full py-2 px-4 rounded-xl bg-[#006AC7] hover:bg-[#00529B] disabled:opacity-50 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
                   >
-                    <Search className="w-3.5 h-3.5" /> Load Roster
+                    <Search className="w-3.5 h-3.5" /> Load Students
                   </button>
                 </div>
               </div>
@@ -1131,59 +1179,59 @@ export const TeacherDashboard = () => {
               }}
             />
 
-            {/* Exam Roster Table */}
+            {/* Exam Marks Entry Table */}
             {examRosterLoading ? (
               <div className="py-16 flex flex-col items-center justify-center gap-3 text-[#526477]">
                 <Loader2 className="w-8 h-8 animate-spin text-[#006AC7]" />
-                <p className="text-xs font-medium">Fetching examination students roster…</p>
+                <p className="text-xs font-medium">Loading student list for marks entry…</p>
               </div>
             ) : localMarksEntries.length === 0 ? (
               <div className="py-12 text-center text-[#8094A8] text-sm">
-                Select an examination and section above, then click "Load Roster" to enter marks.
+                Select an examination, class, and subject above, then click "Load Students" to enter marks.
               </div>
             ) : (
               <div className="mt-4 overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead>
                     <tr className="border-b border-slate-200 text-[#526477] font-bold uppercase tracking-wider">
-                      <th className="py-3 px-2">Roll</th>
-                      <th className="py-3 px-2">Student Name / GR</th>
+                      <th className="py-3 px-2">Roll #</th>
+                      <th className="py-3 px-2">Student Name & GR</th>
                       {examRosterData?.isIslamiat ? (
                         <>
-                          <th className="py-3 px-2">Nazra (0-20)</th>
-                          <th className="py-3 px-2">Written (0-80)</th>
+                          <th className="py-3 px-2">Nazra (0–20)</th>
+                          <th className="py-3 px-2">Written (0–80)</th>
                           <th className="py-3 px-2">Total (100)</th>
                         </>
                       ) : examRosterData?.isDrawing ? (
-                        <th className="py-3 px-2">Letter Grade</th>
+                        <th className="py-3 px-2">Grade</th>
                       ) : (
                         <>
-                          <th className="py-3 px-2">Obtained Marks</th>
-                          <th className="py-3 px-2">Max Marks</th>
+                          <th className="py-3 px-2">Marks Obtained</th>
+                          <th className="py-3 px-2">Total Marks</th>
                           <th className="py-3 px-2">Percentage</th>
                         </>
                       )}
-                      <th className="py-3 px-2">Conduct / Remarks</th>
+                      <th className="py-3 px-2">Teacher Remarks</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {localMarksEntries.map((entry, idx) => {
+                    {localMarksEntries.map((markEntry, studentIndex) => {
                       const isIslamiat = examRosterData?.isIslamiat;
-                      const isDrawing = examRosterData?.isDrawing || entry.isGradedOnly;
-                      const nazra = Number(entry.subComponents?.nazra) || 0;
-                      const written = Number(entry.subComponents?.written) || 0;
-                      const obtained = isIslamiat ? nazra + written : Number(entry.obtainedMarks) || 0;
-                      const max = Number(entry.maxMarks) || 100;
-                      const pct = max > 0 ? ((obtained / max) * 100).toFixed(1) : 0;
+                      const isDrawing = examRosterData?.isDrawing || markEntry.isGradedOnly;
+                      const nazraScore = Number(markEntry.subComponents?.nazra) || 0;
+                      const writtenScore = Number(markEntry.subComponents?.written) || 0;
+                      const totalObtainedMarks = isIslamiat ? nazraScore + writtenScore : Number(markEntry.obtainedMarks) || 0;
+                      const maximumMarks = Number(markEntry.maxMarks) || 100;
+                      const percentageScore = maximumMarks > 0 ? ((totalObtainedMarks / maximumMarks) * 100).toFixed(1) : 0;
 
                       return (
-                        <tr key={String(entry.studentId)} className="hover:bg-slate-50/60 transition">
+                        <tr key={String(markEntry.studentId)} className="hover:bg-slate-50/60 transition">
                           <td className="py-3 px-2 font-mono font-bold text-[#8094A8]">
-                            #{entry.rollNumber || idx + 1}
+                            #{markEntry.rollNumber || studentIndex + 1}
                           </td>
                           <td className="py-3 px-2">
-                            <p className="font-bold text-[#102033]">{entry.fullName}</p>
-                            <p className="text-[11px] text-[#8094A8]">GR: {entry.grNumber || '—'}</p>
+                            <p className="font-bold text-[#102033]">{markEntry.fullName}</p>
+                            <p className="text-[11px] text-[#8094A8]">GR: {markEntry.grNumber || '—'}</p>
                           </td>
 
                           {/* Islamiat Split */}
@@ -1194,10 +1242,10 @@ export const TeacherDashboard = () => {
                                   type="number"
                                   min="0"
                                   max="20"
-                                  value={entry.subComponents?.nazra ?? ''}
+                                  value={markEntry.subComponents?.nazra ?? ''}
                                   onChange={(changeEvent) =>
                                     handleUpdateMarksEntry(
-                                      entry.studentId,
+                                      markEntry.studentId,
                                       'subComponents.nazra',
                                       changeEvent.target.value
                                     )
@@ -1211,10 +1259,10 @@ export const TeacherDashboard = () => {
                                   type="number"
                                   min="0"
                                   max="80"
-                                  value={entry.subComponents?.written ?? ''}
+                                  value={markEntry.subComponents?.written ?? ''}
                                   onChange={(changeEvent) =>
                                     handleUpdateMarksEntry(
-                                      entry.studentId,
+                                      markEntry.studentId,
                                       'subComponents.written',
                                       changeEvent.target.value
                                     )
@@ -1224,7 +1272,7 @@ export const TeacherDashboard = () => {
                                 />
                               </td>
                               <td className="py-3 px-2 font-bold text-[#102033]">
-                                {obtained} / 100
+                                {totalObtainedMarks} / 100
                               </td>
                             </>
                           )}
@@ -1233,9 +1281,9 @@ export const TeacherDashboard = () => {
                           {isDrawing && (
                             <td className="py-3 px-2">
                               <select
-                                value={entry.letterGrade || 'A'}
+                                value={markEntry.letterGrade || 'A'}
                                 onChange={(changeEvent) =>
-                                  handleUpdateMarksEntry(entry.studentId, 'letterGrade', changeEvent.target.value)
+                                  handleUpdateMarksEntry(markEntry.studentId, 'letterGrade', changeEvent.target.value)
                                 }
                                 className="px-3 py-1 rounded-lg border border-slate-200 text-xs font-bold text-[#006AC7] focus:outline-none"
                               >
@@ -1255,11 +1303,11 @@ export const TeacherDashboard = () => {
                                 <input
                                   type="number"
                                   min="0"
-                                  max={max}
-                                  value={entry.obtainedMarks ?? ''}
+                                  max={maximumMarks}
+                                  value={markEntry.obtainedMarks ?? ''}
                                   onChange={(changeEvent) =>
                                     handleUpdateMarksEntry(
-                                      entry.studentId,
+                                      markEntry.studentId,
                                       'obtainedMarks',
                                       changeEvent.target.value
                                     )
@@ -1268,8 +1316,8 @@ export const TeacherDashboard = () => {
                                   className="w-24 px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
                                 />
                               </td>
-                              <td className="py-3 px-2 text-[#526477] font-semibold">{max}</td>
-                              <td className="py-3 px-2 font-bold text-[#102033]">{pct}%</td>
+                              <td className="py-3 px-2 text-[#526477] font-semibold">{maximumMarks}</td>
+                              <td className="py-3 px-2 font-bold text-[#102033]">{percentageScore}%</td>
                             </>
                           )}
 
@@ -1277,10 +1325,10 @@ export const TeacherDashboard = () => {
                           <td className="py-3 px-2">
                             <input
                               type="text"
-                              placeholder="Academic / conduct remarks"
-                              value={entry.remarks ?? ''}
+                              placeholder="Notes or performance remarks"
+                              value={markEntry.remarks ?? ''}
                               onChange={(changeEvent) =>
-                                handleUpdateMarksEntry(entry.studentId, 'remarks', changeEvent.target.value)
+                                handleUpdateMarksEntry(markEntry.studentId, 'remarks', changeEvent.target.value)
                               }
                               className="w-48 px-2.5 py-1 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
                             />
@@ -1292,29 +1340,29 @@ export const TeacherDashboard = () => {
                 </table>
 
                 {/* Bulk Submit Button */}
-                <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+                <div className="mt-6 pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <DraftStatusIndicator
                       isAutosaving={isMarksAutosaving}
                       lastSavedAt={marksLastSavedAt}
                       hasDraft={hasMarksDraft}
                     />
-                    <span className="text-xs text-[#8094A8]">
-                      Ready to submit marks for {localMarksEntries.length} students
+                    <span className="text-xs text-[#526477]">
+                      Ready to submit marks for <strong className="text-[#102033] font-bold">{localMarksEntries.length}</strong> student{localMarksEntries.length > 1 ? 's' : ''}
                     </span>
                   </div>
                   <button
                     type="button"
                     onClick={handleBulkSubmitMarks}
                     disabled={examMarksSubmitting || localMarksEntries.length === 0}
-                    className="px-6 py-2.5 rounded-xl bg-[#006AC7] hover:bg-[#00529B] disabled:opacity-50 text-white text-xs font-bold transition flex items-center gap-2 shadow-sm"
+                    className="px-6 py-2.5 rounded-xl bg-[#006AC7] hover:bg-[#00529B] disabled:opacity-50 text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm cursor-pointer"
                   >
                     {examMarksSubmitting ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
                       <Send className="w-4 h-4" />
                     )}
-                    {examMarksSubmitting ? 'Saving Marks…' : 'Save & Bulk Submit Marks'}
+                    {examMarksSubmitting ? 'Saving Marks…' : 'Submit Marks'}
                   </button>
                 </div>
               </div>
@@ -1326,96 +1374,102 @@ export const TeacherDashboard = () => {
       {/* ─── TAB 4: HOMEWORK ─────────────────────────────────────────────────── */}
       {activeTab === 'HOMEWORK' && (
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h2 className="text-lg font-bold text-[#102033]">Homework & Lesson Assignments</h2>
-              <p className="text-xs text-[#526477]">Assign curriculum tasks to your authorized sections and subjects</p>
+              <h2 className="text-lg font-bold text-[#102033]">Homework</h2>
+              <p className="text-xs text-[#526477]">Create and track homework assignments for your classes</p>
             </div>
             <button
               type="button"
               onClick={() => setAssignHomeworkModal(true)}
-              className="px-4 py-2 rounded-xl bg-[#006AC7] hover:bg-[#00529B] text-white text-xs font-bold transition flex items-center gap-2 shadow-sm"
+              className="px-4 py-2 rounded-xl bg-[#006AC7] hover:bg-[#00529B] text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm cursor-pointer self-start sm:self-auto"
             >
-              <PlusCircle className="w-4 h-4" /> Assign New Homework
+              <PlusCircle className="w-4 h-4" /> Assign Homework
             </button>
           </div>
 
           {homeworkLoading ? (
             <div className="py-16 flex flex-col items-center justify-center gap-3 text-[#526477]">
               <Loader2 className="w-8 h-8 animate-spin text-[#006AC7]" />
-              <p className="text-xs font-medium">Loading assigned homework…</p>
+              <p className="text-xs font-medium">Loading homework assignments…</p>
             </div>
           ) : homeworkList.length === 0 ? (
             <div className="p-12 rounded-2xl bg-white border border-slate-200/80 text-center shadow-sm">
               <FileText className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <h3 className="text-base font-bold text-[#102033]">No Active Homework Assigned</h3>
+              <h3 className="text-base font-bold text-[#102033]">No Homework Assigned</h3>
               <p className="text-sm text-[#526477] max-w-md mx-auto mt-1">
-                You haven't assigned any homework yet. Click "Assign New Homework" to post curriculum tasks.
+                You haven't posted any homework assignments yet. Click "Assign Homework" to create one.
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {homeworkList.map((homeworkItem) => (
-                <div
-                  key={String(homeworkItem._id)}
-                  className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="flex items-start justify-between gap-3 mb-2">
-                      <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-[#006AC7] border border-blue-200">
-                        {homeworkItem.subjectId?.name || 'Subject'}
-                      </span>
-                      <span className="text-xs font-semibold text-[#8094A8]">
-                        Due: {fmtDate(homeworkItem.dueDate)}
-                      </span>
+              {homeworkList.map((homeworkItem) => {
+                const sectionName = homeworkItem.sectionId?.name && homeworkItem.sectionId?.name !== 'null' && homeworkItem.sectionId?.name.toLowerCase() !== 'default'
+                  ? `Section ${homeworkItem.sectionId.name}`
+                  : 'Whole Class';
+
+                return (
+                  <div
+                    key={String(homeworkItem._id)}
+                    className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-[#006AC7] border border-blue-200">
+                          {homeworkItem.subjectId?.name || 'Subject'}
+                        </span>
+                        <span className="text-xs font-semibold text-[#8094A8]">
+                          Due: {formatDate(homeworkItem.dueDate)}
+                        </span>
+                      </div>
+
+                      <h3 className="text-base font-bold text-[#102033] mt-2">{homeworkItem.title}</h3>
+                      <p className="text-xs text-[#526477] mt-1 line-clamp-3">{homeworkItem.description}</p>
+
+                      <div className="mt-3 text-xs text-[#8094A8] font-medium">
+                        <span>{homeworkItem.classId?.name} · {sectionName}</span>
+                      </div>
+
+                      {/* Attached Learning Materials */}
+                      {homeworkItem.attachments?.length > 0 && (
+                        <HomeworkAttachmentsViewer attachments={homeworkItem.attachments} isCompact />
+                      )}
                     </div>
 
-                    <h3 className="text-base font-bold text-[#102033] mt-2">{homeworkItem.title}</h3>
-                    <p className="text-xs text-[#526477] mt-1 line-clamp-3">{homeworkItem.description}</p>
-
-                    <div className="mt-3 text-xs text-[#8094A8] font-medium">
-                      <span>{homeworkItem.classId?.name} · Section {homeworkItem.sectionId?.name}</span>
+                    <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                      <span className="text-[#8094A8]">Posted {formatDate(homeworkItem.createdAt)}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleCancelHomework(homeworkItem._id)}
+                        className="text-rose-600 hover:text-rose-800 font-bold flex items-center gap-1 transition cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" /> Remove Assignment
+                      </button>
                     </div>
-
-                    {/* Attached Learning Materials */}
-                    {homeworkItem.attachments?.length > 0 && (
-                      <HomeworkAttachmentsViewer attachments={homeworkItem.attachments} isCompact />
-                    )}
                   </div>
-
-                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <span className="text-[#8094A8]">Posted {fmtDate(homeworkItem.createdAt)}</span>
-                    <button
-                      type="button"
-                      onClick={() => handleCancelHomework(homeworkItem._id)}
-                      className="text-rose-600 hover:text-rose-800 font-bold flex items-center gap-1 transition"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" /> Cancel Task
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
       )}
 
-      {/* ─── TAB 5: CIRCULARS ────────────────────────────────────────────────── */}
+      {/* ─── TAB 5: NOTICE BOARD (CIRCULARS) ─────────────────────────────────── */}
       {activeTab === 'CIRCULARS' && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-lg font-bold text-[#102033]">Official Circulars & Notices</h2>
+            <h2 className="text-lg font-bold text-[#102033]">Notice Board</h2>
             <p className="text-xs text-[#526477]">
-              Administrative notifications from the Education Department Liaquatabad Town Centre (DMC)
+              Official announcements and notifications from school administration and the Education Department
             </p>
           </div>
 
           {circularsList.length === 0 ? (
             <div className="p-12 rounded-2xl bg-white border border-slate-200/80 text-center shadow-sm">
               <FileSpreadsheet className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-              <h3 className="text-base font-bold text-[#102033]">No Recent Circulars</h3>
+              <h3 className="text-base font-bold text-[#102033]">No Notices Posted</h3>
               <p className="text-sm text-[#526477] max-w-md mx-auto mt-1">
-                There are no new administrative circulars or notices issued for faculty members at this time.
+                There are no official notices or announcements at this time.
               </p>
             </div>
           ) : (
@@ -1430,7 +1484,7 @@ export const TeacherDashboard = () => {
                       <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-50 text-purple-700 border border-purple-200">
                         {documentItem.category || 'NOTICE'}
                       </span>
-                      <span className="text-xs text-[#8094A8]">{fmtDate(documentItem.createdAt)}</span>
+                      <span className="text-xs text-[#8094A8]">{formatDate(documentItem.createdAt)}</span>
                     </div>
                     <h3 className="text-base font-bold text-[#102033]">{documentItem.title}</h3>
                     <p className="text-xs text-[#526477] mt-1">{documentItem.description || documentItem.content}</p>
@@ -1440,9 +1494,9 @@ export const TeacherDashboard = () => {
                       href={documentItem.fileUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200 flex items-center gap-1.5 transition"
+                      className="px-4 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200 flex items-center gap-1.5 transition cursor-pointer"
                     >
-                      <Download className="w-3.5 h-3.5" /> Download Circular
+                      <Download className="w-3.5 h-3.5" /> Download Notice
                     </a>
                   )}
                 </div>
@@ -1470,7 +1524,7 @@ export const TeacherDashboard = () => {
 
               <div className="space-y-3 text-xs">
                 <div className="flex items-center justify-between py-1 border-b border-slate-50">
-                  <span className="text-[#8094A8] font-medium">Employee / Teacher ID</span>
+                  <span className="text-[#8094A8] font-medium">Employee ID</span>
                   <span className="font-mono font-bold text-[#102033]">
                     {authenticatedUser?._id?.slice(-8).toUpperCase()}
                   </span>
@@ -1482,19 +1536,19 @@ export const TeacherDashboard = () => {
                   </span>
                 </div>
                 <div className="flex items-center justify-between py-1 border-b border-slate-50">
-                  <span className="text-[#8094A8] font-medium">Posting Station</span>
+                  <span className="text-[#8094A8] font-medium">Current School</span>
                   <span className="font-bold text-[#006AC7]">
-                    {summary?.school?.name || 'Liaquatabad Primary'}
+                    {summary?.school?.name || authenticatedUser?.schoolId?.name || 'Assigned School'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between py-1 border-b border-slate-50">
-                  <span className="text-[#8094A8] font-medium">Cadre / BPS Scale</span>
+                  <span className="text-[#8094A8] font-medium">Cadre & Grade</span>
                   <span className="font-bold text-emerald-700">PST (BPS-14)</span>
                 </div>
                 <div className="flex items-center justify-between py-1">
                   <span className="text-[#8094A8] font-medium">Service Status</span>
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    ACTIVE MUNICIPAL CADRE
+                    Active Staff
                   </span>
                 </div>
               </div>
@@ -1502,14 +1556,14 @@ export const TeacherDashboard = () => {
 
             {/* Monthly Attendance Breakdown */}
             <div className="lg:col-span-2 p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
-              <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-2">
                 <div>
                   <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
                     <CalendarDays className="w-5 h-5 text-[#006AC7]" />
-                    My Faculty Attendance Log
+                    My Attendance Record
                   </h3>
                   <p className="text-xs text-[#526477]">
-                    Recorded by Head Master under official municipal biometric/daily roster
+                    Monthly attendance recorded by your Head Master
                   </p>
                 </div>
                 <span className="text-xs font-bold text-[#006AC7]">
@@ -1540,11 +1594,11 @@ export const TeacherDashboard = () => {
               </div>
 
               <div className="p-4 rounded-xl bg-blue-50/60 border border-blue-200 text-xs text-[#526477] flex items-start gap-3">
-                <Info className="w-4 h-4 text-[#006AC7] flex-shrink-0 mt-0.5" />
+                <Info className="w-4 h-4 text-[#006AC7] shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-bold text-[#102033] mb-0.5">Municipal Service Guarantee</p>
+                  <p className="font-bold text-[#102033] mb-0.5">Official Attendance Record</p>
                   <p>
-                    Faculty attendance records are officially submitted and locked by the School Head Master on a daily basis. For attendance discrepancies, contact your administrative head master or the Liaquatabad Town Education Office.
+                    Faculty attendance records are officially submitted and locked by the School Head Master on a daily basis. If you notice any discrepancy, please contact your Head Master.
                   </p>
                 </div>
               </div>
@@ -1568,16 +1622,24 @@ export const TeacherDashboard = () => {
           <div className="relative w-full max-w-2xl max-h-[85vh] flex flex-col rounded-2xl bg-white border border-slate-200 shadow-2xl overflow-hidden">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
               <div>
-                <h3 className="text-base font-bold text-[#102033]">
-                  Enrolled Students · Section {rosterModalSection.name}
-                </h3>
+                {(() => {
+                  const sectionLabel = rosterModalSection.name && rosterModalSection.name !== 'null' && rosterModalSection.name.toLowerCase() !== 'default'
+                    ? `Section ${rosterModalSection.name}`
+                    : 'Whole Class (Single Cohort)';
+                  return (
+                    <h3 className="text-base font-bold text-[#102033]">
+                      Class Roster · {rosterModalSection.class?.name} ({sectionLabel})
+                    </h3>
+                  );
+                })()}
                 <p className="text-xs text-[#526477]">
-                  {rosterModalSection.class?.name} · {rosterModalSection.studentCount} Students
+                  {rosterModalSection.studentCount} Enrolled Students
                 </p>
               </div>
               <button
+                type="button"
                 onClick={() => setRosterModalSection(null)}
-                className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition"
+                className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1586,24 +1648,24 @@ export const TeacherDashboard = () => {
             <div className="flex-1 overflow-y-auto px-6 py-4 divide-y divide-slate-100 text-xs">
               {sectionRosterData.length === 0 ? (
                 <div className="py-8 text-center text-[#8094A8]">
-                  No active students enrolled in this section.
+                  No enrolled students found in this class.
                 </div>
               ) : (
-                sectionRosterData.map((st, idx) => (
-                  <div key={String(st._id)} className="py-2.5 flex items-center justify-between">
+                sectionRosterData.map((studentItem, studentIndex) => (
+                  <div key={String(studentItem._id)} className="py-2.5 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <span className="w-6 font-mono font-bold text-[#8094A8]">
-                        #{st.rollNumber || idx + 1}
+                        #{studentItem.rollNumber || studentIndex + 1}
                       </span>
                       <div>
-                        <p className="font-bold text-[#102033]">{st.fullName}</p>
+                        <p className="font-bold text-[#102033]">{studentItem.fullName}</p>
                         <p className="text-[11px] text-[#8094A8]">
-                          GR: {st.grNumber || '—'} · Gender: {st.gender || '—'}
+                          GR: {studentItem.grNumber || '—'} · Gender: {studentItem.gender || '—'}
                         </p>
                       </div>
                     </div>
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      ACTIVE
+                      Active
                     </span>
                   </div>
                 ))
@@ -1623,7 +1685,7 @@ export const TeacherDashboard = () => {
           <div className="relative w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white border border-slate-200 shadow-2xl p-6">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4 sticky top-0 bg-white z-10">
               <div className="flex items-center gap-3">
-                <h3 className="text-base font-bold text-[#102033]">Assign New Homework</h3>
+                <h3 className="text-base font-bold text-[#102033]">Assign Homework</h3>
                 <DraftStatusIndicator
                   isAutosaving={isHomeworkAutosaving}
                   lastSavedAt={homeworkLastSavedAt}
@@ -1633,7 +1695,7 @@ export const TeacherDashboard = () => {
               <button
                 type="button"
                 onClick={handleCloseAssignModal}
-                className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition"
+                className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1661,24 +1723,29 @@ export const TeacherDashboard = () => {
 
             <form onSubmit={handleCreateHomework} className="space-y-4 text-xs">
               <div>
-                <label className="block font-bold text-[#526477] mb-1">Class Section *</label>
+                <label className="block font-bold text-[#526477] mb-1">Class & Section *</label>
                 <select
                   value={newHwSectionId}
                   onChange={(changeEvent) => {
-                    const val = changeEvent.target.value;
-                    setNewHwSectionId(val);
+                    const selectedSectionId = changeEvent.target.value;
+                    setNewHwSectionId(selectedSectionId);
                     setNewHwSubjectId('');
-                    handleUpdateHomeworkDraft({ sectionId: val, subjectId: '' });
+                    handleUpdateHomeworkDraft({ sectionId: selectedSectionId, subjectId: '' });
                   }}
                   required
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
                 >
-                  <option value="">-- Choose Section --</option>
-                  {assignedSections.map((sectionItem) => (
-                    <option key={String(sectionItem._id)} value={String(sectionItem._id)}>
-                      {sectionItem.class?.name} - Section {sectionItem.name}
-                    </option>
-                  ))}
+                  <option value="">-- Choose Class & Section --</option>
+                  {assignedSections.map((sectionItem) => {
+                    const sectionLabel = sectionItem.name && sectionItem.name !== 'null' && sectionItem.name.toLowerCase() !== 'default'
+                      ? `Section ${sectionItem.name}`
+                      : 'Whole Class';
+                    return (
+                      <option key={String(sectionItem._id)} value={String(sectionItem._id)}>
+                        {sectionItem.class?.name} - {sectionLabel}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
 
@@ -1687,9 +1754,9 @@ export const TeacherDashboard = () => {
                 <select
                   value={newHwSubjectId}
                   onChange={(changeEvent) => {
-                    const val = changeEvent.target.value;
-                    setNewHwSubjectId(val);
-                    handleUpdateHomeworkDraft({ subjectId: val });
+                    const selectedSubjectId = changeEvent.target.value;
+                    setNewHwSubjectId(selectedSubjectId);
+                    handleUpdateHomeworkDraft({ subjectId: selectedSubjectId });
                   }}
                   required
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
@@ -1713,9 +1780,9 @@ export const TeacherDashboard = () => {
                   placeholder="e.g. Chapter 4 Exercise Questions"
                   value={newHwTitle}
                   onChange={(changeEvent) => {
-                    const val = changeEvent.target.value;
-                    setNewHwTitle(val);
-                    handleUpdateHomeworkDraft({ title: val });
+                    const enteredTitle = changeEvent.target.value;
+                    setNewHwTitle(enteredTitle);
+                    handleUpdateHomeworkDraft({ title: enteredTitle });
                   }}
                   required
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
@@ -1723,30 +1790,30 @@ export const TeacherDashboard = () => {
               </div>
 
               <div>
-                <label className="block font-bold text-[#526477] mb-1">Instructions / Description</label>
+                <label className="block font-bold text-[#526477] mb-1">Instructions (optional)</label>
                 <textarea
                   rows="3"
                   placeholder="Provide specific exercises, page numbers, or guidelines..."
                   value={newHwDescription}
                   onChange={(changeEvent) => {
-                    const val = changeEvent.target.value;
-                    setNewHwDescription(val);
-                    handleUpdateHomeworkDraft({ description: val });
+                    const enteredDescription = changeEvent.target.value;
+                    setNewHwDescription(enteredDescription);
+                    handleUpdateHomeworkDraft({ description: enteredDescription });
                   }}
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-[#526477] mb-1">Submission Due Date *</label>
+                <label className="block font-bold text-[#526477] mb-1">Due Date *</label>
                 <input
                   type="date"
                   min={new Date().toISOString().split('T')[0]}
                   value={newHwDueDate}
                   onChange={(changeEvent) => {
-                    const val = changeEvent.target.value;
-                    setNewHwDueDate(val);
-                    handleUpdateHomeworkDraft({ dueDate: val });
+                    const selectedDate = changeEvent.target.value;
+                    setNewHwDueDate(selectedDate);
+                    handleUpdateHomeworkDraft({ dueDate: selectedDate });
                   }}
                   required
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
@@ -1765,13 +1832,13 @@ export const TeacherDashboard = () => {
                 <button
                   type="button"
                   onClick={handleCloseAssignModal}
-                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition"
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-[#006AC7] hover:bg-[#00529B] text-white font-bold transition flex items-center gap-1.5 shadow-sm"
+                  className="px-5 py-2 rounded-xl bg-[#006AC7] hover:bg-[#00529B] text-white font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
                 >
                   <Check className="w-4 h-4" /> Post Homework
                 </button>

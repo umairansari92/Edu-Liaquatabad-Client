@@ -1,8 +1,16 @@
 import React from 'react';
 import { Loader2, Check } from 'lucide-react';
 
-export const DraftStatusIndicator = ({ status = 'idle' }) => {
-  if (status === 'saving') {
+export const DraftStatusIndicator = ({
+  status = 'idle',
+  isAutosaving = false,
+  hasDraft = false,
+  lastSavedAt = null,
+}) => {
+  const isSaving = status === 'saving' || isAutosaving;
+  const isSaved = status === 'saved' || (!isSaving && (hasDraft || Boolean(lastSavedAt)));
+
+  if (isSaving) {
     return (
       <span className="inline-flex items-center gap-1.5 text-2xs text-[#8094A8] font-medium">
         <Loader2 className="w-3 h-3 animate-spin text-[#006AC7]" />
@@ -11,7 +19,7 @@ export const DraftStatusIndicator = ({ status = 'idle' }) => {
     );
   }
 
-  if (status === 'saved') {
+  if (isSaved) {
     return (
       <span className="inline-flex items-center gap-1 text-2xs text-emerald-600 font-medium">
         <Check className="w-3 h-3 text-emerald-500" />

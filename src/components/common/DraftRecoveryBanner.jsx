@@ -2,19 +2,26 @@ import React from 'react';
 import { History, CheckCircle2, Trash2 } from 'lucide-react';
 
 export const DraftRecoveryBanner = ({
-  timestamp,
+  timestamp = null,
+  lastSavedAt = null,
+  hasDraft = null,
   onRestore,
   onDiscard,
   formLabel = 'form',
 }) => {
-  if (!timestamp) return null;
+  const effectiveTimestamp = timestamp || lastSavedAt;
+  const isDraftPresent = hasDraft !== null ? hasDraft : Boolean(effectiveTimestamp);
 
-  const formattedDate = new Date(timestamp).toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit',
-    month: 'short',
-    day: 'numeric',
-  });
+  if (!isDraftPresent) return null;
+
+  const formattedDate = effectiveTimestamp
+    ? new Date(effectiveTimestamp).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        month: 'short',
+        day: 'numeric',
+      })
+    : 'Recently';
 
   return (
     <div className="mb-4 p-3.5 rounded-xl bg-amber-50/90 border border-amber-200/90 text-amber-900 shadow-2xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 animate-fade-in">

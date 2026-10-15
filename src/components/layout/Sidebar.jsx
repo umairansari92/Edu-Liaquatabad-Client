@@ -41,13 +41,13 @@ export const Sidebar = () => {
     ];
   } else if (isTeacher) {
     navigationItems = [
-      { label: 'Workspace', path: '/dashboard', icon: LayoutDashboard },
-      { label: 'Institutional Approvals Queue', path: '/approvals', icon: ShieldCheck },
+      { label: 'Teacher Dashboard', path: '/dashboard', icon: LayoutDashboard },
+      { label: 'Approvals', path: '/approvals', icon: ShieldCheck },
       { label: 'Attendance', path: '/attendance', icon: ClipboardCheck },
       { label: 'Holidays & Calendar', path: '/holidays', icon: Calendar },
       { label: 'Exams & Results', path: '/exams', icon: Award },
       { label: 'My Service Record', path: '/profile', icon: IdCard },
-      { label: 'Circulars & Docs', path: '/documents', icon: FileText },
+      { label: 'Notice Board', path: '/documents', icon: FileText },
     ];
   } else if (isParent) {
     navigationItems = [
@@ -141,9 +141,11 @@ export const Sidebar = () => {
             const isTabAlias =
               location.pathname === '/dashboard' &&
               ((navItem.path === '/transfers' && currentTab === 'transfers') ||
-               (navItem.path === '/exams' && currentTab === 'exams') ||
+               (navItem.path === '/exams' && (currentTab === 'exams' || currentTab === 'results')) ||
                (navItem.path === '/approvals' && currentTab === 'approvals') ||
-               (navItem.path === '/documents' && currentTab === 'notices'));
+               (navItem.path === '/attendance' && currentTab === 'attendance') ||
+               (navItem.path === '/documents' && (currentTab === 'notices' || currentTab === 'circulars')) ||
+               (navItem.path === '/profile' && (currentTab === 'service' || currentTab === 'profile')));
             isActive = isTabAlias || (location.pathname === navItem.path && (!location.search || !location.search.includes('tab=')));
           }
           return (

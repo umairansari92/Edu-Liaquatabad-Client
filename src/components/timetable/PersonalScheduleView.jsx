@@ -61,11 +61,11 @@ export const PersonalScheduleView = ({ role = 'TEACHER', studentId = null }) => 
           <div className="flex items-center gap-2">
             <CalendarDays className="w-5 h-5 text-[#006AC7]" />
             <h2 className="text-lg font-bold text-[#102033]">
-              {role === 'TEACHER' ? 'My Teaching Schedule & Classes' : 'My Class Timetable'}
+              {role === 'TEACHER' ? 'Class Timetable' : 'My Class Timetable'}
             </h2>
           </div>
           <p className="text-xs text-[#526477]">
-            Session {personalScheduleData?.academicYear || '2025-2026'} • Synchronized with school master schedule.
+            Academic Year {personalScheduleData?.academicYear || '2025-2026'} · School Timetable
           </p>
         </div>
 
@@ -92,7 +92,7 @@ export const PersonalScheduleView = ({ role = 'TEACHER', studentId = null }) => 
             </div>
             <div>
               <div className="text-[11px] font-bold text-[#006AC7] uppercase tracking-wider">
-                Current Operational Status
+                Current Class Status
               </div>
               <div className="text-sm font-bold text-[#102033]">
                 {liveStatus.status === 'ACTIVE_TEACHING'
@@ -119,7 +119,7 @@ export const PersonalScheduleView = ({ role = 'TEACHER', studentId = null }) => 
             </div>
             <div>
               <div className="font-bold text-amber-950">
-                Your Free Periods Today ({liveStatus?.currentDay || 'TODAY'}):
+                Your Free Periods Today ({liveStatus?.currentDay || 'Today'}):
               </div>
               <div className="font-mono font-bold text-amber-800 mt-0.5">
                 {personalScheduleData.myFreePeriodsToday.length > 0
@@ -129,7 +129,7 @@ export const PersonalScheduleView = ({ role = 'TEACHER', studentId = null }) => 
             </div>
           </div>
           <span className="text-[11px] font-bold text-amber-900 bg-amber-100/90 border border-amber-300 px-3 py-1 rounded-xl self-start sm:self-auto">
-            Available for Proxy Duties
+            Available for Substitute Duties
           </span>
         </div>
       )}
