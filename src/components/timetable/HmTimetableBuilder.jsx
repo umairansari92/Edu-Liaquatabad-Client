@@ -19,10 +19,12 @@ import {
   Printer,
   Copy,
   Users,
+  Eye,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import LivePeriodBadge from './LivePeriodBadge.jsx';
 import ConfirmModal from '../common/ConfirmModal.jsx';
+import TimetablePrintPreviewModal from './TimetablePrintPreviewModal.jsx';
 import {
   fetchSchoolTimetable,
   saveTimetable,
@@ -69,6 +71,7 @@ export const HmTimetableBuilder = ({
   // Local editable timetable state
   const [editableSlots, setEditableSlots] = useState([]);
   const [editableSchedule, setEditableSchedule] = useState([]);
+  const [showPrintPreviewModal, setShowPrintPreviewModal] = useState(false);
 
   // Cell allocation modal state
   const [cellModalOpen, setCellModalOpen] = useState(false);
@@ -564,7 +567,32 @@ export const HmTimetableBuilder = ({
             </button>
 
             <button
-              onClick={() => window.print()}
+              onClick={() => setShowPrintPreviewModal(true)}
+              className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-blue-600/30 hover:bg-blue-600/50 border border-blue-400/40 text-white text-xs font-bold transition cursor-pointer shadow-sm"
+              title="Open Official A4 Timetable Preview"
+            >
+              <Eye className="w-4 h-4 text-blue-200" />
+              <span>A4 Preview</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setShowPrintPreviewModal(true);
+                let hasCleanedUp = false;
+                const cleanupPrint = () => {
+                  if (!hasCleanedUp) {
+                    hasCleanedUp = true;
+                    document.body.classList.remove('print-timetable-mode');
+                    window.removeEventListener('afterprint', cleanupPrint);
+                  }
+                };
+                window.addEventListener('afterprint', cleanupPrint);
+                document.body.classList.add('print-timetable-mode');
+                setTimeout(() => {
+                  window.print();
+                  setTimeout(cleanupPrint, 4000);
+                }, 150);
+              }}
               className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold transition cursor-pointer"
               title="Print Master Timetable"
             >
@@ -1032,6 +1060,21 @@ export const HmTimetableBuilder = ({
         confirmVariant="warning"
         onConfirm={handleConfirmResetSlots}
         onCancel={() => setResetSlotsModalOpen(false)}
+      />
+
+      {/* Official A4 Timetable Print & Portal Preview Modal */}
+      <TimetablePrintPreviewModal
+        isOpen={showPrintPreviewModal}
+        onClose={() => setShowPrintPreviewModal(false)}
+        schoolName={schoolTimetable?.schoolDetails?.name || ''}
+        academicYear={academicYear}
+        classes={classes}
+        slots={sortedSlots}
+        schedule={editableSchedule}
+        subjects={subjects}
+        faculty={faculty}
+        primarySectionByClassId={primarySectionByClassId}
+        initialDay={selectedDay}
       />
     </div>
   );
