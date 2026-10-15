@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { setAccessToken } from '../../store/slices/authSlice.js';
 import {
@@ -109,6 +110,18 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
       Promise.all([loadSessions(), loadMfaStatus()]).finally(() => setLoading(false));
     }
   }, [isOpen, loadSessions, loadMfaStatus]);
+
+  // Handle Escape key dismissal
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape' && !isSetupWizardOpen && !promptDialog.isOpen && !isRotatingDevice) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose, isSetupWizardOpen, promptDialog.isOpen, isRotatingDevice]);
 
   if (!isOpen) return null;
 
@@ -332,8 +345,18 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
     toast.success('Recovery codes file downloaded.');
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm overflow-y-auto">
+  const modalContent = (
+    <div
+      onClick={(clickEvent) => {
+        if (clickEvent.target === clickEvent.currentTarget) {
+          onClose();
+        }
+      }}
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm overflow-y-auto"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="security-modal-title"
+    >
       <div className="relative w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-5 my-8 text-[#102033]">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
@@ -342,7 +365,7 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
               <ShieldCheck className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-lg font-extrabold text-[#102033]">
+              <h3 id="security-modal-title" className="text-lg font-extrabold text-[#102033]">
                 Account Security &amp; Device Sessions
               </h3>
               <p className="text-xs text-[#526477]">
@@ -353,6 +376,7 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
           <button
             type="button"
             onClick={onClose}
+            aria-label="Close account security modal"
             className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-[#102033] cursor-pointer transition"
           >
             <X className="h-5 w-5" />
@@ -456,9 +480,13 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
                           <span className="text-xs font-bold text-[#102033]">
                             {sessionItem.deviceLabel || 'Web Browser'}
                           </span>
-                          {sessionItem.isCurrentSession && (
+                          {sessionItem.isCurrentSession ? (
                             <span className="rounded-full bg-[#E3F0DC] border border-[#C9DFBC] px-2 py-0.5 text-[10px] font-bold text-[#4B7F3A]">
-                              This Device
+                              This Device (Active Now)
+                            </span>
+                          ) : (
+                            <span className="rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 text-[10px] font-semibold text-[#526477]">
+                              Remote Session
                             </span>
                           )}
                         </div>
@@ -468,6 +496,11 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
                             Logged in: {new Date(sessionItem.createdAt).toLocaleString()}
                           </span>
                         </div>
+                        <p className="text-[10px] text-[#526477] mt-0.5">
+                          {sessionItem.isCurrentSession
+                            ? 'Your current active browser session. Protected with encrypted HttpOnly cookie.'
+                            : 'Remote device session. Terminating revokes its refresh tokens immediately.'}
+                        </p>
                       </div>
                     </div>
 
@@ -476,8 +509,9 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
                         type="button"
                         disabled={terminatingSessionId === sessionItem.sessionId}
                         onClick={() => handleTerminateSession(sessionItem.sessionId)}
-                        className="rounded-lg p-2 text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition text-xs font-bold flex items-center gap-1.5 disabled:opacity-50"
-                        title="Terminate this session"
+                        className="rounded-lg p-2 text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition text-xs font-bold flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                        title={`Terminate remote session on ${sessionItem.deviceLabel || 'device'}`}
+                        aria-label={`Terminate remote session on ${sessionItem.deviceLabel || 'device'}`}
                       >
                         {terminatingSessionId === sessionItem.sessionId ? (
                           <RefreshCw className="h-3.5 w-3.5 animate-spin" />
@@ -933,6 +967,8 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
       />
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : modalContent;
 };
 
 export default SecuritySettingsModal;

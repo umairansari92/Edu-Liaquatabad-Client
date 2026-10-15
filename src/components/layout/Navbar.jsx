@@ -166,11 +166,17 @@ export const Navbar = () => {
               {/* Account Security & Active Sessions Button */}
               <button
                 onClick={() => setShowSecurityModal(true)}
-                className="p-2 text-[#526477] hover:text-[#006AC7] rounded-xl hover:bg-slate-100 transition-colors"
+                className={`p-2 rounded-xl transition-all ${
+                  showSecurityModal
+                    ? 'text-[#006AC7] bg-blue-50 ring-2 ring-[#006AC7]/20'
+                    : 'text-[#526477] hover:text-[#006AC7] hover:bg-slate-100'
+                }`}
                 title="Account Security & Active Sessions"
                 aria-label="Account Security & Active Sessions"
+                aria-expanded={showSecurityModal}
+                aria-haspopup="dialog"
               >
-                <Shield className="w-5 h-5" />
+                <Shield className="w-5 h-5 transition-transform active:scale-95" />
               </button>
 
               {/* User Profile Pill */}
