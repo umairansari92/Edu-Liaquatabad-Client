@@ -61,6 +61,11 @@ export const adminService = {
     return response.data;
   },
 
+  updateSchoolTimings: async (schoolId, payload) => {
+    const response = await apiClient.patch(`/schools/${schoolId}/timings`, payload);
+    return response.data;
+  },
+
   getPendingUsers: async () => {
     const response = await apiClient.get('/admin/super-admins/pending-users');
     return response.data;

@@ -43,6 +43,21 @@ export const SchoolsPage = () => {
     address: '',
     contactPhone: '',
     contactEmail: '',
+    timings: {
+      regular: {
+        startTime: '08:00',
+        endTime: '13:30',
+        attendanceWindowStart: '07:45',
+        attendanceWindowEnd: '14:00',
+      },
+      friday: {
+        startTime: '07:30',
+        endTime: '12:00',
+        attendanceWindowStart: '07:15',
+        attendanceWindowEnd: '12:30',
+      },
+      allowHmLateOverride: true,
+    },
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -96,6 +111,7 @@ export const SchoolsPage = () => {
         address: formData.address.trim(),
         contactPhone: formData.contactPhone.trim(),
         contactEmail: formData.contactEmail.trim().toLowerCase(),
+        timings: formData.timings,
       });
       if (response.data?.success) {
         toast.success(`School "${formData.name}" registered successfully.`);
@@ -112,6 +128,21 @@ export const SchoolsPage = () => {
           address: '',
           contactPhone: '',
           contactEmail: '',
+          timings: {
+            regular: {
+              startTime: '08:00',
+              endTime: '13:30',
+              attendanceWindowStart: '07:45',
+              attendanceWindowEnd: '14:00',
+            },
+            friday: {
+              startTime: '07:30',
+              endTime: '12:00',
+              attendanceWindowStart: '07:15',
+              attendanceWindowEnd: '12:30',
+            },
+            allowHmLateOverride: true,
+          },
         });
         fetchSchools();
       }
@@ -539,6 +570,163 @@ export const SchoolsPage = () => {
                       placeholder="e.g. gbss4@schools.gov.pk"
                       className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-[#102033] focus:border-[#006AC7] focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
                     />
+                  </div>
+                </div>
+
+                {/* Operational Timings & Attendance Windows */}
+                <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3 space-y-2.5">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-1.5">
+                    <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <Clock className="h-3.5 w-3.5 text-[#006AC7]" />
+                      Attendance Windows &amp; School Hours
+                    </span>
+                    <span className="text-[10px] font-semibold text-slate-500">Asia/Karachi PKT</span>
+                  </div>
+
+                  {/* Regular Days */}
+                  <div>
+                    <span className="text-[11px] font-semibold text-slate-700 block mb-1">
+                      Regular Days (Mon–Thu, Sat)
+                    </span>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      <div>
+                        <label className="block text-[10px] text-slate-500">Gate Open</label>
+                        <input
+                          type="time"
+                          required
+                          value={formData.timings.regular.startTime}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            timings: {
+                              ...formData.timings,
+                              regular: { ...formData.timings.regular, startTime: e.target.value },
+                            },
+                          })}
+                          className="mt-0.5 w-full rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-slate-500">Gate Close</label>
+                        <input
+                          type="time"
+                          required
+                          value={formData.timings.regular.endTime}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            timings: {
+                              ...formData.timings,
+                              regular: { ...formData.timings.regular, endTime: e.target.value },
+                            },
+                          })}
+                          className="mt-0.5 w-full rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-[#4B7F3A] font-medium">Window Opens</label>
+                        <input
+                          type="time"
+                          required
+                          value={formData.timings.regular.attendanceWindowStart}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            timings: {
+                              ...formData.timings,
+                              regular: { ...formData.timings.regular, attendanceWindowStart: e.target.value },
+                            },
+                          })}
+                          className="mt-0.5 w-full rounded-lg border border-emerald-300 bg-white px-2 py-1 text-xs font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-rose-600 font-medium">Window Closes</label>
+                        <input
+                          type="time"
+                          required
+                          value={formData.timings.regular.attendanceWindowEnd}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            timings: {
+                              ...formData.timings,
+                              regular: { ...formData.timings.regular, attendanceWindowEnd: e.target.value },
+                            },
+                          })}
+                          className="mt-0.5 w-full rounded-lg border border-rose-300 bg-white px-2 py-1 text-xs font-mono"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Friday Special */}
+                  <div className="pt-2 border-t border-slate-200/80">
+                    <span className="text-[11px] font-semibold text-[#006AC7] block mb-1">
+                      Friday Special Schedule (Jummah Hours)
+                    </span>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      <div>
+                        <label className="block text-[10px] text-slate-500">Friday Open</label>
+                        <input
+                          type="time"
+                          required
+                          value={formData.timings.friday.startTime}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            timings: {
+                              ...formData.timings,
+                              friday: { ...formData.timings.friday, startTime: e.target.value },
+                            },
+                          })}
+                          className="mt-0.5 w-full rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-slate-500">Friday Dismissal</label>
+                        <input
+                          type="time"
+                          required
+                          value={formData.timings.friday.endTime}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            timings: {
+                              ...formData.timings,
+                              friday: { ...formData.timings.friday, endTime: e.target.value },
+                            },
+                          })}
+                          className="mt-0.5 w-full rounded-lg border border-slate-300 bg-white px-2 py-1 text-xs font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-[#006AC7] font-medium">Window Opens</label>
+                        <input
+                          type="time"
+                          required
+                          value={formData.timings.friday.attendanceWindowStart}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            timings: {
+                              ...formData.timings,
+                              friday: { ...formData.timings.friday, attendanceWindowStart: e.target.value },
+                            },
+                          })}
+                          className="mt-0.5 w-full rounded-lg border border-blue-300 bg-white px-2 py-1 text-xs font-mono"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-rose-600 font-medium">Window Closes</label>
+                        <input
+                          type="time"
+                          required
+                          value={formData.timings.friday.attendanceWindowEnd}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            timings: {
+                              ...formData.timings,
+                              friday: { ...formData.timings.friday, attendanceWindowEnd: e.target.value },
+                            },
+                          })}
+                          className="mt-0.5 w-full rounded-lg border border-rose-300 bg-white px-2 py-1 text-xs font-mono"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
 

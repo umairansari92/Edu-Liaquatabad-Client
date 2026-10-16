@@ -258,6 +258,11 @@ export const hmService = {
     return response.data;
   },
 
+  updateSchoolTimings: async (schoolId, payload) => {
+    const response = await apiClient.patch(`/schools/${schoolId}/timings`, payload);
+    return response.data;
+  },
+
   strikeOffStudent: async (studentId, reason) => {
     const response = await apiClient.patch(`/students/${studentId}/strike-off`, { reason });
     return response.data;

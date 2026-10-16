@@ -20,6 +20,7 @@ import {
   AlertTriangle,
   Clock,
   ArrowRight,
+  UserCheck,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { authService } from '../../services/authService.js';
@@ -29,7 +30,7 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
 
-  const [activeTab, setActiveTab] = useState('sessions'); // 'sessions' | 'mfa'
+  const [activeTab, setActiveTab] = useState('overview'); // 'overview' | 'sessions' | 'mfa'
   const [loading, setLoading] = useState(false);
 
   // Sessions State
@@ -96,6 +97,7 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     if (isOpen) {
+      setActiveTab('overview');
       setLoading(true);
       setActionError('');
       setIsSetupWizardOpen(false);
@@ -388,6 +390,23 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
           <button
             type="button"
             onClick={() => {
+              setActiveTab('overview');
+              setIsSetupWizardOpen(false);
+              setActionError('');
+            }}
+            className={`pb-3 px-4 flex items-center gap-2 border-b-2 transition ${
+              activeTab === 'overview'
+                ? 'border-[#006AC7] text-[#006AC7]'
+                : 'border-transparent text-[#526477] hover:text-[#102033]'
+            }`}
+          >
+            <ShieldCheck className="h-4 w-4" />
+            <span>Security Overview</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
               setActiveTab('sessions');
               setIsSetupWizardOpen(false);
               setActionError('');
@@ -424,6 +443,95 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
             )}
           </button>
         </div>
+
+        {/* Tab 0: Security Overview */}
+        {activeTab === 'overview' && (
+          <div className="space-y-4">
+            {/* Account & Role Card */}
+            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-100 text-[#006AC7] flex items-center justify-center font-bold">
+                  <UserCheck className="h-5 w-5" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-[#102033]">{user?.fullName || 'Institutional User'}</h4>
+                  <p className="text-xs text-[#526477]">
+                    {user?.designation || user?.role?.toUpperCase()} &bull; {user?.email}
+                  </p>
+                </div>
+              </div>
+              <span className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-emerald-50 text-[#4B7F3A] border border-emerald-200 self-start sm:self-auto flex items-center gap-1.5">
+                <ShieldCheck className="h-3.5 w-3.5" />
+                <span>Account Verified</span>
+              </span>
+            </div>
+
+            {/* Quick Status Cards Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* 2FA Status Tile */}
+              <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-3 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#526477] uppercase tracking-wider">Two-Factor Auth</span>
+                  <span
+                    className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${
+                      mfaStatus?.mfaEnabled
+                        ? 'bg-emerald-100 text-[#4B7F3A]'
+                        : 'bg-amber-100 text-amber-800'
+                    }`}
+                  >
+                    {mfaStatus?.mfaEnabled ? 'Enabled' : 'Disabled'}
+                  </span>
+                </div>
+                <p className="text-xs text-[#526477]">
+                  {mfaStatus?.mfaEnabled
+                    ? 'Your account is protected with TOTP authenticator app verification.'
+                    : 'Add an extra layer of protection to safeguard institutional records.'}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('mfa')}
+                  className="text-xs font-bold text-[#006AC7] hover:underline flex items-center gap-1 pt-1"
+                >
+                  <span>{mfaStatus?.mfaEnabled ? 'Manage 2FA & Devices' : 'Configure 2FA'}</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
+
+              {/* Active Sessions Tile */}
+              <div className="p-4 rounded-xl border border-slate-200 bg-white space-y-3 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#526477] uppercase tracking-wider">Active Sessions</span>
+                  <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-blue-100 text-[#006AC7]">
+                    {sessions.length} {sessions.length === 1 ? 'Device' : 'Devices'}
+                  </span>
+                </div>
+                <p className="text-xs text-[#526477]">
+                  Protected with encrypted HttpOnly cookies and Argon2id token families.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('sessions')}
+                  className="text-xs font-bold text-[#006AC7] hover:underline flex items-center gap-1 pt-1"
+                >
+                  <span>Review Active Sessions</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Institutional Security Notice */}
+            <div className="p-3.5 rounded-xl border border-blue-100 bg-blue-50/50 flex items-start gap-2.5 text-xs text-[#526477]">
+              <Lock className="h-4 w-4 text-[#006AC7] flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-[#102033]">Education Department Security Standards</p>
+                <p className="mt-0.5 text-[11px]">
+                  All actions within the School Management System are audited with immutable timestamping and strict
+                  municipal school-level scope isolation.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Tab 1: Active Sessions */}
         {activeTab === 'sessions' && (

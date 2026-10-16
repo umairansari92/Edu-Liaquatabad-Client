@@ -426,6 +426,19 @@ export const updateSchoolCode = createAsyncThunk(
   }
 );
 
+export const updateSchoolTimings = createAsyncThunk(
+  'hm/updateSchoolTimings',
+  async ({ schoolId, timings, reason }, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await hmService.updateSchoolTimings(schoolId, { timings, reason });
+      dispatch(fetchHmSummary());
+      return response.data;
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to update attendance timings');
+    }
+  }
+);
+
 export const strikeOffStudent = createAsyncThunk(
   'hm/strikeOffStudent',
   async ({ studentId, reason }, { rejectWithValue, dispatch }) => {

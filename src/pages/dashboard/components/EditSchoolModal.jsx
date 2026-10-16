@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Building2, XCircle, Save, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Building2, XCircle, Save, AlertTriangle, ShieldCheck, Clock, Calendar } from 'lucide-react';
 import toast from 'react-hot-toast';
 import apiClient from '../../../services/apiClient.js';
 
@@ -17,6 +17,21 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
     contactPhone: '',
     contactEmail: '',
     status: 'ACTIVE',
+    timings: {
+      regular: {
+        startTime: '08:00',
+        endTime: '13:30',
+        attendanceWindowStart: '07:45',
+        attendanceWindowEnd: '14:00',
+      },
+      friday: {
+        startTime: '07:30',
+        endTime: '12:00',
+        attendanceWindowStart: '07:15',
+        attendanceWindowEnd: '12:30',
+      },
+      allowHmLateOverride: true,
+    },
     reason: 'Municipal administrative update by Root Admin',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,6 +51,21 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
         contactPhone: school.contactPhone || '',
         contactEmail: school.contactEmail || '',
         status: school.status || 'ACTIVE',
+        timings: {
+          regular: {
+            startTime: school.timings?.regular?.startTime || '08:00',
+            endTime: school.timings?.regular?.endTime || '13:30',
+            attendanceWindowStart: school.timings?.regular?.attendanceWindowStart || '07:45',
+            attendanceWindowEnd: school.timings?.regular?.attendanceWindowEnd || '14:00',
+          },
+          friday: {
+            startTime: school.timings?.friday?.startTime || '07:30',
+            endTime: school.timings?.friday?.endTime || '12:00',
+            attendanceWindowStart: school.timings?.friday?.attendanceWindowStart || '07:15',
+            attendanceWindowEnd: school.timings?.friday?.attendanceWindowEnd || '12:30',
+          },
+          allowHmLateOverride: school.timings?.allowHmLateOverride ?? true,
+        },
         reason: 'Municipal administrative update by Root Admin',
       });
     }
@@ -60,6 +90,7 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
         contactPhone: formData.contactPhone.trim() || undefined,
         contactEmail: formData.contactEmail.trim() || '',
         status: formData.status,
+        timings: formData.timings,
         reason: formData.reason.trim() || 'Municipal administrative update by Root Admin',
       };
 
@@ -299,6 +330,165 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
               onChange={(inputChangeEvent) => setFormData({ ...formData, address: inputChangeEvent.target.value })}
               className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:outline-none"
             />
+          </div>
+
+          {/* Operational Timings & Attendance Windows (Asia/Karachi PKT) */}
+          <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-[#006AC7]" />
+                <span className="font-bold text-slate-800">Operational Timings & Attendance Windows</span>
+              </div>
+              <span className="text-[11px] font-medium text-slate-500">Asia/Karachi (PKT)</span>
+            </div>
+
+            {/* Regular Schedule */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-1.5 text-slate-700 font-semibold text-[11px]">
+                <Calendar className="h-3.5 w-3.5 text-[#006AC7]" />
+                <span>Regular Working Days (Monday – Thursday, Saturday)</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div>
+                  <label className="block text-[11px] text-slate-500">School Gate Open</label>
+                  <input
+                    type="time"
+                    required
+                    value={formData.timings.regular.startTime}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      timings: {
+                        ...formData.timings,
+                        regular: { ...formData.timings.regular, startTime: e.target.value }
+                      }
+                    })}
+                    className="mt-0.5 w-full rounded-md border border-slate-300 bg-white px-2 py-1 font-mono text-slate-900 focus:border-[#006AC7] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] text-slate-500">School Gate Close</label>
+                  <input
+                    type="time"
+                    required
+                    value={formData.timings.regular.endTime}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      timings: {
+                        ...formData.timings,
+                        regular: { ...formData.timings.regular, endTime: e.target.value }
+                      }
+                    })}
+                    className="mt-0.5 w-full rounded-md border border-slate-300 bg-white px-2 py-1 font-mono text-slate-900 focus:border-[#006AC7] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] text-[#4B7F3A] font-medium">Window Opens</label>
+                  <input
+                    type="time"
+                    required
+                    value={formData.timings.regular.attendanceWindowStart}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      timings: {
+                        ...formData.timings,
+                        regular: { ...formData.timings.regular, attendanceWindowStart: e.target.value }
+                      }
+                    })}
+                    className="mt-0.5 w-full rounded-md border border-emerald-300 bg-white px-2 py-1 font-mono text-slate-900 focus:border-[#4B7F3A] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] text-rose-600 font-medium">Window Closes</label>
+                  <input
+                    type="time"
+                    required
+                    value={formData.timings.regular.attendanceWindowEnd}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      timings: {
+                        ...formData.timings,
+                        regular: { ...formData.timings.regular, attendanceWindowEnd: e.target.value }
+                      }
+                    })}
+                    className="mt-0.5 w-full rounded-md border border-rose-300 bg-white px-2 py-1 font-mono text-slate-900 focus:border-rose-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Friday Schedule */}
+            <div className="space-y-2 pt-2 border-t border-slate-200/80">
+              <div className="flex items-center gap-1.5 text-[#006AC7] font-semibold text-[11px]">
+                <Calendar className="h-3.5 w-3.5" />
+                <span>Friday Special Schedule (Jummah Hours)</span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div>
+                  <label className="block text-[11px] text-slate-500">Friday Open</label>
+                  <input
+                    type="time"
+                    required
+                    value={formData.timings.friday.startTime}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      timings: {
+                        ...formData.timings,
+                        friday: { ...formData.timings.friday, startTime: e.target.value }
+                      }
+                    })}
+                    className="mt-0.5 w-full rounded-md border border-slate-300 bg-white px-2 py-1 font-mono text-slate-900 focus:border-[#006AC7] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] text-slate-500">Friday Dismissal</label>
+                  <input
+                    type="time"
+                    required
+                    value={formData.timings.friday.endTime}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      timings: {
+                        ...formData.timings,
+                        friday: { ...formData.timings.friday, endTime: e.target.value }
+                      }
+                    })}
+                    className="mt-0.5 w-full rounded-md border border-slate-300 bg-white px-2 py-1 font-mono text-slate-900 focus:border-[#006AC7] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] text-[#006AC7] font-medium">Window Opens</label>
+                  <input
+                    type="time"
+                    required
+                    value={formData.timings.friday.attendanceWindowStart}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      timings: {
+                        ...formData.timings,
+                        friday: { ...formData.timings.friday, attendanceWindowStart: e.target.value }
+                      }
+                    })}
+                    className="mt-0.5 w-full rounded-md border border-blue-300 bg-white px-2 py-1 font-mono text-slate-900 focus:border-[#006AC7] focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] text-rose-600 font-medium">Window Closes</label>
+                  <input
+                    type="time"
+                    required
+                    value={formData.timings.friday.attendanceWindowEnd}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      timings: {
+                        ...formData.timings,
+                        friday: { ...formData.timings.friday, attendanceWindowEnd: e.target.value }
+                      }
+                    })}
+                    className="mt-0.5 w-full rounded-md border border-rose-300 bg-white px-2 py-1 font-mono text-slate-900 focus:border-rose-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
           <div>
