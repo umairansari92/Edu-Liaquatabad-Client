@@ -527,40 +527,49 @@ export const HmTimetableBuilder = ({
 
   return (
     <div className="space-y-6">
-      {/* ─── OFFICIAL GOVERNMENT INSTITUTIONAL BANNER (MATCHING IMAGE 2) ─── */}
-      <div className="p-6 rounded-3xl bg-gradient-to-r from-[#0d1f33] via-[#102033] to-[#1c324b] text-white shadow-xl border border-slate-800 relative overflow-hidden">
-        <div className="absolute right-0 top-0 bottom-0 w-96 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-600/10 via-transparent to-transparent pointer-events-none" />
+      {/* ─── OFFICIAL GOVERNMENT INSTITUTIONAL BANNER ─── */}
+      <div className="p-6 md:p-8 rounded-3xl bg-gradient-to-br from-[#0a1829] via-[#102033] to-[#162a42] text-white shadow-xl border border-slate-800/80 relative overflow-hidden space-y-6">
+        {/* Subtle Decorative Ambient Glow */}
+        <div className="absolute right-0 top-0 bottom-0 w-96 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-500/15 via-transparent to-transparent pointer-events-none" />
 
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black tracking-widest uppercase bg-[#006AC7] text-white">
-                DMC LIAQUATABAD TOWN CENTRE
-              </span>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-white/10 text-white/80">
-                EDUCATION DEPARTMENT
-              </span>
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                ● OFFICIAL MASTER TIMETABLE REGISTER
-              </span>
-            </div>
+        {/* ─── TOP ROW: Institutional Authority Badges (Left) & Real-time Live HUD (Right) ─── */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10 border-b border-white/10 pb-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase bg-[#006AC7] text-white shadow-xs">
+              DMC LIAQUATABAD TOWN CENTRE
+            </span>
+            <span className="px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-white/10 text-white/90 border border-white/10">
+              EDUCATION DEPARTMENT
+            </span>
+            <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              OFFICIAL MASTER TIMETABLE REGISTER
+            </span>
+          </div>
 
-            <h1 className="text-xl md:text-2xl font-black tracking-tight text-white uppercase">
+          <div className="shrink-0">
+            <LivePeriodBadge liveStatus={liveStatus} isDark={true} />
+          </div>
+        </div>
+
+        {/* ─── MAIN ROW: Full Width School Title (Left) + Prominent Action Buttons (Right) ─── */}
+        <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6 relative z-10">
+          {/* School Name & Municipal Metadata */}
+          <div className="space-y-2 min-w-0 max-w-4xl">
+            <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white uppercase leading-snug drop-shadow-xs">
               {schoolTimetable?.schoolDetails?.name || 'BABA-E-URDU MOLVI ABDUL HAQ BOYS ELEMENTARY LT-11 E & ENGLISH MEDIUM SCHOOL'}
             </h1>
-
-            <p className="text-xs text-slate-300 font-medium max-w-3xl">
-              Official municipal teaching allocation matrix • Unified class routine (Single cohort per grade — No section silos) • Academic Session {academicYear}
+            <p className="text-xs md:text-sm text-slate-300/90 font-medium leading-relaxed">
+              Official municipal teaching allocation matrix • Unified class routine (Single cohort per grade — No section silos) • Academic Session <span className="font-bold text-white">{academicYear}</span>
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 shrink-0">
-            <LivePeriodBadge liveStatus={liveStatus} />
-
+          {/* Action Buttons Group */}
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0 pt-2 xl:pt-0">
             <button
               onClick={() => dispatch(fetchSchoolTimetable({ schoolId, academicYear }))}
               disabled={isLoading}
-              className="p-2.5 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-white transition shadow-sm cursor-pointer"
+              className="p-2.5 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-white transition shadow-sm cursor-pointer disabled:opacity-50"
               title="Refresh Timetable from Server"
             >
               <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -568,7 +577,7 @@ export const HmTimetableBuilder = ({
 
             <button
               onClick={() => setShowPrintPreviewModal(true)}
-              className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-blue-600/30 hover:bg-blue-600/50 border border-blue-400/40 text-white text-xs font-bold transition cursor-pointer shadow-sm"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600/30 hover:bg-blue-600/50 border border-blue-400/40 text-white text-xs font-bold transition cursor-pointer shadow-sm active:scale-98"
               title="Open Official A4 Timetable Preview"
             >
               <Eye className="w-4 h-4 text-blue-200" />
@@ -593,7 +602,7 @@ export const HmTimetableBuilder = ({
                   setTimeout(cleanupPrint, 4000);
                 }, 150);
               }}
-              className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold transition cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold transition cursor-pointer shadow-sm active:scale-98"
               title="Print Master Timetable"
             >
               <Printer className="w-4 h-4 text-blue-300" />
@@ -603,7 +612,7 @@ export const HmTimetableBuilder = ({
             <button
               onClick={handlePostTimetable}
               disabled={isSaving}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black uppercase tracking-wider transition shadow-lg shadow-emerald-900/40 cursor-pointer disabled:opacity-50"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black uppercase tracking-wider transition shadow-lg shadow-emerald-900/40 cursor-pointer disabled:opacity-50 active:scale-98"
             >
               <Save className="w-4 h-4" />
               <span>{isSaving ? 'Posting...' : 'Post / Publish Timetable'}</span>
