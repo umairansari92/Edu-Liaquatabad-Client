@@ -221,6 +221,10 @@ export const TeacherDashboard = () => {
       toast.error('Please provide a meaningful reason (minimum 5 characters).');
       return;
     }
+    if (leaveType === 'CASUAL_LEAVE' && calculatedLeaveDays > 3) {
+      toast.error('Casual Leave (CL) cannot exceed 3 consecutive calendar days under municipal regulations. Please select Earned Leave (EL).');
+      return;
+    }
     if (leaveType === 'CASUAL_LEAVE' && clBalance && calculatedLeaveDays > (clBalance.remainingDays ?? 0)) {
       toast.error(`Requested ${calculatedLeaveDays} day(s) exceeds your remaining CL balance of ${clBalance.remainingDays} day(s).`);
       return;
@@ -1685,7 +1689,7 @@ export const TeacherDashboard = () => {
                   Municipal Casual Leave (CL) Quota &amp; Applications
                 </h3>
                 <p className="text-xs text-[#526477]">
-                  Education Department Liaquatabad Town Centre — 25-day annual entitlement for PST faculty
+                  Education Department Liaquatabad Town Centre — Annual casual leave entitlement for faculty
                 </p>
               </div>
               <button
@@ -1708,7 +1712,7 @@ export const TeacherDashboard = () => {
               <div className="p-4 rounded-xl bg-blue-50/70 border border-blue-200">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-[#526477]">Total Entitlement</span>
                 <p className="text-2xl font-black text-[#006AC7] mt-1">
-                  {clBalance?.totalEntitlement ?? 25} <span className="text-xs font-bold text-[#526477]">Days</span>
+                  {clBalance?.entitlementDays ?? clBalance?.totalEntitlement ?? 24} <span className="text-xs font-bold text-[#526477]">Days</span>
                 </p>
                 <p className="text-[10px] text-[#8094A8] mt-1">Academic Year {clBalance?.year ?? new Date().getFullYear()}</p>
               </div>
@@ -1716,7 +1720,7 @@ export const TeacherDashboard = () => {
               <div className="p-4 rounded-xl bg-emerald-50/70 border border-emerald-200">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-800">Remaining Balance</span>
                 <p className="text-2xl font-black text-emerald-700 mt-1">
-                  {clBalance?.remainingDays ?? 25} <span className="text-xs font-bold text-emerald-800">Days</span>
+                  {clBalance?.remainingDays ?? clBalance?.entitlementDays ?? 24} <span className="text-xs font-bold text-emerald-800">Days</span>
                 </p>
                 <p className="text-[10px] text-emerald-600 mt-1">Available for application</p>
               </div>
@@ -1744,14 +1748,14 @@ export const TeacherDashboard = () => {
                 <div className="flex justify-between text-xs font-semibold text-[#526477]">
                   <span>Annual Quota Utilization</span>
                   <span>
-                    {Math.round(((clBalance.usedDays || 0) / (clBalance.totalEntitlement || 25)) * 100)}% utilized
+                    {Math.round(((clBalance.usedDays || 0) / (clBalance.entitlementDays || clBalance.totalEntitlement || 24)) * 100)}% utilized
                   </span>
                 </div>
                 <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
                   <div
                     className="h-full bg-[#006AC7] rounded-full transition-all duration-500"
                     style={{
-                      width: `${Math.min(100, Math.round(((clBalance.usedDays || 0) / (clBalance.totalEntitlement || 25)) * 100))}%`,
+                      width: `${Math.min(100, Math.round(((clBalance.usedDays || 0) / (clBalance.entitlementDays || clBalance.totalEntitlement || 24)) * 100))}%`,
                     }}
                   />
                 </div>
@@ -1790,7 +1794,11 @@ export const TeacherDashboard = () => {
                     <tbody className="divide-y divide-slate-100">
                       {myLeaveRequests.map((requestItem) => {
                         const statusConfig = {
-                          PENDING: { label: 'Pending HM Approval', bg: 'bg-amber-50 text-amber-700 border-amber-200' },
+                          PENDING: requestItem.leaveType === 'EARNED_LEAVE'
+                            ? requestItem.forwardedByHm
+                              ? { label: 'Forwarded to Town Office (Pending Sanction)', bg: 'bg-indigo-50 text-indigo-700 border-indigo-200' }
+                              : { label: 'Pending HM Recommendation', bg: 'bg-amber-50 text-amber-700 border-amber-200' }
+                            : { label: 'Pending HM Approval', bg: 'bg-amber-50 text-amber-700 border-amber-200' },
                           APPROVED: { label: 'Approved', bg: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
                           REJECTED: { label: 'Rejected', bg: 'bg-rose-50 text-rose-700 border-rose-200' },
                           CANCELLED: { label: 'Cancelled', bg: 'bg-slate-100 text-slate-700 border-slate-200' },
@@ -1799,7 +1807,7 @@ export const TeacherDashboard = () => {
                         return (
                           <tr key={String(requestItem._id)} className="hover:bg-slate-50/50">
                             <td className="px-4 py-3 font-bold text-[#102033]">
-                              {requestItem.leaveType === 'CASUAL_LEAVE' ? 'Casual Leave (CL)' : requestItem.leaveType}
+                              {requestItem.leaveType === 'CASUAL_LEAVE' ? 'Casual Leave (CL)' : requestItem.leaveType === 'EARNED_LEAVE' ? 'Earned Leave (EL)' : requestItem.leaveType}
                             </td>
                             <td className="px-4 py-3">
                               <span className="font-semibold text-[#102033]">
@@ -1809,7 +1817,7 @@ export const TeacherDashboard = () => {
                                 <span className="text-[#526477]"> to {formatDate(requestItem.endDate)}</span>
                               )}
                               <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-[#526477]">
-                                {requestItem.duration} Day(s)
+                                {requestItem.durationDays ?? requestItem.duration ?? 1} Day(s)
                               </span>
                             </td>
                             <td className="px-4 py-3 text-[#526477] max-w-xs truncate" title={requestItem.reason}>
@@ -2159,13 +2167,25 @@ export const TeacherDashboard = () => {
                   <div className="text-right">
                     <span className="text-[11px] font-bold text-[#526477]">Remaining CL Balance</span>
                     <p className={`text-base font-black ${calculatedLeaveDays > (clBalance.remainingDays ?? 0) ? 'text-rose-600' : 'text-emerald-700'}`}>
-                      {clBalance.remainingDays ?? 25} Days
+                      {clBalance.remainingDays ?? clBalance.entitlementDays ?? 24} Days
                     </p>
                   </div>
                 )}
               </div>
 
-              {leaveType === 'CASUAL_LEAVE' && clBalance && calculatedLeaveDays > (clBalance.remainingDays ?? 0) && (
+              {leaveType === 'CASUAL_LEAVE' && calculatedLeaveDays > 3 && (
+                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-700" />
+                  <div>
+                    <span className="font-bold">Casual Leave Limit Exceeded ({calculatedLeaveDays} Days):</span>
+                    <p className="mt-0.5 text-amber-800">
+                      Municipal regulations limit Casual Leave (CL) to a maximum of 3 consecutive calendar days. For leaves of 4 or more days, please select <strong>Earned Leave (EL)</strong> above, which will be forwarded by your Head Master to the Town Education Office.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {leaveType === 'CASUAL_LEAVE' && clBalance && calculatedLeaveDays <= 3 && calculatedLeaveDays > (clBalance.remainingDays ?? 0) && (
                 <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-start gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                   <span>
@@ -2196,7 +2216,10 @@ export const TeacherDashboard = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={leaveSubmitting || (leaveType === 'CASUAL_LEAVE' && clBalance && calculatedLeaveDays > (clBalance.remainingDays ?? 0))}
+                  disabled={
+                    leaveSubmitting ||
+                    (leaveType === 'CASUAL_LEAVE' && (calculatedLeaveDays > 3 || (clBalance && calculatedLeaveDays > (clBalance.remainingDays ?? 0))))
+                  }
                   className="px-5 py-2 rounded-xl bg-[#006AC7] hover:bg-[#00529B] disabled:opacity-50 text-white font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
                 >
                   {leaveSubmitting ? (

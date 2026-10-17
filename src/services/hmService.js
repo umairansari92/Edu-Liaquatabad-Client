@@ -350,6 +350,11 @@ export const hmService = {
     return response.data;
   },
 
+  forwardLeaveRequest: async (leaveRequestId, payload = {}) => {
+    const response = await apiClient.post(`/leave/${leaveRequestId}/forward`, payload);
+    return response.data;
+  },
+
   correctLeaveRequest: async (leaveRequestId, payload = {}) => {
     const response = await apiClient.post(`/leave/${leaveRequestId}/correct`, payload);
     return response.data;

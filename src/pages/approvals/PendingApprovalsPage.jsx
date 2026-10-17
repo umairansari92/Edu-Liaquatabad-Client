@@ -49,11 +49,20 @@ export const PendingApprovalsPage = () => {
   const fetchPendingList = async () => {
     setLoading(true);
     try {
-      const res = await apiClient.get(`/approvals/pending?type=${activeTab}`);
-      if (res.data?.success && res.data?.data?.items) {
-        setItems(res.data.data.items);
+      if (activeTab === 'earned-leave') {
+        const res = await apiClient.get('/leave/pending?leaveType=EARNED_LEAVE');
+        if (res.data?.success && res.data?.leaveRequests) {
+          setItems(res.data.leaveRequests);
+        } else {
+          setItems([]);
+        }
       } else {
-        setItems([]);
+        const res = await apiClient.get(`/approvals/pending?type=${activeTab}`);
+        if (res.data?.success && res.data?.data?.items) {
+          setItems(res.data.data.items);
+        } else {
+          setItems([]);
+        }
       }
     } catch (pendingListError) {
       toast.error('Failed to load pending approvals list.');
@@ -94,6 +103,30 @@ export const PendingApprovalsPage = () => {
     }
 
     setDecisionModal((prev) => ({ ...prev, submitting: true }));
+
+    if (activeTab === 'earned-leave') {
+      try {
+        if (decisionModal.decision === 'APPROVE') {
+          await apiClient.post(`/leave/${selectedApplicant._id}/approve`, {
+            reason: decisionModal.reason?.trim() || 'Approved and sanctioned by Town Education Office.',
+          });
+          toast.success(`Earned Leave officially sanctioned for ${selectedApplicant.staffUserId?.fullName || 'Faculty Member'}.`);
+        } else {
+          await apiClient.post(`/leave/${selectedApplicant._id}/reject`, {
+            reason: decisionModal.reason.trim(),
+          });
+          toast.success(`Earned Leave rejected for ${selectedApplicant.staffUserId?.fullName || 'Faculty Member'}.`);
+        }
+        setDecisionModal({ isOpen: false, decision: null, reason: '', submitting: false });
+        setSelectedApplicant(null);
+        fetchPendingList();
+      } catch (err) {
+        toast.error(err.response?.data?.message || 'Failed to process Earned Leave decision.');
+        setDecisionModal((prev) => ({ ...prev, submitting: false }));
+      }
+      return;
+    }
+
     try {
       const res = await apiClient.post(`/approvals/${selectedApplicant.userId}/decision`, {
         decision: decisionModal.decision,
@@ -121,6 +154,15 @@ export const PendingApprovalsPage = () => {
 
   const filteredItems = items.filter((approvalItem) => {
     const query = searchQuery.toLowerCase();
+    if (activeTab === 'earned-leave') {
+      return (
+        approvalItem.staffUserId?.fullName?.toLowerCase().includes(query) ||
+        approvalItem.staffUserId?.email?.toLowerCase().includes(query) ||
+        approvalItem.schoolId?.name?.toLowerCase().includes(query) ||
+        approvalItem.reason?.toLowerCase().includes(query) ||
+        approvalItem.hmRecommendationNote?.toLowerCase().includes(query)
+      );
+    }
     return (
       approvalItem.fullName?.toLowerCase().includes(query) ||
       approvalItem.email?.toLowerCase().includes(query) ||
@@ -166,7 +208,7 @@ export const PendingApprovalsPage = () => {
               setActiveTab('student');
               setSelectedApplicant(null);
             }}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
               activeTab === 'student'
                 ? 'bg-[#006AC7] text-white shadow-sm'
                 : 'text-[#526477] hover:text-[#102033]'
@@ -174,6 +216,20 @@ export const PendingApprovalsPage = () => {
           >
             <School className="w-4 h-4" />
             Students
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab('earned-leave');
+              setSelectedApplicant(null);
+            }}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+              activeTab === 'earned-leave'
+                ? 'bg-[#006AC7] text-white shadow-sm'
+                : 'text-[#526477] hover:text-[#102033]'
+            }`}
+          >
+            <Calendar className="w-4 h-4" />
+            Earned Leaves (EL)
           </button>
         </div>
       </div>
@@ -198,70 +254,173 @@ export const PendingApprovalsPage = () => {
       {/* Main Table */}
       <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-[#526477]">
-            <thead className="bg-slate-50/80 text-[11px] uppercase tracking-wider text-[#526477] border-b border-slate-200/80 font-bold">
-              <tr>
-                <th className="py-3.5 px-4 font-bold">Applicant</th>
-                <th className="py-3.5 px-4 font-bold">Employee ID / Identity</th>
-                <th className="py-3.5 px-4 font-bold">Designation</th>
-                <th className="py-3.5 px-4 font-bold">Institution Claim</th>
-                <th className="py-3.5 px-4 font-bold">Masked CNIC</th>
-                <th className="py-3.5 px-4 font-bold">Submitted</th>
-                <th className="py-3.5 px-4 font-bold text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {loading ? (
+          {activeTab === 'earned-leave' ? (
+            <table className="w-full text-left text-xs text-[#526477]">
+              <thead className="bg-slate-50/80 text-[11px] uppercase tracking-wider text-[#526477] border-b border-slate-200/80 font-bold">
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-[#526477]">
-                    <Clock className="w-6 h-6 animate-spin mx-auto mb-2 text-[#006AC7]" />
-                    Loading pending applications...
-                  </td>
+                  <th className="py-3.5 px-4 font-bold">Faculty Member</th>
+                  <th className="py-3.5 px-4 font-bold">Institution / School</th>
+                  <th className="py-3.5 px-4 font-bold">Dates &amp; Duration</th>
+                  <th className="py-3.5 px-4 font-bold">Reason / Purpose</th>
+                  <th className="py-3.5 px-4 font-bold">HM Recommendation</th>
+                  <th className="py-3.5 px-4 font-bold text-right">Sanction Action</th>
                 </tr>
-              ) : filteredItems.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-[#8094A8]">
-                    No applications currently awaiting verification in this queue.
-                  </td>
-                </tr>
-              ) : (
-                filteredItems.map((approvalItem) => (
-                  <tr key={approvalItem.userId} className="hover:bg-blue-50/40 transition-colors">
-                    <td className="py-3.5 px-4 font-bold text-[#102033]">
-                      <div>{approvalItem.fullName}</div>
-                      <div className="text-[10px] text-[#526477] font-normal">{approvalItem.email}</div>
-                    </td>
-                    <td className="py-3.5 px-4 font-mono font-bold text-[#006AC7]">
-                      {approvalItem.employeeId || approvalItem.grNumber || 'N/A'}
-                    </td>
-                    <td className="py-3.5 px-4">
-                      <span className="px-2.5 py-0.5 rounded-md bg-slate-100 text-[#102033] border border-slate-200 text-[11px] font-bold">
-                        {approvalItem.designation || 'Staff'}
-                      </span>
-                    </td>
-                    <td className="py-3.5 px-4 text-[#102033]">
-                      {approvalItem.claimedSchool ? approvalItem.claimedSchool.name : 'Unassigned'}
-                    </td>
-                    <td className="py-3.5 px-4 font-mono text-[#526477]">
-                      {approvalItem.cnicMasked || '*****-*******-*'}
-                    </td>
-                    <td className="py-3.5 px-4 text-[11px] text-[#8094A8]">
-                      {approvalItem.submittedAt ? new Date(approvalItem.submittedAt).toLocaleDateString() : 'N/A'}
-                    </td>
-                    <td className="py-3.5 px-4 text-right">
-                      <button
-                        onClick={() => handleInspect(approvalItem)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#006AC7] border border-blue-200 text-xs font-bold transition-all shadow-sm"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        Inspect &amp; Review
-                      </button>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {loading ? (
+                  <tr>
+                    <td colSpan={6} className="py-12 text-center text-[#526477]">
+                      <Clock className="w-6 h-6 animate-spin mx-auto mb-2 text-[#006AC7]" />
+                      Loading pending Earned Leave applications...
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : filteredItems.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="py-12 text-center text-[#8094A8]">
+                      No Earned Leave applications currently awaiting Town Office sanction.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredItems.map((leaveItem) => {
+                    const startDateStr = leaveItem.startDate ? new Date(leaveItem.startDate).toLocaleDateString() : '';
+                    const endDateStr = leaveItem.endDate ? new Date(leaveItem.endDate).toLocaleDateString() : '';
+                    return (
+                      <tr key={leaveItem._id} className="hover:bg-blue-50/40 transition-colors">
+                        <td className="py-3.5 px-4 font-bold text-[#102033]">
+                          <div>{leaveItem.staffUserId?.fullName || 'Faculty Member'}</div>
+                          <div className="text-[10px] text-[#526477] font-normal">
+                            {leaveItem.staffUserId?.designation || leaveItem.staffRole}
+                          </div>
+                        </td>
+                        <td className="py-3.5 px-4 text-[#102033]">
+                          <span className="font-semibold">{leaveItem.schoolId?.name || 'Assigned School'}</span>
+                          {leaveItem.schoolId?.schoolCode && (
+                            <span className="text-[10px] text-slate-400 block font-mono">
+                              Code: {leaveItem.schoolId.schoolCode}
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          <span className="font-semibold text-[#102033]">{startDateStr} to {endDateStr}</span>
+                          <span className="ml-2 px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-50 text-purple-700 border border-purple-200">
+                            {leaveItem.durationDays} Days
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-4 text-[#526477] max-w-xs truncate" title={leaveItem.reason}>
+                          {leaveItem.reason}
+                        </td>
+                        <td className="py-3.5 px-4">
+                          {leaveItem.forwardedByHm ? (
+                            <div className="space-y-0.5">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                <CheckCircle className="w-3 h-3 text-indigo-600" /> Recommended by HM
+                              </span>
+                              {leaveItem.hmRecommendationNote && (
+                                <p className="text-[10px] text-slate-600 italic max-w-xs truncate" title={leaveItem.hmRecommendationNote}>
+                                  &ldquo;{leaveItem.hmRecommendationNote}&rdquo;
+                                </p>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                              <AlertTriangle className="w-3 h-3 text-amber-600" /> Awaiting HM Endorsement
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3.5 px-4 text-right">
+                          <div className="inline-flex items-center gap-1.5">
+                            <button
+                              onClick={() => {
+                                setSelectedApplicant(leaveItem);
+                                setDecisionModal({ isOpen: true, decision: 'APPROVE', reason: '', submitting: false });
+                              }}
+                              className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-[#4B7F3A] border border-emerald-200 text-xs font-bold transition-all shadow-xs cursor-pointer"
+                            >
+                              Approve EL
+                            </button>
+                            <button
+                              onClick={() => {
+                                setSelectedApplicant(leaveItem);
+                                setDecisionModal({ isOpen: true, decision: 'REJECT', reason: '', submitting: false });
+                              }}
+                              className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition-all shadow-xs cursor-pointer"
+                            >
+                              Reject
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          ) : (
+            <table className="w-full text-left text-xs text-[#526477]">
+              <thead className="bg-slate-50/80 text-[11px] uppercase tracking-wider text-[#526477] border-b border-slate-200/80 font-bold">
+                <tr>
+                  <th className="py-3.5 px-4 font-bold">Applicant</th>
+                  <th className="py-3.5 px-4 font-bold">Employee ID / Identity</th>
+                  <th className="py-3.5 px-4 font-bold">Designation</th>
+                  <th className="py-3.5 px-4 font-bold">Institution Claim</th>
+                  <th className="py-3.5 px-4 font-bold">Masked CNIC</th>
+                  <th className="py-3.5 px-4 font-bold">Submitted</th>
+                  <th className="py-3.5 px-4 font-bold text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {loading ? (
+                  <tr>
+                    <td colSpan={7} className="py-12 text-center text-[#526477]">
+                      <Clock className="w-6 h-6 animate-spin mx-auto mb-2 text-[#006AC7]" />
+                      Loading pending applications...
+                    </td>
+                  </tr>
+                ) : filteredItems.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="py-12 text-center text-[#8094A8]">
+                      No applications currently awaiting verification in this queue.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredItems.map((approvalItem) => (
+                    <tr key={approvalItem.userId} className="hover:bg-blue-50/40 transition-colors">
+                      <td className="py-3.5 px-4 font-bold text-[#102033]">
+                        <div>{approvalItem.fullName}</div>
+                        <div className="text-[10px] text-[#526477] font-normal">{approvalItem.email}</div>
+                      </td>
+                      <td className="py-3.5 px-4 font-mono font-bold text-[#006AC7]">
+                        {approvalItem.employeeId || approvalItem.grNumber || 'N/A'}
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className="px-2.5 py-0.5 rounded-md bg-slate-100 text-[#102033] border border-slate-200 text-[11px] font-bold">
+                          {approvalItem.designation || 'Staff'}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-[#102033]">
+                        {approvalItem.claimedSchool ? approvalItem.claimedSchool.name : 'Unassigned'}
+                      </td>
+                      <td className="py-3.5 px-4 font-mono text-[#526477]">
+                        {approvalItem.cnicMasked || '*****-*******-*'}
+                      </td>
+                      <td className="py-3.5 px-4 text-[11px] text-[#8094A8]">
+                        {approvalItem.submittedAt ? new Date(approvalItem.submittedAt).toLocaleDateString() : 'N/A'}
+                      </td>
+                      <td className="py-3.5 px-4 text-right">
+                        <button
+                          onClick={() => handleInspect(approvalItem)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#006AC7] border border-blue-200 text-xs font-bold transition-all shadow-sm"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          Inspect &amp; Review
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
 

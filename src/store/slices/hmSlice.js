@@ -634,6 +634,19 @@ export const rejectLeaveRequest = createAsyncThunk(
   }
 );
 
+export const forwardLeaveRequest = createAsyncThunk(
+  'hm/forwardLeaveRequest',
+  async ({ leaveRequestId, recommendationNote }, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await hmService.forwardLeaveRequest(leaveRequestId, { recommendationNote });
+      dispatch(fetchPendingLeaveRequests());
+      return response;
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to forward leave request');
+    }
+  }
+);
+
 export const correctLeaveRequest = createAsyncThunk(
   'hm/correctLeaveRequest',
   async ({ leaveRequestId, correctionReason }, { rejectWithValue, dispatch }) => {

@@ -107,6 +107,7 @@ import {
   fetchPendingLeaveRequests,
   approveLeaveRequest,
   rejectLeaveRequest,
+  forwardLeaveRequest,
   correctLeaveRequest,
   hmInitiateLeaveOrAbsent,
   fetchSchoolLeaveSummary,
@@ -744,6 +745,9 @@ export const HmDashboard = () => {
       if (action === 'approve') {
         await dispatch(approveLeaveRequest({ leaveRequestId: leaveRequestItem._id, reason: reason.trim() })).unwrap();
         toast.success('Casual leave approved successfully.');
+      } else if (action === 'forward') {
+        await dispatch(forwardLeaveRequest({ leaveRequestId: leaveRequestItem._id, recommendationNote: reason.trim() })).unwrap();
+        toast.success('Earned Leave recommended and forwarded to Town Office.');
       } else if (action === 'correct') {
         await dispatch(
           correctLeaveRequest({
@@ -3115,14 +3119,71 @@ export const HmDashboard = () => {
                               <span><strong className="text-[#102033]">Reason:</strong> {leaveReq.reason}</span>
                             </div>
                             {isEl && (
-                              <p className="text-[11px] text-purple-700 bg-purple-50/70 p-1.5 rounded border border-purple-200/50">
-                                Note: Earned Leave requires Admin-level authority. This record is displayed for institutional visibility; HM cannot approve EL.
-                              </p>
+                              <div className="mt-2 space-y-1">
+                                {leaveReq.forwardedByHm ? (
+                                  <div className="p-2.5 rounded-xl bg-indigo-50/80 border border-indigo-200 text-xs text-indigo-900 space-y-1">
+                                    <div className="flex items-center gap-1.5 font-bold">
+                                      <CheckCircle2 className="w-4 h-4 text-indigo-600" />
+                                      <span>Recommended &amp; Forwarded to Town Education Office</span>
+                                    </div>
+                                    {leaveReq.hmRecommendationNote && (
+                                      <p className="text-[11px] text-indigo-700">
+                                        <strong>HM Endorsement:</strong> &ldquo;{leaveReq.hmRecommendationNote}&rdquo;
+                                      </p>
+                                    )}
+                                    <p className="text-[10px] text-slate-500">
+                                      Awaiting formal sanction by Town Office Administration (Level 80+).
+                                    </p>
+                                  </div>
+                                ) : (
+                                  <p className="text-[11px] text-amber-800 bg-amber-50 p-2 rounded-lg border border-amber-200/60">
+                                    <strong>Earned Leave (EL) Governance:</strong> Review school timetable coverage. You may endorse and forward this application to Town Office with your recommendation, or reject it directly.
+                                  </p>
+                                )}
+                              </div>
                             )}
                           </div>
-                          {!isEl && (
-                            <div className="flex items-center gap-2 self-end md:self-center shrink-0">
-                              {leaveStatusFilter === 'PENDING' ? (
+
+                          <div className="flex items-center gap-2 self-end md:self-center shrink-0">
+                            {leaveStatusFilter === 'PENDING' ? (
+                              isEl ? (
+                                !leaveReq.forwardedByHm && (
+                                  <>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setLeaveDecisionModal({
+                                          open: true,
+                                          request: leaveReq,
+                                          action: 'forward',
+                                          reason: '',
+                                          submitting: false,
+                                        })
+                                      }
+                                      disabled={leaveActionLoading}
+                                      className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white shadow-xs transition cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                                    >
+                                      <Send className="w-3.5 h-3.5" /> Recommend &amp; Forward
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        setLeaveDecisionModal({
+                                          open: true,
+                                          request: leaveReq,
+                                          action: 'reject',
+                                          reason: '',
+                                          submitting: false,
+                                        })
+                                      }
+                                      disabled={leaveActionLoading}
+                                      className="px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition cursor-pointer disabled:opacity-50"
+                                    >
+                                      Reject
+                                    </button>
+                                  </>
+                                )
+                              ) : (
                                 <>
                                   <button
                                     type="button"
@@ -3157,26 +3218,26 @@ export const HmDashboard = () => {
                                     Reject
                                   </button>
                                 </>
-                              ) : (
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    setLeaveDecisionModal({
-                                      open: true,
-                                      request: leaveReq,
-                                      action: 'correct',
-                                      reason: '',
-                                      submitting: false,
-                                    })
-                                  }
-                                  disabled={leaveActionLoading}
-                                  className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
-                                >
-                                  <History className="w-3.5 h-3.5" /> Late Correction
-                                </button>
-                              )}
-                            </div>
-                          )}
+                              )
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setLeaveDecisionModal({
+                                    open: true,
+                                    request: leaveReq,
+                                    action: 'correct',
+                                    reason: '',
+                                    submitting: false,
+                                  })
+                                }
+                                disabled={leaveActionLoading}
+                                className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                              >
+                                <History className="w-3.5 h-3.5" /> Late Correction
+                              </button>
+                            )}
+                          </div>
                         </div>
                       );
                     })}
@@ -5572,6 +5633,8 @@ export const HmDashboard = () => {
                 <label className="block text-xs font-bold text-[#102033] mb-1.5">
                   {leaveDecisionModal.action === 'approve'
                     ? 'Remarks / Endorsement (Optional)'
+                    : leaveDecisionModal.action === 'forward'
+                    ? 'Head Master Recommendation Remarks *'
                     : leaveDecisionModal.action === 'correct'
                     ? 'Mandatory Correction Justification'
                     : 'Rejection Reason'}
@@ -5586,6 +5649,8 @@ export const HmDashboard = () => {
                   placeholder={
                     leaveDecisionModal.action === 'approve'
                       ? 'e.g. Reliever arrangement made for timetable coverage...'
+                      : leaveDecisionModal.action === 'forward'
+                      ? 'e.g. Alternative timetable arrangements confirmed; recommended and forwarded to Town Office for formal sanction...'
                       : leaveDecisionModal.action === 'correct'
                       ? 'e.g. Teacher provided valid medical certificate in person; rectifying Absent to approved Casual Leave...'
                       : 'e.g. Critical exam duty scheduled; please reschedule...'
@@ -5593,15 +5658,19 @@ export const HmDashboard = () => {
                   className={`w-full p-3 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 transition ${
                     leaveDecisionModal.action === 'approve'
                       ? 'focus:ring-[#006AC7]/20 focus:border-[#006AC7]'
+                      : leaveDecisionModal.action === 'forward'
+                      ? 'focus:ring-blue-500/20 focus:border-[#006AC7]'
                       : leaveDecisionModal.action === 'correct'
                       ? 'focus:ring-indigo-500/20 focus:border-indigo-500'
                       : 'focus:ring-rose-500/20 focus:border-rose-500'
                   }`}
                   required={leaveDecisionModal.action !== 'approve'}
-                  minLength={leaveDecisionModal.action !== 'approve' ? 5 : 0}
+                  minLength={leaveDecisionModal.action === 'forward' ? 3 : leaveDecisionModal.action !== 'approve' ? 5 : 0}
                 />
                 {leaveDecisionModal.action !== 'approve' && (
-                  <span className="text-[10px] text-slate-400">Minimum 5 characters required.</span>
+                  <span className="text-[10px] text-slate-400">
+                    {leaveDecisionModal.action === 'forward' ? 'Minimum 3 characters required.' : 'Minimum 5 characters required.'}
+                  </span>
                 )}
               </div>
 
@@ -5620,6 +5689,8 @@ export const HmDashboard = () => {
                   className={`px-4 py-2 rounded-xl text-xs font-bold text-white shadow-xs transition cursor-pointer flex items-center gap-1.5 disabled:opacity-60 ${
                     leaveDecisionModal.action === 'approve'
                       ? 'bg-[#4B7F3A] hover:bg-[#3d682f]'
+                      : leaveDecisionModal.action === 'forward'
+                      ? 'bg-[#006AC7] hover:bg-[#005299]'
                       : leaveDecisionModal.action === 'correct'
                       ? 'bg-indigo-600 hover:bg-indigo-700'
                       : 'bg-rose-600 hover:bg-rose-700'
@@ -5632,6 +5703,8 @@ export const HmDashboard = () => {
                     </>
                   ) : leaveDecisionModal.action === 'approve' ? (
                     'Confirm Approval'
+                  ) : leaveDecisionModal.action === 'forward' ? (
+                    'Forward to Town Office'
                   ) : leaveDecisionModal.action === 'correct' ? (
                     'Confirm Late Correction'
                   ) : (
