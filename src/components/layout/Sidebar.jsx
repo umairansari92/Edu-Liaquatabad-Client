@@ -41,13 +41,14 @@ export const Sidebar = () => {
     ];
   } else if (isTeacher) {
     navigationItems = [
-      { label: 'Teacher Dashboard', path: '/dashboard', icon: LayoutDashboard },
-      { label: 'Approvals', path: '/approvals', icon: ShieldCheck },
-      { label: 'Attendance', path: '/attendance', icon: ClipboardCheck },
+      { label: 'My Classes', path: '/dashboard?tab=classes', icon: GraduationCap },
+      { label: 'Daily Attendance', path: '/dashboard?tab=attendance', icon: ClipboardCheck },
+      { label: 'Exam Marks', path: '/dashboard?tab=exams', icon: Award },
+      { label: 'Homework', path: '/dashboard?tab=homework', icon: BookOpen },
+      { label: 'Class Timetable', path: '/dashboard?tab=timetable', icon: CalendarDays },
+      { label: 'Notice Board', path: '/dashboard?tab=circulars', icon: FileText },
+      { label: 'My Service & Leave', path: '/dashboard?tab=service', icon: IdCard },
       { label: 'Holidays & Calendar', path: '/holidays', icon: Calendar },
-      { label: 'Exams & Results', path: '/exams', icon: Award },
-      { label: 'My Service Record', path: '/profile', icon: IdCard },
-      { label: 'Notice Board', path: '/documents', icon: FileText },
     ];
   } else if (isParent) {
     navigationItems = [
@@ -127,7 +128,12 @@ export const Sidebar = () => {
             const [targetPath, targetQuery] = navItem.path.split('?');
             const targetParams = new URLSearchParams(targetQuery);
             const targetTab = targetParams.get('tab');
-            isActive = location.pathname === targetPath && currentTab === targetTab;
+            const normalizedCurrentTab = (currentTab || '').toLowerCase();
+            const normalizedTargetTab = (targetTab || '').toLowerCase();
+            isActive = location.pathname === targetPath && (
+              normalizedCurrentTab === normalizedTargetTab ||
+              (!currentTab && normalizedTargetTab === 'classes' && isTeacher)
+            );
 
             // Also match if user is viewing this tab within /dashboard
             if (!isActive && location.pathname === '/dashboard') {

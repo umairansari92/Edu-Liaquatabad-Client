@@ -29,6 +29,8 @@ import {
   Download,
   RotateCcw,
   Eye,
+  CalendarCheck,
+  Calendar,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PageContainer from '../../components/layout/PageContainer.jsx';
@@ -53,6 +55,9 @@ import {
   cancelHomework,
   fetchTeacherCirculars,
   fetchTeacherSelfAttendance,
+  fetchClBalance,
+  fetchMyLeaveRequests,
+  submitLeaveRequest,
   selectTeacherSummary,
   selectTeacherSummaryLoading,
   selectAttendanceSheet,
@@ -67,6 +72,11 @@ import {
   selectTeacherCirculars,
   selectTeacherSelfAttendance,
   selectTeacherSectionRoster,
+  selectTeacherClBalance,
+  selectTeacherClBalanceLoading,
+  selectTeacherLeaveRequests,
+  selectTeacherLeaveLoading,
+  selectTeacherLeaveSubmitting,
 } from '../../store/slices/teacherSlice.js';
 
 // ─── Utility Helpers ─────────────────────────────────────────────────────────
@@ -137,6 +147,11 @@ export const TeacherDashboard = () => {
   const circularsList = useSelector(selectTeacherCirculars);
   const selfAttendance = useSelector(selectTeacherSelfAttendance);
   const sectionRosterData = useSelector(selectTeacherSectionRoster);
+  const clBalance = useSelector(selectTeacherClBalance);
+  const clBalanceLoading = useSelector(selectTeacherClBalanceLoading);
+  const myLeaveRequests = useSelector(selectTeacherLeaveRequests);
+  const leaveRequestsLoading = useSelector(selectTeacherLeaveLoading);
+  const leaveSubmitting = useSelector(selectTeacherLeaveSubmitting);
 
   // Derive initial tab from URL param or default to CLASSES
   const resolveTabFromParam = useCallback((paramValue) => {
@@ -170,6 +185,60 @@ export const TeacherDashboard = () => {
   // Modal States
   const [rosterModalSection, setRosterModalSection] = useState(null);
   const [assignHomeworkModal, setAssignHomeworkModal] = useState(false);
+  const [leaveModalOpen, setLeaveModalOpen] = useState(false);
+
+  // Leave Form Local State
+  const [leaveType, setLeaveType] = useState('CASUAL_LEAVE');
+  const [leaveStartDate, setLeaveStartDate] = useState('');
+  const [leaveEndDate, setLeaveEndDate] = useState('');
+  const [leaveReason, setLeaveReason] = useState('');
+
+  const calculatedLeaveDays = useMemo(() => {
+    if (!leaveStartDate || !leaveEndDate) return 0;
+    const start = new Date(leaveStartDate);
+    const end = new Date(leaveEndDate);
+    if (isNaN(start.getTime()) || isNaN(end.getTime()) || end < start) return 0;
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    return Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+  }, [leaveStartDate, leaveEndDate]);
+
+  const handleOpenLeaveModal = () => {
+    setLeaveType('CASUAL_LEAVE');
+    const today = new Date().toISOString().split('T')[0];
+    setLeaveStartDate(today);
+    setLeaveEndDate(today);
+    setLeaveReason('');
+    setLeaveModalOpen(true);
+  };
+
+  const handleSubmitLeaveForm = async (submitEvent) => {
+    submitEvent.preventDefault();
+    if (!leaveStartDate || !leaveEndDate || !leaveReason?.trim()) {
+      toast.error('Please fill all required leave application fields.');
+      return;
+    }
+    if (leaveReason.trim().length < 5) {
+      toast.error('Please provide a meaningful reason (minimum 5 characters).');
+      return;
+    }
+    if (leaveType === 'CASUAL_LEAVE' && clBalance && calculatedLeaveDays > (clBalance.remainingDays ?? 0)) {
+      toast.error(`Requested ${calculatedLeaveDays} day(s) exceeds your remaining CL balance of ${clBalance.remainingDays} day(s).`);
+      return;
+    }
+    try {
+      await dispatch(submitLeaveRequest({
+        leaveType,
+        startDate: leaveStartDate,
+        endDate: leaveEndDate,
+        reason: leaveReason.trim(),
+      })).unwrap();
+      toast.success('Leave application submitted successfully. Pending Head Master approval.');
+      setLeaveModalOpen(false);
+      setLeaveReason('');
+    } catch (errorObject) {
+      toast.error(getErrorMessage(errorObject, 'Failed to submit leave application.'));
+    }
+  };
 
   // Attendance Form Local State
   const [selectedAttendanceSectionId, setSelectedAttendanceSectionId] = useState('');
@@ -264,6 +333,8 @@ export const TeacherDashboard = () => {
       month: new Date().getMonth() + 1,
       year: new Date().getFullYear(),
     }));
+    dispatch(fetchClBalance());
+    dispatch(fetchMyLeaveRequests());
   }, [dispatch]);
 
   // Sync sections list
@@ -1604,6 +1675,163 @@ export const TeacherDashboard = () => {
               </div>
             </div>
           </div>
+
+          {/* Municipal Casual Leave (CL) Balance & Application Section */}
+          <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-4">
+              <div>
+                <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
+                  <CalendarCheck className="w-5 h-5 text-[#006AC7]" />
+                  Municipal Casual Leave (CL) Quota &amp; Applications
+                </h3>
+                <p className="text-xs text-[#526477]">
+                  Education Department Liaquatabad Town Centre — 25-day annual entitlement for PST faculty
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setLeaveStartDate(new Date().toISOString().split('T')[0]);
+                  setLeaveEndDate(new Date().toISOString().split('T')[0]);
+                  setLeaveReason('');
+                  setLeaveModalOpen(true);
+                }}
+                className="px-4 py-2 rounded-xl bg-[#006AC7] hover:bg-[#00529B] text-white text-xs font-bold transition flex items-center gap-2 shadow-xs cursor-pointer shrink-0"
+              >
+                <PlusCircle className="w-4 h-4" />
+                Apply for Casual / Medical Leave
+              </button>
+            </div>
+
+            {/* Quota KPI Cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="p-4 rounded-xl bg-blue-50/70 border border-blue-200">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#526477]">Total Entitlement</span>
+                <p className="text-2xl font-black text-[#006AC7] mt-1">
+                  {clBalance?.totalEntitlement ?? 25} <span className="text-xs font-bold text-[#526477]">Days</span>
+                </p>
+                <p className="text-[10px] text-[#8094A8] mt-1">Academic Year {clBalance?.year ?? new Date().getFullYear()}</p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-emerald-50/70 border border-emerald-200">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-800">Remaining Balance</span>
+                <p className="text-2xl font-black text-emerald-700 mt-1">
+                  {clBalance?.remainingDays ?? 25} <span className="text-xs font-bold text-emerald-800">Days</span>
+                </p>
+                <p className="text-[10px] text-emerald-600 mt-1">Available for application</p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#526477]">Days Utilized</span>
+                <p className="text-2xl font-black text-[#102033] mt-1">
+                  {clBalance?.usedDays ?? 0} <span className="text-xs font-bold text-[#526477]">Days</span>
+                </p>
+                <p className="text-[10px] text-[#8094A8] mt-1">Approved by Head Master</p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-amber-800">Pending Review</span>
+                <p className="text-2xl font-black text-amber-700 mt-1">
+                  {clBalance?.pendingDays ?? 0} <span className="text-xs font-bold text-amber-800">Days</span>
+                </p>
+                <p className="text-[10px] text-amber-600 mt-1">Awaiting HM decision</p>
+              </div>
+            </div>
+
+            {/* Quota Progress Bar */}
+            {clBalance && (
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-xs font-semibold text-[#526477]">
+                  <span>Annual Quota Utilization</span>
+                  <span>
+                    {Math.round(((clBalance.usedDays || 0) / (clBalance.totalEntitlement || 25)) * 100)}% utilized
+                  </span>
+                </div>
+                <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                  <div
+                    className="h-full bg-[#006AC7] rounded-full transition-all duration-500"
+                    style={{
+                      width: `${Math.min(100, Math.round(((clBalance.usedDays || 0) / (clBalance.totalEntitlement || 25)) * 100))}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Recent Leave Requests Roster */}
+            <div className="space-y-3 pt-2">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-[#526477]">
+                Leave Application History ({myLeaveRequests.length})
+              </h4>
+
+              {leaveRequestsLoading ? (
+                <div className="py-8 flex items-center justify-center gap-2 text-xs text-[#526477]">
+                  <Loader2 className="w-4 h-4 animate-spin text-[#006AC7]" />
+                  <span>Loading leave application history...</span>
+                </div>
+              ) : myLeaveRequests.length === 0 ? (
+                <div className="p-8 text-center rounded-xl bg-slate-50 border border-slate-200/60 text-xs text-[#8094A8]">
+                  <Calendar className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                  <p className="font-bold text-[#102033]">No Leave Applications on File</p>
+                  <p className="mt-1">You have not submitted any casual or medical leave requests this academic year.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto rounded-xl border border-slate-200">
+                  <table className="w-full text-xs text-left">
+                    <thead className="bg-slate-50 text-[#526477] font-bold border-b border-slate-200">
+                      <tr>
+                        <th className="px-4 py-3">Leave Type</th>
+                        <th className="px-4 py-3">Dates &amp; Duration</th>
+                        <th className="px-4 py-3">Reason / Purpose</th>
+                        <th className="px-4 py-3">Submitted On</th>
+                        <th className="px-4 py-3 text-right">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {myLeaveRequests.map((requestItem) => {
+                        const statusConfig = {
+                          PENDING: { label: 'Pending HM Approval', bg: 'bg-amber-50 text-amber-700 border-amber-200' },
+                          APPROVED: { label: 'Approved', bg: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+                          REJECTED: { label: 'Rejected', bg: 'bg-rose-50 text-rose-700 border-rose-200' },
+                          CANCELLED: { label: 'Cancelled', bg: 'bg-slate-100 text-slate-700 border-slate-200' },
+                        };
+                        const currentStatus = statusConfig[requestItem.status] || statusConfig.PENDING;
+                        return (
+                          <tr key={String(requestItem._id)} className="hover:bg-slate-50/50">
+                            <td className="px-4 py-3 font-bold text-[#102033]">
+                              {requestItem.leaveType === 'CASUAL_LEAVE' ? 'Casual Leave (CL)' : requestItem.leaveType}
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className="font-semibold text-[#102033]">
+                                {formatDate(requestItem.startDate)}
+                              </span>
+                              {requestItem.startDate !== requestItem.endDate && (
+                                <span className="text-[#526477]"> to {formatDate(requestItem.endDate)}</span>
+                              )}
+                              <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-[#526477]">
+                                {requestItem.duration} Day(s)
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-[#526477] max-w-xs truncate" title={requestItem.reason}>
+                              {requestItem.reason}
+                            </td>
+                            <td className="px-4 py-3 text-[#8094A8]">
+                              {formatDate(requestItem.createdAt)}
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              <span className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-bold border ${currentStatus.bg}`}>
+                                {currentStatus.label}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
@@ -1841,6 +2069,145 @@ export const TeacherDashboard = () => {
                   className="px-5 py-2 rounded-xl bg-[#006AC7] hover:bg-[#00529B] text-white font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
                 >
                   <Check className="w-4 h-4" /> Post Homework
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ─── MODAL: APPLY FOR CASUAL / MEDICAL LEAVE ────────────────────────── */}
+      {leaveModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+            onClick={() => setLeaveModalOpen(false)}
+          />
+          <div className="relative w-full max-w-lg rounded-2xl bg-white border border-slate-200 shadow-2xl p-6 overflow-hidden">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+              <div>
+                <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
+                  <CalendarDays className="w-5 h-5 text-[#006AC7]" />
+                  Apply for Leave
+                </h3>
+                <p className="text-xs text-[#526477]">
+                  Submit formal leave request to School Head Master
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setLeaveModalOpen(false)}
+                className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitLeaveForm} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-[#526477] mb-1">Leave Category *</label>
+                <select
+                  value={leaveType}
+                  onChange={(e) => setLeaveType(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
+                >
+                  <option value="CASUAL_LEAVE">Casual Leave (CL) — Municipal Entitlement</option>
+                  <option value="MEDICAL_LEAVE">Medical Leave (ML)</option>
+                  <option value="EARNED_LEAVE">Earned Leave (EL)</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-[#526477] mb-1">Start Date *</label>
+                  <input
+                    type="date"
+                    value={leaveStartDate}
+                    onChange={(e) => {
+                      const newStart = e.target.value;
+                      setLeaveStartDate(newStart);
+                      if (newStart > leaveEndDate) {
+                        setLeaveEndDate(newStart);
+                      }
+                    }}
+                    required
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-[#526477] mb-1">End Date *</label>
+                  <input
+                    type="date"
+                    min={leaveStartDate}
+                    value={leaveEndDate}
+                    onChange={(e) => setLeaveEndDate(e.target.value)}
+                    required
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
+                  />
+                </div>
+              </div>
+
+              {/* Duration & Quota Status Indicator */}
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
+                <div>
+                  <span className="text-[11px] font-bold text-[#526477]">Calculated Duration</span>
+                  <p className="text-base font-black text-[#102033]">
+                    {calculatedLeaveDays} {calculatedLeaveDays === 1 ? 'Day' : 'Days'}
+                  </p>
+                </div>
+                {leaveType === 'CASUAL_LEAVE' && clBalance && (
+                  <div className="text-right">
+                    <span className="text-[11px] font-bold text-[#526477]">Remaining CL Balance</span>
+                    <p className={`text-base font-black ${calculatedLeaveDays > (clBalance.remainingDays ?? 0) ? 'text-rose-600' : 'text-emerald-700'}`}>
+                      {clBalance.remainingDays ?? 25} Days
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {leaveType === 'CASUAL_LEAVE' && clBalance && calculatedLeaveDays > (clBalance.remainingDays ?? 0) && (
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>
+                    Warning: You are requesting {calculatedLeaveDays} day(s), which exceeds your remaining balance of {clBalance.remainingDays} day(s).
+                  </span>
+                </div>
+              )}
+
+              <div>
+                <label className="block font-bold text-[#526477] mb-1">Reason / Institutional Justification *</label>
+                <textarea
+                  rows="3"
+                  value={leaveReason}
+                  onChange={(e) => setLeaveReason(e.target.value)}
+                  placeholder="Explain the reason for leave request (minimum 5 characters)..."
+                  required
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setLeaveModalOpen(false)}
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={leaveSubmitting || (leaveType === 'CASUAL_LEAVE' && clBalance && calculatedLeaveDays > (clBalance.remainingDays ?? 0))}
+                  className="px-5 py-2 rounded-xl bg-[#006AC7] hover:bg-[#00529B] disabled:opacity-50 text-white font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  {leaveSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" /> Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" /> Submit Leave Application
+                    </>
+                  )}
                 </button>
               </div>
             </form>

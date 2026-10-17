@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { Navigate } from 'react-router-dom';
 import {
   Users,
   ShieldCheck,
@@ -22,6 +24,12 @@ import apiClient from '../../services/apiClient.js';
 import PageContainer from '../../components/layout/PageContainer.jsx';
 
 export const PendingApprovalsPage = () => {
+  const { user } = useSelector((state) => state.auth);
+
+  if (user && ['TEACHER', 'STUDENT', 'PARENT'].includes(user.role)) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   const [activeTab, setActiveTab] = useState('staff');
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);

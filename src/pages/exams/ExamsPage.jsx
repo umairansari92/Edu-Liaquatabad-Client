@@ -18,7 +18,7 @@ export const ExamsPage = () => {
   const { user } = useSelector((state) => state.auth);
   const [activeTerm, setActiveTerm] = useState('ANNUAL_2026');
 
-  if (user?.role === 'STUDENT') {
+  if (user?.role === 'STUDENT' || user?.role === 'TEACHER') {
     return <Navigate to="/dashboard?tab=exams" replace />;
   }
   if (user?.role === 'PARENT') {

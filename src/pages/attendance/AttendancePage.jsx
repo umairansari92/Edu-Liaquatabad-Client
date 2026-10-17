@@ -644,14 +644,9 @@ const AdminAttendanceWorkspace = ({ user }) => {
 export const AttendancePage = () => {
   const { user } = useSelector((state) => state.auth);
 
-  // If user is STUDENT, PARENT, or HM, redirect to dedicated attendance intelligence tab
-  if (user?.role === 'STUDENT' || user?.role === 'PARENT' || user?.role === 'HM') {
+  // If user is STUDENT, PARENT, HM, or TEACHER, redirect to dedicated attendance workspace tab
+  if (user?.role === 'STUDENT' || user?.role === 'PARENT' || user?.role === 'HM' || user?.role === 'TEACHER') {
     return <Navigate to="/dashboard?tab=attendance" replace />;
-  }
-
-  // If user is TEACHER, render dedicated operational teacher workspace
-  if (user?.role === 'TEACHER') {
-    return <TeacherAttendanceWorkspace user={user} />;
   }
 
   // Otherwise render municipal / institutional authority attendance workspace

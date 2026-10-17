@@ -146,6 +146,32 @@ export const teacherService = {
     });
     return response.data?.data;
   },
+
+  /**
+   * Fetch authenticated teacher's municipal Casual Leave (CL) balance.
+   */
+  async getClBalance(year) {
+    const response = await apiClient.get('/leave/cl-balance', {
+      params: year ? { year } : {},
+    });
+    return response.data?.clBalance;
+  },
+
+  /**
+   * Fetch authenticated teacher's leave history & application statuses.
+   */
+  async getMyLeaveRequests(params = {}) {
+    const response = await apiClient.get('/leave/my-requests', { params });
+    return response.data?.leaveRequests || [];
+  },
+
+  /**
+   * Submit a new Casual Leave (CL) or Earned Leave (EL) application.
+   */
+  async submitLeaveRequest(payload) {
+    const response = await apiClient.post('/leave/submit', payload);
+    return response.data;
+  },
 };
 
 export default teacherService;

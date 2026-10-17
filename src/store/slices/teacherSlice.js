@@ -1,4 +1,4 @@
-﻿import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import teacherService from '../../services/teacherService.js';
 
 // ─── Async Thunks ─────────────────────────────────────────────────────────────
@@ -156,6 +156,42 @@ export const fetchTeacherSelfAttendance = createAsyncThunk(
   }
 );
 
+export const fetchClBalance = createAsyncThunk(
+  'teacher/fetchClBalance',
+  async (year, { rejectWithValue }) => {
+    try {
+      return await teacherService.getClBalance(year);
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch CL balance');
+    }
+  }
+);
+
+export const fetchMyLeaveRequests = createAsyncThunk(
+  'teacher/fetchMyLeaveRequests',
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      return await teacherService.getMyLeaveRequests(params);
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch leave requests');
+    }
+  }
+);
+
+export const submitLeaveRequest = createAsyncThunk(
+  'teacher/submitLeaveRequest',
+  async (payload, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await teacherService.submitLeaveRequest(payload);
+      dispatch(fetchClBalance());
+      dispatch(fetchMyLeaveRequests());
+      return response;
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to submit leave request');
+    }
+  }
+);
+
 // ─── Initial State ────────────────────────────────────────────────────────────
 
 const initialState = {
@@ -203,6 +239,14 @@ const initialState = {
   // Self Attendance
   selfAttendance: null,
   selfAttendanceLoading: false,
+
+  // Leave Management & Casual Leave (CL) Balance
+  clBalance: null,
+  clBalanceLoading: false,
+  myLeaveRequests: [],
+  leaveRequestsLoading: false,
+  leaveSubmitting: false,
+  leaveError: null,
 };
 
 // ─── Slice Definition ─────────────────────────────────────────────────────────
@@ -383,6 +427,43 @@ const teacherSlice = createSlice({
       })
       .addCase(fetchTeacherSelfAttendance.rejected, (state) => {
         state.selfAttendanceLoading = false;
+      })
+
+      // CL Balance
+      .addCase(fetchClBalance.pending, (state) => {
+        state.clBalanceLoading = true;
+      })
+      .addCase(fetchClBalance.fulfilled, (state, action) => {
+        state.clBalanceLoading = false;
+        state.clBalance = action.payload;
+      })
+      .addCase(fetchClBalance.rejected, (state) => {
+        state.clBalanceLoading = false;
+      })
+
+      // My Leave Requests
+      .addCase(fetchMyLeaveRequests.pending, (state) => {
+        state.leaveRequestsLoading = true;
+      })
+      .addCase(fetchMyLeaveRequests.fulfilled, (state, action) => {
+        state.leaveRequestsLoading = false;
+        state.myLeaveRequests = action.payload;
+      })
+      .addCase(fetchMyLeaveRequests.rejected, (state) => {
+        state.leaveRequestsLoading = false;
+      })
+
+      // Submit Leave Request
+      .addCase(submitLeaveRequest.pending, (state) => {
+        state.leaveSubmitting = true;
+        state.leaveError = null;
+      })
+      .addCase(submitLeaveRequest.fulfilled, (state) => {
+        state.leaveSubmitting = false;
+      })
+      .addCase(submitLeaveRequest.rejected, (state, action) => {
+        state.leaveSubmitting = false;
+        state.leaveError = action.payload;
       });
   },
 });
@@ -390,6 +471,7 @@ const teacherSlice = createSlice({
 export const {
   clearAttendanceStatus,
   clearExamMarksStatus,
+  clearLeaveStatus,
   setSelectedSection,
 } = teacherSlice.actions;
 
@@ -410,5 +492,11 @@ export const selectHomeworkLoading = (state) => state.teacher.homeworkLoading;
 export const selectTeacherCirculars = (state) => state.teacher.circularsList;
 export const selectTeacherSelfAttendance = (state) => state.teacher.selfAttendance;
 export const selectTeacherSectionRoster = (state) => state.teacher.sectionRoster;
+export const selectTeacherClBalance = (state) => state.teacher.clBalance;
+export const selectTeacherClBalanceLoading = (state) => state.teacher.clBalanceLoading;
+export const selectTeacherLeaveRequests = (state) => state.teacher.myLeaveRequests;
+export const selectTeacherLeaveLoading = (state) => state.teacher.leaveRequestsLoading;
+export const selectTeacherLeaveSubmitting = (state) => state.teacher.leaveSubmitting;
+export const selectTeacherLeaveError = (state) => state.teacher.leaveError;
 
 export default teacherSlice.reducer;
