@@ -91,10 +91,12 @@ export const LoginPage = () => {
     fetchCaptcha(false); // initial load — no cooldown
   }, []);
 
-  // If already authenticated with an active session, redirect directly to dashboard
-  if (sessionChecked && isAuthenticated && user) {
-    return <Navigate to="/dashboard" replace />;
-  }
+  // If already authenticated with an active session, redirect to dashboard
+  useEffect(() => {
+    if (sessionChecked && isAuthenticated && user) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [sessionChecked, isAuthenticated, user, navigate]);
 
   // CAPTCHA refresh cooldown ticker — 1 tick/sec until 0
   useEffect(() => {
@@ -366,6 +368,10 @@ export const LoginPage = () => {
     toast.success('Account security configured. Welcome to the portal!');
     navigate('/dashboard');
   };
+
+  if (sessionChecked && isAuthenticated && user) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   return (
     <div className="min-h-screen bg-[#F8FBFD] flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans selection:bg-[#006AC7] selection:text-white">

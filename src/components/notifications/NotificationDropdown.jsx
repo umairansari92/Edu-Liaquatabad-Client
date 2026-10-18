@@ -53,6 +53,16 @@ const resolveNotificationActionLink = (actionLink, userRole) => {
   const trimmedLink = actionLink.trim();
   const normalizedRole = String(userRole || '').toUpperCase();
 
+  // STRICT SECURITY GUARD: An in-app notification must NEVER redirect an active authenticated user to /login or /register
+  if (
+    trimmedLink === '/login' ||
+    trimmedLink.startsWith('/login') ||
+    trimmedLink === '/register' ||
+    trimmedLink.startsWith('/register-')
+  ) {
+    return null;
+  }
+
   // Direct mapping for legacy / backend leave route references
   if (trimmedLink === '/leave/my-requests') {
     if (normalizedRole === 'TEACHER') return '/dashboard?tab=service';
@@ -116,6 +126,7 @@ export const NotificationDropdown = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [expandedId, setExpandedId] = useState(null);
 
   const { user } = useSelector((state) => state.auth);
   const {
@@ -207,17 +218,28 @@ export const NotificationDropdown = ({ isOpen, onClose }) => {
   };
 
   const handleNotificationClick = (notification) => {
-    // If unread, mark it as read
+    // If unread, mark it as read immediately
     if (!notification.isRead) {
       dispatch(markNotificationAsRead({ notificationId: notification._id, isRead: true }));
     }
 
-    // Resolve safe destination route for the user's role
+    // Toggle expansion so the user can read the full message and details in place
+    setExpandedId((prevId) => (prevId === notification._id ? null : notification._id));
+  };
+
+  const handleNavigateToAction = (event, notification) => {
+    event.stopPropagation();
+    if (!notification.isRead) {
+      dispatch(markNotificationAsRead({ notificationId: notification._id, isRead: true }));
+    }
+
     if (notification.actionLink) {
       const destinationUrl = resolveNotificationActionLink(notification.actionLink, user?.role);
-      onClose();
       if (destinationUrl) {
+        onClose();
         navigate(destinationUrl);
+      } else {
+        toast.info('This is an informational notice.');
       }
     }
   };
@@ -569,8 +591,12 @@ export const NotificationDropdown = ({ isOpen, onClose }) => {
                       {notificationItem.title}
                     </h3>
 
-                    {/* Message Body */}
-                    <p className="text-xs text-[#526477] leading-relaxed line-clamp-2 mb-2">
+                    {/* Message Body — expands when selected */}
+                    <p
+                      className={`text-xs text-[#526477] leading-relaxed mb-2 transition-all ${
+                        expandedId === notificationItem._id ? 'line-clamp-none' : 'line-clamp-2'
+                      }`}
+                    >
                       {notificationItem.message}
                     </p>
 
@@ -625,11 +651,26 @@ export const NotificationDropdown = ({ isOpen, onClose }) => {
                       </div>
                     )}
 
-                    {/* Action Destination Link Cue */}
-                    {hasActionLink && !isAccessRequest && (
-                      <div className="mt-1 flex items-center gap-1 text-[11px] font-semibold text-[#006AC7] group-hover:underline">
-                        <span>View Details</span>
-                        <ExternalLink className="w-3 h-3" />
+                    {/* Action Destination Link Cue & Expansion indicator */}
+                    {!isAccessRequest && (
+                      <div className="mt-2 flex items-center justify-between gap-2 pt-1 border-t border-slate-100/70">
+                        {hasActionLink && resolveNotificationActionLink(notificationItem.actionLink, user?.role) ? (
+                          <button
+                            type="button"
+                            onClick={(event) => handleNavigateToAction(event, notificationItem)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#006AC7] hover:bg-[#005299] text-white text-[11px] font-bold shadow-xs transition-colors"
+                          >
+                            <span>Open Module</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </button>
+                        ) : (
+                          <span className="text-[10px] text-slate-400 font-medium italic">
+                            Informational Notice
+                          </span>
+                        )}
+                        <span className="text-[10px] text-slate-400 font-medium">
+                          {expandedId === notificationItem._id ? 'Click to collapse' : 'Click to read full'}
+                        </span>
                       </div>
                     )}
                   </div>
