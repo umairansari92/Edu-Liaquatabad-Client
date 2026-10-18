@@ -3,7 +3,15 @@ import Navbar from './Navbar.jsx';
 import Sidebar from './Sidebar.jsx';
 import { useSelector } from 'react-redux';
 
-export const PageContainer = ({ children, title, subtitle, actions }) => {
+export const PageContainer = ({
+  children,
+  title,
+  subtitle,
+  actions,
+  maxWidth = 'max-w-7xl',
+  fluid = false,
+  className = '',
+}) => {
   const { isAuthenticated } = useSelector((state) => state.auth);
 
   return (
@@ -11,9 +19,9 @@ export const PageContainer = ({ children, title, subtitle, actions }) => {
       <Navbar />
       <div className="flex-1 flex">
         {isAuthenticated && <Sidebar />}
-        <main className="flex-1 p-6 sm:p-8 max-w-7xl mx-auto w-full min-w-0">
+        <main className={`flex-1 p-4 sm:p-6 lg:p-8 ${fluid ? 'max-w-full px-3 sm:px-6' : maxWidth} mx-auto w-full min-w-0 ${className}`}>
           {(title || actions) && (
-            <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/80 pb-5">
+            <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/80 pb-5 print:hidden">
               <div>
                 {title && <h1 className="text-2xl sm:text-3xl font-display font-bold text-[#102033] tracking-tight">{title}</h1>}
                 {subtitle && <p className="text-sm text-[#526477] mt-1">{subtitle}</p>}

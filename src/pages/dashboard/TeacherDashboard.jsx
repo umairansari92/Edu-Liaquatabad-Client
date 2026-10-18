@@ -42,6 +42,7 @@ import { getErrorMessage } from '../../utils/errorUtils.js';
 import useReliabilityDraft from '../../hooks/useReliabilityDraft.js';
 import DraftRecoveryBanner from '../../components/common/DraftRecoveryBanner.jsx';
 import DraftStatusIndicator from '../../components/common/DraftStatusIndicator.jsx';
+import SmartAttendanceRegister from '../../components/attendance/SmartAttendanceRegister.jsx';
 import {
   fetchTeacherSummary,
   fetchSectionRoster,
@@ -131,6 +132,7 @@ export const TeacherDashboard = () => {
   const dispatch = useDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user: authenticatedUser } = useSelector((state) => state.auth);
+  const user = authenticatedUser;
 
   // Redux Selectors
   const summary = useSelector(selectTeacherSummary);
@@ -250,6 +252,7 @@ export const TeacherDashboard = () => {
   const [localAttendanceRecords, setLocalAttendanceRecords] = useState([]);
   const [attendanceSearchQuery, setAttendanceSearchQuery] = useState('');
   const [attendanceStatusFilter, setAttendanceStatusFilter] = useState('ALL'); // ALL, EXCEPTIONS, PRESENT, ABSENT, LEAVE
+  const [attendanceViewMode, setAttendanceViewMode] = useState('DAILY'); // 'DAILY' | 'REGISTER'
 
   // Examination Form Local State
   const [selectedExamId, setSelectedExamId] = useState('');
@@ -669,6 +672,7 @@ export const TeacherDashboard = () => {
     <PageContainer
       title="Teacher Dashboard"
       subtitle={`${authenticatedUser?.fullName || 'Teacher'} · ${summary?.school?.name || authenticatedUser?.schoolName || 'Liaquatabad Town'}`}
+      maxWidth={activeTab === 'ATTENDANCE' && attendanceViewMode === 'REGISTER' ? 'max-w-[1680px]' : 'max-w-7xl'}
       actions={
         <div className="flex items-center gap-3">
           <button
@@ -687,7 +691,7 @@ export const TeacherDashboard = () => {
       }
     >
       {/* ─── Top Summary Cards ───────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6 print:hidden">
         <KpiCard
           icon={School}
           label="My Classes"
@@ -726,7 +730,7 @@ export const TeacherDashboard = () => {
       <div
         role="tablist"
         aria-label="Dashboard sections"
-        className="flex items-center gap-1.5 p-1.5 bg-slate-100/90 rounded-2xl mb-6 border border-slate-200/70 overflow-x-auto scrollbar-thin select-none"
+        className="flex items-center gap-1.5 p-1.5 bg-slate-100/90 rounded-2xl mb-6 border border-slate-200/70 overflow-x-auto scrollbar-thin select-none print:hidden"
       >
         {DASHBOARD_TABS.map((tabItem) => {
           const IconComponent = tabItem.icon;
@@ -881,52 +885,104 @@ export const TeacherDashboard = () => {
       {/* ─── TAB 2: ATTENDANCE (DAILY ATTENDANCE) ───────────────────────────── */}
       {activeTab === 'ATTENDANCE' && (
         <div className="space-y-6">
-          <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
-            {/* Header & Controls */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
-              <div>
-                <h2 className="text-lg font-bold text-[#102033] flex items-center gap-2">
-                  <ClipboardList className="w-5 h-5 text-[#006AC7]" />
-                  Daily Student Attendance
-                </h2>
-                <p className="text-xs text-[#526477] mt-0.5">
-                  All enrolled students default to <strong className="text-emerald-700 font-bold">Present (P)</strong>. Mark any students who are <strong className="text-rose-700 font-bold">Absent (A)</strong> or on <strong className="text-amber-700 font-bold">Approved Leave (L)</strong>, then submit.
-                </p>
+          {/* View Mode Toggle: Daily Marking vs Smart Monthly Register */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs print:hidden">
+            <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200">
+              <button
+                type="button"
+                onClick={() => setAttendanceViewMode('DAILY')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                  attendanceViewMode === 'DAILY'
+                    ? 'bg-white text-[#006AC7] shadow-xs'
+                    : 'text-[#526477] hover:text-[#102033]'
+                }`}
+              >
+                <ClipboardList className="w-3.5 h-3.5" /> Daily Marking
+              </button>
+              <button
+                type="button"
+                onClick={() => setAttendanceViewMode('REGISTER')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                  attendanceViewMode === 'REGISTER'
+                    ? 'bg-white text-[#006AC7] shadow-xs'
+                    : 'text-[#526477] hover:text-[#102033]'
+                }`}
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5" /> Smart Monthly Register
+              </button>
+            </div>
+            <p className="text-xs text-[#526477]">
+              {attendanceViewMode === 'DAILY'
+                ? 'Mark exceptions (Absent / Leave) for today. Saved records automatically reflect in the monthly register.'
+                : 'Physical register format with monthly date grid, weekly offs, holidays, and official roll summary.'}
+            </p>
+          </div>
+
+          {attendanceViewMode === 'REGISTER' ? (
+            <SmartAttendanceRegister
+              sectionId={selectedAttendanceSectionId}
+              sections={assignedSections}
+              user={user}
+              canClearMissed={false}
+              onSectionChange={setSelectedAttendanceSectionId}
+            />
+          ) : (
+            <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
+              {/* Header & Controls */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
+                <div>
+                  <h2 className="text-lg font-bold text-[#102033] flex items-center gap-2">
+                    <ClipboardList className="w-5 h-5 text-[#006AC7]" />
+                    Daily Student Attendance
+                  </h2>
+                  <p className="text-xs text-[#526477] mt-0.5">
+                    All enrolled students default to <strong className="text-emerald-700 font-bold">Present (P)</strong>. Mark any students who are <strong className="text-rose-700 font-bold">Absent (A)</strong> or on <strong className="text-amber-700 font-bold">Approved Leave (L)</strong>, then submit.
+                  </p>
+                </div>
+
+                {/* Controls: Section & Date */}
+                <div className="flex flex-wrap items-center gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-[#526477] mb-1">Class & Section</label>
+                    <select
+                      value={selectedAttendanceSectionId}
+                      onChange={(changeEvent) => setSelectedAttendanceSectionId(changeEvent.target.value)}
+                      className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-[#102033] focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
+                    >
+                      {assignedSections.map((sectionItem) => {
+                        const sectionLabel = sectionItem.name && sectionItem.name !== 'null' && sectionItem.name.toLowerCase() !== 'default'
+                          ? `Section ${sectionItem.name}`
+                          : 'Whole Class';
+                        return (
+                          <option key={String(sectionItem._id)} value={String(sectionItem._id)}>
+                            {sectionItem.class?.name} - {sectionLabel} ({sectionItem.studentCount} students)
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-[#526477] mb-1">Attendance Date</label>
+                    <input
+                      type="date"
+                      value={attendanceDate}
+                      max={new Date().toISOString().split('T')[0]}
+                      onChange={(changeEvent) => setAttendanceDate(changeEvent.target.value)}
+                      className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-[#102033] focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
+                    />
+                  </div>
+                </div>
               </div>
 
-              {/* Controls: Section & Date */}
-              <div className="flex flex-wrap items-center gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-[#526477] mb-1">Class & Section</label>
-                  <select
-                    value={selectedAttendanceSectionId}
-                    onChange={(changeEvent) => setSelectedAttendanceSectionId(changeEvent.target.value)}
-                    className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-[#102033] focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
-                  >
-                    {assignedSections.map((sectionItem) => {
-                      const sectionLabel = sectionItem.name && sectionItem.name !== 'null' && sectionItem.name.toLowerCase() !== 'default'
-                        ? `Section ${sectionItem.name}`
-                        : 'Whole Class';
-                      return (
-                        <option key={String(sectionItem._id)} value={String(sectionItem._id)}>
-                          {sectionItem.class?.name} - {sectionLabel} ({sectionItem.studentCount} students)
-                        </option>
-                      );
-                    })}
-                  </select>
+              {/* Window Status Warning if restricted */}
+              {attendanceSheetData?.windowStatus && !attendanceSheetData.windowStatus.allowed && (
+                <div className="p-3.5 my-3 rounded-xl bg-amber-50 border border-amber-200 flex items-center gap-2.5 text-xs text-amber-800">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                  <div>
+                    <strong>Attendance Window Notice:</strong> {attendanceSheetData.windowStatus.reason || 'Attendance window is closed for this date.'}
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold text-[#526477] mb-1">Attendance Date</label>
-                  <input
-                    type="date"
-                    value={attendanceDate}
-                    max={new Date().toISOString().split('T')[0]}
-                    onChange={(changeEvent) => setAttendanceDate(changeEvent.target.value)}
-                    className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-[#102033] focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
-                  />
-                </div>
-              </div>
-            </div>
+              )}
 
             {/* Attendance Summary Counters */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 my-5">
@@ -1132,7 +1188,11 @@ export const TeacherDashboard = () => {
               <button
                 type="button"
                 onClick={handleSubmitAttendanceForm}
-                disabled={attendanceSubmitting || localAttendanceRecords.length === 0}
+                disabled={
+                  attendanceSubmitting ||
+                  localAttendanceRecords.length === 0 ||
+                  (attendanceSheetData?.windowStatus && !attendanceSheetData.windowStatus.allowed)
+                }
                 className="px-6 py-2.5 rounded-xl bg-[#4B7F3A] hover:bg-[#3D692F] disabled:opacity-50 text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm cursor-pointer"
               >
                 {attendanceSubmitting ? (
@@ -1146,6 +1206,7 @@ export const TeacherDashboard = () => {
               </button>
             </div>
           </div>
+          )}
         </div>
       )}
 

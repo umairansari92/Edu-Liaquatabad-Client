@@ -21,12 +21,14 @@ import {
 import toast from 'react-hot-toast';
 import apiClient from '../../services/apiClient.js';
 import PageContainer from '../../components/layout/PageContainer.jsx';
+import SmartAttendanceRegister from '../../components/attendance/SmartAttendanceRegister.jsx';
 
 // ─── Teacher Attendance Workspace Component ──────────────────────────────────
 const TeacherAttendanceWorkspace = ({ user }) => {
   const [sections, setSections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [viewMode, setViewMode] = useState('WORKSPACE'); // 'WORKSPACE' | 'REGISTER'
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [activeModalSection, setActiveModalSection] = useState(null);
   const [roster, setRoster] = useState([]);
@@ -143,20 +145,43 @@ const TeacherAttendanceWorkspace = ({ user }) => {
     <PageContainer
       title="Classroom Attendance Portal"
       subtitle={`Daily Attendance Register · ${schoolName} · Educator: ${user?.fullName || 'Teacher'}`}
+      maxWidth={viewMode === 'REGISTER' ? 'max-w-[1680px]' : 'max-w-7xl'}
       actions={
         <div className="flex items-center gap-2">
-          <input
-            type="date"
-            max={new Date().toISOString().split('T')[0]}
-            value={selectedDate}
-            onChange={(inputChangeEvent) => setSelectedDate(inputChangeEvent.target.value)}
-            className="rounded-xl border border-slate-200/80 bg-white px-3 py-1.5 text-xs font-medium text-[#102033] focus:border-[#006AC7] focus:outline-none shadow-sm"
-          />
+          <div className="flex items-center p-0.5 bg-slate-100 rounded-xl border border-slate-200">
+            <button
+              type="button"
+              onClick={() => setViewMode('WORKSPACE')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                viewMode === 'WORKSPACE' ? 'bg-white text-[#006AC7] shadow-xs' : 'text-slate-600 hover:text-[#102033]'
+              }`}
+            >
+              Daily Marking
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('REGISTER')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                viewMode === 'REGISTER' ? 'bg-white text-[#006AC7] shadow-xs' : 'text-slate-600 hover:text-[#102033]'
+              }`}
+            >
+              Smart Register
+            </button>
+          </div>
+          {viewMode === 'WORKSPACE' && (
+            <input
+              type="date"
+              max={new Date().toISOString().split('T')[0]}
+              value={selectedDate}
+              onChange={(inputChangeEvent) => setSelectedDate(inputChangeEvent.target.value)}
+              className="rounded-xl border border-slate-200/80 bg-white px-3 py-1.5 text-xs font-medium text-[#102033] focus:border-[#006AC7] focus:outline-none shadow-sm"
+            />
+          )}
           <button
             type="button"
             onClick={fetchTeacherSections}
             disabled={loading}
-            className="flex items-center gap-1.5 rounded-xl border border-slate-200/80 bg-white px-3 py-1.5 text-xs font-bold text-[#526477] hover:text-[#102033] hover:bg-slate-50 disabled:opacity-50 shadow-sm transition"
+            className="flex items-center gap-1.5 rounded-xl border border-slate-200/80 bg-white px-3 py-1.5 text-xs font-bold text-[#526477] hover:text-[#102033] hover:bg-slate-50 disabled:opacity-50 shadow-sm transition cursor-pointer"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
@@ -164,7 +189,14 @@ const TeacherAttendanceWorkspace = ({ user }) => {
         </div>
       }
     >
-      {loading ? (
+      {viewMode === 'REGISTER' ? (
+        <SmartAttendanceRegister
+          sections={sections}
+          sectionId={sections.length > 0 ? String(sections[0]._id) : ''}
+          user={user}
+          canClearMissed={false}
+        />
+      ) : loading ? (
         <div className="flex flex-col items-center justify-center py-20 text-[#526477] gap-3">
           <Loader2 className="w-8 h-8 animate-spin text-[#006AC7]" />
           <p className="text-sm font-medium">Loading your assigned class sections…</p>

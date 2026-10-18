@@ -59,6 +59,14 @@ export const teacherService = {
   },
 
   /**
+   * Clear missed attendance for an unrecorded past working day (HM / Admin only).
+   */
+  async clearMissedAttendance(payload) {
+    const response = await apiClient.post('/attendance/clear-missed', payload);
+    return response.data;
+  },
+
+  /**
    * Fetch scheduled examinations list for the teacher's school.
    */
   async getSchoolExams() {

@@ -362,11 +362,83 @@ body.screen-protected canvas {
 }
 
 @media print {
-  /* Screen protection hide exception for authorized printable documents (timetables & cards) */
-  body.screen-protected:not(.print-timetable-mode):not(.print-student-card-mode),
-  body.screen-protected:not(.print-timetable-mode):not(.print-student-card-mode) #root {
+  @page {
+    size: legal landscape;
+    margin: 8mm 6mm;
+  }
+
+  /* Screen protection hide exception for authorized printable documents (timetables, cards & smart register) */
+  body.screen-protected:not(.print-timetable-mode):not(.print-student-card-mode):not(.print-register-mode),
+  body.screen-protected:not(.print-timetable-mode):not(.print-student-card-mode):not(.print-register-mode) #root {
     display: none !important;
     visibility: hidden !important;
+  }
+
+  /* ── Dedicated Legal Landscape Smart Monthly Attendance Register Layout ── */
+  body.print-register-mode {
+    background: #ffffff !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body.print-register-mode aside,
+  body.print-register-mode nav,
+  body.print-register-mode header,
+  body.print-register-mode footer,
+  body.print-register-mode .no-print,
+  body.print-register-mode .print\:hidden,
+  body.print-register-mode [role="tablist"],
+  body.print-register-mode .smart-register-root > *:not(.printable-attendance-register) {
+    display: none !important;
+  }
+
+  body.print-register-mode main {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  body.print-register-mode .printable-attendance-register {
+    position: relative !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    border: none !important;
+    overflow: visible !important;
+  }
+
+  body.print-register-mode .printable-attendance-register table {
+    width: 100% !important;
+    min-width: 0 !important;
+    border-collapse: collapse !important;
+  }
+
+  body.print-register-mode .printable-attendance-register thead {
+    display: table-header-group !important;
+  }
+
+  body.print-register-mode .printable-attendance-register tfoot {
+    display: table-footer-group !important;
+  }
+
+  body.print-register-mode .printable-attendance-register tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  body.print-register-mode .printable-attendance-register th,
+  body.print-register-mode .printable-attendance-register td {
+    position: static !important;
+    box-shadow: none !important;
+    font-size: 8pt !important;
+    padding: 2.5px 1px !important;
+    line-height: 1.1 !important;
   }
 
   /* ── Dedicated A4 Timetable Printable Layout ── */

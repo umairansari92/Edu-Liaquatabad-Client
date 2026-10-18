@@ -59,6 +59,7 @@ import HmSchoolProfileTab from '../../components/hm/HmSchoolProfileTab.jsx';
 import HmReportsTab from '../../components/hm/HmReportsTab.jsx';
 import HmActivityLogTab from '../../components/hm/HmActivityLogTab.jsx';
 import ConfirmModal from '../../components/common/ConfirmModal.jsx';
+import SmartAttendanceRegister from '../../components/attendance/SmartAttendanceRegister.jsx';
 import { fetchSchoolTimetable } from '../../store/slices/timetableSlice.js';
 import {
   fetchHmSummary,
@@ -1415,6 +1416,7 @@ export const HmDashboard = () => {
     <PageContainer
       title="School overview"
       subtitle={`${summary?.school?.name || user?.schoolId?.name || 'Assigned Municipal School'} • Education Department, Liaquatabad Town Centre (DMC)`}
+      maxWidth={activeTab === 'attendance' && attendanceSubTab === 'student-register' ? 'max-w-[1680px]' : 'max-w-7xl'}
       actions={
         <div className="flex items-center gap-2">
           <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 border border-emerald-200 text-emerald-800">
@@ -2663,6 +2665,18 @@ export const HmDashboard = () => {
               >
                 Student Section Analytics
               </button>
+              <button
+                id="attendance-subtab-student-register-btn"
+                onClick={() => setAttendanceSubTab('student-register')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                  attendanceSubTab === 'student-register'
+                    ? 'bg-white text-[#006AC7] shadow-sm'
+                    : 'text-[#526477] hover:text-[#102033]'
+                }`}
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5" />
+                Smart Monthly Register
+              </button>
             </div>
           </div>
 
@@ -3284,6 +3298,27 @@ export const HmDashboard = () => {
                   </p>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Sub-Tab 5: Smart Monthly Register (HM Missed Clearance Workflow) */}
+          {attendanceSubTab === 'student-register' && (
+            <div className="space-y-4">
+              <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-5 h-5 text-amber-700 flex-shrink-0" />
+                  <div>
+                    <strong>Head Master Institutional Governance:</strong> Inspect monthly physical register grids for any section. You can authorize and clear missed working days ("Attendance Not Taken") by clicking the "Clear" button on the date column header.
+                  </div>
+                </div>
+              </div>
+
+              <SmartAttendanceRegister
+                sections={sections}
+                sectionId={sections.length > 0 ? String(sections[0]._id) : ''}
+                user={user}
+                canClearMissed={true}
+              />
             </div>
           )}
         </div>

@@ -112,6 +112,18 @@ export const hmService = {
     return response.data;
   },
 
+  getAttendanceRegister: async (sectionId, month, year) => {
+    const response = await apiClient.get('/attendance/register', {
+      params: { sectionId, month, year },
+    });
+    return response.data?.data;
+  },
+
+  clearMissedAttendance: async (payload) => {
+    const response = await apiClient.post('/attendance/clear-missed', payload);
+    return response.data;
+  },
+
   // ─── 6. Examinations & Results ────────────────────────────────────────────────
   getExams: async () => {
     const response = await apiClient.get('/exams');
