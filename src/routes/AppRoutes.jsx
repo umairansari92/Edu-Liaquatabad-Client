@@ -1,5 +1,6 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import LoginPage from '../pages/auth/LoginPage.jsx';
 import RegisterStudentPage from '../pages/auth/RegisterStudentPage.jsx';
 import RegisterTeacherPage from '../pages/auth/RegisterTeacherPage.jsx';
@@ -20,6 +21,22 @@ import HolidaysGovernancePage from '../pages/holidays/HolidaysGovernancePage.jsx
 import ProtectedRoute from './ProtectedRoute.jsx';
 
 /**
+ * Session-Aware Dynamic Redirects:
+ * Prevent authenticated users from ever being kicked to /login due to unknown URLs or notification clicks.
+ */
+const RootRedirect = () => {
+  const { isAuthenticated, user, sessionChecked } = useSelector((state) => state.auth);
+  if (!sessionChecked) return null;
+  return isAuthenticated && user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />;
+};
+
+const WildcardRedirect = () => {
+  const { isAuthenticated, user, sessionChecked } = useSelector((state) => state.auth);
+  if (!sessionChecked) return null;
+  return isAuthenticated && user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />;
+};
+
+/**
  * Client Portal Routes (SPA)
  * Note: The single public main landing page of the entire platform is the Next.js 15 app (landing-page/).
  * The React client (client/) serves strictly as the authenticated workspace & login portal.
@@ -27,8 +44,8 @@ import ProtectedRoute from './ProtectedRoute.jsx';
 export const AppRoutes = () => {
   return (
     <Routes>
-      {/* Root of client portal routes directly to Login / Auth */}
-      <Route path="/" element={<Navigate to="/login" replace />} />
+      {/* Root of client portal routes dynamically based on active session */}
+      <Route path="/" element={<RootRedirect />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register-student" element={<RegisterStudentPage />} />
       <Route path="/register-teacher" element={<RegisterTeacherPage />} />
@@ -50,10 +67,19 @@ export const AppRoutes = () => {
         <Route path="/documents" element={<DocumentsPage />} />
         <Route path="/directory" element={<DirectoryPage />} />
         <Route path="/audit-logs" element={<AuditLogsPage />} />
+
+        {/* Canonical Notification & Legacy URL Aliases (Deep Links) */}
+        <Route path="/leave/my-requests" element={<Navigate to="/dashboard?tab=service" replace />} />
+        <Route path="/leave/pending" element={<Navigate to="/approvals" replace />} />
+        <Route path="/staff-attendance/pending" element={<Navigate to="/attendance" replace />} />
+        <Route path="/staff-attendance/my-record" element={<Navigate to="/dashboard?tab=attendance" replace />} />
+        <Route path="/hm/parent-links" element={<Navigate to="/dashboard?tab=approvals" replace />} />
+        <Route path="/parent/dashboard" element={<Navigate to="/dashboard" replace />} />
+        <Route path="/homework" element={<Navigate to="/dashboard?tab=homework" replace />} />
       </Route>
 
-      {/* Fallback to Login */}
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      {/* Safe Dynamic Fallback: Never log out authenticated users on unrecognized routes */}
+      <Route path="*" element={<WildcardRedirect />} />
     </Routes>
   );
 };

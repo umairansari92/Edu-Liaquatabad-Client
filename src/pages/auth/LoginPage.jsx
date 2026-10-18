@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
-import { useNavigate, Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -56,6 +56,7 @@ export const LoginPage = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { user, isAuthenticated, sessionChecked } = useSelector((state) => state.auth);
 
   const {
     register,
@@ -87,10 +88,13 @@ export const LoginPage = () => {
   };
 
   useEffect(() => {
-    // Purge any lingering stale session or access token when entering login screen
-    dispatch(logout());
     fetchCaptcha(false); // initial load — no cooldown
-  }, [dispatch]);
+  }, []);
+
+  // If already authenticated with an active session, redirect directly to dashboard
+  if (sessionChecked && isAuthenticated && user) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   // CAPTCHA refresh cooldown ticker — 1 tick/sec until 0
   useEffect(() => {

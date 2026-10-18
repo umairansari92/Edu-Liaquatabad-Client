@@ -47,12 +47,77 @@ const CATEGORIES = [
   { id: 'SECURITY', label: 'Security & System' },
 ];
 
+const resolveNotificationActionLink = (actionLink, userRole) => {
+  if (!actionLink || typeof actionLink !== 'string') return null;
+
+  const trimmedLink = actionLink.trim();
+  const normalizedRole = String(userRole || '').toUpperCase();
+
+  // Direct mapping for legacy / backend leave route references
+  if (trimmedLink === '/leave/my-requests') {
+    if (normalizedRole === 'TEACHER') return '/dashboard?tab=service';
+    if (normalizedRole === 'HM') return '/dashboard?tab=leaves';
+    return '/dashboard?tab=service';
+  }
+
+  if (trimmedLink === '/leave/pending') {
+    if (normalizedRole === 'HM') return '/dashboard?tab=leaves';
+    if (['ADMIN', 'SUPER_ADMIN', 'ROOT_ADMIN'].includes(normalizedRole)) return '/approvals';
+    return '/dashboard';
+  }
+
+  // Direct mapping for staff attendance routes
+  if (trimmedLink === '/staff-attendance/pending') {
+    if (normalizedRole === 'HM') return '/dashboard?tab=attendance';
+    return '/attendance';
+  }
+
+  if (trimmedLink === '/staff-attendance/my-record') {
+    if (normalizedRole === 'TEACHER') return '/dashboard?tab=service';
+    return '/dashboard?tab=attendance';
+  }
+
+  // Parent / HM link routes
+  if (trimmedLink === '/hm/parent-links') {
+    return '/dashboard?tab=approvals';
+  }
+
+  if (trimmedLink === '/parent/dashboard') {
+    return '/dashboard';
+  }
+
+  if (trimmedLink === '/homework') {
+    return '/dashboard?tab=homework';
+  }
+
+  if (trimmedLink === '/exams') {
+    if (normalizedRole === 'TEACHER' || normalizedRole === 'STUDENT') {
+      return '/dashboard?tab=exams';
+    }
+    return '/exams';
+  }
+
+  if (trimmedLink === '/attendance') {
+    if (normalizedRole === 'TEACHER' || normalizedRole === 'STUDENT') {
+      return '/dashboard?tab=attendance';
+    }
+    return '/attendance';
+  }
+
+  if (trimmedLink.startsWith('/staff/')) {
+    return '/profile';
+  }
+
+  return trimmedLink;
+};
+
 export const NotificationDropdown = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  const { user } = useSelector((state) => state.auth);
   const {
     notifications,
     unreadCount,
@@ -147,10 +212,13 @@ export const NotificationDropdown = ({ isOpen, onClose }) => {
       dispatch(markNotificationAsRead({ notificationId: notification._id, isRead: true }));
     }
 
-    // If an action link exists, navigate to it and close the panel
+    // Resolve safe destination route for the user's role
     if (notification.actionLink) {
+      const destinationUrl = resolveNotificationActionLink(notification.actionLink, user?.role);
       onClose();
-      navigate(notification.actionLink);
+      if (destinationUrl) {
+        navigate(destinationUrl);
+      }
     }
   };
 
