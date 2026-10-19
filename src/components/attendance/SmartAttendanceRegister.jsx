@@ -440,12 +440,12 @@ export const SmartAttendanceRegister = ({
                     const isToday = calDay.isToday;
 
                     let bgClass = 'bg-slate-50 text-slate-700';
-                    if (isSunday) {
+                    if (isHoliday) {
+                      bgClass = 'bg-rose-100 text-rose-950 border-r border-rose-300';
+                    } else if (isSunday) {
                       bgClass = 'bg-amber-100 text-amber-950 border-r border-amber-300';
                     } else if (isWeeklyOff || isSaturday) {
                       bgClass = 'bg-orange-100 text-orange-950 border-r border-orange-300';
-                    } else if (isHoliday) {
-                      bgClass = 'bg-rose-100 text-rose-950 border-r border-rose-300';
                     } else if (isMissed) {
                       bgClass = 'bg-amber-50 text-amber-900 border-amber-300';
                     } else if (isToday) {
@@ -528,24 +528,30 @@ export const SmartAttendanceRegister = ({
                         if (isClosed && !hasRecordedAttendance) {
                           // Only render the <td> on the first student row (studentIndex === 0) with rowSpan!
                           if (studentIndex === 0) {
+                            const isHoliday = calDay.dayType === 'HOLIDAY';
                             const isSunday = calDay.dayOfWeek === 0;
                             const isSaturday = calDay.dayOfWeek === 6;
-                            const isHoliday = calDay.dayType === 'HOLIDAY';
 
                             let bandBg = 'bg-amber-100/90 text-amber-950 border-r border-amber-300';
                             let bandText = 'SUNDAY';
 
-                            if (isSunday) {
+                            if (isHoliday) {
+                              bandBg = 'bg-rose-100/90 text-rose-950 border-r border-rose-300';
+                              bandText = (calDay.holidayTitle || calDay.closureLabel || 'HOLIDAY').toUpperCase();
+                            } else if (isSunday) {
                               bandBg = 'bg-amber-100/90 text-amber-950 border-r border-amber-300';
                               bandText = 'SUNDAY';
-                            } else if (isHoliday) {
-                              bandBg = 'bg-rose-100/90 text-rose-950 border-r border-rose-300';
-                              bandText = calDay.closureLabel ? calDay.closureLabel.toUpperCase() : 'HOLIDAY';
                             } else {
                               // Saturday or custom weekly off
                               bandBg = 'bg-orange-100/90 text-orange-950 border-r border-orange-300';
                               bandText = calDay.closureLabel ? calDay.closureLabel.toUpperCase() : (isSaturday ? 'SATURDAY' : 'OFF DAY');
                             }
+
+                            const fontClass = bandText.length > 20
+                              ? 'text-[8.5px] tracking-wider'
+                              : bandText.length > 14
+                              ? 'text-[9.5px] tracking-wide'
+                              : 'text-[11px] tracking-widest';
 
                             return (
                               <td
@@ -555,7 +561,7 @@ export const SmartAttendanceRegister = ({
                                 title={`${calDay.date} (${calDay.dayNameFull}) — ${calDay.closureLabel || calDay.status}`}
                               >
                                 <div className="h-full min-h-[140px] flex items-center justify-center py-4 px-0.5">
-                                  <span className="register-vertical-band text-[11px] font-black tracking-widest">
+                                  <span className={`register-vertical-band font-black ${fontClass}`}>
                                     {bandText}
                                   </span>
                                 </div>
