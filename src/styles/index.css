@@ -361,6 +361,25 @@ body.screen-protected canvas {
   -webkit-user-drag: none !important;
 }
 
+/* ── Smart Attendance Register Vertical Non-Working Day Bands ── */
+.register-vertical-band {
+  writing-mode: vertical-rl;
+  -webkit-writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  white-space: nowrap;
+  letter-spacing: 0.15em;
+  font-weight: 900;
+  text-transform: uppercase;
+  user-select: none;
+  display: inline-block;
+}
+
+td.register-closure-band {
+  vertical-align: middle !important;
+  text-align: center !important;
+  padding: 0 !important;
+}
+
 @media print {
   @page {
     size: legal landscape;
@@ -439,6 +458,20 @@ body.screen-protected canvas {
     font-size: 8pt !important;
     padding: 2.5px 1px !important;
     line-height: 1.1 !important;
+  }
+
+  body.print-register-mode .printable-attendance-register td.register-closure-band {
+    vertical-align: middle !important;
+    text-align: center !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body.print-register-mode .register-vertical-band {
+    font-size: 7pt !important;
+    letter-spacing: 0.1em !important;
+    max-height: 100% !important;
   }
 
   /* ── Dedicated A4 Timetable Printable Layout ── */

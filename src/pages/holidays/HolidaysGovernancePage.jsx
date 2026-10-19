@@ -60,9 +60,14 @@ export const HolidaysGovernancePage = () => {
     showInBanner: true,
   });
 
+  // Schools list for Town Admin selection
+  const [schools, setSchools] = useState([]);
+
   // Weekly-Off Form State
   const [weeklyOffForm, setWeeklyOffForm] = useState({
     offDays: [0, 6], // Saturday & Sunday default
+    scopeType: 'TOWN',
+    schoolId: '',
     reason: 'Sindh Government School Education Department Notification (Saturday & Sunday Weekly Off)',
     effectiveFrom: new Date().toISOString().split('T')[0],
   });
@@ -71,15 +76,22 @@ export const HolidaysGovernancePage = () => {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [holidaysRes, weeklyOffRes] = await Promise.all([
+      const promises = [
         apiClient.get('/holidays?status=ALL'),
         apiClient.get('/weekly-off'),
-      ]);
-      if (holidaysRes.data?.success) {
-        setHolidays(holidaysRes.data.data?.holidays || []);
+      ];
+      if (isTownAdmin) {
+        promises.push(apiClient.get('/schools'));
       }
-      if (weeklyOffRes.data?.success) {
-        setWeeklyOffs(weeklyOffRes.data.data?.patterns || []);
+      const results = await Promise.all(promises);
+      if (results[0].data?.success) {
+        setHolidays(results[0].data.data?.holidays || []);
+      }
+      if (results[1].data?.success) {
+        setWeeklyOffs(results[1].data.data?.patterns || []);
+      }
+      if (results[2]?.data?.success) {
+        setSchools(results[2].data.data?.schools || []);
       }
     } catch (holidayFetchError) {
       console.error('Failed to load holidays:', holidayFetchError);
@@ -87,7 +99,7 @@ export const HolidaysGovernancePage = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isTownAdmin]);
 
   useEffect(() => {
     fetchData();
@@ -187,17 +199,30 @@ export const HolidaysGovernancePage = () => {
       toast.error('Justification must be at least 10 characters long.');
       return;
     }
+    if (!weeklyOffForm.offDays || weeklyOffForm.offDays.length === 0) {
+      toast.error('At least one weekly-off day must be selected.');
+      return;
+    }
+    if (weeklyOffForm.scopeType === 'SCHOOL' && !weeklyOffForm.schoolId) {
+      toast.error('Please select a school for school-scoped weekly-off policy.');
+      return;
+    }
     setIsSubmitting(true);
     try {
       const payload = {
         offDays: weeklyOffForm.offDays,
         reason: weeklyOffForm.reason.trim(),
         effectiveFrom: weeklyOffForm.effectiveFrom,
-        scopeType: 'TOWN',
+        scopeType: weeklyOffForm.scopeType || 'TOWN',
+        schoolId: weeklyOffForm.scopeType === 'SCHOOL' ? weeklyOffForm.schoolId : undefined,
       };
       const weeklyOffResponse = await apiClient.post('/weekly-off', payload);
       if (weeklyOffResponse.data?.success) {
-        toast.success('Weekly-off policy updated town-wide!');
+        toast.success(
+          weeklyOffForm.scopeType === 'SCHOOL'
+            ? 'School-specific weekly-off policy configured successfully!'
+            : 'Weekly-off policy updated town-wide!'
+        );
         setIsWeeklyOffModalOpen(false);
         fetchData();
       }
@@ -504,109 +529,192 @@ export const HolidaysGovernancePage = () => {
           <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
             <div className="flex items-center gap-3">
               <Calendar className="h-5 w-5 text-[#006AC7]" />
-              <h3 className="text-base font-bold text-[#102033]">Scheduled Breaks &amp; Official Closures</h3>
+              <h3 className="text-base font-bold text-[#102033]">
+                {activeTab === 'WEEKLY_OFF' ? 'Official Weekly-Off Policies' : 'Scheduled Breaks & Official Closures'}
+              </h3>
             </div>
-            <div className="flex items-center gap-2">
-              {['ALL', 'ACTIVE', 'SCHEDULED', 'EXPIRED', 'CANCELLED'].map((tab) => (
+            <div className="flex flex-wrap items-center gap-2">
+              {['ALL', 'ACTIVE', 'SCHEDULED', 'EXPIRED', 'CANCELLED', 'WEEKLY_OFF'].map((tab) => (
                 <button
                   key={tab}
                   type="button"
                   onClick={() => setActiveTab(tab)}
-                  className={`rounded-xl px-3 py-1.5 text-xs font-bold transition ${
+                  className={`rounded-xl px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
                     activeTab === tab
                       ? 'bg-[#006AC7] text-white shadow-sm'
                       : 'text-[#526477] hover:bg-slate-100 hover:text-[#102033]'
                   }`}
                 >
-                  {tab}
+                  {tab === 'WEEKLY_OFF' ? 'Weekly-Off Policies' : tab}
                 </button>
               ))}
             </div>
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-[#526477]">
-              <thead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-[#526477] border-b border-slate-200/80">
-                <tr>
-                  <th className="px-6 py-3.5">Announcement / Title</th>
-                  <th className="px-6 py-3.5">Scope</th>
-                  <th className="px-6 py-3.5">Category</th>
-                  <th className="px-6 py-3.5">Date Range</th>
-                  <th className="px-6 py-3.5">Declared By</th>
-                  <th className="px-6 py-3.5">Status</th>
-                  <th className="px-6 py-3.5 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {holidays.filter((holidayItem) => activeTab === 'ALL' || holidayItem.status === activeTab).length === 0 ? (
+            {activeTab === 'WEEKLY_OFF' ? (
+              <table className="w-full text-left text-xs text-[#526477]">
+                <thead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-[#526477] border-b border-slate-200/80">
                   <tr>
-                    <td colSpan="7" className="px-6 py-12 text-center text-[#8094A8]">
-                      No breaks or closures found matching filter.
-                    </td>
+                    <th className="px-6 py-3.5">Weekly Off Days</th>
+                    <th className="px-6 py-3.5">Scope</th>
+                    <th className="px-6 py-3.5">Effective Date</th>
+                    <th className="px-6 py-3.5">Official Justification / Notification</th>
+                    <th className="px-6 py-3.5">Configured By</th>
+                    <th className="px-6 py-3.5">Status</th>
                   </tr>
-                ) : (
-                  holidays
-                    .filter((holidayItem) => activeTab === 'ALL' || holidayItem.status === activeTab)
-                    .map((holidayRecord) => (
-                      <tr key={holidayRecord._id} className="hover:bg-blue-50/40 transition">
-                        <td className="px-6 py-4">
-                          <div className="font-bold text-[#102033]">{holidayRecord.title}</div>
-                          <div className="text-[11px] text-[#526477] line-clamp-1">{holidayRecord.reason}</div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span
-                            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${
-                              holidayRecord.scopeType === 'TOWN'
-                                ? 'bg-purple-50 text-purple-700 border-purple-200'
-                                : 'bg-amber-50 text-amber-700 border-amber-200'
-                            }`}
-                          >
-                            {holidayRecord.scopeType === 'TOWN' ? 'Town-Wide' : holidayRecord.schoolId?.name || 'Single School'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="font-mono text-[#006AC7] font-semibold">{holidayRecord.holidayType}</span>
-                        </td>
-                        <td className="px-6 py-4 font-mono text-[#102033]">
-                          {holidayRecord.startDate} {holidayRecord.startDate !== holidayRecord.endDate ? `to ${holidayRecord.endDate}` : ''}
-                        </td>
-                        <td className="px-6 py-4 text-[#526477]">
-                          {holidayRecord.declaredBy?.fullName || 'Municipal Authority'}
-                        </td>
-                        <td className="px-6 py-4">
-                          <span
-                            className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${
-                              holidayRecord.status === 'ACTIVE'
-                                ? 'bg-emerald-50 text-[#4B7F3A] border-emerald-200'
-                                : holidayRecord.status === 'SCHEDULED'
-                                ? 'bg-blue-50 text-[#006AC7] border-blue-200'
-                                : holidayRecord.status === 'EXPIRED'
-                                ? 'bg-slate-100 text-slate-600 border-slate-200'
-                                : holidayRecord.status === 'CANCELLED'
-                                ? 'bg-rose-50 text-rose-700 border-rose-200'
-                                : 'bg-slate-100 text-slate-700 border-slate-200'
-                            }`}
-                          >
-                            {holidayRecord.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          {['ACTIVE', 'SCHEDULED'].includes(holidayRecord.status) && (isTownAdmin || isHm) && (
-                            <button
-                              type="button"
-                              onClick={() => handleOpenCancelModal(holidayRecord)}
-                              className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition cursor-pointer"
-                              title="Revoke / Cancel Holiday"
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {weeklyOffs.length === 0 ? (
+                    <tr>
+                      <td colSpan="6" className="px-6 py-12 text-center text-[#8094A8]">
+                        No weekly-off policies configured yet. Default Sunday statutory off applies.
+                      </td>
+                    </tr>
+                  ) : (
+                    weeklyOffs.map((pattern) => {
+                      const dayLabels = (pattern.offDays || [])
+                        .map((d) => ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][d] || `Day ${d}`)
+                        .join(' & ');
+
+                      return (
+                        <tr key={pattern._id} className="hover:bg-blue-50/40 transition">
+                          <td className="px-6 py-4">
+                            <div className="font-bold text-[#102033] flex items-center gap-1.5">
+                              <CalendarDays className="w-4 h-4 text-[#006AC7]" />
+                              <span>{dayLabels || 'Sunday Only'}</span>
+                            </div>
+                            <div className="text-[10px] text-slate-400 mt-0.5">
+                              Numeric: [{(pattern.offDays || []).join(', ')}]
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span
+                              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${
+                                pattern.scopeType === 'TOWN'
+                                  ? 'bg-purple-50 text-purple-700 border-purple-200'
+                                  : 'bg-amber-50 text-amber-700 border-amber-200'
+                              }`}
                             >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))
-                )}
-              </tbody>
-            </table>
+                              {pattern.scopeType === 'TOWN' ? 'Town-Wide' : pattern.schoolId?.name || 'Single School'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 font-mono text-[#102033]">
+                            {pattern.effectiveFrom ? new Date(pattern.effectiveFrom).toISOString().split('T')[0] : 'Immediate'}
+                            {pattern.effectiveTo && (
+                              <span className="text-slate-400 text-[10px] block">
+                                to {new Date(pattern.effectiveTo).toISOString().split('T')[0]}
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-6 py-4">
+                            <p className="text-xs font-medium text-slate-700 line-clamp-2">{pattern.reason}</p>
+                          </td>
+                          <td className="px-6 py-4 text-[#526477]">
+                            <span className="font-bold text-slate-800">{pattern.createdBy?.fullName || 'Municipal Leadership'}</span>
+                            <span className="text-[10px] text-slate-400 block">{pattern.createdBy?.role || 'ADMIN'}</span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span
+                              className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${
+                                pattern.status === 'ACTIVE'
+                                  ? 'bg-emerald-50 text-[#4B7F3A] border-emerald-200'
+                                  : 'bg-slate-100 text-slate-600 border-slate-200'
+                              }`}
+                            >
+                              {pattern.status}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            ) : (
+              <table className="w-full text-left text-xs text-[#526477]">
+                <thead className="bg-slate-50/80 text-[11px] font-bold uppercase tracking-wider text-[#526477] border-b border-slate-200/80">
+                  <tr>
+                    <th className="px-6 py-3.5">Announcement / Title</th>
+                    <th className="px-6 py-3.5">Scope</th>
+                    <th className="px-6 py-3.5">Category</th>
+                    <th className="px-6 py-3.5">Date Range</th>
+                    <th className="px-6 py-3.5">Declared By</th>
+                    <th className="px-6 py-3.5">Status</th>
+                    <th className="px-6 py-3.5 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {holidays.filter((holidayItem) => activeTab === 'ALL' || holidayItem.status === activeTab).length === 0 ? (
+                    <tr>
+                      <td colSpan="7" className="px-6 py-12 text-center text-[#8094A8]">
+                        No breaks or closures found matching filter.
+                      </td>
+                    </tr>
+                  ) : (
+                    holidays
+                      .filter((holidayItem) => activeTab === 'ALL' || holidayItem.status === activeTab)
+                      .map((holidayRecord) => (
+                        <tr key={holidayRecord._id} className="hover:bg-blue-50/40 transition">
+                          <td className="px-6 py-4">
+                            <div className="font-bold text-[#102033]">{holidayRecord.title}</div>
+                            <div className="text-[11px] text-[#526477] line-clamp-1">{holidayRecord.reason}</div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span
+                              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${
+                                holidayRecord.scopeType === 'TOWN'
+                                  ? 'bg-purple-50 text-purple-700 border-purple-200'
+                                  : 'bg-amber-50 text-amber-700 border-amber-200'
+                              }`}
+                            >
+                              {holidayRecord.scopeType === 'TOWN' ? 'Town-Wide' : holidayRecord.schoolId?.name || 'Single School'}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4">
+                            <span className="font-mono text-[#006AC7] font-semibold">{holidayRecord.holidayType}</span>
+                          </td>
+                          <td className="px-6 py-4 font-mono text-[#102033]">
+                            {holidayRecord.startDate} {holidayRecord.startDate !== holidayRecord.endDate ? `to ${holidayRecord.endDate}` : ''}
+                          </td>
+                          <td className="px-6 py-4 text-[#526477]">
+                            {holidayRecord.declaredBy?.fullName || 'Municipal Authority'}
+                          </td>
+                          <td className="px-6 py-4">
+                            <span
+                              className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${
+                                holidayRecord.status === 'ACTIVE'
+                                  ? 'bg-emerald-50 text-[#4B7F3A] border-emerald-200'
+                                  : holidayRecord.status === 'SCHEDULED'
+                                  ? 'bg-blue-50 text-[#006AC7] border-blue-200'
+                                  : holidayRecord.status === 'EXPIRED'
+                                  ? 'bg-slate-100 text-slate-600 border-slate-200'
+                                  : holidayRecord.status === 'CANCELLED'
+                                  ? 'bg-rose-50 text-rose-700 border-rose-200'
+                                  : 'bg-slate-100 text-slate-700 border-slate-200'
+                              }`}
+                            >
+                              {holidayRecord.status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 text-right">
+                            {['ACTIVE', 'SCHEDULED'].includes(holidayRecord.status) && (isTownAdmin || isHm) && (
+                              <button
+                                type="button"
+                                onClick={() => handleOpenCancelModal(holidayRecord)}
+                                className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition cursor-pointer"
+                                title="Revoke / Cancel Holiday"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
 
@@ -766,15 +874,15 @@ export const HolidaysGovernancePage = () => {
 
               <form onSubmit={handleWeeklyOffSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-[#526477]">Policy Mode *</label>
+                  <label className="block text-xs font-bold text-[#526477]">Quick Preset Schedule</label>
                   <div className="mt-2 grid grid-cols-2 gap-3">
                     <button
                       type="button"
                       onClick={() => setWeeklyOffForm({ ...weeklyOffForm, offDays: [0, 6] })}
-                      className={`rounded-2xl border p-3.5 text-left transition ${
-                        weeklyOffForm.offDays.includes(6)
+                      className={`rounded-2xl border p-3.5 text-left transition cursor-pointer ${
+                        weeklyOffForm.offDays.includes(0) && weeklyOffForm.offDays.includes(6) && weeklyOffForm.offDays.length === 2
                           ? 'border-[#006AC7] bg-blue-50 text-[#006AC7] font-bold shadow-sm'
-                          : 'border-slate-200 bg-slate-50 text-[#526477]'
+                          : 'border-slate-200 bg-slate-50 text-[#526477] hover:bg-slate-100'
                       }`}
                     >
                       <div className="font-bold text-xs">Saturday &amp; Sunday Off</div>
@@ -784,16 +892,103 @@ export const HolidaysGovernancePage = () => {
                     <button
                       type="button"
                       onClick={() => setWeeklyOffForm({ ...weeklyOffForm, offDays: [0] })}
-                      className={`rounded-2xl border p-3.5 text-left transition ${
-                        !weeklyOffForm.offDays.includes(6)
+                      className={`rounded-2xl border p-3.5 text-left transition cursor-pointer ${
+                        weeklyOffForm.offDays.includes(0) && weeklyOffForm.offDays.length === 1
                           ? 'border-[#006AC7] bg-blue-50 text-[#006AC7] font-bold shadow-sm'
-                          : 'border-slate-200 bg-slate-50 text-[#526477]'
+                          : 'border-slate-200 bg-slate-50 text-[#526477] hover:bg-slate-100'
                       }`}
                     >
                       <div className="font-bold text-xs">Sunday Only Off</div>
                       <div className="text-[10px] mt-0.5 opacity-80">Saturday Open as Working Day</div>
                     </button>
                   </div>
+                </div>
+
+                {/* Individual Day Selection */}
+                <div>
+                  <label className="block text-xs font-bold text-[#526477] mb-1.5">
+                    Customize Off Days <span className="text-[10px] text-slate-400 font-normal">(Select 1 or more)</span>
+                  </label>
+                  <div className="grid grid-cols-7 gap-1.5">
+                    {[
+                      { day: 0, label: 'Sun' },
+                      { day: 1, label: 'Mon' },
+                      { day: 2, label: 'Tue' },
+                      { day: 3, label: 'Wed' },
+                      { day: 4, label: 'Thu' },
+                      { day: 5, label: 'Fri' },
+                      { day: 6, label: 'Sat' },
+                    ].map(({ day, label }) => {
+                      const isSelected = weeklyOffForm.offDays.includes(day);
+                      return (
+                        <button
+                          key={day}
+                          type="button"
+                          onClick={() => {
+                            const newOffDays = isSelected
+                              ? weeklyOffForm.offDays.filter((d) => d !== day)
+                              : [...weeklyOffForm.offDays, day].sort((a, b) => a - b);
+                            if (newOffDays.length === 0) {
+                              toast.error('At least one weekly-off day must remain selected.');
+                              return;
+                            }
+                            setWeeklyOffForm({ ...weeklyOffForm, offDays: newOffDays });
+                          }}
+                          className={`py-2 px-1 text-center rounded-xl text-xs font-bold transition border cursor-pointer ${
+                            isSelected
+                              ? 'bg-[#006AC7] text-white border-[#006AC7] shadow-xs'
+                              : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Scope Selection */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-[#526477]">Administrative Scope *</label>
+                    <select
+                      value={weeklyOffForm.scopeType}
+                      onChange={(e) => setWeeklyOffForm({ ...weeklyOffForm, scopeType: e.target.value })}
+                      className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-[#102033] focus:border-[#006AC7] focus:outline-none cursor-pointer"
+                    >
+                      <option value="TOWN">Town-Wide (All Schools)</option>
+                      <option value="SCHOOL">Single School Override</option>
+                    </select>
+                  </div>
+
+                  {weeklyOffForm.scopeType === 'SCHOOL' ? (
+                    <div>
+                      <label className="block text-xs font-bold text-[#526477]">Target School *</label>
+                      <select
+                        required
+                        value={weeklyOffForm.schoolId}
+                        onChange={(e) => setWeeklyOffForm({ ...weeklyOffForm, schoolId: e.target.value })}
+                        className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-[#102033] focus:border-[#006AC7] focus:outline-none cursor-pointer"
+                      >
+                        <option value="">Select a school...</option>
+                        {schools.map((school) => (
+                          <option key={school._id} value={school._id}>
+                            {school.name} ({school.schoolCode || school.code || 'LT'})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="block text-xs font-bold text-[#526477]">Jurisdiction</label>
+                      <input
+                        type="text"
+                        disabled
+                        value="Liaquatabad Town Centre (DMC)"
+                        className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-mono text-[#526477]"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -803,7 +998,7 @@ export const HolidaysGovernancePage = () => {
                     required
                     value={weeklyOffForm.effectiveFrom}
                     onChange={(inputChangeEvent) => setWeeklyOffForm({ ...weeklyOffForm, effectiveFrom: inputChangeEvent.target.value })}
-                    className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-mono text-[#102033] focus:border-[#006AC7] focus:outline-none"
+                    className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-mono text-[#102033] focus:border-[#006AC7] focus:outline-none cursor-pointer"
                   />
                 </div>
 

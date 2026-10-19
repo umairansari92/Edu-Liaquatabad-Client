@@ -436,20 +436,29 @@ export const SmartAttendanceRegister = ({
                   {/* Day Columns 1 to N */}
                   {calendarDays.map((calDay) => {
                     const isSunday = calDay.dayOfWeek === 0;
+                    const isSaturday = calDay.dayOfWeek === 6;
+                    const isWeeklyOff = calDay.dayType === 'WEEKLY_OFF' || calDay.isWeeklyOff;
                     const isHoliday = calDay.dayType === 'HOLIDAY';
                     const isMissed = calDay.status === 'NOT_TAKEN';
                     const isToday = calDay.isToday;
 
                     let bgClass = 'bg-slate-50 text-slate-700';
-                    if (isSunday) bgClass = 'bg-amber-100 text-amber-900';
-                    else if (isHoliday) bgClass = 'bg-rose-100 text-rose-900';
-                    else if (isMissed) bgClass = 'bg-amber-50 text-amber-900 border-amber-300';
-                    else if (isToday) bgClass = 'bg-blue-100 text-[#006AC7] font-black ring-1 ring-[#006AC7]';
+                    if (isSunday) {
+                      bgClass = 'bg-amber-100 text-amber-950 border-r border-amber-300';
+                    } else if (isWeeklyOff || isSaturday) {
+                      bgClass = 'bg-orange-100 text-orange-950 border-r border-orange-300';
+                    } else if (isHoliday) {
+                      bgClass = 'bg-rose-100 text-rose-950 border-r border-rose-300';
+                    } else if (isMissed) {
+                      bgClass = 'bg-amber-50 text-amber-900 border-amber-300';
+                    } else if (isToday) {
+                      bgClass = 'bg-blue-100 text-[#006AC7] font-black ring-1 ring-[#006AC7]';
+                    }
 
                     return (
                       <th
                         key={calDay.date}
-                        className={`py-1.5 px-1 w-9 border-r border-slate-200 transition-colors ${bgClass}`}
+                        className={`py-1.5 px-0.5 w-8 min-w-8 border-r border-slate-200 transition-colors ${bgClass}`}
                         title={`${calDay.date} (${calDay.dayNameFull}) — ${calDay.closureLabel || calDay.status}`}
                       >
                         <div className="text-[12px] font-black leading-tight">{String(calDay.dayNumber).padStart(2, '0')}</div>
@@ -458,7 +467,7 @@ export const SmartAttendanceRegister = ({
                           <button
                             type="button"
                             onClick={() => handleOpenMissedClearance(calDay)}
-                            className="mt-0.5 text-[8px] font-black px-1 rounded bg-amber-600 text-white hover:bg-amber-700 cursor-pointer print:hidden block mx-auto"
+                            className="mt-0.5 text-[8px] font-black px-1 rounded bg-amber-600 text-white hover:bg-amber-700 cursor-pointer print:hidden block mx-auto shadow-xs"
                             title="Head Master: Click to clear missed attendance"
                           >
                             Clear
@@ -514,8 +523,54 @@ export const SmartAttendanceRegister = ({
                       {calendarDays.map((calDay) => {
                         const dateStr = calDay.date;
                         const status = student.attendance?.[dateStr];
-                        const isSunday = calDay.dayOfWeek === 0;
-                        const isHoliday = calDay.dayType === 'HOLIDAY';
+                        const isClosed = calDay.isClosed;
+                        const hasRecordedAttendance = Boolean(calDay.hasRecordedAttendance || calDay.isAttendanceTaken);
+
+                        // If this day is an official non-working closure (Sunday, Saturday weekly off, Gazetted Holiday)
+                        // and has NO recorded attendance, render a continuous vertical column band spanning all student rows!
+                        if (isClosed && !hasRecordedAttendance) {
+                          // Only render the <td> on the first student row (studentIndex === 0) with rowSpan!
+                          if (studentIndex === 0) {
+                            const isSunday = calDay.dayOfWeek === 0;
+                            const isSaturday = calDay.dayOfWeek === 6;
+                            const isHoliday = calDay.dayType === 'HOLIDAY';
+
+                            let bandBg = 'bg-amber-100/90 text-amber-950 border-r border-amber-300';
+                            let bandText = 'SUNDAY';
+
+                            if (isSunday) {
+                              bandBg = 'bg-amber-100/90 text-amber-950 border-r border-amber-300';
+                              bandText = 'SUNDAY';
+                            } else if (isHoliday) {
+                              bandBg = 'bg-rose-100/90 text-rose-950 border-r border-rose-300';
+                              bandText = calDay.closureLabel ? calDay.closureLabel.toUpperCase() : 'HOLIDAY';
+                            } else {
+                              // Saturday or custom weekly off
+                              bandBg = 'bg-orange-100/90 text-orange-950 border-r border-orange-300';
+                              bandText = calDay.closureLabel ? calDay.closureLabel.toUpperCase() : (isSaturday ? 'SATURDAY' : 'OFF DAY');
+                            }
+
+                            return (
+                              <td
+                                key={dateStr}
+                                rowSpan={students.length}
+                                className={`register-closure-band select-none ${bandBg}`}
+                                title={`${calDay.date} (${calDay.dayNameFull}) — ${calDay.closureLabel || calDay.status}`}
+                              >
+                                <div className="h-full min-h-[140px] flex items-center justify-center py-4 px-0.5">
+                                  <span className="register-vertical-band text-[11px] font-black tracking-widest">
+                                    {bandText}
+                                  </span>
+                                </div>
+                              </td>
+                            );
+                          }
+
+                          // On subsequent student rows (studentIndex > 0), return null because the rowSpan cell covers it!
+                          return null;
+                        }
+
+                        // Otherwise, render normal individual student cell (working days, or closures with recorded attendance)
                         const isMissed = calDay.status === 'NOT_TAKEN';
                         const isFuture = calDay.isFutureDate;
 
@@ -524,19 +579,13 @@ export const SmartAttendanceRegister = ({
 
                         if (status === 'PRESENT') {
                           cellContent = 'P';
-                          cellClass = 'text-emerald-700 font-black bg-emerald-50/30';
+                          cellClass = 'text-emerald-700 font-black bg-emerald-50/40';
                         } else if (status === 'ABSENT') {
                           cellContent = 'A';
-                          cellClass = 'text-rose-700 font-black bg-rose-50/50';
+                          cellClass = 'text-rose-700 font-black bg-rose-50/60';
                         } else if (status === 'LEAVE') {
                           cellContent = 'L';
-                          cellClass = 'text-amber-700 font-black bg-amber-50/30';
-                        } else if (isSunday) {
-                          cellContent = 'S';
-                          cellClass = 'text-amber-800/60 font-bold bg-amber-100/40';
-                        } else if (isHoliday) {
-                          cellContent = 'H';
-                          cellClass = 'text-rose-800/60 font-bold bg-rose-100/30';
+                          cellClass = 'text-amber-700 font-black bg-amber-50/40';
                         } else if (isMissed) {
                           cellContent = '—';
                           cellClass = 'text-amber-600/80 font-bold bg-amber-50/40';
@@ -692,6 +741,10 @@ export const SmartAttendanceRegister = ({
                 <div className="flex items-center gap-1.5">
                   <span className="w-5 h-5 rounded flex items-center justify-center font-black bg-amber-200 text-amber-900">S</span>
                   <span>Sunday Weekly Off</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded flex items-center justify-center font-black bg-orange-200 text-orange-900">Sat</span>
+                  <span>Saturday Weekly Off</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-5 h-5 rounded flex items-center justify-center font-black bg-rose-200 text-rose-900">H</span>
