@@ -485,7 +485,13 @@ export const TeacherDashboard = () => {
         records: recordsWithRemarks,
       };
       await dispatch(submitStudentAttendance(payload)).unwrap();
-      discardAttendanceDraft();
+      try {
+        if (typeof discardAttendanceDraft === 'function') {
+          discardAttendanceDraft();
+        }
+      } catch (draftCleanupError) {
+        console.warn('[TeacherDashboard] Non-blocking draft cleanup warning after attendance submission:', draftCleanupError);
+      }
       toast.success(`Attendance submitted: ${presentStudentsCount} Present, ${absentStudentsCount} Absent, ${leaveStudentsCount} Leave.`);
       dispatch(fetchTeacherSummary());
     } catch (errorObject) {
@@ -579,7 +585,13 @@ export const TeacherDashboard = () => {
         subjectId: selectedExamSubjectId || undefined,
       })).unwrap();
 
-      discardMarksDraft();
+      try {
+        if (typeof discardMarksDraft === 'function') {
+          discardMarksDraft();
+        }
+      } catch (draftCleanupError) {
+        console.warn('[TeacherDashboard] Non-blocking draft cleanup warning after marks submission:', draftCleanupError);
+      }
       toast.success('Exam marks submitted successfully!');
     } catch (errorObject) {
       toast.error(getErrorMessage(errorObject, 'Failed to submit exam marks.'));
@@ -633,7 +645,13 @@ export const TeacherDashboard = () => {
       }
 
       toast.success('Homework assigned successfully.');
-      discardHomeworkDraft();
+      try {
+        if (typeof discardHomeworkDraft === 'function') {
+          discardHomeworkDraft();
+        }
+      } catch (draftCleanupError) {
+        console.warn('[TeacherDashboard] Non-blocking draft cleanup warning after homework assignment:', draftCleanupError);
+      }
       handleCloseAssignModal();
       setNewHwTitle('');
       setNewHwDescription('');
@@ -1074,14 +1092,16 @@ export const TeacherDashboard = () => {
               hasDraft={hasAttendanceDraft}
               lastSavedAt={attendanceLastSavedAt}
               onRestore={() => {
-                const restoredData = restoreAttendanceDraft();
+                const restoredData = typeof restoreAttendanceDraft === 'function' ? restoreAttendanceDraft() : attendanceDraft;
                 if (restoredData?.records && Array.isArray(restoredData.records)) {
                   setLocalAttendanceRecords(restoredData.records);
                   toast.success('Offline attendance draft restored.');
                 }
               }}
               onDiscard={() => {
-                discardAttendanceDraft();
+                if (typeof discardAttendanceDraft === 'function') {
+                  discardAttendanceDraft();
+                }
                 toast.success('Offline draft discarded.');
               }}
             />
@@ -1303,14 +1323,16 @@ export const TeacherDashboard = () => {
               hasDraft={hasMarksDraft}
               lastSavedAt={marksLastSavedAt}
               onRestore={() => {
-                const restoredData = restoreMarksDraft();
+                const restoredData = typeof restoreMarksDraft === 'function' ? restoreMarksDraft() : marksDraft;
                 if (restoredData?.entries && Array.isArray(restoredData.entries)) {
                   setLocalMarksEntries(restoredData.entries);
                   toast.success('Offline examination marks draft restored.');
                 }
               }}
               onDiscard={() => {
-                discardMarksDraft();
+                if (typeof discardMarksDraft === 'function') {
+                  discardMarksDraft();
+                }
                 toast.success('Offline marks draft discarded.');
               }}
             />
@@ -2002,7 +2024,7 @@ export const TeacherDashboard = () => {
               hasDraft={hasHomeworkDraft}
               lastSavedAt={homeworkLastSavedAt}
               onRestore={() => {
-                const restoredData = restoreHomeworkDraft();
+                const restoredData = typeof restoreHomeworkDraft === 'function' ? restoreHomeworkDraft() : homeworkDraft;
                 if (restoredData) {
                   if (restoredData.sectionId) setNewHwSectionId(restoredData.sectionId);
                   if (restoredData.subjectId) setNewHwSubjectId(restoredData.subjectId);
@@ -2013,7 +2035,9 @@ export const TeacherDashboard = () => {
                 }
               }}
               onDiscard={() => {
-                discardHomeworkDraft();
+                if (typeof discardHomeworkDraft === 'function') {
+                  discardHomeworkDraft();
+                }
                 toast.success('Offline homework draft discarded.');
               }}
             />

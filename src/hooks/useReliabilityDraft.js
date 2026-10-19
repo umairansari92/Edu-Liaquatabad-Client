@@ -10,11 +10,13 @@ import {
  * Custom React Hook for form autosave and recovery
  * @param {string} module Module category ('attendance', 'homework', 'marks', etc.)
  * @param {string} [entityId='primary'] Specific entity or section identifier
+ * @param {Object} [options={}] Optional configuration (e.g. debounceMs)
  * @returns {Object}
  */
-export const useReliabilityDraft = (module, entityId = 'primary') => {
+export const useReliabilityDraft = (module, entityId = 'primary', options = {}) => {
   const { user } = useSelector((state) => state.auth);
   const userSessionBinding = user?._id || user?.userId || 'anonymous';
+  const customDebounceMs = options?.debounceMs;
 
   const [hasDraft, setHasDraft] = useState(false);
   const [draftData, setDraftData] = useState(null);
@@ -28,14 +30,27 @@ export const useReliabilityDraft = (module, entityId = 'primary') => {
     let isCancelled = false;
 
     const checkDraft = async () => {
-      if (!userSessionBinding || userSessionBinding === 'anonymous' || !module) return;
+      if (!userSessionBinding || userSessionBinding === 'anonymous' || !module || !entityId) {
+        if (!isCancelled && isMountedRef.current) {
+          setHasDraft(false);
+          setDraftData(null);
+          setDraftTimestamp(null);
+        }
+        return;
+      }
 
       try {
         const existingDraft = await loadFormDraft(userSessionBinding, module, entityId);
-        if (!isCancelled && existingDraft && existingDraft.payload) {
-          setHasDraft(true);
-          setDraftData(existingDraft.payload);
-          setDraftTimestamp(existingDraft.updatedAt || existingDraft.clientUpdatedAt);
+        if (!isCancelled && isMountedRef.current) {
+          if (existingDraft && existingDraft.payload) {
+            setHasDraft(true);
+            setDraftData(existingDraft.payload);
+            setDraftTimestamp(existingDraft.updatedAt || existingDraft.clientUpdatedAt || Date.now());
+          } else {
+            setHasDraft(false);
+            setDraftData(null);
+            setDraftTimestamp(null);
+          }
         }
       } catch (draftLoadError) {
         console.warn('[useReliabilityDraft] Error checking draft:', draftLoadError);
@@ -58,46 +73,72 @@ export const useReliabilityDraft = (module, entityId = 'primary') => {
       }
 
       setSaveStatus('saving');
-      const success = await saveFormDraft({
+      const savePayload = {
         userSessionBinding,
         module,
-        entityId,
+        entityId: entityId || 'primary',
         payload,
-      });
+      };
+      if (typeof customDebounceMs === 'number') {
+        savePayload.debounceMs = customDebounceMs;
+      }
+
+      const isSaveSuccessful = await saveFormDraft(savePayload);
 
       if (isMountedRef.current) {
-        setSaveStatus(success ? 'saved' : 'idle');
-        if (success) {
+        setSaveStatus(isSaveSuccessful ? 'saved' : 'idle');
+        if (isSaveSuccessful) {
           setHasDraft(true);
+          setDraftData(payload);
           setDraftTimestamp(Date.now());
         }
       }
-      return success;
+      return isSaveSuccessful;
     },
-    [userSessionBinding, module, entityId]
+    [userSessionBinding, module, entityId, customDebounceMs]
   );
 
-  // Discard Draft
-  const clearDraft = useCallback(async () => {
+  // Discard / Clear Draft
+  const discardDraft = useCallback(async () => {
     if (!userSessionBinding || !module) return false;
 
-    await clearFormDraft(userSessionBinding, module, entityId);
+    // Immediately clear in-memory draft state so recovery banners dismiss instantly
     if (isMountedRef.current) {
       setHasDraft(false);
       setDraftData(null);
       setDraftTimestamp(null);
       setSaveStatus('idle');
     }
-    return true;
+
+    try {
+      await clearFormDraft(userSessionBinding, module, entityId || 'primary');
+      return true;
+    } catch (clearDraftError) {
+      console.warn('[useReliabilityDraft] Error discarding draft from storage:', clearDraftError);
+      return false;
+    }
   }, [userSessionBinding, module, entityId]);
 
+  // Restore Draft: returns the current draft payload synchronously to consumer
+  const restoreDraft = useCallback(() => {
+    return draftData;
+  }, [draftData]);
+
   return {
+    // Canonical consumer contract
+    draft: draftData,
     hasDraft,
+    isAutosaving: saveStatus === 'saving',
+    lastSavedAt: draftTimestamp,
+    saveDraft,
+    discardDraft,
+    restoreDraft,
+
+    // Backward-compatible aliases
     draftData,
     draftTimestamp,
     saveStatus,
-    saveDraft,
-    clearDraft,
+    clearDraft: discardDraft,
   };
 };
 
