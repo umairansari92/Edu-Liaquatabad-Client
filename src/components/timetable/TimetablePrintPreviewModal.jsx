@@ -15,7 +15,15 @@ import {
   Layers,
 } from 'lucide-react';
 
-const DAYS_OF_WEEK = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
+export const ALL_CALENDAR_DAYS = [
+  { key: 'MONDAY', dayNumber: 1, label: 'Monday' },
+  { key: 'TUESDAY', dayNumber: 2, label: 'Tuesday' },
+  { key: 'WEDNESDAY', dayNumber: 3, label: 'Wednesday' },
+  { key: 'THURSDAY', dayNumber: 4, label: 'Thursday' },
+  { key: 'FRIDAY', dayNumber: 5, label: 'Friday' },
+  { key: 'SATURDAY', dayNumber: 6, label: 'Saturday' },
+  { key: 'SUNDAY', dayNumber: 0, label: 'Sunday' },
+];
 
 /**
  * TimetablePrintPreviewModal
@@ -30,20 +38,27 @@ export const TimetablePrintPreviewModal = ({
   classes = [],
   slots = [],
   fridaySlots = [],
+  weeklyOffDays = [0],
   schedule = [],
   subjects = [],
   faculty = [],
   primarySectionByClassId = new Map(),
   initialDay = 'MONDAY',
 }) => {
+  const activeDays = useMemo(() => {
+    return ALL_CALENDAR_DAYS.filter((d) => !weeklyOffDays.includes(d.dayNumber)).map((d) => d.key);
+  }, [weeklyOffDays]);
+
   const [selectedDay, setSelectedDay] = useState(initialDay);
   const [viewScope, setViewScope] = useState('SINGLE_DAY'); // 'SINGLE_DAY' | 'ALL_DAYS'
 
   useEffect(() => {
-    if (initialDay && DAYS_OF_WEEK.includes(initialDay)) {
+    if (initialDay && activeDays.includes(initialDay)) {
       setSelectedDay(initialDay);
+    } else if (activeDays.length > 0) {
+      setSelectedDay(activeDays[0]);
     }
-  }, [initialDay]);
+  }, [initialDay, activeDays]);
 
   // Handle Escape key dismissal
   useEffect(() => {
@@ -391,7 +406,7 @@ export const TimetablePrintPreviewModal = ({
 
         {/* Day Filters */}
         <div className="flex flex-wrap items-center gap-1.5 bg-slate-800/80 p-1 rounded-xl border border-slate-700">
-          {DAYS_OF_WEEK.map((day) => {
+          {activeDays.map((day) => {
             const isSelected = selectedDay === day && viewScope === 'SINGLE_DAY';
             return (
               <button
@@ -419,7 +434,7 @@ export const TimetablePrintPreviewModal = ({
                 : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
             }`}
           >
-            All Days (Binder)
+            All Working Days (Binder)
           </button>
         </div>
 
@@ -450,7 +465,7 @@ export const TimetablePrintPreviewModal = ({
       <div className="flex-1 overflow-y-auto p-2 sm:p-6 flex justify-center bg-slate-900/40 rounded-2xl border border-slate-800/60">
         <div className="w-full max-w-6xl space-y-8">
           {viewScope === 'ALL_DAYS' ? (
-            DAYS_OF_WEEK.map((dayName) => renderDayTable(dayName))
+            activeDays.map((dayName) => renderDayTable(dayName))
           ) : (
             renderDayTable(selectedDay)
           )}

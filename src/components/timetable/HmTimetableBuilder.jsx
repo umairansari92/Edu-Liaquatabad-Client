@@ -21,6 +21,9 @@ import {
   Users,
   Eye,
   Info,
+  Sliders,
+  Edit2,
+  Check,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import LivePeriodBadge from './LivePeriodBadge.jsx';
@@ -34,30 +37,26 @@ import {
   resetSaveSuccess,
 } from '../../store/slices/timetableSlice.js';
 
-const DAYS_OF_WEEK = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
-
-// Standard Sindh DMC Government School 7-Period + Break Baseline (Regular Days)
-const DEFAULT_GOVERNMENT_PERIOD_SLOTS = [
-  { periodNumber: 1, slotType: 'TEACHING', label: '1st', startTime: '08:00', endTime: '08:35' },
-  { periodNumber: 2, slotType: 'TEACHING', label: '2nd', startTime: '08:35', endTime: '09:10' },
-  { periodNumber: 3, slotType: 'TEACHING', label: '3rd', startTime: '09:10', endTime: '09:45' },
-  { periodNumber: 4, slotType: 'TEACHING', label: '4th', startTime: '09:45', endTime: '10:15' },
-  { periodNumber: 0, slotType: 'RECESS', label: 'BREAK', startTime: '10:15', endTime: '10:35' },
-  { periodNumber: 5, slotType: 'TEACHING', label: '5th', startTime: '10:35', endTime: '11:10' },
-  { periodNumber: 6, slotType: 'TEACHING', label: '6th', startTime: '11:10', endTime: '11:45' },
-  { periodNumber: 7, slotType: 'TEACHING', label: '7th', startTime: '11:45', endTime: '12:20' },
+// Calendar Days definitions (Zero hardcoding: off-days and active days are derived dynamically from DB)
+export const ALL_CALENDAR_DAYS = [
+  { key: 'MONDAY', dayNumber: 1, label: 'Monday', short: 'Mon' },
+  { key: 'TUESDAY', dayNumber: 2, label: 'Tuesday', short: 'Tue' },
+  { key: 'WEDNESDAY', dayNumber: 3, label: 'Wednesday', short: 'Wed' },
+  { key: 'THURSDAY', dayNumber: 4, label: 'Thursday', short: 'Thu' },
+  { key: 'FRIDAY', dayNumber: 5, label: 'Friday', short: 'Fri' },
+  { key: 'SATURDAY', dayNumber: 6, label: 'Saturday', short: 'Sat' },
+  { key: 'SUNDAY', dayNumber: 0, label: 'Sunday', short: 'Sun' },
 ];
 
-// Standard Sindh DMC Friday Baseline (Early Dismissal for Jummah Prayers)
-const DEFAULT_FRIDAY_PERIOD_SLOTS = [
-  { periodNumber: 1, slotType: 'TEACHING', label: '1st', startTime: '07:30', endTime: '08:10' },
-  { periodNumber: 2, slotType: 'TEACHING', label: '2nd', startTime: '08:10', endTime: '08:50' },
-  { periodNumber: 3, slotType: 'TEACHING', label: '3rd', startTime: '08:50', endTime: '09:30' },
-  { periodNumber: 4, slotType: 'TEACHING', label: '4th', startTime: '09:30', endTime: '10:05' },
-  { periodNumber: 0, slotType: 'RECESS', label: 'BREAK', startTime: '10:05', endTime: '10:25' },
-  { periodNumber: 5, slotType: 'TEACHING', label: '5th', startTime: '10:25', endTime: '11:10' },
-  { periodNumber: 6, slotType: 'TEACHING', label: '6th', startTime: '11:10', endTime: '12:00' },
-];
+export const DAY_TO_NUMBER_MAP = {
+  SUNDAY: 0,
+  MONDAY: 1,
+  TUESDAY: 2,
+  WEDNESDAY: 3,
+  THURSDAY: 4,
+  FRIDAY: 5,
+  SATURDAY: 6,
+};
 
 const getOrdinalSuffix = (num) => {
   const j = num % 10;
@@ -70,7 +69,8 @@ const getOrdinalSuffix = (num) => {
 
 /**
  * Deterministic helper to generate balanced instructional slots and recess
- * matching the exact start and closing hours configured for the school.
+ * dynamically matching the exact start and closing hours configured for this school.
+ * Zero static hardcoded period arrays.
  */
 export const generateSynchronizedSlots = (startTime, endTime, isFriday = false) => {
   if (!startTime || !endTime) return [];
@@ -80,7 +80,7 @@ export const generateSynchronizedSlots = (startTime, endTime, isFriday = false) 
   const totalEnd = endH * 60 + endM;
   const totalMinutes = totalEnd - totalStart;
 
-  if (totalMinutes < 120) return []; // Minimum threshold for valid day
+  if (totalMinutes < 120) return []; // Minimum threshold for valid instruction day
 
   const breakDuration = isFriday ? 15 : 20;
   const availableTeaching = totalMinutes - breakDuration;
@@ -156,7 +156,7 @@ export const HmTimetableBuilder = ({
 
   const [selectedDay, setSelectedDay] = useState(() => {
     const todayIndex = new Date().getDay();
-    const dayMap = { 1: 'MONDAY', 2: 'TUESDAY', 3: 'WEDNESDAY', 4: 'THURSDAY', 5: 'FRIDAY', 6: 'SATURDAY' };
+    const dayMap = { 0: 'SUNDAY', 1: 'MONDAY', 2: 'TUESDAY', 3: 'WEDNESDAY', 4: 'THURSDAY', 5: 'FRIDAY', 6: 'SATURDAY' };
     return dayMap[todayIndex] || 'MONDAY';
   });
 
@@ -172,6 +172,15 @@ export const HmTimetableBuilder = ({
   const [showSyncModal, setShowSyncModal] = useState(false);
   const [showPrintPreviewModal, setShowPrintPreviewModal] = useState(false);
   const [resetSlotsModalOpen, setResetSlotsModalOpen] = useState(false);
+  const [slotManagerOpen, setSlotManagerOpen] = useState(false);
+
+  // Slot Manager form state (for manual dynamic slot editing)
+  const [managerTab, setManagerTab] = useState('REGULAR'); // 'REGULAR' | 'FRIDAY'
+  const [newSlotNumber, setNewSlotNumber] = useState(8);
+  const [newSlotType, setNewSlotType] = useState('TEACHING');
+  const [newSlotLabel, setNewSlotLabel] = useState('8th');
+  const [newSlotStartTime, setNewSlotStartTime] = useState('12:45');
+  const [newSlotEndTime, setNewSlotEndTime] = useState('13:30');
 
   // Cell allocation modal state
   const [cellModalOpen, setCellModalOpen] = useState(false);
@@ -180,7 +189,7 @@ export const HmTimetableBuilder = ({
   const [cellTeacherId, setCellTeacherId] = useState('');
   const [cellRoomNumber, setCellRoomNumber] = useState('');
 
-  // Operational Timings from School Profile
+  // Operational Timings from School Profile (configured by Admin / HM with reason)
   const schoolTimings = useMemo(() => {
     return (
       schoolTimetable?.schoolDetails?.timings ||
@@ -191,7 +200,7 @@ export const HmTimetableBuilder = ({
     );
   }, [schoolTimetable, school]);
 
-  // Weekly Off Pattern from town calendar configuration
+  // Weekly Off Pattern from town calendar configuration (e.g. [0] or [0, 6])
   const weeklyOffDays = useMemo(() => {
     return Array.isArray(schoolTimetable?.weeklyOffDays) && schoolTimetable.weeklyOffDays.length > 0
       ? schoolTimetable.weeklyOffDays
@@ -199,6 +208,11 @@ export const HmTimetableBuilder = ({
   }, [schoolTimetable]);
 
   const isSaturdayOff = weeklyOffDays.includes(6);
+
+  // Active instructional teaching days (dynamically filtered from weekly off configuration)
+  const activeTeachingDays = useMemo(() => {
+    return ALL_CALENDAR_DAYS.filter((dayItem) => !weeklyOffDays.includes(dayItem.dayNumber));
+  }, [weeklyOffDays]);
 
   // Sorted classes (strictly by numericGrade, clean names without sections)
   const sortedClasses = useMemo(() => {
@@ -236,7 +250,6 @@ export const HmTimetableBuilder = ({
       const classIdString = String(classItem._id);
       const primarySection = primarySectionByClassId.get(classIdString);
 
-      // 1. Check primary section's assigned classTeacherId
       if (primarySection?.classTeacherId) {
         const teacherIdString = String(
           primarySection.classTeacherId._id ||
@@ -252,7 +265,6 @@ export const HmTimetableBuilder = ({
         }
       }
 
-      // 2. Check teaching duties assigned to this class
       const matchingAssignment = activeAssignmentsList.find(
         (assignmentRecord) =>
           String(assignmentRecord.classId?._id || assignmentRecord.classId) === classIdString
@@ -284,24 +296,35 @@ export const HmTimetableBuilder = ({
     }
   }, [dispatch, schoolId, academicYear]);
 
-  // Synchronize local editable state when loaded from server
+  // Synchronize local editable state when loaded from server (Zero hardcoded defaults)
   useEffect(() => {
     if (schoolTimetable && Array.isArray(schoolTimetable.periodSlots) && schoolTimetable.periodSlots.length > 0) {
       setEditableSlots(schoolTimetable.periodSlots);
       setEditableFridaySlots(
         Array.isArray(schoolTimetable.fridayPeriodSlots) && schoolTimetable.fridayPeriodSlots.length > 0
           ? schoolTimetable.fridayPeriodSlots
-          : DEFAULT_FRIDAY_PERIOD_SLOTS
+          : generateSynchronizedSlots(schoolTimings?.friday?.startTime, schoolTimings?.friday?.endTime, true)
       );
       setEditableSchedule(schoolTimetable.schedule || []);
       setIsDraftDirty(false);
-    } else {
-      setEditableSlots(DEFAULT_GOVERNMENT_PERIOD_SLOTS);
-      setEditableFridaySlots(DEFAULT_FRIDAY_PERIOD_SLOTS);
+    } else if (schoolTimings) {
+      // 100% Dynamic: Period slots derived directly from this school's configured operational hours in MongoDB
+      const dynamicRegular = generateSynchronizedSlots(
+        schoolTimings?.regular?.startTime,
+        schoolTimings?.regular?.endTime,
+        false
+      );
+      const dynamicFriday = generateSynchronizedSlots(
+        schoolTimings?.friday?.startTime,
+        schoolTimings?.friday?.endTime,
+        true
+      );
+      setEditableSlots(dynamicRegular);
+      setEditableFridaySlots(dynamicFriday);
       setEditableSchedule([]);
       setIsDraftDirty(false);
     }
-  }, [schoolTimetable]);
+  }, [schoolTimetable, schoolTimings]);
 
   // Handle save success
   useEffect(() => {
@@ -387,7 +410,7 @@ export const HmTimetableBuilder = ({
     };
   }, [schoolTimings, editableSlots, editableFridaySlots, editableSchedule]);
 
-  // Handler to apply proposed synchronized slots to local draft (with explicit confirmation)
+  // Handler to apply proposed synchronized slots to local draft (explicit confirmation)
   const handleApplySyncToDraft = () => {
     if (timingMismatchAnalysis.proposedRegularSlots.length > 0) {
       setEditableSlots(timingMismatchAnalysis.proposedRegularSlots);
@@ -651,7 +674,7 @@ export const HmTimetableBuilder = ({
     toast.success(`Assigned "ALL SUBJECTS" in ${classItem.name} to designated Class Teacher.`);
   };
 
-  // Copy Current Day's Schedule to other working days
+  // Copy Current Day's Schedule across active working days dynamically
   const handleCopyDayToAllWeekdays = () => {
     const currentDayEntries = editableSchedule.filter((scheduleEntry) => scheduleEntry.dayOfWeek === selectedDay);
     if (currentDayEntries.length === 0) {
@@ -659,24 +682,21 @@ export const HmTimetableBuilder = ({
       return;
     }
 
-    // Filter out target days that are official weekly off days (e.g. Saturday if configured off)
-    const otherDays = DAYS_OF_WEEK.filter((day) => {
-      if (day === selectedDay) return false;
-      if (day === 'SATURDAY' && isSaturdayOff) return false;
-      return true;
-    });
+    // Filter target days to only active teaching days configured for this school
+    const targetDays = activeTeachingDays
+      .map((d) => d.key)
+      .filter((dayKey) => dayKey !== selectedDay);
 
     const retainedEntries = editableSchedule.filter((scheduleEntry) => scheduleEntry.dayOfWeek === selectedDay);
-
     const duplicatedEntries = [];
-    // Friday teaching slot numbers to prevent copying periods past Friday early dismissal
+
     const fridaySlotNumbers = new Set(
       (editableFridaySlots.length > 0 ? editableFridaySlots : editableSlots)
         .filter((slot) => slot.slotType === 'TEACHING')
         .map((slot) => slot.periodNumber)
     );
 
-    for (const targetDay of otherDays) {
+    for (const targetDay of targetDays) {
       for (const entry of currentDayEntries) {
         // Guard Friday from orphan periods past its shorter closing time
         if (targetDay === 'FRIDAY' && !fridaySlotNumbers.has(entry.periodNumber)) {
@@ -691,20 +711,69 @@ export const HmTimetableBuilder = ({
 
     setEditableSchedule([...retainedEntries, ...duplicatedEntries]);
     setIsDraftDirty(true);
-    toast.success(`Copied ${selectedDay}'s routine across working days (${otherDays.join(', ')}) successfully!`);
+    toast.success(`Copied ${selectedDay}'s routine across active working days (${targetDays.join(', ')}) successfully!`);
   };
 
-  // Reset to Standard DMC Period Slots
-  const handleResetToStandardSlots = () => {
-    setResetSlotsModalOpen(true);
-  };
-
+  // Regenerate period slots dynamically from school's configured timings
   const handleConfirmResetSlots = () => {
-    setEditableSlots(DEFAULT_GOVERNMENT_PERIOD_SLOTS);
-    setEditableFridaySlots(DEFAULT_FRIDAY_PERIOD_SLOTS);
+    const dynamicRegular = generateSynchronizedSlots(
+      schoolTimings?.regular?.startTime,
+      schoolTimings?.regular?.endTime,
+      false
+    );
+    const dynamicFriday = generateSynchronizedSlots(
+      schoolTimings?.friday?.startTime,
+      schoolTimings?.friday?.endTime,
+      true
+    );
+    setEditableSlots(dynamicRegular);
+    setEditableFridaySlots(dynamicFriday);
     setIsDraftDirty(true);
-    toast.success('Period slots reset to standard government school timings (Regular & Friday).');
+    toast.success(
+      `Period slots regenerated dynamically from school operational hours (${schoolTimings?.regular?.startTime || '08:00'}–${schoolTimings?.regular?.endTime || '13:30'} Regular, ${schoolTimings?.friday?.startTime || '07:30'}–${schoolTimings?.friday?.endTime || '12:00'} Friday).`
+    );
     setResetSlotsModalOpen(false);
+  };
+
+  // Manual Custom Slot Management Handlers
+  const handleAddCustomSlot = (e) => {
+    e.preventDefault();
+    const isFridayManager = managerTab === 'FRIDAY';
+    const targetSlots = isFridayManager ? editableFridaySlots : editableSlots;
+
+    const newSlot = {
+      periodNumber: Number(newSlotNumber),
+      slotType: newSlotType,
+      label: newSlotLabel.trim() || `${newSlotNumber}${getOrdinalSuffix(newSlotNumber)}`,
+      startTime: newSlotStartTime,
+      endTime: newSlotEndTime,
+    };
+
+    // Sort by startTime
+    const updated = [...targetSlots, newSlot].sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+    if (isFridayManager) {
+      setEditableFridaySlots(updated);
+    } else {
+      setEditableSlots(updated);
+    }
+
+    setIsDraftDirty(true);
+    toast.success(`Slot "${newSlot.label}" added to ${managerTab} schedule!`);
+  };
+
+  const handleDeleteSlot = (periodNumber, isFridayManager) => {
+    const targetSlots = isFridayManager ? editableFridaySlots : editableSlots;
+    const updated = targetSlots.filter((s) => s.periodNumber !== periodNumber);
+
+    if (isFridayManager) {
+      setEditableFridaySlots(updated);
+    } else {
+      setEditableSlots(updated);
+    }
+
+    setIsDraftDirty(true);
+    toast.success('Period slot removed from draft schedule.');
   };
 
   // Save & Publish Timetable to Server (Authoritative endpoint)
@@ -886,15 +955,16 @@ export const HmTimetableBuilder = ({
 
       {/* ─── ACTION TOOLBAR & CONTROLS ─── */}
       <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
-        {/* Day Selector Pills */}
+        {/* Dynamic Day Selector Pills (Zero hardcoding: derived from calendar & weeklyOffDays) */}
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs font-black uppercase tracking-wider text-[#8094A8] mr-1">Active Day:</span>
-          {DAYS_OF_WEEK.map((day) => {
+          {ALL_CALENDAR_DAYS.map((dayItem) => {
+            const day = dayItem.key;
             const isSelected = selectedDay === day;
             const isToday = liveStatus?.currentDay === day;
             const dayEntryCount = editableSchedule.filter((scheduleEntry) => scheduleEntry.dayOfWeek === day).length;
             const isFridayPill = day === 'FRIDAY';
-            const isSaturdayPill = day === 'SATURDAY';
+            const isDayWeeklyOff = weeklyOffDays.includes(dayItem.dayNumber);
 
             return (
               <button
@@ -903,20 +973,22 @@ export const HmTimetableBuilder = ({
                 className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
                   isSelected
                     ? 'bg-[#102033] text-white shadow-md'
+                    : isDayWeeklyOff
+                    ? 'bg-slate-100/70 border border-slate-200 text-slate-400 hover:bg-slate-100'
                     : 'bg-slate-50 border border-slate-200 text-[#526477] hover:bg-slate-100'
                 }`}
               >
                 <span>{day}</span>
-                {isFridayPill && (
+                {isFridayPill && !isDayWeeklyOff && (
                   <span className={`text-[9px] px-1 py-0.2 rounded font-mono ${
                     isSelected ? 'bg-indigo-400/30 text-indigo-200' : 'bg-indigo-100 text-indigo-800'
                   }`}>
                     Jummah
                   </span>
                 )}
-                {isSaturdayPill && isSaturdayOff && (
+                {isDayWeeklyOff && (
                   <span className={`text-[9px] px-1 py-0.2 rounded font-mono ${
-                    isSelected ? 'bg-amber-400/30 text-amber-200' : 'bg-slate-200 text-slate-700'
+                    isSelected ? 'bg-amber-400/30 text-amber-200' : 'bg-slate-200 text-slate-600'
                   }`}>
                     Off
                   </span>
@@ -941,10 +1013,19 @@ export const HmTimetableBuilder = ({
           <button
             onClick={handleCopyDayToAllWeekdays}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-blue-200 bg-blue-50/80 hover:bg-blue-100/80 text-[#006AC7] text-xs font-bold transition cursor-pointer"
-            title="Copy current day's routine to working days"
+            title="Copy current day's routine to all active working days"
           >
             <Copy className="w-3.5 h-3.5" />
             <span>Copy {selectedDay} to All Days</span>
+          </button>
+
+          <button
+            onClick={() => setSlotManagerOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-indigo-200 bg-indigo-50/80 hover:bg-indigo-100/80 text-indigo-700 text-xs font-bold transition cursor-pointer"
+            title="Manage, add, or adjust custom period slots dynamically"
+          >
+            <Sliders className="w-3.5 h-3.5" />
+            <span>Manage Period Slots</span>
           </button>
 
           <button
@@ -957,22 +1038,22 @@ export const HmTimetableBuilder = ({
           </button>
 
           <button
-            onClick={handleResetToStandardSlots}
+            onClick={() => setResetSlotsModalOpen(true)}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-[#526477] text-xs font-bold transition cursor-pointer"
-            title="Reset period timing to standard government slots"
+            title="Recalculate period slots dynamically from school's operational hours in DB"
           >
             <Clock className="w-3.5 h-3.5" />
-            <span>Standard Slots</span>
+            <span>Sync to School Hours</span>
           </button>
         </div>
       </div>
 
-      {/* Saturday Weekly-Off Info Notice */}
-      {selectedDay === 'SATURDAY' && isSaturdayOff && (
-        <div className="p-4 rounded-2xl bg-slate-100 border border-slate-300 text-slate-800 flex items-center gap-3">
+      {/* Weekly-Off Info Notice (Dynamic) */}
+      {weeklyOffDays.includes(DAY_TO_NUMBER_MAP[selectedDay]) && (
+        <div className="p-4 rounded-2xl bg-slate-100 border border-slate-300 text-slate-800 flex items-center gap-3 animate-in fade-in">
           <Info className="w-5 h-5 text-slate-500 shrink-0" />
           <div className="text-xs">
-            <strong>Official Weekly-Off Day:</strong> Saturday is configured as a weekly holiday under town calendar policy. Routine instructional periods are optional.
+            <strong>Official Weekly-Off Day:</strong> {selectedDay} is configured as a weekly holiday under this school's calendar policy. Routine instructional periods are optional or suspended.
           </div>
         </div>
       )}
@@ -1253,6 +1334,197 @@ export const HmTimetableBuilder = ({
         </div>
       </div>
 
+      {/* ─── DYNAMIC PERIOD SLOTS MANAGER MODAL ─── */}
+      {slotManagerOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-2xl bg-white rounded-3xl p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <h3 className="font-bold text-base text-[#102033] flex items-center gap-2">
+                  <Sliders className="w-4 h-4 text-[#006AC7]" />
+                  <span>Dynamic Period Slot Manager</span>
+                </h3>
+                <p className="text-xs text-[#526477] mt-0.5">
+                  Customize, add, or remove period slots without hardcoded limits.
+                </p>
+              </div>
+              <button
+                onClick={() => setSlotManagerOpen(false)}
+                className="p-1 rounded-lg text-[#8094A8] hover:bg-slate-100 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Manager Tabs: Regular Days vs Friday */}
+            <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+              <button
+                type="button"
+                onClick={() => setManagerTab('REGULAR')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer ${
+                  managerTab === 'REGULAR'
+                    ? 'bg-[#102033] text-white'
+                    : 'bg-slate-100 text-[#526477] hover:bg-slate-200'
+                }`}
+              >
+                Regular Days Slots ({editableSlots.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setManagerTab('FRIDAY')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer ${
+                  managerTab === 'FRIDAY'
+                    ? 'bg-[#102033] text-white'
+                    : 'bg-slate-100 text-[#526477] hover:bg-slate-200'
+                }`}
+              >
+                Friday Jummah Slots ({editableFridaySlots.length})
+              </button>
+            </div>
+
+            {/* Existing Slots Table */}
+            <div className="space-y-2">
+              <div className="text-xs font-bold text-[#526477] uppercase tracking-wider">
+                Current {managerTab} Period Slots:
+              </div>
+              <div className="overflow-x-auto rounded-xl border border-slate-200">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead className="bg-slate-100 text-[#526477] uppercase font-bold text-[10px]">
+                    <tr>
+                      <th className="py-2 px-3">Slot #</th>
+                      <th className="py-2 px-3">Label</th>
+                      <th className="py-2 px-3">Type</th>
+                      <th className="py-2 px-3">Start</th>
+                      <th className="py-2 px-3">End</th>
+                      <th className="py-2 px-3 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {(managerTab === 'FRIDAY' ? editableFridaySlots : editableSlots).map((slot) => (
+                      <tr key={`${slot.periodNumber}-${slot.startTime}`} className="hover:bg-slate-50">
+                        <td className="py-2 px-3 font-mono font-bold">
+                          {slot.slotType === 'RECESS' ? 'BREAK' : slot.periodNumber}
+                        </td>
+                        <td className="py-2 px-3 font-bold">{slot.label}</td>
+                        <td className="py-2 px-3">
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
+                            slot.slotType === 'RECESS' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'
+                          }`}>
+                            {slot.slotType}
+                          </span>
+                        </td>
+                        <td className="py-2 px-3 font-mono">{slot.startTime}</td>
+                        <td className="py-2 px-3 font-mono">{slot.endTime}</td>
+                        <td className="py-2 px-3 text-right">
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteSlot(slot.periodNumber, managerTab === 'FRIDAY')}
+                            className="p-1 rounded-lg text-rose-600 hover:bg-rose-50 transition cursor-pointer"
+                            title="Remove this slot"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Add Custom Slot Form */}
+            <form onSubmit={handleAddCustomSlot} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+              <div className="text-xs font-bold text-[#102033] flex items-center gap-1.5">
+                <Plus className="w-3.5 h-3.5 text-[#006AC7]" />
+                <span>Add Custom Period Slot to {managerTab}</span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
+                <div>
+                  <label className="block text-[10px] font-bold text-[#526477] uppercase mb-1">Period #</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="15"
+                    value={newSlotNumber}
+                    onChange={(e) => setNewSlotNumber(e.target.value)}
+                    className="w-full p-2 rounded-xl border border-slate-300 font-bold bg-white"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-[#526477] uppercase mb-1">Label</label>
+                  <input
+                    type="text"
+                    value={newSlotLabel}
+                    onChange={(e) => setNewSlotLabel(e.target.value)}
+                    placeholder="e.g. 8th, Library"
+                    className="w-full p-2 rounded-xl border border-slate-300 font-bold bg-white"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-[#526477] uppercase mb-1">Type</label>
+                  <select
+                    value={newSlotType}
+                    onChange={(e) => setNewSlotType(e.target.value)}
+                    className="w-full p-2 rounded-xl border border-slate-300 font-bold bg-white"
+                  >
+                    <option value="TEACHING">TEACHING</option>
+                    <option value="RECESS">RECESS</option>
+                    <option value="ASSEMBLY">ASSEMBLY</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-[#526477] uppercase mb-1">Start Time</label>
+                  <input
+                    type="time"
+                    value={newSlotStartTime}
+                    onChange={(e) => setNewSlotStartTime(e.target.value)}
+                    className="w-full p-2 rounded-xl border border-slate-300 font-mono font-bold bg-white"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-[#526477] uppercase mb-1">End Time</label>
+                  <input
+                    type="time"
+                    value={newSlotEndTime}
+                    onChange={(e) => setNewSlotEndTime(e.target.value)}
+                    className="w-full p-2 rounded-xl border border-slate-300 font-mono font-bold bg-white"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-1">
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl bg-[#006AC7] hover:bg-[#005299] text-white text-xs font-bold transition cursor-pointer shadow-sm flex items-center gap-1.5"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Insert Slot</span>
+                </button>
+              </div>
+            </form>
+
+            <div className="flex justify-end pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setSlotManagerOpen(false)}
+                className="px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs cursor-pointer"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ─── CELL ALLOCATION MODAL ─── */}
       {cellModalOpen && activeCellTarget && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
@@ -1361,13 +1633,13 @@ export const HmTimetableBuilder = ({
         </div>
       )}
 
-      {/* Reset Standard Timings Confirmation Dialog */}
+      {/* Dynamic Reset to Configured School Hours Confirmation Dialog */}
       <ConfirmModal
         isOpen={resetSlotsModalOpen}
-        title="Reset Standard DMC Period Slots"
-        message="Reset period slots to standard 7-period + Break DMC timing (08:00 to 12:20) and Friday short schedule?"
-        note="This will restore standard baseline slots. Active assignments will be preserved."
-        confirmText="Reset Schedule"
+        title="Sync Period Slots to School Operating Hours"
+        message={`Recalculate period slots dynamically to match this school's configured operational hours (Regular: ${schoolTimings?.regular?.startTime || '08:00'}–${schoolTimings?.regular?.endTime || '13:30'}, Friday: ${schoolTimings?.friday?.startTime || '07:30'}–${schoolTimings?.friday?.endTime || '12:00'})?`}
+        note="This calculates instructional periods and recess dynamically from the school's configured operating hours in MongoDB without any static hardcoded assumptions."
+        confirmText="Sync to School Hours"
         confirmVariant="warning"
         onConfirm={handleConfirmResetSlots}
         onCancel={() => setResetSlotsModalOpen(false)}
@@ -1391,6 +1663,7 @@ export const HmTimetableBuilder = ({
         classes={classes}
         slots={sortedSlots}
         fridaySlots={editableFridaySlots}
+        weeklyOffDays={weeklyOffDays}
         schedule={editableSchedule}
         subjects={subjects}
         faculty={faculty}
