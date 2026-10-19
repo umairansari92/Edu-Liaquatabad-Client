@@ -20,11 +20,13 @@ import {
   Copy,
   Users,
   Eye,
+  Info,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import LivePeriodBadge from './LivePeriodBadge.jsx';
 import ConfirmModal from '../common/ConfirmModal.jsx';
 import TimetablePrintPreviewModal from './TimetablePrintPreviewModal.jsx';
+import TimingSyncPreviewModal from './TimingSyncPreviewModal.jsx';
 import {
   fetchSchoolTimetable,
   saveTimetable,
@@ -34,7 +36,7 @@ import {
 
 const DAYS_OF_WEEK = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY'];
 
-// Standard Sindh DMC Government School 7-Period + Break Baseline
+// Standard Sindh DMC Government School 7-Period + Break Baseline (Regular Days)
 const DEFAULT_GOVERNMENT_PERIOD_SLOTS = [
   { periodNumber: 1, slotType: 'TEACHING', label: '1st', startTime: '08:00', endTime: '08:35' },
   { periodNumber: 2, slotType: 'TEACHING', label: '2nd', startTime: '08:35', endTime: '09:10' },
@@ -46,8 +48,101 @@ const DEFAULT_GOVERNMENT_PERIOD_SLOTS = [
   { periodNumber: 7, slotType: 'TEACHING', label: '7th', startTime: '11:45', endTime: '12:20' },
 ];
 
+// Standard Sindh DMC Friday Baseline (Early Dismissal for Jummah Prayers)
+const DEFAULT_FRIDAY_PERIOD_SLOTS = [
+  { periodNumber: 1, slotType: 'TEACHING', label: '1st', startTime: '07:30', endTime: '08:10' },
+  { periodNumber: 2, slotType: 'TEACHING', label: '2nd', startTime: '08:10', endTime: '08:50' },
+  { periodNumber: 3, slotType: 'TEACHING', label: '3rd', startTime: '08:50', endTime: '09:30' },
+  { periodNumber: 4, slotType: 'TEACHING', label: '4th', startTime: '09:30', endTime: '10:05' },
+  { periodNumber: 0, slotType: 'RECESS', label: 'BREAK', startTime: '10:05', endTime: '10:25' },
+  { periodNumber: 5, slotType: 'TEACHING', label: '5th', startTime: '10:25', endTime: '11:10' },
+  { periodNumber: 6, slotType: 'TEACHING', label: '6th', startTime: '11:10', endTime: '12:00' },
+];
+
+const getOrdinalSuffix = (num) => {
+  const j = num % 10;
+  const k = num % 100;
+  if (j === 1 && k !== 11) return 'st';
+  if (j === 2 && k !== 12) return 'nd';
+  if (j === 3 && k !== 13) return 'rd';
+  return 'th';
+};
+
+/**
+ * Deterministic helper to generate balanced instructional slots and recess
+ * matching the exact start and closing hours configured for the school.
+ */
+export const generateSynchronizedSlots = (startTime, endTime, isFriday = false) => {
+  if (!startTime || !endTime) return [];
+  const [startH, startM] = startTime.split(':').map(Number);
+  const [endH, endM] = endTime.split(':').map(Number);
+  const totalStart = startH * 60 + startM;
+  const totalEnd = endH * 60 + endM;
+  const totalMinutes = totalEnd - totalStart;
+
+  if (totalMinutes < 120) return []; // Minimum threshold for valid day
+
+  const breakDuration = isFriday ? 15 : 20;
+  const availableTeaching = totalMinutes - breakDuration;
+
+  let numPeriods = Math.round(availableTeaching / 35);
+  if (numPeriods < 4) numPeriods = 4;
+  if (numPeriods > 8) numPeriods = 8;
+
+  const basePeriodMinutes = Math.floor(availableTeaching / numPeriods);
+  const extraMinutes = availableTeaching % numPeriods;
+  const breakAfterPeriod = isFriday ? Math.min(4, Math.floor(numPeriods / 2)) : 4;
+
+  const formatMin = (m) => {
+    const hh = String(Math.floor(m / 60)).padStart(2, '0');
+    const mm = String(m % 60).padStart(2, '0');
+    return `${hh}:${mm}`;
+  };
+
+  const slots = [];
+  let currentMinute = totalStart;
+  let periodCounter = 1;
+
+  for (let i = 1; i <= numPeriods; i++) {
+    const thisPeriodMinutes = basePeriodMinutes + (i <= extraMinutes ? 1 : 0);
+    const pStart = currentMinute;
+    const pEnd = currentMinute + thisPeriodMinutes;
+
+    slots.push({
+      periodNumber: periodCounter,
+      slotType: 'TEACHING',
+      label: `${periodCounter}${getOrdinalSuffix(periodCounter)}`,
+      startTime: formatMin(pStart),
+      endTime: formatMin(pEnd),
+    });
+
+    currentMinute = pEnd;
+    periodCounter++;
+
+    if (i === breakAfterPeriod) {
+      const bStart = currentMinute;
+      const bEnd = currentMinute + breakDuration;
+      slots.push({
+        periodNumber: 0,
+        slotType: 'RECESS',
+        label: 'BREAK',
+        startTime: formatMin(bStart),
+        endTime: formatMin(bEnd),
+      });
+      currentMinute = bEnd;
+    }
+  }
+
+  if (slots.length > 0) {
+    slots[slots.length - 1].endTime = formatMin(totalEnd);
+  }
+
+  return slots;
+};
+
 export const HmTimetableBuilder = ({
   schoolId,
+  school,
   classes = [],
   sections = [],
   subjects = [],
@@ -59,7 +154,6 @@ export const HmTimetableBuilder = ({
     (state) => state.timetable
   );
 
-  const [activeViewMode, setActiveViewMode] = useState('MASTER_GRID'); // 'MASTER_GRID' | 'PRINT_PREVIEW'
   const [selectedDay, setSelectedDay] = useState(() => {
     const todayIndex = new Date().getDay();
     const dayMap = { 1: 'MONDAY', 2: 'TUESDAY', 3: 'WEDNESDAY', 4: 'THURSDAY', 5: 'FRIDAY', 6: 'SATURDAY' };
@@ -68,31 +162,43 @@ export const HmTimetableBuilder = ({
 
   const [academicYear, setAcademicYear] = useState('2025-2026');
 
-  // Local editable timetable state
+  // Local editable timetable state (draft)
   const [editableSlots, setEditableSlots] = useState([]);
+  const [editableFridaySlots, setEditableFridaySlots] = useState([]);
   const [editableSchedule, setEditableSchedule] = useState([]);
+  const [isDraftDirty, setIsDraftDirty] = useState(false);
+
+  // Modals state
+  const [showSyncModal, setShowSyncModal] = useState(false);
   const [showPrintPreviewModal, setShowPrintPreviewModal] = useState(false);
+  const [resetSlotsModalOpen, setResetSlotsModalOpen] = useState(false);
 
   // Cell allocation modal state
   const [cellModalOpen, setCellModalOpen] = useState(false);
-  const [activeCellTarget, setActiveCellTarget] = useState(null); // { classId, dayOfWeek, periodNumber }
+  const [activeCellTarget, setActiveCellTarget] = useState(null); // { classItem, dayOfWeek, periodSlot }
   const [cellSubjectId, setCellSubjectId] = useState('');
   const [cellTeacherId, setCellTeacherId] = useState('');
   const [cellRoomNumber, setCellRoomNumber] = useState('');
 
-  // Class In-charge quick assign modal
-  const [inchargeModalOpen, setInchargeModalOpen] = useState(false);
-  const [activeInchargeClass, setActiveInchargeClass] = useState(null);
-  const [selectedInchargeTeacherId, setSelectedInchargeTeacherId] = useState('');
+  // Operational Timings from School Profile
+  const schoolTimings = useMemo(() => {
+    return (
+      schoolTimetable?.schoolDetails?.timings ||
+      school?.timings || {
+        regular: { startTime: '08:00', endTime: '13:30' },
+        friday: { startTime: '07:30', endTime: '12:00' },
+      }
+    );
+  }, [schoolTimetable, school]);
 
-  // Slot editor modal state
-  const [slotModalOpen, setSlotModalOpen] = useState(false);
-  const [newSlotNumber, setNewSlotNumber] = useState(1);
-  const [newSlotType, setNewSlotType] = useState('TEACHING');
-  const [newSlotLabel, setNewSlotLabel] = useState('');
-  const [newSlotStartTime, setNewSlotStartTime] = useState('08:00');
-  const [newSlotEndTime, setNewSlotEndTime] = useState('08:45');
-  const [resetSlotsModalOpen, setResetSlotsModalOpen] = useState(false);
+  // Weekly Off Pattern from town calendar configuration
+  const weeklyOffDays = useMemo(() => {
+    return Array.isArray(schoolTimetable?.weeklyOffDays) && schoolTimetable.weeklyOffDays.length > 0
+      ? schoolTimetable.weeklyOffDays
+      : [0]; // Sunday default
+  }, [schoolTimetable]);
+
+  const isSaturdayOff = weeklyOffDays.includes(6);
 
   // Sorted classes (strictly by numericGrade, clean names without sections)
   const sortedClasses = useMemo(() => {
@@ -101,14 +207,14 @@ export const HmTimetableBuilder = ({
     );
   }, [classes]);
 
-  // Normalized active teaching assignments list (handles array or object state)
+  // Normalized active teaching assignments list
   const activeAssignmentsList = useMemo(() => {
     if (Array.isArray(assignments)) return assignments;
     if (Array.isArray(assignments?.activeAssignments)) return assignments.activeAssignments;
     return [];
   }, [assignments]);
 
-  // Primary section lookup map per class (for database foreign key integrity)
+  // Primary section lookup map per class
   const primarySectionByClassId = useMemo(() => {
     const map = new Map();
     for (const classRecord of classes) {
@@ -123,7 +229,7 @@ export const HmTimetableBuilder = ({
     return map;
   }, [classes, sections]);
 
-  // Helper to resolve designated class teacher (via Section classTeacherId OR active TeachingAssignments)
+  // Helper to resolve designated class teacher
   const getClassDesignatedTeacher = useCallback(
     (classItem) => {
       if (!classItem) return null;
@@ -182,10 +288,18 @@ export const HmTimetableBuilder = ({
   useEffect(() => {
     if (schoolTimetable && Array.isArray(schoolTimetable.periodSlots) && schoolTimetable.periodSlots.length > 0) {
       setEditableSlots(schoolTimetable.periodSlots);
+      setEditableFridaySlots(
+        Array.isArray(schoolTimetable.fridayPeriodSlots) && schoolTimetable.fridayPeriodSlots.length > 0
+          ? schoolTimetable.fridayPeriodSlots
+          : DEFAULT_FRIDAY_PERIOD_SLOTS
+      );
       setEditableSchedule(schoolTimetable.schedule || []);
+      setIsDraftDirty(false);
     } else {
       setEditableSlots(DEFAULT_GOVERNMENT_PERIOD_SLOTS);
+      setEditableFridaySlots(DEFAULT_FRIDAY_PERIOD_SLOTS);
       setEditableSchedule([]);
+      setIsDraftDirty(false);
     }
   }, [schoolTimetable]);
 
@@ -193,6 +307,7 @@ export const HmTimetableBuilder = ({
   useEffect(() => {
     if (saveSuccess) {
       toast.success('Official Timetable posted & published! It is now live on all Teachers and Students dashboards.');
+      setIsDraftDirty(false);
       dispatch(resetSaveSuccess());
       dispatch(fetchSchoolTimetable({ schoolId, academicYear }));
     }
@@ -205,14 +320,105 @@ export const HmTimetableBuilder = ({
     }
   }, [error, dispatch]);
 
-  // Chronologically sorted slots
+  // Timing Mismatch Analysis & Synchronization Planner
+  const timingMismatchAnalysis = useMemo(() => {
+    const regSchoolStart = schoolTimings?.regular?.startTime || '08:00';
+    const regSchoolEnd = schoolTimings?.regular?.endTime || '13:30';
+    const friSchoolStart = schoolTimings?.friday?.startTime || '07:30';
+    const friSchoolEnd = schoolTimings?.friday?.endTime || '12:00';
+
+    const regCurrentStart = editableSlots[0]?.startTime || '';
+    const regCurrentEnd = editableSlots[editableSlots.length - 1]?.endTime || '';
+
+    const friCurrentStart = editableFridaySlots[0]?.startTime || '';
+    const friCurrentEnd = editableFridaySlots[editableFridaySlots.length - 1]?.endTime || '';
+
+    const regularMismatch = Boolean(
+      editableSlots.length > 0 &&
+      (regCurrentStart !== regSchoolStart || regCurrentEnd !== regSchoolEnd)
+    );
+
+    const fridayMismatch = Boolean(
+      editableFridaySlots.length === 0 ||
+      (friCurrentStart && friCurrentEnd && (friCurrentStart !== friSchoolStart || friCurrentEnd !== friSchoolEnd))
+    );
+
+    const proposedRegularSlots = generateSynchronizedSlots(regSchoolStart, regSchoolEnd, false);
+    const proposedFridaySlots = generateSynchronizedSlots(friSchoolStart, friSchoolEnd, true);
+
+    const currentRegTeachingCount = editableSlots.filter((slot) => slot.slotType === 'TEACHING').length;
+    const proposedRegTeachingCount = proposedRegularSlots.filter((slot) => slot.slotType === 'TEACHING').length;
+
+    const currentFriTeachingCount = (editableFridaySlots.length > 0 ? editableFridaySlots : editableSlots).filter(
+      (slot) => slot.slotType === 'TEACHING'
+    ).length;
+    const proposedFriTeachingCount = proposedFridaySlots.filter((slot) => slot.slotType === 'TEACHING').length;
+
+    const affectedRegEntries = editableSchedule.filter((entry) => {
+      if (entry.dayOfWeek === 'FRIDAY') return false;
+      return entry.periodNumber > proposedRegTeachingCount;
+    });
+
+    const affectedFriEntries = editableSchedule.filter((entry) => {
+      if (entry.dayOfWeek !== 'FRIDAY') return false;
+      return entry.periodNumber > proposedFriTeachingCount;
+    });
+
+    return {
+      isMismatch: regularMismatch || fridayMismatch,
+      regularMismatch,
+      fridayMismatch,
+      regSchoolStart,
+      regSchoolEnd,
+      friSchoolStart,
+      friSchoolEnd,
+      regCurrentStart,
+      regCurrentEnd,
+      friCurrentStart,
+      friCurrentEnd,
+      proposedRegularSlots,
+      proposedFridaySlots,
+      currentRegTeachingCount,
+      proposedRegTeachingCount,
+      currentFriTeachingCount,
+      proposedFriTeachingCount,
+      affectedRegEntries,
+      affectedFriEntries,
+    };
+  }, [schoolTimings, editableSlots, editableFridaySlots, editableSchedule]);
+
+  // Handler to apply proposed synchronized slots to local draft (with explicit confirmation)
+  const handleApplySyncToDraft = () => {
+    if (timingMismatchAnalysis.proposedRegularSlots.length > 0) {
+      setEditableSlots(timingMismatchAnalysis.proposedRegularSlots);
+    }
+    if (timingMismatchAnalysis.proposedFridaySlots.length > 0) {
+      setEditableFridaySlots(timingMismatchAnalysis.proposedFridaySlots);
+    }
+    setIsDraftDirty(true);
+    setShowSyncModal(false);
+    toast.success(
+      'Synchronized bell schedule applied to draft! Review the grid below and click "Post / Publish Timetable" to commit.',
+      { duration: 5000 }
+    );
+  };
+
+  // Active Slots for the currently selected day (Friday uses Friday-specific slots)
+  const activeSlots = useMemo(() => {
+    if (selectedDay === 'FRIDAY' && editableFridaySlots.length > 0) {
+      return editableFridaySlots;
+    }
+    return editableSlots;
+  }, [selectedDay, editableFridaySlots, editableSlots]);
+
+  // Chronologically sorted active slots
   const sortedSlots = useMemo(() => {
-    return [...editableSlots].sort(
+    return [...activeSlots].sort(
       (firstSlot, secondSlot) => firstSlot.startTime.localeCompare(secondSlot.startTime)
     );
-  }, [editableSlots]);
+  }, [activeSlots]);
 
-  // Teaching slots only (for free periods calculation)
+  // Teaching slots only
   const teachingSlots = useMemo(() => {
     return sortedSlots.filter((slot) => slot.slotType === 'TEACHING');
   }, [sortedSlots]);
@@ -230,7 +436,7 @@ export const HmTimetableBuilder = ({
     [editableSchedule]
   );
 
-  // Helper: Check if an early grade class (e.g. Grades 1-3) has "All Subjects" assigned to a single teacher
+  // Helper: Check if an early grade class (Grades 1-3) has "All Subjects" assigned to a single teacher
   const getSingleTeacherForEarlyClass = useCallback(
     (classItem, day) => {
       if ((classItem.numericGrade || 0) > 3) return null;
@@ -265,7 +471,7 @@ export const HmTimetableBuilder = ({
     [teachingSlots, getEntryForCell, faculty]
   );
 
-  // Dynamic Real-Time Teacher Free Periods Register (Matching Image 2 footer)
+  // Dynamic Real-Time Teacher Free Periods Register
   const teacherFreePeriodsSummary = useMemo(() => {
     return faculty.map((teacher, teacherIndex) => {
       const teacherIdentifier = String(teacher.userId || teacher._id || `teacher_${teacherIndex}`);
@@ -361,11 +567,9 @@ export const HmTimetableBuilder = ({
       return;
     }
 
-    // Primary section for database FK
     const primarySection = primarySectionByClassId.get(String(classItem._id));
     const sectionId = primarySection?._id || sections[0]?._id;
 
-    // Filter out previous entry for this class+day+period
     const updatedSchedule = editableSchedule.filter(
       (scheduleEntry) =>
         !(
@@ -386,6 +590,7 @@ export const HmTimetableBuilder = ({
     };
 
     setEditableSchedule([...updatedSchedule, newEntry]);
+    setIsDraftDirty(true);
     setCellModalOpen(false);
     toast.success(`Period ${periodSlot.label} allocated for ${classItem.name}.`);
   };
@@ -404,18 +609,18 @@ export const HmTimetableBuilder = ({
         )
     );
     setEditableSchedule(updatedSchedule);
+    setIsDraftDirty(true);
     setCellModalOpen(false);
     toast.success(`Period ${periodSlot.label} cleared for ${classItem.name}.`);
   };
 
-  // Assign All Subjects to Single Teacher (For Early Grades 1-3 / KG - Exactly as in Image 2)
+  // Assign All Subjects to Single Teacher (Early Grades 1-3)
   const handleAssignAllSubjectsToTeacher = (classItem, teacherId) => {
     if (!teacherId) {
       toast.error('Please select a teacher.');
       return;
     }
 
-    // Default early subject e.g. General Knowledge or General
     const defaultSubject =
       subjects.find(
         (subjectCandidate) =>
@@ -426,13 +631,11 @@ export const HmTimetableBuilder = ({
     const primarySection = primarySectionByClassId.get(String(classItem._id));
     const sectionId = primarySection?._id || sections[0]?._id;
 
-    // Remove existing entries for this class on selectedDay
     const filtered = editableSchedule.filter(
       (scheduleEntry) =>
         !(String(scheduleEntry.classId?._id || scheduleEntry.classId) === String(classItem._id) && scheduleEntry.dayOfWeek === selectedDay)
     );
 
-    // Create entries for all teaching slots on selectedDay
     const newEntries = teachingSlots.map((slot) => ({
       classId: classItem._id,
       sectionId,
@@ -444,10 +647,11 @@ export const HmTimetableBuilder = ({
     }));
 
     setEditableSchedule([...filtered, ...newEntries]);
+    setIsDraftDirty(true);
     toast.success(`Assigned "ALL SUBJECTS" in ${classItem.name} to designated Class Teacher.`);
   };
 
-  // Copy Current Day's Schedule to All Weekdays (Mon-Sat)
+  // Copy Current Day's Schedule to other working days
   const handleCopyDayToAllWeekdays = () => {
     const currentDayEntries = editableSchedule.filter((scheduleEntry) => scheduleEntry.dayOfWeek === selectedDay);
     if (currentDayEntries.length === 0) {
@@ -455,12 +659,29 @@ export const HmTimetableBuilder = ({
       return;
     }
 
-    const otherDays = DAYS_OF_WEEK.filter((day) => day !== selectedDay);
+    // Filter out target days that are official weekly off days (e.g. Saturday if configured off)
+    const otherDays = DAYS_OF_WEEK.filter((day) => {
+      if (day === selectedDay) return false;
+      if (day === 'SATURDAY' && isSaturdayOff) return false;
+      return true;
+    });
+
     const retainedEntries = editableSchedule.filter((scheduleEntry) => scheduleEntry.dayOfWeek === selectedDay);
 
     const duplicatedEntries = [];
+    // Friday teaching slot numbers to prevent copying periods past Friday early dismissal
+    const fridaySlotNumbers = new Set(
+      (editableFridaySlots.length > 0 ? editableFridaySlots : editableSlots)
+        .filter((slot) => slot.slotType === 'TEACHING')
+        .map((slot) => slot.periodNumber)
+    );
+
     for (const targetDay of otherDays) {
       for (const entry of currentDayEntries) {
+        // Guard Friday from orphan periods past its shorter closing time
+        if (targetDay === 'FRIDAY' && !fridaySlotNumbers.has(entry.periodNumber)) {
+          continue;
+        }
         duplicatedEntries.push({
           ...entry,
           dayOfWeek: targetDay,
@@ -469,21 +690,24 @@ export const HmTimetableBuilder = ({
     }
 
     setEditableSchedule([...retainedEntries, ...duplicatedEntries]);
-    toast.success(`Copied ${selectedDay}'s routine across all working days (Mon–Sat) successfully!`);
+    setIsDraftDirty(true);
+    toast.success(`Copied ${selectedDay}'s routine across working days (${otherDays.join(', ')}) successfully!`);
   };
 
-  // Reset to Standard DMC Liaquatabad Period Slots
+  // Reset to Standard DMC Period Slots
   const handleResetToStandardSlots = () => {
     setResetSlotsModalOpen(true);
   };
 
   const handleConfirmResetSlots = () => {
     setEditableSlots(DEFAULT_GOVERNMENT_PERIOD_SLOTS);
-    toast.success('Period slots reset to standard government school timings.');
+    setEditableFridaySlots(DEFAULT_FRIDAY_PERIOD_SLOTS);
+    setIsDraftDirty(true);
+    toast.success('Period slots reset to standard government school timings (Regular & Friday).');
     setResetSlotsModalOpen(false);
   };
 
-  // Save & Publish Timetable to Server
+  // Save & Publish Timetable to Server (Authoritative endpoint)
   const handlePostTimetable = () => {
     if (editableSlots.length === 0) {
       toast.error('At least one period slot is required.');
@@ -493,9 +717,10 @@ export const HmTimetableBuilder = ({
     const payload = {
       schoolId,
       academicYear,
-      status: 'ACTIVE', // Sets timetable as published & authoritative
+      status: 'ACTIVE',
       version: schoolTimetable?.version,
       periodSlots: editableSlots,
+      fridayPeriodSlots: editableFridaySlots,
       schedule: editableSchedule.map((entry) => ({
         dayOfWeek: entry.dayOfWeek,
         periodNumber: entry.periodNumber,
@@ -529,10 +754,9 @@ export const HmTimetableBuilder = ({
     <div className="space-y-6">
       {/* ─── OFFICIAL GOVERNMENT INSTITUTIONAL BANNER ─── */}
       <div className="p-6 md:p-8 rounded-3xl bg-gradient-to-br from-[#0a1829] via-[#102033] to-[#162a42] text-white shadow-xl border border-slate-800/80 relative overflow-hidden space-y-6">
-        {/* Subtle Decorative Ambient Glow */}
         <div className="absolute right-0 top-0 bottom-0 w-96 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-500/15 via-transparent to-transparent pointer-events-none" />
 
-        {/* ─── TOP ROW: Institutional Authority Badges (Left) & Real-time Live HUD (Right) ─── */}
+        {/* Institutional Authority Badges & Real-time Live HUD */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10 border-b border-white/10 pb-4">
           <div className="flex flex-wrap items-center gap-2">
             <span className="px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase bg-[#006AC7] text-white shadow-xs">
@@ -552,20 +776,26 @@ export const HmTimetableBuilder = ({
           </div>
         </div>
 
-        {/* ─── MAIN ROW: Full Width School Title (Left) + Prominent Action Buttons (Right) ─── */}
+        {/* Main Row: School Title + Prominent Action Buttons */}
         <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-6 relative z-10">
-          {/* School Name & Municipal Metadata */}
           <div className="space-y-2 min-w-0 max-w-4xl">
             <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white uppercase leading-snug drop-shadow-xs">
               {schoolTimetable?.schoolDetails?.name || 'BABA-E-URDU MOLVI ABDUL HAQ BOYS ELEMENTARY LT-11 E & ENGLISH MEDIUM SCHOOL'}
             </h1>
             <p className="text-xs md:text-sm text-slate-300/90 font-medium leading-relaxed">
-              Official municipal teaching allocation matrix • Unified class routine (Single cohort per grade — No section silos) • Academic Session <span className="font-bold text-white">{academicYear}</span>
+              Official municipal teaching allocation matrix • Unified class routine • Academic Session <span className="font-bold text-white">{academicYear}</span>
             </p>
           </div>
 
           {/* Action Buttons Group */}
           <div className="flex flex-wrap items-center gap-2.5 shrink-0 pt-2 xl:pt-0">
+            {isDraftDirty && (
+              <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                Unpublished Draft Edits
+              </span>
+            )}
+
             <button
               onClick={() => dispatch(fetchSchoolTimetable({ schoolId, academicYear }))}
               disabled={isLoading}
@@ -621,6 +851,39 @@ export const HmTimetableBuilder = ({
         </div>
       </div>
 
+      {/* ─── TIMING MISMATCH NOTICE BANNER & SYNC ACTION ─── */}
+      {timingMismatchAnalysis.isMismatch && (
+        <div className="p-4 sm:p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-900 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in fade-in">
+          <div className="flex items-start gap-3">
+            <div className="p-2.5 rounded-xl bg-amber-500/20 text-amber-800 shrink-0 mt-0.5">
+              <AlertTriangle className="w-5 h-5 text-amber-600" />
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="font-black text-sm text-amber-950 uppercase tracking-tight">
+                  School Timings &amp; Timetable Period Slots Mismatch Detected
+                </span>
+                <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-200 text-amber-900 uppercase">
+                  Action Required
+                </span>
+              </div>
+              <p className="text-xs text-amber-900/90 leading-relaxed max-w-4xl">
+                Configured school hours are <strong>Regular: {timingMismatchAnalysis.regSchoolStart}–{timingMismatchAnalysis.regSchoolEnd}</strong> and <strong>Friday: {timingMismatchAnalysis.friSchoolStart}–{timingMismatchAnalysis.friSchoolEnd}</strong>, but timetable period slots span <strong>Regular: {timingMismatchAnalysis.regCurrentStart || '—'}–{timingMismatchAnalysis.regCurrentEnd || '—'}</strong>. Review synchronization to align bells, attendance windows, and periods without silently overwriting active teaching duties.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setShowSyncModal(true)}
+            className="shrink-0 flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs uppercase tracking-wider transition shadow-md shadow-amber-900/20 cursor-pointer active:scale-98"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>Review &amp; Sync Timings</span>
+          </button>
+        </div>
+      )}
+
       {/* ─── ACTION TOOLBAR & CONTROLS ─── */}
       <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
         {/* Day Selector Pills */}
@@ -630,18 +893,34 @@ export const HmTimetableBuilder = ({
             const isSelected = selectedDay === day;
             const isToday = liveStatus?.currentDay === day;
             const dayEntryCount = editableSchedule.filter((scheduleEntry) => scheduleEntry.dayOfWeek === day).length;
+            const isFridayPill = day === 'FRIDAY';
+            const isSaturdayPill = day === 'SATURDAY';
 
             return (
               <button
                 key={day}
                 onClick={() => setSelectedDay(day)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
                   isSelected
                     ? 'bg-[#102033] text-white shadow-md'
                     : 'bg-slate-50 border border-slate-200 text-[#526477] hover:bg-slate-100'
                 }`}
               >
                 <span>{day}</span>
+                {isFridayPill && (
+                  <span className={`text-[9px] px-1 py-0.2 rounded font-mono ${
+                    isSelected ? 'bg-indigo-400/30 text-indigo-200' : 'bg-indigo-100 text-indigo-800'
+                  }`}>
+                    Jummah
+                  </span>
+                )}
+                {isSaturdayPill && isSaturdayOff && (
+                  <span className={`text-[9px] px-1 py-0.2 rounded font-mono ${
+                    isSelected ? 'bg-amber-400/30 text-amber-200' : 'bg-slate-200 text-slate-700'
+                  }`}>
+                    Off
+                  </span>
+                )}
                 {isToday && (
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="Today in Karachi" />
                 )}
@@ -662,16 +941,25 @@ export const HmTimetableBuilder = ({
           <button
             onClick={handleCopyDayToAllWeekdays}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-blue-200 bg-blue-50/80 hover:bg-blue-100/80 text-[#006AC7] text-xs font-bold transition cursor-pointer"
-            title="Copy current day's routine to Tuesday-Saturday"
+            title="Copy current day's routine to working days"
           >
             <Copy className="w-3.5 h-3.5" />
             <span>Copy {selectedDay} to All Days</span>
           </button>
 
           <button
+            onClick={() => setShowSyncModal(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold transition cursor-pointer"
+            title="Review school bell timings & synchronize period slots"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+            <span>Sync Bell Schedule</span>
+          </button>
+
+          <button
             onClick={handleResetToStandardSlots}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-[#526477] text-xs font-bold transition cursor-pointer"
-            title="Reset period timing to 08:00 - 12:20 standard government slots"
+            title="Reset period timing to standard government slots"
           >
             <Clock className="w-3.5 h-3.5" />
             <span>Standard Slots</span>
@@ -679,18 +967,30 @@ export const HmTimetableBuilder = ({
         </div>
       </div>
 
+      {/* Saturday Weekly-Off Info Notice */}
+      {selectedDay === 'SATURDAY' && isSaturdayOff && (
+        <div className="p-4 rounded-2xl bg-slate-100 border border-slate-300 text-slate-800 flex items-center gap-3">
+          <Info className="w-5 h-5 text-slate-500 shrink-0" />
+          <div className="text-xs">
+            <strong>Official Weekly-Off Day:</strong> Saturday is configured as a weekly holiday under town calendar policy. Routine instructional periods are optional.
+          </div>
+        </div>
+      )}
+
       {/* ═══════════════════════════════════════════════════════════════════ */}
-      {/* MASTER GOVERNMENT TIMETABLE MATRIX (EXACTLY AS IN IMAGE 2)          */}
+      {/* MASTER GOVERNMENT TIMETABLE MATRIX (FLUID RESPONSIVE FULL-WIDTH)    */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
       <div className="overflow-x-auto rounded-3xl bg-white border border-slate-200/90 shadow-sm print:border-none print:shadow-none">
-        <table className="w-full text-left border-collapse min-w-[980px]">
+        <table className="w-full text-left border-collapse min-w-[850px] lg:min-w-0 table-fixed">
           {/* Header Row 1: Period Numbers */}
           <thead>
             <tr className="bg-slate-100 border-b border-slate-200 text-xs font-black text-[#102033] uppercase">
-              <th className="py-3 px-4 w-52 sticky left-0 bg-slate-100 z-20 border-r border-slate-300">
+              <th className="py-3 px-3 sm:px-4 w-40 sm:w-44 md:w-48 lg:w-48 xl:w-52 shrink-0 sticky left-0 bg-slate-100 z-20 border-r border-slate-300">
                 <div className="flex flex-col">
                   <span className="tracking-wider">PERIODS</span>
-                  <span className="text-[10px] font-normal text-[#526477] lowercase">classes & in-charge teacher</span>
+                  <span className="text-[10px] font-normal text-[#526477] lowercase truncate">
+                    classes &amp; in-charge
+                  </span>
                 </div>
               </th>
 
@@ -704,7 +1004,7 @@ export const HmTimetableBuilder = ({
                   return (
                     <th
                       key="break_slot"
-                      className="py-3 px-3 text-center w-24 bg-amber-50/80 border-r border-amber-200 text-amber-900 font-black tracking-widest text-[11px]"
+                      className="py-3 px-1 sm:px-2 text-center w-12 sm:w-14 md:w-16 shrink-0 bg-amber-50/80 border-r border-amber-200 text-amber-900 font-black tracking-widest text-[10px]"
                     >
                       BREAK
                     </th>
@@ -714,17 +1014,17 @@ export const HmTimetableBuilder = ({
                 return (
                   <th
                     key={slot.periodNumber}
-                    className={`py-3 px-3 text-center border-r border-slate-200 last:border-r-0 ${
+                    className={`py-3 px-2 text-center border-r border-slate-200 last:border-r-0 ${
                       isLiveSlot ? 'bg-emerald-500/15 border-b-2 border-b-emerald-600' : ''
                     }`}
                   >
                     <div className="flex flex-col items-center">
-                      <span className={`text-sm font-black ${isLiveSlot ? 'text-emerald-800' : 'text-[#102033]'}`}>
+                      <span className={`text-xs sm:text-sm font-black ${isLiveSlot ? 'text-emerald-800' : 'text-[#102033]'}`}>
                         {slot.label}
                       </span>
                       {isLiveSlot && (
                         <span className="mt-0.5 px-1.5 py-0.2 rounded text-[8px] font-black bg-emerald-600 text-white animate-pulse">
-                          LIVE NOW
+                          LIVE
                         </span>
                       )}
                     </div>
@@ -735,7 +1035,7 @@ export const HmTimetableBuilder = ({
 
             {/* Header Row 2: Standard Timing Slots */}
             <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-mono font-bold text-[#526477]">
-              <th className="py-2 px-4 sticky left-0 bg-slate-50 z-20 border-r border-slate-300 text-left font-sans">
+              <th className="py-2 px-3 sm:px-4 w-40 sm:w-44 md:w-48 lg:w-48 xl:w-52 shrink-0 sticky left-0 bg-slate-50 z-20 border-r border-slate-300 text-left font-sans">
                 Time (PKT)
               </th>
               {sortedSlots.map((slot) => {
@@ -743,18 +1043,18 @@ export const HmTimetableBuilder = ({
                 return (
                   <th
                     key={`time_${slot.periodNumber}`}
-                    className={`py-2 px-2 text-center border-r border-slate-200 last:border-r-0 ${
-                      isBreak ? 'bg-amber-50/50 border-r-amber-200 text-amber-800 text-[10px]' : ''
+                    className={`py-2 px-1 sm:px-2 text-center border-r border-slate-200 last:border-r-0 ${
+                      isBreak ? 'w-12 sm:w-14 md:w-16 shrink-0 bg-amber-50/50 border-r-amber-200 text-amber-800 text-[9px] sm:text-[10px]' : ''
                     }`}
                   >
-                    {slot.startTime}–{slot.endTime}
+                    <span className="truncate block">{slot.startTime}–{slot.endTime}</span>
                   </th>
                 );
               })}
             </tr>
           </thead>
 
-          {/* Matrix Rows: One Clean Row Per Class (No ABCD Sections!) */}
+          {/* Matrix Rows: One Clean Row Per Class */}
           <tbody className="divide-y divide-slate-200 text-xs">
             {sortedClasses.length === 0 ? (
               <tr>
@@ -775,19 +1075,24 @@ export const HmTimetableBuilder = ({
                 return (
                   <tr key={classItem._id} className="hover:bg-slate-50/70 transition">
                     {/* Class & In-charge Column */}
-                    <td className="py-3 px-4 font-bold text-[#102033] sticky left-0 bg-white border-r border-slate-300 z-10 shadow-[2px_0_4px_rgba(0,0,0,0.02)]">
-                      <div className="flex items-center justify-between gap-2">
-                        <div>
-                          <div className="text-sm font-black text-[#102033]">{classItem.name}</div>
-                          <div className="text-[11px] font-medium text-[#526477] flex items-center gap-1 mt-0.5">
-                            <User className="w-3 h-3 text-[#8094A8]" />
-                            <span className={designatedTeacher ? 'font-bold text-[#102033]' : 'text-[#8094A8]'}>
+                    <td className="py-3 px-3 sm:px-4 font-bold text-[#102033] w-40 sm:w-44 md:w-48 lg:w-48 xl:w-52 shrink-0 sticky left-0 bg-white border-r border-slate-300 z-10 shadow-[2px_0_4px_rgba(0,0,0,0.02)]">
+                      <div className="flex items-center justify-between gap-1.5">
+                        <div className="min-w-0 flex-1">
+                          <div className="text-xs sm:text-sm font-black text-[#102033] truncate">{classItem.name}</div>
+                          <div className="text-[10px] sm:text-[11px] font-medium text-[#526477] flex items-center gap-1 mt-0.5 min-w-0">
+                            <User className="w-3 h-3 text-[#8094A8] shrink-0" />
+                            <span
+                              className={`truncate max-w-[100px] sm:max-w-[120px] lg:max-w-[130px] ${
+                                designatedTeacher ? 'font-bold text-[#102033]' : 'text-[#8094A8]'
+                              }`}
+                              title={teacherDisplayName}
+                            >
                               {teacherDisplayName}
                             </span>
                           </div>
                         </div>
 
-                        {/* Early Grade Quick Assign "All Subjects" Button */}
+                        {/* Early Grade Quick Assign Button */}
                         {isEarlyClass && (
                           <button
                             type="button"
@@ -805,10 +1110,10 @@ export const HmTimetableBuilder = ({
                                 toast.error('No faculty members available to assign.');
                               }
                             }}
-                            className="p-1.5 rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 text-[#006AC7] text-[10px] font-bold cursor-pointer transition active:scale-95"
+                            className="p-1 sm:p-1.5 rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 text-[#006AC7] text-[9px] sm:text-[10px] font-bold cursor-pointer transition shrink-0 active:scale-95"
                             title="Assign Single Teacher to All Subjects"
                           >
-                            All Subj
+                            All
                           </button>
                         )}
                       </div>
@@ -821,12 +1126,11 @@ export const HmTimetableBuilder = ({
                         liveStatus?.currentDay === selectedDay &&
                         liveStatus?.activeSlot?.periodNumber === slot.periodNumber;
 
-                      // Break Column (Vertical Spanning Banner)
                       if (isBreak) {
                         return (
                           <td
                             key="cell_break"
-                            className="py-2 px-1 text-center bg-amber-50/40 border-r border-amber-200 text-amber-700 font-mono text-[10px] font-bold tracking-widest select-none"
+                            className="py-2 px-1 text-center w-12 sm:w-14 md:w-16 shrink-0 bg-amber-50/40 border-r border-amber-200 text-amber-700 font-mono text-[10px] font-bold tracking-widest select-none"
                           >
                             <span className="block writing-vertical-lr text-amber-800 font-bold uppercase text-[9px]">
                               BREAK
@@ -835,7 +1139,6 @@ export const HmTimetableBuilder = ({
                         );
                       }
 
-                      // Check if Early Class has All Subjects assigned
                       const entry = getEntryForCell(classItem._id, selectedDay, slot.periodNumber);
                       const subjectObj = subjects.find(
                         (subjectDefinition) =>
@@ -853,30 +1156,28 @@ export const HmTimetableBuilder = ({
                         <td
                           key={slot.periodNumber}
                           onClick={() => handleOpenCellEditor(classItem, slot)}
-                          className={`py-2 px-2 border-r border-slate-200 last:border-r-0 cursor-pointer transition group ${
+                          className={`py-2 px-1.5 sm:px-2 border-r border-slate-200 last:border-r-0 cursor-pointer transition group ${
                             isLiveSlot ? 'bg-emerald-500/10' : 'hover:bg-blue-50/40'
                           }`}
                         >
                           {isAllocated ? (
-                            <div className="p-2 rounded-xl bg-blue-50/90 border border-blue-200/80 group-hover:border-[#006AC7] transition space-y-0.5">
-                              {/* Subject Name in Bold Uppercase (Matching Image 2) */}
-                              <div className="font-black text-xs text-[#006AC7] uppercase tracking-wide truncate">
+                            <div className="p-1.5 sm:p-2 rounded-xl bg-blue-50/90 border border-blue-200/80 group-hover:border-[#006AC7] transition space-y-0.5">
+                              <div className="font-black text-[11px] sm:text-xs text-[#006AC7] uppercase tracking-wide truncate">
                                 {subjectObj?.name || 'ALL SUBJECTS'}
                               </div>
 
-                              {/* Teacher Name in Second Line (Matching Image 2) */}
-                              <div className="text-[11px] font-bold text-[#102033] uppercase truncate flex items-center gap-1">
+                              <div className="text-[10px] sm:text-[11px] font-bold text-[#102033] uppercase truncate flex items-center gap-1">
                                 <span>{teacherObj?.fullName || 'Assigned Faculty'}</span>
                               </div>
 
                               {entry?.roomNumber && (
-                                <div className="text-[9px] font-mono text-[#8094A8]">
+                                <div className="text-[8px] sm:text-[9px] font-mono text-[#8094A8]">
                                   R: {entry.roomNumber}
                                 </div>
                               )}
                             </div>
                           ) : (
-                            <div className="h-12 rounded-xl border border-dashed border-slate-200 flex items-center justify-center text-[10px] font-bold text-[#8094A8] group-hover:border-[#006AC7] group-hover:text-[#006AC7] group-hover:bg-white transition">
+                            <div className="h-11 sm:h-12 rounded-xl border border-dashed border-slate-200 flex items-center justify-center text-[10px] font-bold text-[#8094A8] group-hover:border-[#006AC7] group-hover:text-[#006AC7] group-hover:bg-white transition">
                               + Assign
                             </div>
                           )}
@@ -892,7 +1193,7 @@ export const HmTimetableBuilder = ({
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════════ */}
-      {/* TEACHER FREE PERIODS REGISTER FOOTER (MATCHING IMAGE 2 EXACTLY)      */}
+      {/* TEACHER FREE PERIODS REGISTER FOOTER                                */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
       <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
@@ -905,7 +1206,7 @@ export const HmTimetableBuilder = ({
                 Teacher Free Periods / Off-Duty Register ({selectedDay})
               </h3>
               <p className="text-xs text-[#526477]">
-                Deterministic substitute duty & proxy allocation intelligence — automatically calculated from active timetable.
+                Substitute duty &amp; proxy allocation intelligence calculated dynamically from active timetable slots.
               </p>
             </div>
           </div>
@@ -917,7 +1218,7 @@ export const HmTimetableBuilder = ({
           </div>
         </div>
 
-        {/* Free Periods Grid Display (Identical to Image 2 footer) */}
+        {/* Free Periods Grid Display */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {teacherFreePeriodsSummary.map((teacherSummary, summaryIndex) => (
             <div
@@ -1059,16 +1360,26 @@ export const HmTimetableBuilder = ({
           </div>
         </div>
       )}
+
       {/* Reset Standard Timings Confirmation Dialog */}
       <ConfirmModal
         isOpen={resetSlotsModalOpen}
         title="Reset Standard DMC Period Slots"
-        message="Reset period slots to standard 7-period + Break DMC timing (08:00 to 12:20)?"
-        note="This will restore the standard municipal school bell schedule with 35-minute instructional periods and a 20-minute recess."
+        message="Reset period slots to standard 7-period + Break DMC timing (08:00 to 12:20) and Friday short schedule?"
+        note="This will restore standard baseline slots. Active assignments will be preserved."
         confirmText="Reset Schedule"
         confirmVariant="warning"
         onConfirm={handleConfirmResetSlots}
         onCancel={() => setResetSlotsModalOpen(false)}
+      />
+
+      {/* Interactive Timing Synchronization Preview & Confirmation Modal */}
+      <TimingSyncPreviewModal
+        isOpen={showSyncModal}
+        onClose={() => setShowSyncModal(false)}
+        schoolName={schoolTimetable?.schoolDetails?.name || ''}
+        mismatchAnalysis={timingMismatchAnalysis}
+        onApplySync={handleApplySyncToDraft}
       />
 
       {/* Official A4 Timetable Print & Portal Preview Modal */}
@@ -1079,6 +1390,7 @@ export const HmTimetableBuilder = ({
         academicYear={academicYear}
         classes={classes}
         slots={sortedSlots}
+        fridaySlots={editableFridaySlots}
         schedule={editableSchedule}
         subjects={subjects}
         faculty={faculty}

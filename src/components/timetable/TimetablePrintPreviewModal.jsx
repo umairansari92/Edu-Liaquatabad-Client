@@ -29,6 +29,7 @@ export const TimetablePrintPreviewModal = ({
   academicYear = '2025-2026',
   classes = [],
   slots = [],
+  fridaySlots = [],
   schedule = [],
   subjects = [],
   faculty = [],
@@ -152,6 +153,13 @@ export const TimetablePrintPreviewModal = ({
   // Render Single Day Table
   const renderDayTable = (dayName) => {
     const dayEntryCount = schedule.filter((s) => s.dayOfWeek === dayName).length;
+    const daySlots = (dayName === 'FRIDAY' && Array.isArray(fridaySlots) && fridaySlots.length > 0)
+      ? [...fridaySlots].sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''))
+      : sortedSlots;
+
+    const shiftText = daySlots.length > 0
+      ? `SHIFT: ${daySlots[0].startTime} – ${daySlots[daySlots.length - 1].endTime}`
+      : (dayName === 'FRIDAY' ? 'SHIFT: 07:30 AM – 12:00 PM' : 'SHIFT: 08:00 AM – 12:20 PM');
 
     return (
       <div key={dayName} className="a4-sheet-page bg-white p-6 sm:p-8 rounded-xl shadow-lg border border-slate-300 text-slate-900 my-4 printable-timetable-sheet">
@@ -181,7 +189,7 @@ export const TimetablePrintPreviewModal = ({
                 SESSION {academicYear}
               </span>
               <p className="text-[10px] font-bold text-slate-700 mt-0.5">
-                SHIFT: 08:00 AM – 12:20 PM
+                {shiftText}
               </p>
             </div>
           </div>
@@ -214,7 +222,7 @@ export const TimetablePrintPreviewModal = ({
                 <th className="p-2 border border-slate-900 font-black uppercase text-center w-28">
                   Class Incharge
                 </th>
-                {sortedSlots.map((slot) => (
+                {daySlots.map((slot) => (
                   <th
                     key={`${slot.periodNumber}-${slot.startTime}`}
                     className={`p-2 border border-slate-900 text-center ${
@@ -237,7 +245,7 @@ export const TimetablePrintPreviewModal = ({
               {sortedClasses.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={sortedSlots.length + 2}
+                    colSpan={daySlots.length + 2}
                     className="p-8 text-center text-slate-500 italic"
                   >
                     No classes enrolled for this school.
@@ -266,7 +274,7 @@ export const TimetablePrintPreviewModal = ({
                       </td>
 
                       {/* Period Cells */}
-                      {sortedSlots.map((slot) => {
+                      {daySlots.map((slot) => {
                         if (slot.slotType === 'RECESS') {
                           return (
                             <td

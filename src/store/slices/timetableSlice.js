@@ -1,4 +1,4 @@
-﻿import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import timetableService from '../../services/timetableService.js';
 
 export const fetchSchoolTimetable = createAsyncThunk(
@@ -9,7 +9,7 @@ export const fetchSchoolTimetable = createAsyncThunk(
       return response.data;
     } catch (apiRequestError) {
       const errorMessage =
-        error.response?.data?.message || 'Failed to retrieve school timetable.';
+        apiRequestError.response?.data?.message || 'Failed to retrieve school timetable.';
       return rejectWithValue(errorMessage);
     }
   }
@@ -22,7 +22,7 @@ export const saveTimetable = createAsyncThunk(
       const response = await timetableService.manageTimetable(timetablePayload);
       return response.data;
     } catch (apiRequestError) {
-      const errorData = error.response?.data;
+      const errorData = apiRequestError.response?.data;
       const errorMessage =
         errorData?.message || 'Failed to save timetable.';
       return rejectWithValue(errorMessage);
@@ -38,7 +38,7 @@ export const fetchTownLiveMonitor = createAsyncThunk(
       return response.data;
     } catch (apiRequestError) {
       const errorMessage =
-        error.response?.data?.message || 'Failed to fetch live monitoring matrix.';
+        apiRequestError.response?.data?.message || 'Failed to fetch live monitoring matrix.';
       return rejectWithValue(errorMessage);
     }
   }
@@ -52,7 +52,7 @@ export const fetchMySchedule = createAsyncThunk(
       return response.data;
     } catch (apiRequestError) {
       const errorMessage =
-        error.response?.data?.message || 'Failed to load personal schedule.';
+        apiRequestError.response?.data?.message || 'Failed to load personal schedule.';
       return rejectWithValue(errorMessage);
     }
   }

@@ -1416,7 +1416,11 @@ export const HmDashboard = () => {
     <PageContainer
       title="School overview"
       subtitle={`${summary?.school?.name || user?.schoolId?.name || 'Assigned Municipal School'} • Education Department, Liaquatabad Town Centre (DMC)`}
-      maxWidth={activeTab === 'attendance' && attendanceSubTab === 'student-register' ? 'max-w-[1680px]' : 'max-w-7xl'}
+      maxWidth={
+        activeTab === 'timetable' || (activeTab === 'attendance' && attendanceSubTab === 'student-register')
+          ? 'max-w-[1680px]'
+          : 'max-w-7xl'
+      }
       actions={
         <div className="flex items-center gap-2">
           <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 border border-emerald-200 text-emerald-800">
@@ -4353,6 +4357,7 @@ export const HmDashboard = () => {
       {activeTab === 'timetable' && (
         <HmTimetableBuilder
           schoolId={user?.schoolId?._id || user?.schoolId}
+          school={summary?.school || user?.schoolId}
           classes={classes}
           sections={sections}
           subjects={subjects}
