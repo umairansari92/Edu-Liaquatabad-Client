@@ -1,4 +1,4 @@
-﻿import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import adminService from '../../services/adminService.js';
 
 // ─── Async Thunks ─────────────────────────────────────────────────────────────
@@ -346,4 +346,10 @@ const adminSlice = createSlice({
 });
 
 export const { clearActionError } = adminSlice.actions;
+
+export const selectAdminSchools = (state) => state.admin.schools;
+export const selectIsSchoolsLoading = (state) => state.admin.isSchoolsLoading;
+export const selectAdminOverview = (state) => state.admin.overview;
+export const selectAdminAnalytics = (state) => state.admin.analytics;
+
 export default adminSlice.reducer;

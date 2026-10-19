@@ -177,26 +177,26 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   PRINT OPTIMIZATIONS (A4 EXACT SINGLE SHEET)
+/* ═══════════════════════════════════════════════════════════════════════════
+   PRINT OPTIMIZATIONS (A4 EXACT SINGLE SHEET) - Scoped to Admission Mode
    ═══════════════════════════════════════════════════════════════════════════ */
 @media print {
-  @page {
-    size: A4 portrait;
-    margin: 5mm 6mm 5mm 6mm;
+  body.print-admission-mode {
+    background: #ffffff !important;
   }
 
-  /* Hide entire page outside the printable document */
-  body * {
+  /* Scoped hide: only hide when admission print mode is active */
+  body.print-admission-mode * {
     visibility: hidden !important;
   }
 
-  /* Make only the print sheet visible */
-  .official-admission-printable,
-  .official-admission-printable * {
+  /* Make only the admission print sheet visible */
+  body.print-admission-mode .official-admission-printable,
+  body.print-admission-mode .official-admission-printable * {
     visibility: visible !important;
   }
 
-  .official-admission-printable {
+  body.print-admission-mode .official-admission-printable {
     position: absolute !important;
     left: 0 !important;
     top: 0 !important;

@@ -77,7 +77,15 @@ export const OfficialAdmissionDocument = ({
   const printSheetRef = useRef(null);
 
   const handlePrint = () => {
-    window.print();
+    document.body.classList.add('print-admission-mode');
+    const cleanup = () => {
+      document.body.classList.remove('print-admission-mode');
+      window.removeEventListener('afterprint', cleanup);
+    };
+    window.addEventListener('afterprint', cleanup);
+    setTimeout(() => {
+      window.print();
+    }, 100);
   };
 
   // Format date helper

@@ -401,6 +401,15 @@ td.register-closure-band {
     print-color-adjust: exact !important;
   }
 
+  body.print-register-mode * {
+    visibility: hidden !important;
+  }
+
+  body.print-register-mode .printable-attendance-register,
+  body.print-register-mode .printable-attendance-register * {
+    visibility: visible !important;
+  }
+
   body.print-register-mode aside,
   body.print-register-mode nav,
   body.print-register-mode header,
@@ -417,10 +426,13 @@ td.register-closure-band {
     margin: 0 !important;
     max-width: 100% !important;
     width: 100% !important;
+    overflow: visible !important;
   }
 
   body.print-register-mode .printable-attendance-register {
-    position: relative !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
     display: block !important;

@@ -21,9 +21,17 @@ import {
   X,
   PlusCircle,
 } from 'lucide-react';
+import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
-import apiClient from '../../services/apiClient.js';
 import { getErrorMessage } from '../../utils/errorUtils.js';
+import {
+  fetchAttendanceRegister,
+  clearMissedAttendance,
+  selectAttendanceRegister,
+  selectAttendanceRegisterLoading,
+  selectAttendanceRegisterError,
+  selectClearMissedSubmitting,
+} from '../../store/slices/teacherSlice.js';
 
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
@@ -47,16 +55,17 @@ export const SmartAttendanceRegister = ({
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
   const [activeSectionId, setActiveSectionId] = useState(initialSectionId);
 
-  const [registerData, setRegisterData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+  const registerData = useSelector(selectAttendanceRegister);
+  const loading = useSelector(selectAttendanceRegisterLoading);
+  const error = useSelector(selectAttendanceRegisterError);
+  const clearanceSubmitting = useSelector(selectClearMissedSubmitting);
 
   // HM Missed Clearance Modal State
   const [missedClearanceModalOpen, setMissedClearanceModalOpen] = useState(false);
   const [selectedMissedDate, setSelectedMissedDate] = useState(null);
   const [clearanceReason, setClearanceReason] = useState('');
   const [clearanceRoster, setClearanceRoster] = useState([]);
-  const [clearanceSubmitting, setClearanceSubmitting] = useState(false);
 
   // Sync sectionId from props
   useEffect(() => {
@@ -67,30 +76,15 @@ export const SmartAttendanceRegister = ({
     }
   }, [initialSectionId, sections, activeSectionId]);
 
-  // Fetch register data from server
-  const fetchRegister = useCallback(async () => {
+  // Fetch register data through Redux thunk
+  const fetchRegister = useCallback(() => {
     if (!activeSectionId) return;
-
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await apiClient.get('/attendance/register', {
-        params: {
-          sectionId: activeSectionId,
-          month: selectedMonth,
-          year: selectedYear,
-        },
-      });
-
-      if (response.data?.data) {
-        setRegisterData(response.data.data);
-      }
-    } catch (err) {
-      setError(getErrorMessage(err, 'Failed to load Smart Attendance Register.'));
-    } finally {
-      setLoading(false);
-    }
-  }, [activeSectionId, selectedMonth, selectedYear]);
+    dispatch(fetchAttendanceRegister({
+      sectionId: activeSectionId,
+      month: selectedMonth,
+      year: selectedYear,
+    }));
+  }, [dispatch, activeSectionId, selectedMonth, selectedYear]);
 
   useEffect(() => {
     fetchRegister();
@@ -159,7 +153,6 @@ export const SmartAttendanceRegister = ({
       return;
     }
 
-    setClearanceSubmitting(true);
     try {
       const absentStudentProfileIds = clearanceRoster
         .filter((student) => student.status === 'ABSENT')
@@ -180,40 +173,44 @@ export const SmartAttendanceRegister = ({
         reason: clearanceReason.trim(),
       };
 
-      await apiClient.post('/attendance/clear-missed', payload);
-      toast.success(`Missed attendance for ${selectedMissedDate.date} cleared successfully!`);
-      setMissedClearanceModalOpen(false);
-      fetchRegister();
+      const resultAction = await dispatch(clearMissedAttendance(payload));
+      if (clearMissedAttendance.fulfilled.match(resultAction)) {
+        toast.success(`Missed attendance for ${selectedMissedDate.date} cleared successfully!`);
+        setMissedClearanceModalOpen(false);
+        fetchRegister();
+      } else {
+        toast.error(resultAction.payload || 'Failed to clear missed attendance.');
+      }
     } catch (err) {
       toast.error(getErrorMessage(err, 'Failed to clear missed attendance.'));
-    } finally {
-      setClearanceSubmitting(false);
     }
   };
 
-  // Clean up print classes on component unmount
+  // Handle print mode lifecycle via beforeprint and afterprint
   useEffect(() => {
+    const handleBeforePrint = () => {
+      document.body.classList.add('print-register-mode');
+    };
+    const handleAfterPrint = () => {
+      document.body.classList.remove('print-register-mode');
+    };
+
+    window.addEventListener('beforeprint', handleBeforePrint);
+    window.addEventListener('afterprint', handleAfterPrint);
+
     return () => {
+      window.removeEventListener('beforeprint', handleBeforePrint);
+      window.removeEventListener('afterprint', handleAfterPrint);
       document.body.classList.remove('print-register-mode');
     };
   }, []);
 
   // Print register with dedicated Legal Landscape print mode
   const handlePrint = () => {
-    const cleanupPrint = () => {
-      document.body.classList.remove('print-register-mode');
-      window.removeEventListener('afterprint', cleanupPrint);
-    };
-
-    window.addEventListener('afterprint', cleanupPrint);
     document.body.classList.add('print-register-mode');
-
-    // Give browser renderer 100ms to paint print-register-mode styles before invoking print dialog
     setTimeout(() => {
       window.print();
-      // Safety fallback cleanup for browsers where afterprint does not fire reliably
-      setTimeout(cleanupPrint, 3000);
-    }, 100);
+    }, 80);
   };
 
   // Derive register columns & summaries

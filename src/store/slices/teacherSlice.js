@@ -60,6 +60,30 @@ export const submitStudentAttendance = createAsyncThunk(
   }
 );
 
+export const fetchAttendanceRegister = createAsyncThunk(
+  'teacher/fetchAttendanceRegister',
+  async ({ sectionId, month, year }, { rejectWithValue }) => {
+    try {
+      return await teacherService.getAttendanceRegister(sectionId, month, year);
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch attendance register');
+    }
+  }
+);
+
+export const clearMissedAttendance = createAsyncThunk(
+  'teacher/clearMissedAttendance',
+  async (payload, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await teacherService.clearMissedAttendance(payload);
+      dispatch(fetchTeacherSummary());
+      return response;
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to clear missed attendance');
+    }
+  }
+);
+
 export const fetchSchoolExams = createAsyncThunk(
   'teacher/fetchSchoolExams',
   async (_, { rejectWithValue }) => {
@@ -217,6 +241,13 @@ const initialState = {
   attendanceError: null,
   attendanceSuccessMsg: null,
 
+  // Monthly Smart Attendance Register
+  attendanceRegister: null,
+  attendanceRegisterLoading: false,
+  attendanceRegisterError: null,
+  clearMissedSubmitting: false,
+  clearMissedError: null,
+
   // Examination Marks
   examsList: [],
   examsLoading: false,
@@ -336,6 +367,33 @@ const teacherSlice = createSlice({
       .addCase(submitStudentAttendance.rejected, (state, action) => {
         state.attendanceSubmitting = false;
         state.attendanceError = action.payload;
+      })
+
+      // Monthly Attendance Register
+      .addCase(fetchAttendanceRegister.pending, (state) => {
+        state.attendanceRegisterLoading = true;
+        state.attendanceRegisterError = null;
+      })
+      .addCase(fetchAttendanceRegister.fulfilled, (state, action) => {
+        state.attendanceRegisterLoading = false;
+        state.attendanceRegister = action.payload;
+      })
+      .addCase(fetchAttendanceRegister.rejected, (state, action) => {
+        state.attendanceRegisterLoading = false;
+        state.attendanceRegisterError = action.payload;
+      })
+
+      // Clear Missed Attendance
+      .addCase(clearMissedAttendance.pending, (state) => {
+        state.clearMissedSubmitting = true;
+        state.clearMissedError = null;
+      })
+      .addCase(clearMissedAttendance.fulfilled, (state) => {
+        state.clearMissedSubmitting = false;
+      })
+      .addCase(clearMissedAttendance.rejected, (state, action) => {
+        state.clearMissedSubmitting = false;
+        state.clearMissedError = action.payload;
       })
 
       // School Exams List
@@ -483,6 +541,11 @@ export const selectTeacherAssignments = (state) => state.teacher.assignments;
 export const selectAttendanceSheet = (state) => state.teacher.attendanceSheet;
 export const selectAttendanceLoading = (state) => state.teacher.attendanceLoading;
 export const selectAttendanceSubmitting = (state) => state.teacher.attendanceSubmitting;
+export const selectAttendanceRegister = (state) => state.teacher.attendanceRegister;
+export const selectAttendanceRegisterLoading = (state) => state.teacher.attendanceRegisterLoading;
+export const selectAttendanceRegisterError = (state) => state.teacher.attendanceRegisterError;
+export const selectClearMissedSubmitting = (state) => state.teacher.clearMissedSubmitting;
+export const selectClearMissedError = (state) => state.teacher.clearMissedError;
 export const selectSchoolExams = (state) => state.teacher.examsList;
 export const selectExamRoster = (state) => state.teacher.examRoster;
 export const selectExamRosterLoading = (state) => state.teacher.examRosterLoading;

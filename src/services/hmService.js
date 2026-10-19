@@ -299,6 +299,11 @@ export const hmService = {
     return response.data;
   },
 
+  clearMissedAttendance: async (payload) => {
+    const response = await apiClient.post('/attendance/clear-missed', payload);
+    return response.data;
+  },
+
   // ─── 11. Parent-Student Ward Link Verification ───────────────────────────────
   getParentLinks: async (params = {}) => {
     const response = await apiClient.get('/hm/parent-links', { params });

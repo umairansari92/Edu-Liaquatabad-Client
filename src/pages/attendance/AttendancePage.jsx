@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { Navigate } from 'react-router-dom';
 import {
   ClipboardCheck,
@@ -19,12 +19,18 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import apiClient from '../../services/apiClient.js';
+import {
+  fetchTeacherSummary,
+  fetchAttendanceSheet,
+  submitStudentAttendance,
+} from '../../store/slices/teacherSlice.js';
+import { fetchAdminSchoolsList } from '../../store/slices/adminSlice.js';
 import PageContainer from '../../components/layout/PageContainer.jsx';
 import SmartAttendanceRegister from '../../components/attendance/SmartAttendanceRegister.jsx';
 
 // ─── Teacher Attendance Workspace Component ──────────────────────────────────
 const TeacherAttendanceWorkspace = ({ user }) => {
+  const dispatch = useDispatch();
   const [sections, setSections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -44,16 +50,18 @@ const TeacherAttendanceWorkspace = ({ user }) => {
     setLoading(true);
     setError(null);
     try {
-      const sectionsResponse = await apiClient.get('/academic/teacher-summary');
-      if (sectionsResponse.data?.data) {
-        setSections(sectionsResponse.data.data.sections || []);
+      const resultAction = await dispatch(fetchTeacherSummary());
+      if (fetchTeacherSummary.fulfilled.match(resultAction)) {
+        setSections(resultAction.payload?.sections || []);
+      } else {
+        setError(resultAction.payload || 'Failed to load assigned sections.');
       }
     } catch (sectionsError) {
-      setError(sectionsError.response?.data?.message || 'Failed to load assigned sections.');
+      setError('Failed to load assigned sections.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => {
     fetchTeacherSections();
@@ -67,13 +75,15 @@ const TeacherAttendanceWorkspace = ({ user }) => {
     setIsLateOverride(false);
     setLateReason('');
     try {
-      const sheetResponse = await apiClient.get('/attendance/sheet', {
-        params: { sectionId: sec._id, date: selectedDate },
-      });
-      setRoster(sheetResponse.data?.data?.roster || []);
-      setWindowStatus(sheetResponse.data?.data?.windowStatus || null);
+      const sheetAction = await dispatch(fetchAttendanceSheet({ sectionId: sec._id, date: selectedDate }));
+      if (fetchAttendanceSheet.fulfilled.match(sheetAction)) {
+        setRoster(sheetAction.payload?.roster || []);
+        setWindowStatus(sheetAction.payload?.windowStatus || null);
+      } else {
+        setRosterError(sheetAction.payload || 'Failed to load student roster for this section.');
+      }
     } catch (sheetError) {
-      setRosterError(sheetError.response?.data?.message || 'Failed to load student roster for this section.');
+      setRosterError('Failed to load student roster for this section.');
     } finally {
       setRosterLoading(false);
     }
@@ -129,11 +139,15 @@ const TeacherAttendanceWorkspace = ({ user }) => {
         isLateOverride: Boolean(isLateOverride),
         lateReason: isLateOverride ? lateReason.trim() : undefined,
       };
-      const submitResponse = await apiClient.post('/attendance/submit', payload);
-      setSubmissionSuccess(`Attendance submitted successfully for ${submitResponse.data?.data?.totalRecords || roster.length} students.`);
-      fetchTeacherSections();
+      const submitAction = await dispatch(submitStudentAttendance(payload));
+      if (submitStudentAttendance.fulfilled.match(submitAction)) {
+        setSubmissionSuccess(`Attendance submitted successfully for ${submitAction.payload?.data?.totalRecords || roster.length} students.`);
+        fetchTeacherSections();
+      } else {
+        setRosterError(submitAction.payload || 'Failed to submit attendance.');
+      }
     } catch (submitError) {
-      setRosterError(submitError.response?.data?.message || 'Failed to submit attendance.');
+      setRosterError('Failed to submit attendance.');
     } finally {
       setSubmitting(false);
     }
@@ -509,6 +523,7 @@ const TeacherAttendanceWorkspace = ({ user }) => {
 
 // ─── Admin / Authority Attendance Telemetry Workspace ────────────────────────
 const AdminAttendanceWorkspace = ({ user }) => {
+  const dispatch = useDispatch();
   const [schoolsList, setSchoolsList] = useState([]);
   const [selectedSchoolId, setSelectedSchoolId] = useState('');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
@@ -527,11 +542,13 @@ const AdminAttendanceWorkspace = ({ user }) => {
   const fetchSchools = async () => {
     setIsSchoolsLoading(true);
     try {
-      const response = await apiClient.get('/schools');
-      if (response.data?.success) {
-        const list = response.data.data?.schools || response.data.data || [];
+      const schoolsAction = await dispatch(fetchAdminSchoolsList());
+      if (fetchAdminSchoolsList.fulfilled.match(schoolsAction)) {
+        const list = schoolsAction.payload?.schools || schoolsAction.payload || [];
         setSchoolsList(list);
         if (list.length > 0) setSelectedSchoolId(list[0]._id);
+      } else {
+        toast.error('Unable to retrieve municipal school list.');
       }
     } catch (schoolsError) {
       console.error('Failed to load schools:', schoolsError);
