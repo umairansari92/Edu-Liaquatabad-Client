@@ -18,6 +18,7 @@ import DirectoryPage from '../pages/directory/DirectoryPage.jsx';
 import PendingApprovalsPage from '../pages/approvals/PendingApprovalsPage.jsx';
 import StaffProfilePage from '../pages/staff/StaffProfilePage.jsx';
 import HolidaysGovernancePage from '../pages/holidays/HolidaysGovernancePage.jsx';
+import MyClassesPage from '../pages/classes/MyClassesPage.jsx';
 import ProtectedRoute from './ProtectedRoute.jsx';
 
 /**
@@ -55,6 +56,7 @@ export const AppRoutes = () => {
       {/* Protected Core Dashboard & Dedicated Module Routes */}
       <Route element={<ProtectedRoute />}>
         <Route path="/dashboard" element={<DashboardRouter />} />
+        <Route path="/my-classes" element={<MyClassesPage />} />
         <Route path="/schools" element={<SchoolsPage />} />
         <Route path="/users" element={<UsersPage />} />
         <Route path="/approvals" element={<PendingApprovalsPage />} />
@@ -69,6 +71,7 @@ export const AppRoutes = () => {
         <Route path="/audit-logs" element={<AuditLogsPage />} />
 
         {/* Canonical Notification & Legacy URL Aliases (Deep Links) */}
+        <Route path="/classes" element={<Navigate to="/my-classes" replace />} />
         <Route path="/leave/my-requests" element={<Navigate to="/dashboard?tab=service" replace />} />
         <Route path="/leave/pending" element={<Navigate to="/approvals" replace />} />
         <Route path="/staff-attendance/pending" element={<Navigate to="/attendance" replace />} />

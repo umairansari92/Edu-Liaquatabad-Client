@@ -537,6 +537,11 @@ export const {
 
 export const selectTeacherSummary = (state) => state.teacher.summary;
 export const selectTeacherSummaryLoading = (state) => state.teacher.summaryLoading;
+export const selectTeacherSections = (state) => state.teacher.summary?.sections || [];
+export const selectTeacherUniqueSubjectsCount = (state) => state.teacher.summary?.summary?.uniqueSubjectsCount || state.teacher.summary?.summary?.activeAssignmentsCount || 0;
+export const selectTeacherTotalAssignmentsCount = (state) => state.teacher.summary?.summary?.totalAssignmentsCount || 0;
+export const selectTeacherPendingAttendanceCount = (state) => state.teacher.summary?.summary?.pendingAttendanceCount || 0;
+export const selectTeacherClassTeacherSectionCount = (state) => state.teacher.summary?.summary?.classTeacherSectionCount || 0;
 export const selectTeacherAssignments = (state) => state.teacher.assignments;
 export const selectAttendanceSheet = (state) => state.teacher.attendanceSheet;
 export const selectAttendanceLoading = (state) => state.teacher.attendanceLoading;

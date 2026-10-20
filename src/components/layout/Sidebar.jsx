@@ -39,9 +39,9 @@ export const Sidebar = () => {
       { label: 'Holidays & Calendar', path: '/holidays', icon: Calendar },
       { label: 'Official Circulars', path: '/documents', icon: FileText },
     ];
-  } else if (isTeacher) {
     navigationItems = [
-      { label: 'My Classes', path: '/dashboard?tab=classes', icon: GraduationCap },
+      { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+      { label: 'My Classes', path: '/my-classes', icon: GraduationCap },
       { label: 'Daily Attendance', path: '/dashboard?tab=attendance', icon: ClipboardCheck },
       { label: 'Exam Marks', path: '/dashboard?tab=exams', icon: Award },
       { label: 'Homework', path: '/dashboard?tab=homework', icon: BookOpen },
@@ -130,10 +130,7 @@ export const Sidebar = () => {
             const targetTab = targetParams.get('tab');
             const normalizedCurrentTab = (currentTab || '').toLowerCase();
             const normalizedTargetTab = (targetTab || '').toLowerCase();
-            isActive = location.pathname === targetPath && (
-              normalizedCurrentTab === normalizedTargetTab ||
-              (!currentTab && normalizedTargetTab === 'classes' && isTeacher)
-            );
+            isActive = location.pathname === targetPath && normalizedCurrentTab === normalizedTargetTab;
 
             // Also match if user is viewing this tab within /dashboard
             if (!isActive && location.pathname === '/dashboard') {
@@ -146,7 +143,8 @@ export const Sidebar = () => {
             // Also match standalone pages when accessed via dashboard tabs
             const isTabAlias =
               location.pathname === '/dashboard' &&
-              ((navItem.path === '/transfers' && currentTab === 'transfers') ||
+              ((navItem.path === '/my-classes' && currentTab === 'classes') ||
+               (navItem.path === '/transfers' && currentTab === 'transfers') ||
                (navItem.path === '/exams' && (currentTab === 'exams' || currentTab === 'results')) ||
                (navItem.path === '/approvals' && currentTab === 'approvals') ||
                (navItem.path === '/attendance' && currentTab === 'attendance') ||
