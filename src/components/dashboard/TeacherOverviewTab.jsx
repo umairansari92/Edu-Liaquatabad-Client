@@ -125,7 +125,7 @@ export const TeacherOverviewTab = ({
           </div>
 
           <div className="flex items-center gap-2.5 shrink-0">
-            {liveStatus && <LivePeriodBadge liveStatus={liveStatus} />}
+            {liveStatus && <LivePeriodBadge liveStatus={liveStatus} isDark={true} />}
             <button
               type="button"
               onClick={() => onNavigateTab('TIMETABLE')}

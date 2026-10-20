@@ -1652,13 +1652,13 @@ export const TeacherDashboard = () => {
             </div>
           </div>
 
-          {/* Municipal Casual Leave (CL) Balance & Application Section */}
+          {/*  Casual Leave (CL) Balance & Application Section */}
           <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-4">
               <div>
                 <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
                   <CalendarCheck className="w-5 h-5 text-[#006AC7]" />
-                  Municipal Casual Leave (CL) Quota &amp; Applications
+                  Casual Leave (CL) Quota &amp; Applications
                 </h3>
                 <p className="text-xs text-[#526477]">
                   Education Department Liaquatabad Town Centre — Annual casual leave entitlement for faculty

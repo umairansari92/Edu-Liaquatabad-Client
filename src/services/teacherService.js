@@ -156,7 +156,7 @@ export const teacherService = {
   },
 
   /**
-   * Fetch authenticated teacher's municipal Casual Leave (CL) balance.
+   * Fetch authenticated teacher's Casual Leave (CL) balance.
    */
   async getClBalance(year) {
     const response = await apiClient.get('/leave/cl-balance', {
