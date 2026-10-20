@@ -776,7 +776,7 @@ export const SmartAttendanceRegister = ({
             </div>
             <div className="space-y-12">
               <div className="border-b border-slate-400 w-3/4 mx-auto"></div>
-              <p>Town Municipal Education Inspector (DMC)</p>
+              <p>Signature Of The<br></br>Deputy Director Of Education<br></br>(DDE)</p>
             </div>
           </div>
         </div>
