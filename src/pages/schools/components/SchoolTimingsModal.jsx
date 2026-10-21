@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, Save, X, AlertTriangle, ShieldCheck, Calendar, Info } from 'lucide-react';
 import toast from 'react-hot-toast';
-import apiClient from '../../../services/apiClient.js';
+import adminService from '../../../services/adminService.js';
 
 export const SchoolTimingsModal = ({ isOpen, onClose, school, onTimingsUpdated }) => {
   const [formData, setFormData] = useState({
@@ -19,6 +19,7 @@ export const SchoolTimingsModal = ({ isOpen, onClose, school, onTimingsUpdated }
     },
     allowHmLateOverride: true,
   });
+  const [reason, setReason] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -38,6 +39,7 @@ export const SchoolTimingsModal = ({ isOpen, onClose, school, onTimingsUpdated }
         },
         allowHmLateOverride: school.timings.allowHmLateOverride ?? true,
       });
+      setReason('');
     }
   }, [school]);
 
@@ -45,13 +47,30 @@ export const SchoolTimingsModal = ({ isOpen, onClose, school, onTimingsUpdated }
 
   const handleSubmit = async (submitEvent) => {
     submitEvent.preventDefault();
+    const trimmedReason = reason.trim();
+    if (!trimmedReason || trimmedReason.length < 5) {
+      toast.error('A mandatory justification reason (minimum 5 characters) is required.');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      const response = await apiClient.patch(`/schools/${school._id}/timings`, formData);
-      if (response.data?.success) {
+      const payload = {
+        timings: {
+          regular: formData.regular,
+          friday: formData.friday,
+          allowHmLateOverride: formData.allowHmLateOverride,
+        },
+        reason: trimmedReason,
+      };
+
+      const response = await adminService.updateSchoolTimings(school._id, payload);
+      if (response?.success) {
         toast.success(`Timings updated for ${school.name}`);
-        if (onTimingsUpdated) onTimingsUpdated(response.data.data?.school);
+        if (onTimingsUpdated) onTimingsUpdated(response.data?.school);
         onClose();
+      } else {
+        toast.error(response?.message || 'Failed to update school timings.');
       }
     } catch (timingsUpdateError) {
       console.error('Failed to update school timings:', timingsUpdateError);
@@ -278,6 +297,25 @@ export const SchoolTimingsModal = ({ isOpen, onClose, school, onTimingsUpdated }
               />
               <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#4B7F3A]"></div>
             </label>
+          </div>
+
+          {/* Section 4: Mandatory Audit Justification */}
+          <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-2">
+            <label className="block text-xs font-bold text-[#102033]">
+              Mandatory Audit Justification / Reason *
+            </label>
+            <input
+              type="text"
+              required
+              minLength={5}
+              value={reason}
+              onChange={(inputChangeEvent) => setReason(inputChangeEvent.target.value)}
+              placeholder="e.g. Summer shift adjustment, winter timings revision, or buffer alignment"
+              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+            />
+            <p className="text-[11px] text-[#526477]">
+              Municipal governance accountability: A minimum 5-character reason is permanently recorded to the immutable audit stream.
+            </p>
           </div>
 
           {/* Actions */}

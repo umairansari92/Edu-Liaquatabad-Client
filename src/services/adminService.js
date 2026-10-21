@@ -61,6 +61,11 @@ export const adminService = {
     return response.data;
   },
 
+  updateSchool: async (schoolId, payload) => {
+    const response = await apiClient.patch(`/schools/${schoolId}`, payload);
+    return response.data;
+  },
+
   updateSchoolTimings: async (schoolId, payload) => {
     const response = await apiClient.patch(`/schools/${schoolId}/timings`, payload);
     return response.data;

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Building2, XCircle, Save, AlertTriangle, ShieldCheck, Clock, Calendar } from 'lucide-react';
 import toast from 'react-hot-toast';
-import apiClient from '../../../services/apiClient.js';
+import adminService from '../../../services/adminService.js';
 
 export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) => {
   const [formData, setFormData] = useState({
@@ -32,7 +32,7 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
       },
       allowHmLateOverride: true,
     },
-    reason: 'Municipal administrative update by Root Admin',
+    reason: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -66,7 +66,7 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
           },
           allowHmLateOverride: school.timings?.allowHmLateOverride ?? true,
         },
-        reason: 'Municipal administrative update by Root Admin',
+        reason: '',
       });
     }
   }, [school]);
@@ -75,6 +75,12 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    const trimmedReason = formData.reason.trim();
+    if (!trimmedReason || trimmedReason.length < 5) {
+      toast.error('A mandatory justification reason (minimum 5 characters) is required for audit compliance.');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const payload = {
@@ -91,16 +97,16 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
         contactEmail: formData.contactEmail.trim() || '',
         status: formData.status,
         timings: formData.timings,
-        reason: formData.reason.trim() || 'Municipal administrative update by Root Admin',
+        reason: trimmedReason,
       };
 
-      const response = await apiClient.patch(`/schools/${school._id}`, payload);
-      if (response.data?.success) {
+      const response = await adminService.updateSchool(school._id, payload);
+      if (response?.success) {
         toast.success(`School "${formData.name}" updated successfully.`);
-        if (onSchoolUpdated) onSchoolUpdated(response.data.data?.school);
+        if (onSchoolUpdated) onSchoolUpdated(response.data?.school);
         onClose();
       } else {
-        toast.error(response.data?.message || 'Failed to update school record.');
+        toast.error(response?.message || 'Failed to update school record.');
       }
     } catch (schoolUpdateError) {
       console.error('Error updating school:', schoolUpdateError);
@@ -492,16 +498,21 @@ export const EditSchoolModal = ({ isOpen, onClose, school, onSchoolUpdated }) =>
           </div>
 
           <div>
-            <label className="block font-semibold text-[#526477]">Mandatory Justification / Reason *</label>
+            <label className="block text-xs font-bold text-[#526477]">
+              Mandatory Justification / Operational Reason *
+            </label>
             <input
               type="text"
               required
-              minLength={3}
+              minLength={5}
               value={formData.reason}
               onChange={(inputChangeEvent) => setFormData({ ...formData, reason: inputChangeEvent.target.value })}
-              placeholder="Reason logged to immutable audit stream"
-              className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-amber-700 placeholder-slate-400 focus:border-[#006AC7] focus:outline-none"
+              placeholder="e.g. Annual academic upgrade, SEMIS code reconciliation, or institutional profile update"
+              className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
             />
+            <p className="mt-1 text-[11px] text-slate-400">
+              This justification is permanently stored in the municipal immutable audit stream (minimum 5 characters).
+            </p>
           </div>
 
           <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
