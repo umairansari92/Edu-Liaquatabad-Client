@@ -6,6 +6,7 @@ import {
   markNotificationAsRead,
   markAllNotificationsAsRead,
   respondToAccessRequest,
+  respondToLateAttendanceRequest,
   setActiveCategory,
   setActiveTab,
 } from '../../store/slices/notificationSlice.js';
@@ -127,6 +128,8 @@ export const NotificationDropdown = ({ isOpen, onClose }) => {
   const dropdownRef = useRef(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [expandedId, setExpandedId] = useState(null);
+  const [rejectingRequestId, setRejectingRequestId] = useState(null);
+  const [rejectionRemarks, setRejectionRemarks] = useState('');
 
   const { user } = useSelector((state) => state.auth);
   const {
@@ -274,6 +277,47 @@ export const NotificationDropdown = ({ isOpen, onClose }) => {
     }
   };
 
+  const handleLateClearanceResponse = async (event, notification, decision) => {
+    event.stopPropagation();
+    const requestId = notification.metadata?.requestId;
+    if (!requestId) {
+      toast.error('Missing clearance request identifier.');
+      return;
+    }
+
+    if (decision === 'REJECT' && rejectingRequestId !== requestId) {
+      setRejectingRequestId(requestId);
+      setRejectionRemarks('');
+      return;
+    }
+
+    const remarks = rejectionRemarks.trim();
+    if (decision === 'REJECT' && remarks.length < 5) {
+      toast.error('Please enter mandatory rejection remarks (min. 5 characters).');
+      return;
+    }
+
+    try {
+      await dispatch(
+        respondToLateAttendanceRequest({
+          requestId,
+          decision,
+          remarks,
+        })
+      ).unwrap();
+
+      toast.success(
+        decision === 'APPROVE'
+          ? 'Late attendance clearance approved! Teacher may now submit attendance.'
+          : 'Late attendance request rejected.'
+      );
+      setRejectingRequestId(null);
+      setRejectionRemarks('');
+    } catch (clearanceError) {
+      toast.error(getErrorMessage(clearanceError, 'Failed to decide clearance request.'));
+    }
+  };
+
   // Filtered notifications
   const displayedNotifications = (notifications || []).filter((item) => {
     // Tab filter
@@ -319,6 +363,12 @@ export const NotificationDropdown = ({ isOpen, onClose }) => {
       case 'HOMEWORK_CREATED':
       case 'EXAM_RESULT':
         return <BookOpen className="w-4 h-4 text-blue-600" />;
+      case 'LATE_ATTENDANCE_REQUEST':
+        return <Clock className="w-4 h-4 text-amber-600" />;
+      case 'LATE_ATTENDANCE_APPROVED':
+        return <CheckCircle2 className="w-4 h-4 text-emerald-600" />;
+      case 'LATE_ATTENDANCE_REJECTED':
+        return <XCircle className="w-4 h-4 text-rose-600" />;
       default:
         if (category === 'ATTENDANCE') return <Clock className="w-4 h-4 text-emerald-600" />;
         if (category === 'GOVERNANCE') return <Building2 className="w-4 h-4 text-amber-600" />;
@@ -362,6 +412,12 @@ export const NotificationDropdown = ({ isOpen, onClose }) => {
         return 'Homework';
       case 'SECURITY_ALERT':
         return 'Security Alert';
+      case 'LATE_ATTENDANCE_REQUEST':
+        return 'Late Clearance Request';
+      case 'LATE_ATTENDANCE_APPROVED':
+        return 'Clearance Approved';
+      case 'LATE_ATTENDANCE_REJECTED':
+        return 'Clearance Rejected';
       default:
         return category || 'Notification';
     }
@@ -524,6 +580,7 @@ export const NotificationDropdown = ({ isOpen, onClose }) => {
         ) : (
           displayedNotifications.map((notificationItem) => {
             const isAccessRequest = notificationItem.notificationType === 'PDF_ACCESS_REQUEST';
+            const isLateAttendanceRequest = notificationItem.notificationType === 'LATE_ATTENDANCE_REQUEST';
             const requestStatus = notificationItem.metadata?.status;
             const hasActionLink = Boolean(notificationItem.actionLink);
 
@@ -651,8 +708,91 @@ export const NotificationDropdown = ({ isOpen, onClose }) => {
                       </div>
                     )}
 
+                    {/* Late Attendance Clearance Request Inline Actions */}
+                    {isLateAttendanceRequest && (
+                      <div className="mt-2 pt-2 border-t border-slate-100 space-y-2">
+                        {requestStatus === 'APPROVED' ? (
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-2 py-0.5 inline-flex items-center gap-1">
+                            <Check className="w-3 h-3" />
+                            Clearance Approved (Unlocked until 23:59 PKT)
+                          </span>
+                        ) : requestStatus === 'REJECTED' ? (
+                          <div className="space-y-1">
+                            <span className="text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200 rounded-md px-2 py-0.5 inline-flex items-center gap-1">
+                              <X className="w-3 h-3" />
+                              Clearance Rejected
+                            </span>
+                            {notificationItem.metadata?.rejectionReason && (
+                              <p className="text-[11px] text-rose-600 italic">
+                                "{notificationItem.metadata.rejectionReason}"
+                              </p>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <button
+                                disabled={actionLoading}
+                                onClick={(clickEvent) =>
+                                  handleLateClearanceResponse(clickEvent, notificationItem, 'APPROVE')
+                                }
+                                className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold shadow-xs transition-colors flex items-center gap-1 disabled:opacity-50 cursor-pointer"
+                              >
+                                <Check className="w-3 h-3" />
+                                Approve Clearance
+                              </button>
+                              <button
+                                disabled={actionLoading}
+                                onClick={(clickEvent) =>
+                                  handleLateClearanceResponse(clickEvent, notificationItem, 'REJECT')
+                                }
+                                className="px-2.5 py-1 rounded-lg bg-slate-200 hover:bg-rose-100 hover:text-rose-700 text-slate-700 text-[11px] font-bold transition-colors disabled:opacity-50 cursor-pointer"
+                              >
+                                Reject...
+                              </button>
+                            </div>
+
+                            {rejectingRequestId === notificationItem.metadata?.requestId && (
+                              <div
+                                onClick={(e) => e.stopPropagation()}
+                                className="p-2.5 rounded-lg bg-rose-50/80 border border-rose-200 space-y-1.5"
+                              >
+                                <label className="block text-[11px] font-semibold text-rose-900">
+                                  Mandatory Rejection Remarks (min. 5 chars):
+                                </label>
+                                <input
+                                  type="text"
+                                  value={rejectionRemarks}
+                                  onChange={(e) => setRejectionRemarks(e.target.value)}
+                                  placeholder="e.g. Please contact school office in person."
+                                  className="w-full text-xs p-1.5 rounded border border-rose-300 bg-white text-slate-900 focus:outline-none focus:ring-1 focus:ring-rose-500"
+                                />
+                                <div className="flex justify-end gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => setRejectingRequestId(null)}
+                                    className="px-2 py-0.5 rounded text-[10px] font-semibold text-slate-600 hover:bg-slate-200 cursor-pointer"
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={rejectionRemarks.trim().length < 5 || actionLoading}
+                                    onClick={(e) => handleLateClearanceResponse(e, notificationItem, 'REJECT')}
+                                    className="px-2.5 py-0.5 rounded bg-rose-600 text-white text-[10px] font-bold hover:bg-rose-700 disabled:opacity-50 cursor-pointer"
+                                  >
+                                    Confirm Rejection
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     {/* Action Destination Link Cue & Expansion indicator */}
-                    {!isAccessRequest && (
+                    {!isAccessRequest && !isLateAttendanceRequest && (
                       <div className="mt-2 flex items-center justify-between gap-2 pt-1 border-t border-slate-100/70">
                         {hasActionLink && resolveNotificationActionLink(notificationItem.actionLink, user?.role) ? (
                           <button

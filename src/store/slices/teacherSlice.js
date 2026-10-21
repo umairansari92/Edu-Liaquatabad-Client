@@ -84,6 +84,19 @@ export const clearMissedAttendance = createAsyncThunk(
   }
 );
 
+export const requestLateAttendanceClearance = createAsyncThunk(
+  'teacher/requestLateAttendanceClearance',
+  async ({ sectionId, date, reason }, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await teacherService.requestLateAttendanceClearance({ sectionId, date, reason });
+      dispatch(fetchAttendanceSheet({ sectionId, date }));
+      return response;
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to submit late attendance clearance request');
+    }
+  }
+);
+
 export const fetchSchoolExams = createAsyncThunk(
   'teacher/fetchSchoolExams',
   async (_, { rejectWithValue }) => {
@@ -248,6 +261,10 @@ const initialState = {
   clearMissedSubmitting: false,
   clearMissedError: null,
 
+  // Late Attendance Clearance
+  clearanceSubmitting: false,
+  clearanceError: null,
+
   // Examination Marks
   examsList: [],
   examsLoading: false,
@@ -394,6 +411,19 @@ const teacherSlice = createSlice({
       .addCase(clearMissedAttendance.rejected, (state, action) => {
         state.clearMissedSubmitting = false;
         state.clearMissedError = action.payload;
+      })
+
+      // Request Late Attendance Clearance
+      .addCase(requestLateAttendanceClearance.pending, (state) => {
+        state.clearanceSubmitting = true;
+        state.clearanceError = null;
+      })
+      .addCase(requestLateAttendanceClearance.fulfilled, (state) => {
+        state.clearanceSubmitting = false;
+      })
+      .addCase(requestLateAttendanceClearance.rejected, (state, action) => {
+        state.clearanceSubmitting = false;
+        state.clearanceError = action.payload;
       })
 
       // School Exams List
@@ -551,6 +581,8 @@ export const selectAttendanceRegisterLoading = (state) => state.teacher.attendan
 export const selectAttendanceRegisterError = (state) => state.teacher.attendanceRegisterError;
 export const selectClearMissedSubmitting = (state) => state.teacher.clearMissedSubmitting;
 export const selectClearMissedError = (state) => state.teacher.clearMissedError;
+export const selectClearanceSubmitting = (state) => state.teacher.clearanceSubmitting;
+export const selectClearanceError = (state) => state.teacher.clearanceError;
 export const selectSchoolExams = (state) => state.teacher.examsList;
 export const selectExamRoster = (state) => state.teacher.examRoster;
 export const selectExamRosterLoading = (state) => state.teacher.examRosterLoading;

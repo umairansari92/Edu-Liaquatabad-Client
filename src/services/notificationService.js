@@ -37,6 +37,16 @@ export const notificationService = {
     const response = await apiClient.post(`/notifications/access-requests/${requestId}/respond`, payload);
     return response.data;
   },
+
+  /**
+   * Decide a teacher late attendance clearance request (HM / Admin)
+   * @param {string} requestId
+   * @param {Object} payload - { decision: 'APPROVE' | 'REJECT', remarks }
+   */
+  respondToLateAttendanceRequest: async (requestId, payload) => {
+    const response = await apiClient.post(`/attendance/late-clearance/${requestId}/decision`, payload);
+    return response.data;
+  },
 };
 
 export default notificationService;

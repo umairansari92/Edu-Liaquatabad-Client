@@ -180,6 +180,24 @@ export const teacherService = {
     const response = await apiClient.post('/leave/submit', payload);
     return response.data;
   },
+
+  /**
+   * Request late attendance clearance from Head Master after submission window closes.
+   */
+  async requestLateAttendanceClearance(payload) {
+    const response = await apiClient.post('/attendance/late-clearance/request', payload);
+    return response.data;
+  },
+
+  /**
+   * Fetch current late clearance request status for a section and attendance date.
+   */
+  async getLateAttendanceClearanceStatus(sectionId, date) {
+    const response = await apiClient.get('/attendance/late-clearance/status', {
+      params: { sectionId, date },
+    });
+    return response.data?.data?.clearance;
+  },
 };
 
 export default teacherService;

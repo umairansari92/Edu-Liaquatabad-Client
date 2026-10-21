@@ -44,6 +44,7 @@ import useReliabilityDraft from '../../hooks/useReliabilityDraft.js';
 import DraftRecoveryBanner from '../../components/common/DraftRecoveryBanner.jsx';
 import DraftStatusIndicator from '../../components/common/DraftStatusIndicator.jsx';
 import SmartAttendanceRegister from '../../components/attendance/SmartAttendanceRegister.jsx';
+import { LateAttendanceClearanceModal } from '../../components/attendance/LateAttendanceClearanceModal.jsx';
 import TeacherOverviewTab from '../../components/dashboard/TeacherOverviewTab.jsx';
 import MyClassesPage from '../classes/MyClassesPage.jsx';
 import {
@@ -51,6 +52,7 @@ import {
   fetchSectionRoster,
   fetchAttendanceSheet,
   submitStudentAttendance,
+  requestLateAttendanceClearance,
   fetchSchoolExams,
   fetchExamMarksRoster,
   bulkSubmitExamMarks,
@@ -67,6 +69,8 @@ import {
   selectAttendanceSheet,
   selectAttendanceLoading,
   selectAttendanceSubmitting,
+  selectClearanceSubmitting,
+  selectClearanceError,
   selectSchoolExams,
   selectExamRoster,
   selectExamRosterLoading,
@@ -158,6 +162,8 @@ export const TeacherDashboard = () => {
   const myLeaveRequests = useSelector(selectTeacherLeaveRequests);
   const leaveRequestsLoading = useSelector(selectTeacherLeaveLoading);
   const leaveSubmitting = useSelector(selectTeacherLeaveSubmitting);
+  const clearanceSubmitting = useSelector(selectClearanceSubmitting);
+  const clearanceError = useSelector(selectClearanceError);
 
   // Derive initial tab from URL param or default to OVERVIEW
   const resolveTabFromParam = useCallback((paramValue) => {
@@ -221,6 +227,7 @@ export const TeacherDashboard = () => {
   const [rosterModalSection, setRosterModalSection] = useState(null);
   const [assignHomeworkModal, setAssignHomeworkModal] = useState(false);
   const [leaveModalOpen, setLeaveModalOpen] = useState(false);
+  const [lateClearanceModalOpen, setLateClearanceModalOpen] = useState(false);
 
   // Leave Form Local State
   const [leaveType, setLeaveType] = useState('CASUAL_LEAVE');
@@ -379,6 +386,25 @@ export const TeacherDashboard = () => {
 
   // Sync sections list
   const assignedSections = useMemo(() => summary?.sections || [], [summary]);
+  const selectedSectionObj = useMemo(() => {
+    return assignedSections.find((sectionItem) => String(sectionItem._id) === String(selectedAttendanceSectionId)) || null;
+  }, [assignedSections, selectedAttendanceSectionId]);
+
+  const handleRequestLateClearance = async (reasonText) => {
+    try {
+      await dispatch(
+        requestLateAttendanceClearance({
+          sectionId: selectedAttendanceSectionId,
+          date: attendanceDate,
+          reason: reasonText,
+        })
+      ).unwrap();
+      toast.success('Late attendance clearance request sent to Head Master.');
+      setLateClearanceModalOpen(false);
+    } catch (errorObject) {
+      toast.error(getErrorMessage(errorObject, 'Failed to request late attendance clearance.'));
+    }
+  };
 
   // Pre-select first section when summary loads
   useEffect(() => {
@@ -881,13 +907,95 @@ export const TeacherDashboard = () => {
                 </div>
               </div>
 
-              {/* Window Status Warning if restricted */}
-              {attendanceSheetData?.windowStatus && !attendanceSheetData.windowStatus.allowed && (
-                <div className="p-3.5 my-3 rounded-xl bg-amber-50 border border-amber-200 flex items-center gap-2.5 text-xs text-amber-800">
-                  <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                  <div>
-                    <strong>Attendance Window Notice:</strong> {attendanceSheetData.windowStatus.reason || 'Attendance window is closed for this date.'}
+              {/* Active Clearance Granted Notice */}
+              {attendanceSheetData?.windowStatus?.isLateOverride && (
+                <div className="p-4 my-3 rounded-2xl bg-emerald-50 border border-emerald-200/80 flex items-start sm:items-center justify-between gap-3 text-xs text-emerald-900 shadow-xs">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-1.5 rounded-xl bg-emerald-100 text-emerald-700 flex-shrink-0">
+                      <CheckCircle2 className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <strong className="font-bold text-emerald-950">Late Attendance Clearance Granted:</strong>{' '}
+                      Head Master approved late attendance marking for this section today until{' '}
+                      <span className="font-bold underline">23:59 PKT</span>. You can submit now.
+                    </div>
                   </div>
+                  <span className="px-2.5 py-1 rounded-lg bg-emerald-200/60 text-emerald-800 font-bold text-[11px] uppercase tracking-wider flex-shrink-0">
+                    Unlocked
+                  </span>
+                </div>
+              )}
+
+              {/* Window Closed: Pending HM Clearance Approval */}
+              {attendanceSheetData?.windowStatus && !attendanceSheetData.windowStatus.allowed && attendanceSheetData.windowStatus.clearance?.status === 'PENDING' && (
+                <div className="p-4 my-3 rounded-2xl bg-amber-50 border border-amber-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-amber-900 shadow-xs">
+                  <div className="flex items-start sm:items-center gap-2.5">
+                    <div className="p-1.5 rounded-xl bg-amber-100 text-amber-700 flex-shrink-0 mt-0.5 sm:mt-0">
+                      <Clock className="w-4 h-4 animate-pulse" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-amber-950">Late Clearance Request Awaiting Head Master Approval</div>
+                      <p className="text-amber-800 text-[11px] mt-0.5">
+                        Your request submitted with reason: <em>"{attendanceSheetData.windowStatus.clearance.reason}"</em>. The Head Master has received an in-app clearance notification.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => dispatch(fetchAttendanceSheet({ sectionId: selectedAttendanceSectionId, date: attendanceDate }))}
+                      className="px-3 py-1.5 rounded-xl bg-amber-200/60 hover:bg-amber-200 text-amber-900 font-bold text-xs transition flex items-center gap-1.5 cursor-pointer"
+                      title="Check if Head Master has approved"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" /> Check Status
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Window Closed: Clearance Rejected by HM */}
+              {attendanceSheetData?.windowStatus && !attendanceSheetData.windowStatus.allowed && attendanceSheetData.windowStatus.clearance?.status === 'REJECTED' && (
+                <div className="p-4 my-3 rounded-2xl bg-rose-50 border border-rose-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-rose-900 shadow-xs">
+                  <div className="flex items-start sm:items-center gap-2.5">
+                    <div className="p-1.5 rounded-xl bg-rose-100 text-rose-700 flex-shrink-0 mt-0.5 sm:mt-0">
+                      <XCircle className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-rose-950">Clearance Request Rejected by Head Master</div>
+                      <p className="text-rose-800 text-[11px] mt-0.5">
+                        Head Master remarks: <strong>{attendanceSheetData.windowStatus.clearance.rejectionReason || 'No remark provided.'}</strong>
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setLateClearanceModalOpen(true)}
+                    className="px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs flex-shrink-0"
+                  >
+                    <Clock className="w-3.5 h-3.5" /> Request Clearance Again
+                  </button>
+                </div>
+              )}
+
+              {/* Window Closed: Standard Notice + Request Clearance Button */}
+              {attendanceSheetData?.windowStatus && !attendanceSheetData.windowStatus.allowed && (!attendanceSheetData.windowStatus.clearance || !['PENDING', 'REJECTED'].includes(attendanceSheetData.windowStatus.clearance.status)) && (
+                <div className="p-4 my-3 rounded-2xl bg-amber-50 border border-amber-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-amber-900 shadow-xs">
+                  <div className="flex items-start sm:items-center gap-2.5">
+                    <div className="p-1.5 rounded-xl bg-amber-100 text-amber-700 flex-shrink-0 mt-0.5 sm:mt-0">
+                      <AlertTriangle className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <strong className="font-bold text-amber-950">Attendance Window Closed:</strong>{' '}
+                      {attendanceSheetData.windowStatus.reason || 'Attendance window is closed for this date.'}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setLateClearanceModalOpen(true)}
+                    className="px-3.5 py-1.5 rounded-xl bg-[#006AC7] hover:bg-[#00529B] text-white font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs flex-shrink-0"
+                  >
+                    <Clock className="w-3.5 h-3.5" /> Request Late Clearance
+                  </button>
                 </div>
               )}
 
@@ -2211,6 +2319,21 @@ export const TeacherDashboard = () => {
           </div>
         </div>
       )}
+      {/* Late Attendance Clearance Request Modal */}
+      <LateAttendanceClearanceModal
+        isOpen={lateClearanceModalOpen}
+        onClose={() => setLateClearanceModalOpen(false)}
+        sectionName={
+          selectedSectionObj?.name && selectedSectionObj.name !== 'null' && selectedSectionObj.name.toLowerCase() !== 'default'
+            ? selectedSectionObj.name
+            : 'Whole Class'
+        }
+        className={selectedSectionObj?.class?.name || 'Class'}
+        attendanceDate={attendanceDate}
+        onSubmit={handleRequestLateClearance}
+        isSubmitting={clearanceSubmitting}
+        error={clearanceError}
+      />
     </PageContainer>
   );
 };

@@ -58,6 +58,21 @@ export const respondToAccessRequest = createAsyncThunk(
   }
 );
 
+export const respondToLateAttendanceRequest = createAsyncThunk(
+  'notifications/respondToLateAttendanceRequest',
+  async ({ requestId, decision, remarks }, { rejectWithValue }) => {
+    try {
+      const response = await notificationService.respondToLateAttendanceRequest(requestId, {
+        decision,
+        remarks,
+      });
+      return { requestId, decision, remarks, updatedRequest: response.data };
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to decide late clearance request');
+    }
+  }
+);
+
 const initialState = {
   notifications: [],
   unreadCount: 0,
@@ -162,6 +177,30 @@ const notificationSlice = createSlice({
         state.unreadCount = state.notifications.filter((notificationItem) => !notificationItem.isRead).length;
       })
       .addCase(respondToAccessRequest.rejected, (state, action) => {
+        state.actionLoading = false;
+        state.error = action.payload;
+      })
+
+      // Respond to late attendance clearance request
+      .addCase(respondToLateAttendanceRequest.pending, (state) => {
+        state.actionLoading = true;
+      })
+      .addCase(respondToLateAttendanceRequest.fulfilled, (state, action) => {
+        state.actionLoading = false;
+        const { requestId, decision, remarks } = action.payload;
+        state.notifications.forEach((notificationItem) => {
+          if (notificationItem.metadata?.requestId === requestId || notificationItem._id === requestId) {
+            notificationItem.metadata = {
+              ...notificationItem.metadata,
+              status: decision === 'APPROVE' ? 'APPROVED' : 'REJECTED',
+              rejectionReason: decision === 'REJECT' ? remarks : notificationItem.metadata?.rejectionReason,
+            };
+            notificationItem.isRead = true;
+          }
+        });
+        state.unreadCount = state.notifications.filter((notificationItem) => !notificationItem.isRead).length;
+      })
+      .addCase(respondToLateAttendanceRequest.rejected, (state, action) => {
         state.actionLoading = false;
         state.error = action.payload;
       });
