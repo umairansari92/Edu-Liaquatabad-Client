@@ -93,6 +93,14 @@ const formatDate = (dateValue) => {
   return dateInstance.toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
+const getKarachiTodayDateString = () => {
+  try {
+    return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Karachi' }).format(new Date());
+  } catch {
+    return new Date().toLocaleDateString('en-CA');
+  }
+};
+
 // ─── Dashboard Tabs Definition ────────────────────────────────────────────────
 const DASHBOARD_TABS = [
   { id: 'OVERVIEW', label: 'Daily Overview', icon: LayoutDashboard },
@@ -288,7 +296,7 @@ export const TeacherDashboard = () => {
 
   // Attendance Form Local State
   const [selectedAttendanceSectionId, setSelectedAttendanceSectionId] = useState('');
-  const [attendanceDate, setAttendanceDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [attendanceDate, setAttendanceDate] = useState(() => getKarachiTodayDateString());
   const [localAttendanceRecords, setLocalAttendanceRecords] = useState([]);
   const [attendanceSearchQuery, setAttendanceSearchQuery] = useState('');
   const [attendanceStatusFilter, setAttendanceStatusFilter] = useState('ALL'); // ALL, EXCEPTIONS, PRESENT, ABSENT, LEAVE
@@ -390,7 +398,15 @@ export const TeacherDashboard = () => {
     return assignedSections.find((sectionItem) => String(sectionItem._id) === String(selectedAttendanceSectionId)) || null;
   }, [assignedSections, selectedAttendanceSectionId]);
 
+  const todayPkt = useMemo(() => getKarachiTodayDateString(), []);
+  const isSelectedDateToday = attendanceDate === todayPkt;
+  const isSelectedDatePast = attendanceDate < todayPkt;
+
   const handleRequestLateClearance = async (reasonText) => {
+    if (!isSelectedDateToday) {
+      toast.error('Late attendance clearance can only be requested for today in Pakistan Standard Time.');
+      return;
+    }
     try {
       await dispatch(
         requestLateAttendanceClearance({
@@ -899,7 +915,7 @@ export const TeacherDashboard = () => {
                     <input
                       type="date"
                       value={attendanceDate}
-                      max={new Date().toISOString().split('T')[0]}
+                      max={todayPkt}
                       onChange={(changeEvent) => setAttendanceDate(changeEvent.target.value)}
                       className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-[#102033] focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
                     />
@@ -977,8 +993,46 @@ export const TeacherDashboard = () => {
                 </div>
               )}
 
-              {/* Window Closed: Standard Notice + Request Clearance Button */}
-              {attendanceSheetData?.windowStatus && !attendanceSheetData.windowStatus.allowed && (!attendanceSheetData.windowStatus.clearance || !['PENDING', 'REJECTED'].includes(attendanceSheetData.windowStatus.clearance.status)) && (
+              {/* Historical / Past Date Locked Notice (Strictly No Self-Clearance Allowed) */}
+              {attendanceSheetData?.windowStatus && !attendanceSheetData.windowStatus.allowed && (isSelectedDatePast || attendanceSheetData.windowStatus.code === 'PAST_DATE_CLOSED') && (
+                <div className="p-4 my-3 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-700 shadow-xs">
+                  <div className="flex items-start sm:items-center gap-2.5">
+                    <div className="p-1.5 rounded-xl bg-slate-200 text-slate-600 flex-shrink-0 mt-0.5 sm:mt-0">
+                      <Clock className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <strong className="font-bold text-slate-900">Historical Attendance Date (Locked):</strong>{' '}
+                      {attendanceSheetData.windowStatus.reason || 'Past-date attendance submission is strictly closed for teachers.'}{' '}
+                      <span className="text-slate-500">Unrecorded past days require formal Head Master administrative review in the Smart Monthly Register. Same-day emergency clearance cannot be requested for historical dates.</span>
+                    </div>
+                  </div>
+                  <span className="px-3 py-1.5 rounded-xl bg-slate-200/80 text-slate-700 font-bold text-[11px] uppercase tracking-wider flex-shrink-0">
+                    Past Record (Locked)
+                  </span>
+                </div>
+              )}
+
+              {/* Today Before Window Opens Notice */}
+              {attendanceSheetData?.windowStatus && !attendanceSheetData.windowStatus.allowed && isSelectedDateToday && attendanceSheetData.windowStatus.code === 'WINDOW_NOT_OPENED' && (
+                <div className="p-4 my-3 rounded-2xl bg-blue-50 border border-blue-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-blue-900 shadow-xs">
+                  <div className="flex items-start sm:items-center gap-2.5">
+                    <div className="p-1.5 rounded-xl bg-blue-100 text-blue-700 flex-shrink-0 mt-0.5 sm:mt-0">
+                      <Clock className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <strong className="font-bold text-blue-950">Attendance Window Not Yet Open:</strong>{' '}
+                      {attendanceSheetData.windowStatus.reason || 'Attendance window has not opened yet for today.'}{' '}
+                      <span className="text-blue-700">Daily attendance marking opens automatically once morning school hours begin.</span>
+                    </div>
+                  </div>
+                  <span className="px-3 py-1 rounded-xl bg-blue-100 text-blue-800 font-bold text-xs flex-shrink-0">
+                    Opens Today
+                  </span>
+                </div>
+              )}
+
+              {/* Today Window Closed: Standard Notice + Request Clearance Button */}
+              {attendanceSheetData?.windowStatus && !attendanceSheetData.windowStatus.allowed && isSelectedDateToday && !['WINDOW_NOT_OPENED', 'PAST_DATE_CLOSED'].includes(attendanceSheetData.windowStatus.code) && (!attendanceSheetData.windowStatus.clearance || !['PENDING', 'REJECTED'].includes(attendanceSheetData.windowStatus.clearance.status)) && (
                 <div className="p-4 my-3 rounded-2xl bg-amber-50 border border-amber-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-amber-900 shadow-xs">
                   <div className="flex items-start sm:items-center gap-2.5">
                     <div className="p-1.5 rounded-xl bg-amber-100 text-amber-700 flex-shrink-0 mt-0.5 sm:mt-0">
@@ -986,7 +1040,7 @@ export const TeacherDashboard = () => {
                     </div>
                     <div>
                       <strong className="font-bold text-amber-950">Attendance Window Closed:</strong>{' '}
-                      {attendanceSheetData.windowStatus.reason || 'Attendance window is closed for this date.'}
+                      {attendanceSheetData.windowStatus.reason || 'Attendance window is closed for today.'}
                     </div>
                   </div>
                   <button
