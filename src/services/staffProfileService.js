@@ -104,6 +104,37 @@ export const staffProfileService = {
       return { clBalance: null, leaveRequests: [] };
     }
   },
+
+  /**
+   * Update self-managed fields for staff profile
+   * @param {string} targetId
+   * @param {Object} profilePayload
+   */
+  updateStaffProfile: async (targetId = 'me', profilePayload) => {
+    const response = await apiClient.patch(`/staff/${targetId}/profile`, profilePayload);
+    return response.data;
+  },
+
+  /**
+   * Upload or replace profile photo
+   * @param {string} targetId
+   * @param {FormData} formData
+   */
+  uploadProfilePhoto: async (targetId = 'me', formData) => {
+    const response = await apiClient.post(`/staff/${targetId}/photo`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+
+  /**
+   * Delete profile photo
+   * @param {string} targetId
+   */
+  deleteProfilePhoto: async (targetId = 'me') => {
+    const response = await apiClient.delete(`/staff/${targetId}/photo`);
+    return response.data;
+  },
 };
 
 export default staffProfileService;

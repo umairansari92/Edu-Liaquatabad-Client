@@ -20,15 +20,19 @@ function runTest(testName, testFunction) {
 }
 
 // ── Test 1: STUDENT Navigation
-runTest('STUDENT role receives only student items and never administrative items', () => {
+runTest('STUDENT role receives only student items with Personal Profile and never administrative items', () => {
   const items = getNavigationItemsForRole('STUDENT');
   const paths = items.map((item) => item.path);
 
-  assert.strictEqual(items.length, 4, 'Student should receive exactly 4 navigation items');
+  assert.strictEqual(items.length, 5, 'Student should receive exactly 5 navigation items');
   assert.ok(paths.includes('/dashboard'), 'Student must have /dashboard');
   assert.ok(paths.includes('/attendance'), 'Student must have /attendance');
   assert.ok(paths.includes('/holidays'), 'Student must have /holidays');
   assert.ok(paths.includes('/documents'), 'Student must have /documents');
+  assert.ok(paths.includes('/profile'), 'Student must have /profile');
+
+  const profileItem = items.find((item) => item.path === '/profile');
+  assert.strictEqual(profileItem?.label, 'Personal Profile', 'Student profile label must be Personal Profile');
 
   assert.ok(!paths.includes('/schools'), 'Student must NOT have /schools');
   assert.ok(!paths.includes('/users'), 'Student must NOT have /users');
@@ -37,11 +41,11 @@ runTest('STUDENT role receives only student items and never administrative items
 });
 
 // ── Test 2: TEACHER Navigation (Regression Guard for Bug Fix)
-runTest('TEACHER role receives teacher workspace items and NEVER administrative items', () => {
+runTest('TEACHER role receives teacher workspace items with Personal Profile and NEVER administrative items', () => {
   const items = getNavigationItemsForRole('TEACHER');
   const paths = items.map((item) => item.path);
 
-  assert.strictEqual(items.length, 9, 'Teacher should receive exactly 9 navigation items');
+  assert.strictEqual(items.length, 10, 'Teacher should receive exactly 10 navigation items');
   assert.ok(paths.includes('/dashboard'), 'Teacher must have /dashboard');
   assert.ok(paths.includes('/my-classes'), 'Teacher must have /my-classes');
   assert.ok(paths.includes('/dashboard?tab=attendance'), 'Teacher must have Daily Attendance');
@@ -51,6 +55,10 @@ runTest('TEACHER role receives teacher workspace items and NEVER administrative 
   assert.ok(paths.includes('/dashboard?tab=circulars'), 'Teacher must have Notice Board');
   assert.ok(paths.includes('/dashboard?tab=service'), 'Teacher must have My Service & Leave');
   assert.ok(paths.includes('/holidays'), 'Teacher must have Holidays & Calendar');
+  assert.ok(paths.includes('/profile'), 'Teacher must have Personal Profile');
+
+  const profileItem = items.find((item) => item.path === '/profile');
+  assert.strictEqual(profileItem?.label, 'Personal Profile', 'Teacher profile label must be Personal Profile');
 
   // CRITICAL REGRESSION ASSERTION: Teacher must never fall into Admin menu
   assert.ok(!paths.includes('/schools'), 'Teacher must NOT receive /schools');
@@ -59,8 +67,8 @@ runTest('TEACHER role receives teacher workspace items and NEVER administrative 
   assert.ok(!paths.includes('/audit-logs'), 'Teacher must NOT receive /audit-logs');
 });
 
-// ── Test 3: PARENT Navigation
-runTest('PARENT role receives only parent workspace items', () => {
+// ── Test 3: PARENT Navigation (Parent Isolation Guard)
+runTest('PARENT role receives only parent workspace items and NEVER Personal Profile', () => {
   const items = getNavigationItemsForRole('PARENT');
   const paths = items.map((item) => item.path);
 
@@ -71,6 +79,8 @@ runTest('PARENT role receives only parent workspace items', () => {
   assert.ok(paths.includes('/holidays'), 'Parent must have /holidays');
   assert.ok(paths.includes('/documents'), 'Parent must have /documents');
 
+  // PARENT ISOLATION MANDATE: Parents do not receive Personal Profile in sidebar
+  assert.ok(!paths.includes('/profile'), 'Parent must NOT have Personal Profile in sidebar');
   assert.ok(!paths.includes('/schools'), 'Parent must NOT have /schools');
   assert.ok(!paths.includes('/users'), 'Parent must NOT have /users');
   assert.ok(!paths.includes('/approvals'), 'Parent must NOT have /approvals');

@@ -13,6 +13,42 @@ export const fetchStaffProfile = createAsyncThunk(
   }
 );
 
+export const updateStaffProfile = createAsyncThunk(
+  'staffProfile/updateStaffProfile',
+  async ({ targetId, profilePayload }, { rejectWithValue }) => {
+    try {
+      const response = await staffProfileService.updateStaffProfile(targetId, profilePayload);
+      return response.data;
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to update profile details');
+    }
+  }
+);
+
+export const uploadStaffPhoto = createAsyncThunk(
+  'staffProfile/uploadStaffPhoto',
+  async ({ targetId, formData }, { rejectWithValue }) => {
+    try {
+      const response = await staffProfileService.uploadProfilePhoto(targetId, formData);
+      return response.data;
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to upload profile photo');
+    }
+  }
+);
+
+export const deleteStaffPhoto = createAsyncThunk(
+  'staffProfile/deleteStaffPhoto',
+  async ({ targetId }, { rejectWithValue }) => {
+    try {
+      const response = await staffProfileService.deleteProfilePhoto(targetId);
+      return response.data;
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to delete profile photo');
+    }
+  }
+);
+
 export const updateStaffPrivacySettings = createAsyncThunk(
   'staffProfile/updateStaffPrivacySettings',
   async ({ targetId, privacySettings }, { rejectWithValue }) => {
@@ -125,6 +161,16 @@ const initialState = {
   leaveSummary: { clBalance: null, leaveRequests: [] },
   loadingLeave: false,
   leaveError: null,
+
+  // Profile Update state
+  isUpdatingProfile: false,
+  updateProfileSuccess: false,
+  updateProfileError: null,
+
+  // Photo Upload & Delete state
+  isUploadingPhoto: false,
+  photoUploadSuccess: false,
+  photoUploadError: null,
 };
 
 const staffProfileSlice = createSlice({
@@ -153,6 +199,16 @@ const staffProfileSlice = createSlice({
       state.isUpdatingPrivacy = false;
       state.privacyUpdateSuccess = false;
       state.privacyUpdateError = null;
+    },
+    resetUpdateProfileState: (state) => {
+      state.isUpdatingProfile = false;
+      state.updateProfileSuccess = false;
+      state.updateProfileError = null;
+    },
+    resetPhotoUploadState: (state) => {
+      state.isUploadingPhoto = false;
+      state.photoUploadSuccess = false;
+      state.photoUploadError = null;
     },
     updateFieldVisibilityOptimistic: (state, action) => {
       const { field, value } = action.payload;
@@ -276,6 +332,75 @@ const staffProfileSlice = createSlice({
       .addCase(fetchProfileLeaveSummary.rejected, (state, action) => {
         state.loadingLeave = false;
         state.leaveError = action.payload;
+      })
+      // Update Staff Profile Details
+      .addCase(updateStaffProfile.pending, (state) => {
+        state.isUpdatingProfile = true;
+        state.updateProfileSuccess = false;
+        state.updateProfileError = null;
+      })
+      .addCase(updateStaffProfile.fulfilled, (state, action) => {
+        state.isUpdatingProfile = false;
+        state.updateProfileSuccess = true;
+        if (state.profileData?.user && action.payload?.user) {
+          state.profileData.user = {
+            ...state.profileData.user,
+            phoneNumber: action.payload.user.phoneNumber,
+          };
+        }
+        if (state.profileData?.profile && action.payload?.profile) {
+          state.profileData.profile = {
+            ...state.profileData.profile,
+            ...action.payload.profile,
+          };
+        }
+      })
+      .addCase(updateStaffProfile.rejected, (state, action) => {
+        state.isUpdatingProfile = false;
+        state.updateProfileError = action.payload;
+      })
+
+      // Upload Profile Photo
+      .addCase(uploadStaffPhoto.pending, (state) => {
+        state.isUploadingPhoto = true;
+        state.photoUploadSuccess = false;
+        state.photoUploadError = null;
+      })
+      .addCase(uploadStaffPhoto.fulfilled, (state, action) => {
+        state.isUploadingPhoto = false;
+        state.photoUploadSuccess = true;
+        const newPhoto = action.payload?.profilePhoto || { secureUrl: '', publicId: '' };
+        if (state.profileData?.profile) {
+          state.profileData.profile.profilePhoto = newPhoto;
+        }
+        if (state.profileData?.studentProfile) {
+          state.profileData.studentProfile.studentPhotoUrl = newPhoto.secureUrl;
+        }
+      })
+      .addCase(uploadStaffPhoto.rejected, (state, action) => {
+        state.isUploadingPhoto = false;
+        state.photoUploadError = action.payload;
+      })
+
+      // Delete Profile Photo
+      .addCase(deleteStaffPhoto.pending, (state) => {
+        state.isUploadingPhoto = true;
+        state.photoUploadSuccess = false;
+        state.photoUploadError = null;
+      })
+      .addCase(deleteStaffPhoto.fulfilled, (state) => {
+        state.isUploadingPhoto = false;
+        state.photoUploadSuccess = true;
+        if (state.profileData?.profile) {
+          state.profileData.profile.profilePhoto = { secureUrl: '', publicId: '' };
+        }
+        if (state.profileData?.studentProfile) {
+          state.profileData.studentProfile.studentPhotoUrl = '';
+        }
+      })
+      .addCase(deleteStaffPhoto.rejected, (state, action) => {
+        state.isUploadingPhoto = false;
+        state.photoUploadError = action.payload;
       });
   },
 });
@@ -285,6 +410,8 @@ export const {
   resetPdfRequestState,
   resetPdfDownloadState,
   resetPrivacyUpdateState,
+  resetUpdateProfileState,
+  resetPhotoUploadState,
   updateFieldVisibilityOptimistic,
 } = staffProfileSlice.actions;
 

@@ -47,35 +47,35 @@ export const FieldVisibilityEye = ({
   const isStrictlySensitive = ['cnic', 'bFormNumber', 'bankDetails', 'residentialAddress'].includes(field);
   const isSemiPrivate = ['phoneNumber', 'email', 'guardianCellNumber', 'guardianEmail'].includes(field);
 
-  // Tier configuration definitions
+  // Tier configuration definitions (Strictly adhering to DMC 4-Tier Privacy Standard)
   const tierConfigs = {
-    PUBLIC: {
-      label: 'Public in Directory',
-      shortLabel: 'Public',
-      desc: 'Visible to all registered members in the municipal directory',
-      icon: Globe,
-      color: 'text-[#006AC7] bg-blue-50 border-blue-200',
-    },
     SCHOOL: {
-      label: 'School Faculty Only',
-      shortLabel: 'School',
-      desc: 'Visible only to colleagues and administrators at your school',
+      label: 'School Based',
+      shortLabel: 'School Based',
+      desc: 'Visible only to verified faculty, staff, and administrators within your school',
       icon: Building,
       color: 'text-emerald-700 bg-emerald-50 border-emerald-200',
     },
+    PRIVATE: {
+      label: 'Private',
+      shortLabel: 'Private',
+      desc: 'Strictly confidential. Masked from all users and visible unmasked only to you',
+      icon: EyeOff,
+      color: 'text-rose-700 bg-rose-50 border-rose-200',
+    },
     AUTHORIZED_ROLE: {
-      label: 'Authorized Officials Only',
-      shortLabel: 'Authorized Only',
-      desc: 'Visible only to Head Master, Supervisor, DDO, and Audit Administration',
+      label: 'Officials',
+      shortLabel: 'Officials',
+      desc: 'Visible only to Head Master, Cluster Supervisor, DDO, and Town Administration',
       icon: ShieldCheck,
       color: 'text-amber-800 bg-amber-50 border-amber-200',
     },
-    PRIVATE: {
-      label: 'Strictly Private (Only Me)',
-      shortLabel: 'Private',
-      desc: 'Masked from all users. Only visible unmasked to you',
-      icon: EyeOff,
-      color: 'text-rose-700 bg-rose-50 border-rose-200',
+    PUBLIC: {
+      label: 'Public',
+      shortLabel: 'Public',
+      desc: 'Visible to authenticated municipal personnel across the town directory',
+      icon: Globe,
+      color: 'text-[#006AC7] bg-blue-50 border-blue-200',
     },
   };
 
@@ -127,13 +127,13 @@ export const FieldVisibilityEye = ({
     );
   }
 
-  // Available options for this field type
-  let availableTiers = ['PUBLIC', 'SCHOOL', 'PRIVATE'];
-  if (isSemiPrivate) {
-    availableTiers = ['SCHOOL', 'PRIVATE'];
-  } else if (isStrictlySensitive) {
-    availableTiers = ['AUTHORIZED_ROLE', 'PRIVATE'];
-  }
+  // Available options for this field type:
+  // For strictly sensitive PII (CNIC, B-Form, Bank, Residential Address): ONLY 'Officials' & 'Private'
+  // For standard personal/contact fields: all four options ('School Based', 'Private', 'Officials', 'Public')
+  const allTiers = ['SCHOOL', 'PRIVATE', 'AUTHORIZED_ROLE', 'PUBLIC'];
+  const permittedTiers = isStrictlySensitive
+    ? ['AUTHORIZED_ROLE', 'PRIVATE']
+    : allTiers;
 
   return (
     <div className="relative inline-block" ref={popoverRef}>
@@ -170,7 +170,7 @@ export const FieldVisibilityEye = ({
           </div>
 
           <div className="space-y-1">
-            {availableTiers.map((tierKey) => {
+            {permittedTiers.map((tierKey) => {
               const config = tierConfigs[tierKey];
               const isSelected = tierKey === currentTier;
               const OptionIcon = config.icon;

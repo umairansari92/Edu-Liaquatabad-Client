@@ -42,6 +42,7 @@ import { getErrorMessage } from '../../utils/errorUtils.js';
 import PageContainer from '../../components/layout/PageContainer.jsx';
 
 // Core Profile Cards (Directly modeled after the hand-drawn architectural sketch)
+import { ProfilePhotoCard } from '../../components/staff/ProfilePhotoCard.jsx';
 import { FieldVisibilityEye } from '../../components/staff/FieldVisibilityEye.jsx';
 import { TransferTimelineCard } from '../../components/staff/TransferTimelineCard.jsx';
 import { MonthlyAttendanceCard } from '../../components/staff/MonthlyAttendanceCard.jsx';
@@ -339,356 +340,309 @@ export const StaffProfilePage = () => {
           </div>
         )}
 
-        {/* ZONE 1: TOP IDENTITY CARD & PROFILE DETAILS (From Sketch Zone 1) */}
-        <div className="bg-white border border-slate-200/80 rounded-2xl p-6 relative overflow-hidden shadow-sm space-y-6">
-          {/* Identity Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-slate-100 pb-6">
-            <div className="flex items-start gap-4">
-              <div className="relative group">
-                <div className="w-20 h-20 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-[#006AC7] font-bold text-2xl flex-shrink-0 shadow-inner overflow-hidden">
-                  {user?.profileImage?.url ? (
-                    <img
-                      src={user.profileImage.url}
-                      alt={user.fullName}
-                      className="w-full h-full object-cover"
-                    />
+        {/* ZONE 1: TOP IDENTITY & SERVICE DOSSIER (Prominent Photo on Left + Structured Dossier on Right) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Prominent Profile Photo Card (Left Column - Directly from User Sketch) */}
+          <div className="lg:col-span-4 xl:col-span-3">
+            <ProfilePhotoCard
+              user={user}
+              profile={profile}
+              studentProfile={profileData?.studentProfile}
+              targetId={targetId}
+              isOwner={isOwner}
+              canManagePrivacy={canManagePrivacy}
+              onVisibilityChange={handleFieldVisibilityUpdate}
+              fieldVisibility={fieldVisibility}
+            />
+          </div>
+
+          {/* Right Column: Identification, Civil Service, and Bank Dossier Cards */}
+          <div className="lg:col-span-8 xl:col-span-9 space-y-6">
+            {/* Sensitive Fields Visibility Toggle Bar */}
+            <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <span className="text-[#8094A8] text-[11px] font-medium flex items-center gap-1.5">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#006AC7]" />
+                Education Department Liaquatabad Town Centre &bull; Field-Level ABAC Protection
+              </span>
+
+              {profile?.cnic && !profile.cnic.includes('Masked') && (
+                <button
+                  type="button"
+                  onClick={() => setShowSensitiveFields(!showSensitiveFields)}
+                  className="inline-flex items-center gap-1.5 text-xs text-[#006AC7] hover:underline font-bold self-start sm:self-auto"
+                >
+                  {showSensitiveFields ? (
+                    <EyeOff className="w-3.5 h-3.5" />
                   ) : (
-                    <span>{user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}</span>
+                    <Eye className="w-3.5 h-3.5" />
                   )}
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center gap-2.5">
-                  <h1 className="text-2xl font-bold text-[#102033] tracking-tight">
-                    {user?.fullName}
-                  </h1>
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-50 text-[#4B7F3A] border border-emerald-200 flex items-center gap-1">
-                    <CheckCircle className="w-3 h-3" />
-                    {user?.status || 'ACTIVE'}
-                  </span>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[#526477] mt-1.5">
-                  <span className="font-bold text-[#102033]">
-                    {isStudentProfile
-                      ? `Student (Class ${profile?.classId?.name || 'Assigned'})`
-                      : user?.designation || 'Staff'}
-                  </span>
-                  <span>&bull;</span>
-                  <span className="font-mono font-bold text-[#006AC7]">
-                    {isStudentProfile
-                      ? `Roll No: ${profile?.rollNumber || 'N/A'}`
-                      : `Personal ID: ${profile?.employeeId || 'N/A'}`}
-                  </span>
-                  <span>&bull;</span>
-                  <span className="text-[#526477]">
-                    {user?.school?.name || 'Unassigned School'}{' '}
-                    {user?.school?.code && `(${user.school.code})`}
-                  </span>
-                </div>
-              </div>
+                  {showSensitiveFields ? 'Hide Sensitive Fields' : 'Reveal Sensitive Fields'}
+                </button>
+              )}
             </div>
 
-            <div className="text-right sm:border-l sm:border-slate-100 sm:pl-6 text-xs space-y-1">
-              <div className="text-[#8094A8] text-[10px] uppercase font-bold tracking-wider">
-                {isStudentProfile ? 'ACADEMIC ENROLLMENT' : 'CIVIL APPOINTMENT'}
-              </div>
-              <div className="text-[#102033] font-bold">
-                {isStudentProfile
-                  ? `Section: ${profile?.sectionId?.name || 'A'}`
-                  : profile?.isTeachingStaff
-                  ? 'Teaching Faculty'
-                  : 'Non-Teaching Support'}
-              </div>
-              <div className="text-[11px] text-[#526477]">System Role: {user?.role}</div>
-            </div>
-          </div>
-
-          {/* Sensitive Fields Visibility Toggle Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-            <span className="text-[#8094A8] text-[11px] font-medium flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#006AC7]" />
-              Education Department Liaquatabad Town Centre &bull; Field-Level ABAC Protection
-            </span>
-
-            {profile?.cnic && !profile.cnic.includes('Masked') && (
-              <button
-                type="button"
-                onClick={() => setShowSensitiveFields(!showSensitiveFields)}
-                className="inline-flex items-center gap-1.5 text-xs text-[#006AC7] hover:underline font-bold self-start sm:self-auto"
-              >
-                {showSensitiveFields ? (
-                  <EyeOff className="w-3.5 h-3.5" />
-                ) : (
-                  <Eye className="w-3.5 h-3.5" />
-                )}
-                {showSensitiveFields ? 'Hide Sensitive Fields' : 'Reveal Sensitive Fields'}
-              </button>
-            )}
-          </div>
-
-          {/* Section 1 & 2: Personal Identification & Service/Academic Details */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
-            {/* Personal Identification (Left Card) */}
-            <div className="bg-slate-50/60 border border-slate-200/80 rounded-xl p-5 space-y-3.5">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#102033] flex items-center gap-2 border-b border-slate-200/60 pb-2">
-                <IdCard className="w-4 h-4 text-[#006AC7]" />
-                1. Personal Identification
-              </h3>
-              <div className="grid grid-cols-2 gap-3.5 text-xs">
-                <div>
-                  <span className="text-[#526477] block text-[11px] font-medium">Full Name</span>
-                  <span className="font-bold text-[#102033]">{user?.fullName}</span>
-                </div>
-
-                <div>
-                  <span className="text-[#526477] block text-[11px] font-medium">
-                    {isStudentProfile ? "Guardian's Name" : "Father's Name"}
-                  </span>
-                  <span className="font-bold text-[#102033]">
-                    {isStudentProfile
-                      ? profile?.guardianName || 'N/A'
-                      : profile?.fatherName || 'N/A'}
-                  </span>
-                </div>
-
-                {/* CNIC / B-Form with Eye Control */}
-                <div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-[#526477] text-[11px] font-medium">
-                      {isStudentProfile ? 'B-Form / CRC' : 'CNIC (National ID)'}
-                    </span>
-                    <FieldVisibilityEye
-                      field={isStudentProfile ? 'bFormNumber' : 'cnic'}
-                      label={isStudentProfile ? 'B-Form' : 'CNIC'}
-                      currentTier={
-                        fieldVisibility[isStudentProfile ? 'bFormNumber' : 'cnic'] ||
-                        'AUTHORIZED_ROLE'
-                      }
-                      isOwner={isOwner}
-                      onUpdate={handleFieldVisibilityUpdate}
-                    />
+            {/* Section 1 & 2: Personal Identification & Service/Academic Details */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Personal Identification (Card 1) */}
+              <div className="bg-white border border-slate-200/80 rounded-2xl p-5 space-y-3.5 shadow-sm">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#102033] flex items-center gap-2 border-b border-slate-100 pb-2.5">
+                  <IdCard className="w-4 h-4 text-[#006AC7]" />
+                  1. Personal Identification
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
+                  <div>
+                    <span className="text-[#526477] block text-[11px] font-medium">Full Name</span>
+                    <span className="font-bold text-[#102033]">{user?.fullName}</span>
                   </div>
-                  <span className="font-mono font-bold text-[#006AC7]">
-                    {isStudentProfile
-                      ? profile?.bFormNumber || 'Masked / Restricted'
-                      : profile?.cnic || 'Masked / Restricted'}
-                  </span>
-                </div>
 
-                <div>
-                  <span className="text-[#526477] block text-[11px] font-medium">
-                    Date of Birth
-                  </span>
-                  <span className="font-bold text-[#102033]">
-                    {profile?.dateOfBirth
-                      ? new Date(profile.dateOfBirth).toLocaleDateString()
-                      : 'N/A'}
-                  </span>
-                </div>
-
-                {/* Email with Eye Control */}
-                <div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-[#526477] text-[11px] font-medium">Official Email</span>
-                    <FieldVisibilityEye
-                      field="email"
-                      label="Email"
-                      currentTier={fieldVisibility.email || 'PUBLIC'}
-                      isOwner={isOwner}
-                      onUpdate={handleFieldVisibilityUpdate}
-                    />
-                  </div>
-                  <span className="text-[#102033] font-medium break-all">
-                    {user?.email || 'N/A'}
-                  </span>
-                </div>
-
-                {/* Phone Number with Eye Control */}
-                <div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-[#526477] text-[11px] font-medium">
-                      {isStudentProfile ? 'Guardian Phone' : 'Contact Phone'}
+                  <div>
+                    <span className="text-[#526477] block text-[11px] font-medium">
+                      {isStudentProfile ? "Guardian's Name" : "Father's Name"}
                     </span>
-                    <FieldVisibilityEye
-                      field={isStudentProfile ? 'guardianCellNumber' : 'phoneNumber'}
-                      label="Phone Number"
-                      currentTier={
-                        fieldVisibility[
-                          isStudentProfile ? 'guardianCellNumber' : 'phoneNumber'
-                        ] || 'SCHOOL'
-                      }
-                      isOwner={isOwner}
-                      onUpdate={handleFieldVisibilityUpdate}
-                    />
-                  </div>
-                  <span className="text-[#102033] font-medium">
-                    {isStudentProfile
-                      ? profile?.guardianCellNumber || 'N/A'
-                      : user?.phoneNumber || 'N/A'}
-                  </span>
-                </div>
-
-                {/* Residential Address with Eye Control */}
-                <div className="col-span-2">
-                  <div className="flex items-center gap-1">
-                    <span className="text-[#526477] text-[11px] font-medium">
-                      Residential Address
+                    <span className="font-bold text-[#102033]">
+                      {isStudentProfile
+                        ? profile?.guardianName || 'N/A'
+                        : profile?.fatherName || 'N/A'}
                     </span>
-                    <FieldVisibilityEye
-                      field="residentialAddress"
-                      label="Residential Address"
-                      currentTier={fieldVisibility.residentialAddress || 'AUTHORIZED_ROLE'}
-                      isOwner={isOwner}
-                      onUpdate={handleFieldVisibilityUpdate}
-                    />
                   </div>
-                  <span className="text-[#102033] font-medium">
-                    {profile?.residentialAddress || 'Confidential / Restricted to Authorized Officials'}
-                  </span>
-                </div>
-              </div>
-            </div>
 
-            {/* Employment / Service Details or Student Academic Details (Right Card) */}
-            <div className="bg-slate-50/60 border border-slate-200/80 rounded-xl p-5 space-y-3.5">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#102033] flex items-center gap-2 border-b border-slate-200/60 pb-2">
-                <Briefcase className="w-4 h-4 text-[#006AC7]" />
-                {isStudentProfile ? '2. Academic & Enrollment Details' : '2. Civil Service & Employment'}
-              </h3>
-              <div className="grid grid-cols-2 gap-3.5 text-xs">
-                <div>
-                  <span className="text-[#526477] block text-[11px] font-medium">
-                    {isStudentProfile ? 'Admission Number' : 'Personal / Employee No'}
-                  </span>
-                  <span className="font-mono font-bold text-[#102033]">
-                    {isStudentProfile
-                      ? profile?.admissionNumber || 'N/A'
-                      : profile?.employeeId || 'N/A'}
-                  </span>
-                </div>
-
-                <div>
-                  <span className="text-[#526477] block text-[11px] font-medium">
-                    {isStudentProfile ? 'Academic Session' : 'Official Designation'}
-                  </span>
-                  <span className="font-bold text-[#006AC7]">
-                    {isStudentProfile
-                      ? profile?.academicSession || '2025-2026'
-                      : user?.designation || 'Staff'}
-                  </span>
-                </div>
-
-                <div>
-                  <span className="text-[#526477] block text-[11px] font-medium">
-                    {isStudentProfile ? 'Admission Date' : 'Date of Appointment'}
-                  </span>
-                  <span className="font-bold text-[#102033]">
-                    {isStudentProfile
-                      ? profile?.admissionDate
-                        ? new Date(profile.admissionDate).toLocaleDateString()
-                        : 'N/A'
-                      : profile?.appointmentDate
-                      ? new Date(profile.appointmentDate).toLocaleDateString()
-                      : 'N/A'}
-                  </span>
-                </div>
-
-                {/* Qualification with Eye Control */}
-                <div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-[#526477] text-[11px] font-medium">
-                      {isStudentProfile ? 'Class & Section' : 'Educational Qualification'}
-                    </span>
-                    {!isStudentProfile && (
+                  {/* CNIC / B-Form with Eye Control */}
+                  <div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[#526477] text-[11px] font-medium">
+                        {isStudentProfile ? 'B-Form / CRC' : 'CNIC (National ID)'}
+                      </span>
                       <FieldVisibilityEye
-                        field="qualification"
-                        label="Qualification"
-                        currentTier={fieldVisibility.qualification || 'PUBLIC'}
+                        field={isStudentProfile ? 'bFormNumber' : 'cnic'}
+                        label={isStudentProfile ? 'B-Form' : 'CNIC'}
+                        currentTier={
+                          fieldVisibility[isStudentProfile ? 'bFormNumber' : 'cnic'] ||
+                          'AUTHORIZED_ROLE'
+                        }
                         isOwner={isOwner}
                         onUpdate={handleFieldVisibilityUpdate}
                       />
-                    )}
+                    </div>
+                    <span className="font-mono font-bold text-[#006AC7]">
+                      {isStudentProfile
+                        ? profile?.bFormNumber || 'Masked / Restricted'
+                        : profile?.cnic || 'Masked / Restricted'}
+                    </span>
                   </div>
-                  <span className="font-bold text-[#102033]">
-                    {isStudentProfile
-                      ? `${profile?.classId?.name || 'Class'} (${profile?.sectionId?.name || 'Sec A'})`
-                      : profile?.qualification || 'N/A'}
-                  </span>
-                </div>
 
-                <div>
-                  <span className="text-[#526477] block text-[11px] font-medium">
-                    Assigned Institution
-                  </span>
-                  <span className="text-[#102033] font-medium">
-                    {user?.school?.name || 'Unassigned School'}
-                  </span>
-                </div>
+                  <div>
+                    <span className="text-[#526477] block text-[11px] font-medium">
+                      Date of Birth
+                    </span>
+                    <span className="font-bold text-[#102033]">
+                      {profile?.dateOfBirth
+                        ? new Date(profile.dateOfBirth).toLocaleDateString()
+                        : 'N/A'}
+                    </span>
+                  </div>
 
-                <div>
-                  <span className="text-[#526477] block text-[11px] font-medium">
-                    Institutional District
-                  </span>
-                  <span className="text-[#102033] font-medium">
-                    Liaquatabad Town Centre (DMC)
-                  </span>
+                  {/* Email with Eye Control */}
+                  <div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[#526477] text-[11px] font-medium">Official Email</span>
+                      <FieldVisibilityEye
+                        field="email"
+                        label="Email"
+                        currentTier={fieldVisibility.email || 'PUBLIC'}
+                        isOwner={isOwner}
+                        onUpdate={handleFieldVisibilityUpdate}
+                      />
+                    </div>
+                    <span className="text-[#102033] font-medium break-all">
+                      {user?.email || 'N/A'}
+                    </span>
+                  </div>
+
+                  {/* Phone Number with Eye Control */}
+                  <div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[#526477] text-[11px] font-medium">
+                        {isStudentProfile ? 'Guardian Phone' : 'Contact Phone'}
+                      </span>
+                      <FieldVisibilityEye
+                        field={isStudentProfile ? 'guardianCellNumber' : 'phoneNumber'}
+                        label="Phone Number"
+                        currentTier={
+                          fieldVisibility[
+                            isStudentProfile ? 'guardianCellNumber' : 'phoneNumber'
+                          ] || 'SCHOOL'
+                        }
+                        isOwner={isOwner}
+                        onUpdate={handleFieldVisibilityUpdate}
+                      />
+                    </div>
+                    <span className="text-[#102033] font-medium">
+                      {isStudentProfile
+                        ? profile?.guardianCellNumber || 'N/A'
+                        : user?.phoneNumber || 'N/A'}
+                    </span>
+                  </div>
+
+                  {/* Residential Address with Eye Control */}
+                  <div className="col-span-1 sm:col-span-2">
+                    <div className="flex items-center gap-1">
+                      <span className="text-[#526477] text-[11px] font-medium">
+                        Residential Address
+                      </span>
+                      <FieldVisibilityEye
+                        field="residentialAddress"
+                        label="Residential Address"
+                        currentTier={fieldVisibility.residentialAddress || 'AUTHORIZED_ROLE'}
+                        isOwner={isOwner}
+                        onUpdate={handleFieldVisibilityUpdate}
+                      />
+                    </div>
+                    <span className="text-[#102033] font-medium">
+                      {profile?.residentialAddress || 'Confidential / Restricted to Authorized Officials'}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Section 3: Bank / Payroll Disbursement (Staff Only) */}
-          {!isStudentProfile && (
-            <div className="bg-slate-50/60 border border-slate-200/80 rounded-xl p-5 space-y-3.5">
-              <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-[#102033] flex items-center gap-2">
-                  <CreditCard className="w-4 h-4 text-[#006AC7]" />
-                  3. Bank &amp; Payroll Disbursement Information
+              {/* Employment / Service Details or Student Academic Details (Card 2) */}
+              <div className="bg-white border border-slate-200/80 rounded-2xl p-5 space-y-3.5 shadow-sm">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#102033] flex items-center gap-2 border-b border-slate-100 pb-2.5">
+                  <Briefcase className="w-4 h-4 text-[#006AC7]" />
+                  {isStudentProfile ? '2. Academic & Enrollment Details' : '2. Civil Service & Employment'}
                 </h3>
-                <div className="flex items-center gap-1">
-                  <span className="text-[11px] text-[#526477]">Bank Details Privacy:</span>
-                  <FieldVisibilityEye
-                    field="bankDetails"
-                    label="Bank Account Details"
-                    currentTier={fieldVisibility.bankDetails || 'AUTHORIZED_ROLE'}
-                    isOwner={isOwner}
-                    onUpdate={handleFieldVisibilityUpdate}
-                  />
-                </div>
-              </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
+                  <div>
+                    <span className="text-[#526477] block text-[11px] font-medium">
+                      {isStudentProfile ? 'Admission Number' : 'Personal / Employee No'}
+                    </span>
+                    <span className="font-mono font-bold text-[#102033]">
+                      {isStudentProfile
+                        ? profile?.admissionNumber || 'N/A'
+                        : profile?.employeeId || 'N/A'}
+                    </span>
+                  </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-                <div>
-                  <span className="text-[#526477] block text-[11px] font-medium">Bank Name</span>
-                  <span className="font-bold text-[#102033]">{profile?.bankName || 'N/A'}</span>
-                </div>
-                <div>
-                  <span className="text-[#526477] block text-[11px] font-medium">
-                    Branch &amp; Code
-                  </span>
-                  <span className="font-bold text-[#102033]">
-                    {profile?.branchName || 'N/A'}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[#526477] block text-[11px] font-medium">Account Title</span>
-                  <span className="font-bold text-[#102033]">
-                    {profile?.accountTitle || 'N/A'}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-[#526477] block text-[11px] font-medium">
-                    Account Number / IBAN
-                  </span>
-                  <span className="font-mono font-bold text-[#006AC7]">
-                    {profile?.accountNumber || 'Masked / Restricted'}
-                  </span>
+                  <div>
+                    <span className="text-[#526477] block text-[11px] font-medium">
+                      {isStudentProfile ? 'Academic Session' : 'Official Designation'}
+                    </span>
+                    <span className="font-bold text-[#006AC7]">
+                      {isStudentProfile
+                        ? profile?.academicSession || '2025-2026'
+                        : user?.designation || 'Staff'}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-[#526477] block text-[11px] font-medium">
+                      {isStudentProfile ? 'Admission Date' : 'Date of Appointment'}
+                    </span>
+                    <span className="font-bold text-[#102033]">
+                      {isStudentProfile
+                        ? profile?.admissionDate
+                          ? new Date(profile.admissionDate).toLocaleDateString()
+                          : 'N/A'
+                        : profile?.appointmentDate
+                        ? new Date(profile.appointmentDate).toLocaleDateString()
+                        : 'N/A'}
+                    </span>
+                  </div>
+
+                  {/* Qualification with Eye Control */}
+                  <div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[#526477] text-[11px] font-medium">
+                        {isStudentProfile ? 'Class & Section' : 'Educational Qualification'}
+                      </span>
+                      {!isStudentProfile && (
+                        <FieldVisibilityEye
+                          field="qualification"
+                          label="Qualification"
+                          currentTier={fieldVisibility.qualification || 'PUBLIC'}
+                          isOwner={isOwner}
+                          onUpdate={handleFieldVisibilityUpdate}
+                        />
+                      )}
+                    </div>
+                    <span className="font-bold text-[#102033]">
+                      {isStudentProfile
+                        ? `${profile?.classId?.name || 'Class'} (${profile?.sectionId?.name || 'Sec A'})`
+                        : profile?.qualification || 'N/A'}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-[#526477] block text-[11px] font-medium">
+                      Assigned Institution
+                    </span>
+                    <span className="text-[#102033] font-medium">
+                      {user?.school?.name || 'Unassigned School'}
+                    </span>
+                  </div>
+
+                  <div>
+                    <span className="text-[#526477] block text-[11px] font-medium">
+                      Institutional District
+                    </span>
+                    <span className="text-[#102033] font-medium">
+                      Liaquatabad Town Centre (DMC)
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-          )}
+
+            {/* Section 3: Bank / Payroll Disbursement (Staff Only - Card 3) */}
+            {!isStudentProfile && (
+              <div className="bg-white border border-slate-200/80 rounded-2xl p-5 space-y-3.5 shadow-sm">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-[#102033] flex items-center gap-2">
+                    <CreditCard className="w-4 h-4 text-[#006AC7]" />
+                    3. Bank &amp; Payroll Disbursement Information
+                  </h3>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[11px] text-[#526477]">Bank Details Privacy:</span>
+                    <FieldVisibilityEye
+                      field="bankDetails"
+                      label="Bank Account Details"
+                      currentTier={fieldVisibility.bankDetails || 'AUTHORIZED_ROLE'}
+                      isOwner={isOwner}
+                      onUpdate={handleFieldVisibilityUpdate}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+                  <div>
+                    <span className="text-[#526477] block text-[11px] font-medium">Bank Name</span>
+                    <span className="font-bold text-[#102033]">{profile?.bankName || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[#526477] block text-[11px] font-medium">
+                      Branch &amp; Code
+                    </span>
+                    <span className="font-bold text-[#102033]">
+                      {profile?.branchName || 'N/A'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[#526477] block text-[11px] font-medium">Account Title</span>
+                    <span className="font-bold text-[#102033]">
+                      {profile?.accountTitle || 'N/A'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[#526477] block text-[11px] font-medium">
+                      Account Number / IBAN
+                    </span>
+                    <span className="font-mono font-bold text-[#006AC7]">
+                      {profile?.accountNumber || 'Masked / Restricted'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* TEACHER ONLY: Authoritative Subject Assignments */}

@@ -41,6 +41,7 @@ export const getNavigationItemsForRole = (userRole) => {
       { label: 'Attendance', path: '/attendance', icon: ClipboardCheck },
       { label: 'Holidays & Calendar', path: '/holidays', icon: Calendar },
       { label: 'Official Circulars', path: '/documents', icon: FileText },
+      { label: 'Personal Profile', path: '/profile', icon: IdCard },
     ];
   }
 
@@ -55,6 +56,7 @@ export const getNavigationItemsForRole = (userRole) => {
       { label: 'Notice Board', path: '/dashboard?tab=circulars', icon: FileText },
       { label: 'My Service & Leave', path: '/dashboard?tab=service', icon: IdCard },
       { label: 'Holidays & Calendar', path: '/holidays', icon: Calendar },
+      { label: 'Personal Profile', path: '/profile', icon: IdCard },
     ];
   }
 
@@ -83,7 +85,7 @@ export const getNavigationItemsForRole = (userRole) => {
       { label: 'Notices & circulars', path: '/dashboard?tab=notices', icon: FileText },
       { label: 'School profile', path: '/dashboard?tab=profile', icon: Building2 },
       { label: 'Holidays & calendar', path: '/holidays', icon: Calendar },
-      { label: 'My service profile', path: '/profile', icon: IdCard },
+      { label: 'Personal Profile', path: '/profile', icon: IdCard },
     ];
   }
 
@@ -96,7 +98,7 @@ export const getNavigationItemsForRole = (userRole) => {
       { label: 'Holidays & calendar', path: '/holidays', icon: Calendar },
       { label: 'Exams & results', path: '/exams', icon: Award },
       { label: 'Staff transfers', path: '/transfers', icon: ArrowLeftRight },
-      { label: 'My profile', path: '/profile', icon: IdCard },
+      { label: 'Personal Profile', path: '/profile', icon: IdCard },
       { label: 'Notices & circulars', path: '/documents', icon: FileText },
     ];
   }
@@ -112,7 +114,7 @@ export const getNavigationItemsForRole = (userRole) => {
       { label: 'Holidays & calendar', path: '/holidays', icon: Calendar },
       { label: 'Exams & results', path: '/exams', icon: Award },
       { label: 'Staff transfers', path: '/transfers', icon: ArrowLeftRight },
-      { label: 'My profile', path: '/profile', icon: IdCard },
+      { label: 'Personal Profile', path: '/profile', icon: IdCard },
       { label: 'Notices & circulars', path: '/documents', icon: FileText },
     ];
 
@@ -129,7 +131,7 @@ export const getNavigationItemsForRole = (userRole) => {
       { label: 'Attendance', path: '/attendance', icon: ClipboardCheck },
       { label: 'Official Circulars', path: '/documents', icon: FileText },
       { label: 'Holidays & Calendar', path: '/holidays', icon: Calendar },
-      { label: 'My Profile', path: '/profile', icon: IdCard },
+      { label: 'Personal Profile', path: '/profile', icon: IdCard },
     ];
   }
 
@@ -138,6 +140,6 @@ export const getNavigationItemsForRole = (userRole) => {
     { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
     { label: 'Holidays & Calendar', path: '/holidays', icon: Calendar },
     { label: 'Official Circulars', path: '/documents', icon: FileText },
-    { label: 'My Profile', path: '/profile', icon: IdCard },
+    { label: 'Personal Profile', path: '/profile', icon: IdCard },
   ];
 };
