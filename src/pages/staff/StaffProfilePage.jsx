@@ -177,8 +177,9 @@ export const StaffProfilePage = () => {
 
     const { pdfAccess, profile, user } = profileData;
     const employeeIdentifier = profile?.employeeId || user?.fullName || 'Staff';
+    const canDownload = Boolean(pdfAccess?.allowed || pdfAccess?.canDirectDownload || isOwner);
 
-    if (pdfAccess?.allowed) {
+    if (canDownload) {
       dispatch(downloadStaffPdf({ targetId, employeeId: employeeIdentifier }))
         .unwrap()
         .then(() => {
@@ -229,8 +230,10 @@ export const StaffProfilePage = () => {
   const isOwner = currentUser && (currentUser._id === user?._id || targetId === 'me');
   const canManagePrivacy = isOwner || ['ADMIN', 'SUPER_ADMIN', 'ROOT_ADMIN'].includes(currentUser?.role);
   const isStudentProfile = user?.role === 'STUDENT';
+  const student = profileData?.studentProfile;
   const privacySettings = profile?.privacySettings || profileData?.privacySettings || {};
   const fieldVisibility = privacySettings.fieldVisibility || {};
+  const canDirectDownloadPdf = Boolean(pdfAccess?.allowed || pdfAccess?.canDirectDownload || isOwner);
 
   return (
     <PageContainer
@@ -245,11 +248,11 @@ export const StaffProfilePage = () => {
         {/* Top Navigation & Action Controls */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <Link
-            to={isStudentProfile ? '/students' : '/directory'}
+            to={isStudentProfile ? '/dashboard' : '/directory'}
             className="inline-flex items-center gap-1.5 text-xs text-[#526477] hover:text-[#102033] font-bold transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
-            {isStudentProfile ? 'Back to Student Directory' : 'Back to Staff Directory'}
+            {isStudentProfile ? 'Back to Student Workspace' : 'Back to Staff Directory'}
           </Link>
 
           <div className="flex flex-wrap items-center gap-2.5">
@@ -296,19 +299,19 @@ export const StaffProfilePage = () => {
                 onClick={handleDownloadClick}
                 disabled={isDownloadingPdf}
                 className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white text-xs font-bold transition-all shadow-sm disabled:opacity-50 ${
-                  pdfAccess?.allowed
+                  canDirectDownloadPdf
                     ? 'bg-[#006AC7] hover:bg-[#005299]'
                     : 'bg-amber-600 hover:bg-amber-700'
                 }`}
               >
-                {pdfAccess?.allowed ? (
+                {canDirectDownloadPdf ? (
                   <Download className="w-4 h-4" />
                 ) : (
                   <Lock className="w-4 h-4" />
                 )}
                 {isDownloadingPdf
                   ? 'Generating PDF...'
-                  : pdfAccess?.allowed
+                  : canDirectDownloadPdf
                   ? 'Download Official Record (PDF)'
                   : 'Request PDF Consent'}
               </button>
@@ -316,8 +319,8 @@ export const StaffProfilePage = () => {
           </div>
         </div>
 
-        {/* Consent / Access Policy Notice Banner */}
-        {!isStudentProfile && !pdfAccess?.allowed && (
+        {/* Consent / Access Policy Notice Banner: Displayed ONLY when viewing an external staff profile that requires consent */}
+        {!isStudentProfile && !isOwner && !canDirectDownloadPdf && (
           <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200/80 text-xs text-amber-900 flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
             <div>
@@ -401,8 +404,8 @@ export const StaffProfilePage = () => {
                     </span>
                     <span className="font-bold text-[#102033]">
                       {isStudentProfile
-                        ? profile?.guardianName || 'N/A'
-                        : profile?.fatherName || 'N/A'}
+                        ? student?.fatherFullName || student?.guardianName || 'Not Recorded'
+                        : profile?.fatherName || 'Not Recorded'}
                     </span>
                   </div>
 
@@ -425,7 +428,7 @@ export const StaffProfilePage = () => {
                     </div>
                     <span className="font-mono font-bold text-[#006AC7]">
                       {isStudentProfile
-                        ? profile?.bFormNumber || 'Masked / Restricted'
+                        ? student?.bFormNumber || 'Masked / Restricted'
                         : profile?.cnic || 'Masked / Restricted'}
                     </span>
                   </div>
@@ -435,9 +438,13 @@ export const StaffProfilePage = () => {
                       Date of Birth
                     </span>
                     <span className="font-bold text-[#102033]">
-                      {profile?.dateOfBirth
+                      {isStudentProfile
+                        ? student?.dateOfBirth
+                          ? new Date(student.dateOfBirth).toLocaleDateString()
+                          : 'Not Recorded'
+                        : profile?.dateOfBirth
                         ? new Date(profile.dateOfBirth).toLocaleDateString()
-                        : 'N/A'}
+                        : 'Not Recorded'}
                     </span>
                   </div>
 
@@ -478,8 +485,8 @@ export const StaffProfilePage = () => {
                     </div>
                     <span className="text-[#102033] font-medium">
                       {isStudentProfile
-                        ? profile?.guardianCellNumber || 'N/A'
-                        : user?.phoneNumber || 'N/A'}
+                        ? student?.guardianCellNumber || 'Not Recorded'
+                        : user?.phoneNumber || 'Not Recorded'}
                     </span>
                   </div>
 
@@ -498,7 +505,9 @@ export const StaffProfilePage = () => {
                       />
                     </div>
                     <span className="text-[#102033] font-medium">
-                      {profile?.residentialAddress || 'Confidential / Restricted to Authorized Officials'}
+                      {isStudentProfile
+                        ? student?.residentialAddress || student?.permanentResidentialAddress || 'Confidential / Not Recorded'
+                        : profile?.residentialAddress || 'Confidential / Restricted to Authorized Officials'}
                     </span>
                   </div>
                 </div>
@@ -513,22 +522,22 @@ export const StaffProfilePage = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
                   <div>
                     <span className="text-[#526477] block text-[11px] font-medium">
-                      {isStudentProfile ? 'Admission Number' : 'Personal / Employee No'}
+                      {isStudentProfile ? 'General Register (GR) No' : 'Personal / Employee No'}
                     </span>
                     <span className="font-mono font-bold text-[#102033]">
                       {isStudentProfile
-                        ? profile?.admissionNumber || 'N/A'
-                        : profile?.employeeId || 'N/A'}
+                        ? (student?.grNumber ? `GR-${student.grNumber}` : student?.admissionRegisterNumber || 'Not Assigned')
+                        : profile?.employeeId || 'Not Assigned'}
                     </span>
                   </div>
 
                   <div>
                     <span className="text-[#526477] block text-[11px] font-medium">
-                      {isStudentProfile ? 'Academic Session' : 'Official Designation'}
+                      {isStudentProfile ? 'Medium of Instruction' : 'Official Designation'}
                     </span>
                     <span className="font-bold text-[#006AC7]">
                       {isStudentProfile
-                        ? profile?.academicSession || '2025-2026'
+                        ? student?.mediumOfInstruction || 'Not Specified'
                         : user?.designation || 'Staff'}
                     </span>
                   </div>
@@ -539,20 +548,20 @@ export const StaffProfilePage = () => {
                     </span>
                     <span className="font-bold text-[#102033]">
                       {isStudentProfile
-                        ? profile?.admissionDate
-                          ? new Date(profile.admissionDate).toLocaleDateString()
-                          : 'N/A'
+                        ? student?.admissionDate
+                          ? new Date(student.admissionDate).toLocaleDateString()
+                          : 'Not Recorded'
                         : profile?.appointmentDate
                         ? new Date(profile.appointmentDate).toLocaleDateString()
-                        : 'N/A'}
+                        : 'Not Recorded'}
                     </span>
                   </div>
 
-                  {/* Qualification with Eye Control */}
+                  {/* Qualification / Enrolled Class with Eye Control */}
                   <div>
                     <div className="flex items-center gap-1">
                       <span className="text-[#526477] text-[11px] font-medium">
-                        {isStudentProfile ? 'Class & Section' : 'Educational Qualification'}
+                        {isStudentProfile ? 'Enrolled Class & Section' : 'Educational Qualification'}
                       </span>
                       {!isStudentProfile && (
                         <FieldVisibilityEye
@@ -566,8 +575,10 @@ export const StaffProfilePage = () => {
                     </div>
                     <span className="font-bold text-[#102033]">
                       {isStudentProfile
-                        ? `${profile?.classId?.name || 'Class'} (${profile?.sectionId?.name || 'Sec A'})`
-                        : profile?.qualification || 'N/A'}
+                        ? (student?.class?.name && student?.section?.name
+                            ? `${student.class.name} (${student.section.name})`
+                            : student?.class?.name || 'Unassigned Class')
+                        : profile?.qualification || 'Not Recorded'}
                     </span>
                   </div>
 
@@ -576,7 +587,7 @@ export const StaffProfilePage = () => {
                       Assigned Institution
                     </span>
                     <span className="text-[#102033] font-medium">
-                      {user?.school?.name || 'Unassigned School'}
+                      {student?.school?.name || user?.school?.name || 'Unassigned Institution'}
                     </span>
                   </div>
 

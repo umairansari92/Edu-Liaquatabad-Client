@@ -25,21 +25,26 @@ export const CasualLeaveQuotaCard = ({
   loading = false,
   isOwner = false,
 }) => {
-  const clBalance = leaveSummary?.clBalance || {
-    totalQuota: 24,
-    usedDays: 0,
-    pendingDays: 0,
-    remainingBalance: 24,
-    year: new Date().getFullYear(),
-  };
+  const clBalance = leaveSummary?.clBalance;
+  const hasClData = Boolean(
+    clBalance &&
+    (clBalance.entitlementDays !== undefined || clBalance.totalQuota !== undefined)
+  );
 
   const leaveRequests = leaveSummary?.leaveRequests || [];
 
-  const totalQuota = clBalance.totalQuota || 24;
-  const usedDays = clBalance.usedDays || 0;
-  const pendingDays = clBalance.pendingDays || 0;
-  const remainingBalance = clBalance.remainingBalance ?? (totalQuota - usedDays);
-  const usedPercentage = Math.min(100, Math.round((usedDays / totalQuota) * 100));
+  const totalQuota = hasClData
+    ? (clBalance.entitlementDays ?? clBalance.totalQuota ?? 0)
+    : null;
+  const usedDays = hasClData ? (clBalance.usedDays ?? 0) : 0;
+  const pendingDays = hasClData ? (clBalance.pendingDays ?? 0) : 0;
+  const remainingBalance = hasClData
+    ? (clBalance.remainingDays ?? clBalance.remainingBalance ?? Math.max(0, (totalQuota ?? 0) - usedDays))
+    : null;
+  const usedPercentage =
+    hasClData && totalQuota && totalQuota > 0
+      ? Math.min(100, Math.round((usedDays / totalQuota) * 100))
+      : 0;
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -116,10 +121,12 @@ export const CasualLeaveQuotaCard = ({
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
           <span className="text-[10px] font-bold text-[#526477] uppercase block tracking-wider">
-            Annual Quota ({clBalance.year || new Date().getFullYear()})
+            Annual Quota ({clBalance?.year || new Date().getFullYear()})
           </span>
           <div className="flex items-baseline gap-1.5">
-            <span className="text-2xl font-black text-[#102033]">{totalQuota}</span>
+            <span className="text-2xl font-black text-[#102033]">
+              {hasClData ? totalQuota : '—'}
+            </span>
             <span className="text-xs text-[#526477] font-semibold">Days</span>
           </div>
           <span className="text-[10px] text-slate-400 block">Resets January 1 &bull; Non-cumulative</span>
@@ -130,10 +137,14 @@ export const CasualLeaveQuotaCard = ({
             Availed / Used
           </span>
           <div className="flex items-baseline gap-1.5">
-            <span className="text-2xl font-black text-[#006AC7]">{usedDays}</span>
+            <span className="text-2xl font-black text-[#006AC7]">
+              {hasClData ? usedDays : '—'}
+            </span>
             <span className="text-xs text-[#006AC7] font-semibold">Days</span>
           </div>
-          <span className="text-[10px] text-[#006AC7]/70 block">{usedPercentage}% of quota consumed</span>
+          <span className="text-[10px] text-[#006AC7]/70 block">
+            {hasClData ? `${usedPercentage}% of quota consumed` : 'Awaiting policy record'}
+          </span>
         </div>
 
         <div className="p-4 rounded-xl bg-amber-50/60 border border-amber-200 space-y-1">
@@ -141,7 +152,9 @@ export const CasualLeaveQuotaCard = ({
             Pending Approval
           </span>
           <div className="flex items-baseline gap-1.5">
-            <span className="text-2xl font-black text-amber-700">{pendingDays}</span>
+            <span className="text-2xl font-black text-amber-700">
+              {hasClData ? pendingDays : '—'}
+            </span>
             <span className="text-xs text-amber-800 font-semibold">Days</span>
           </div>
           <span className="text-[10px] text-amber-700/80 block">Awaiting Head Master review</span>
@@ -152,18 +165,29 @@ export const CasualLeaveQuotaCard = ({
             Remaining Balance
           </span>
           <div className="flex items-baseline gap-1.5">
-            <span className="text-2xl font-black text-emerald-700">{remainingBalance}</span>
+            <span className="text-2xl font-black text-emerald-700">
+              {hasClData ? remainingBalance : '—'}
+            </span>
             <span className="text-xs text-emerald-800 font-semibold">Days</span>
           </div>
           <span className="text-[10px] text-emerald-700/80 block">Available for active utilization</span>
         </div>
       </div>
 
+      {!hasClData && !loading && (
+        <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-[#526477] flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-slate-400 flex-shrink-0" />
+          <span>Official Casual Leave quota data has not been initialized for this employee account in the institutional leave ledger.</span>
+        </div>
+      )}
+
       {/* Progress Bar */}
       <div className="space-y-1.5 pt-1">
         <div className="flex justify-between items-center text-xs text-[#526477]">
           <span className="font-medium text-[11px]">Quota Utilization Progress</span>
-          <span className="font-bold text-[#102033] font-mono text-[11px]">{remainingBalance} Days Available</span>
+          <span className="font-bold text-[#102033] font-mono text-[11px]">
+            {hasClData ? `${remainingBalance} Days Available` : 'Policy Ledger Uninitialized'}
+          </span>
         </div>
         <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden flex">
           <div
