@@ -121,6 +121,17 @@ export const authService = {
     const response = await apiClient.delete(`/auth/sessions/${sessionId}`);
     return response.data;
   },
+
+  // ─── Authenticated Password Change ──────────────────────────────────────────
+  changePassword: async ({ currentPassword, newPassword, confirmPassword, terminateOtherSessions = true }) => {
+    const response = await apiClient.patch('/auth/change-password', {
+      currentPassword,
+      newPassword,
+      confirmPassword,
+      terminateOtherSessions,
+    });
+    return response.data;
+  },
 };
 
 export default authService;

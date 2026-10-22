@@ -64,6 +64,46 @@ export const staffProfileService = {
 
     return { success: true, downloadedAt: new Date().toISOString() };
   },
+
+  /**
+   * Fetch authenticated user's attendance muster for the profile card
+   */
+  getMyAttendance: async (month, year, isTeachingStaff = true) => {
+    try {
+      if (isTeachingStaff) {
+        const response = await apiClient.get('/attendance/teachers/my-attendance', {
+          params: { month, year },
+        });
+        return response.data?.data;
+      } else {
+        const response = await apiClient.get('/staff-attendance/my-history', {
+          params: { month, year },
+        });
+        return response.data?.data;
+      }
+    } catch {
+      return null;
+    }
+  },
+
+  /**
+   * Fetch Casual Leave balance and recent applications for profile card
+   */
+  getMyLeaveSummary: async () => {
+    try {
+      const [balanceRes, requestsRes] = await Promise.allSettled([
+        apiClient.get('/leave/cl-balance'),
+        apiClient.get('/leave/my-requests', { params: { limit: 5 } }),
+      ]);
+
+      const clBalance = balanceRes.status === 'fulfilled' ? (balanceRes.value.data?.clBalance || balanceRes.value.data?.data) : null;
+      const leaveRequests = requestsRes.status === 'fulfilled' ? (requestsRes.value.data?.leaveRequests || requestsRes.value.data?.data || []) : [];
+
+      return { clBalance, leaveRequests };
+    } catch {
+      return { clBalance: null, leaveRequests: [] };
+    }
+  },
 };
 
 export default staffProfileService;

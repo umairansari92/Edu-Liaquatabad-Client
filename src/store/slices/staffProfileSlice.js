@@ -1,4 +1,4 @@
-﻿import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import staffProfileService from '../../services/staffProfileService.js';
 
 export const fetchStaffProfile = createAsyncThunk(
@@ -66,6 +66,30 @@ export const fetchStaffAccessHistory = createAsyncThunk(
   }
 );
 
+export const fetchProfileAttendance = createAsyncThunk(
+  'staffProfile/fetchProfileAttendance',
+  async ({ month, year, isTeachingStaff = true }, { rejectWithValue }) => {
+    try {
+      const data = await staffProfileService.getMyAttendance(month, year, isTeachingStaff);
+      return data;
+    } catch (attendanceError) {
+      return rejectWithValue(attendanceError.message || 'Failed to fetch attendance muster record');
+    }
+  }
+);
+
+export const fetchProfileLeaveSummary = createAsyncThunk(
+  'staffProfile/fetchProfileLeaveSummary',
+  async (_, { rejectWithValue }) => {
+    try {
+      const data = await staffProfileService.getMyLeaveSummary();
+      return data;
+    } catch (leaveError) {
+      return rejectWithValue(leaveError.message || 'Failed to fetch casual leave quota summary');
+    }
+  }
+);
+
 const initialState = {
   profileData: null,
   loading: false,
@@ -91,6 +115,16 @@ const initialState = {
   accessHistory: [],
   loadingAccessHistory: false,
   accessHistoryError: null,
+
+  // Attendance muster state for profile card
+  attendanceData: null,
+  loadingAttendance: false,
+  attendanceError: null,
+
+  // Casual leave state for profile card
+  leaveSummary: { clBalance: null, leaveRequests: [] },
+  loadingLeave: false,
+  leaveError: null,
 };
 
 const staffProfileSlice = createSlice({
@@ -101,6 +135,8 @@ const staffProfileSlice = createSlice({
       state.profileData = null;
       state.error = null;
       state.accessHistory = [];
+      state.attendanceData = null;
+      state.leaveSummary = { clBalance: null, leaveRequests: [] };
     },
     resetPdfRequestState: (state) => {
       state.isRequestingPdf = false;
@@ -117,6 +153,15 @@ const staffProfileSlice = createSlice({
       state.isUpdatingPrivacy = false;
       state.privacyUpdateSuccess = false;
       state.privacyUpdateError = null;
+    },
+    updateFieldVisibilityOptimistic: (state, action) => {
+      const { field, value } = action.payload;
+      if (state.profileData?.profile?.privacySettings?.fieldVisibility) {
+        state.profileData.profile.privacySettings.fieldVisibility[field] = value;
+      }
+      if (state.profileData?.privacySettings?.fieldVisibility) {
+        state.profileData.privacySettings.fieldVisibility[field] = value;
+      }
     },
   },
   extraReducers: (builder) => {
@@ -144,8 +189,12 @@ const staffProfileSlice = createSlice({
       .addCase(updateStaffPrivacySettings.fulfilled, (state, action) => {
         state.isUpdatingPrivacy = false;
         state.privacyUpdateSuccess = true;
+        const updatedPrivacy = action.payload?.privacySettings || action.payload;
         if (state.profileData?.profile) {
-          state.profileData.profile.privacySettings = action.payload;
+          state.profileData.profile.privacySettings = updatedPrivacy;
+        }
+        if (state.profileData) {
+          state.profileData.privacySettings = updatedPrivacy;
         }
       })
       .addCase(updateStaffPrivacySettings.rejected, (state, action) => {
@@ -199,6 +248,34 @@ const staffProfileSlice = createSlice({
       .addCase(fetchStaffAccessHistory.rejected, (state, action) => {
         state.loadingAccessHistory = false;
         state.accessHistoryError = action.payload;
+      })
+
+      // Fetch Profile Attendance
+      .addCase(fetchProfileAttendance.pending, (state) => {
+        state.loadingAttendance = true;
+        state.attendanceError = null;
+      })
+      .addCase(fetchProfileAttendance.fulfilled, (state, action) => {
+        state.loadingAttendance = false;
+        state.attendanceData = action.payload;
+      })
+      .addCase(fetchProfileAttendance.rejected, (state, action) => {
+        state.loadingAttendance = false;
+        state.attendanceError = action.payload;
+      })
+
+      // Fetch Profile Leave Summary
+      .addCase(fetchProfileLeaveSummary.pending, (state) => {
+        state.loadingLeave = true;
+        state.leaveError = null;
+      })
+      .addCase(fetchProfileLeaveSummary.fulfilled, (state, action) => {
+        state.loadingLeave = false;
+        state.leaveSummary = action.payload || { clBalance: null, leaveRequests: [] };
+      })
+      .addCase(fetchProfileLeaveSummary.rejected, (state, action) => {
+        state.loadingLeave = false;
+        state.leaveError = action.payload;
       });
   },
 });
@@ -208,6 +285,7 @@ export const {
   resetPdfRequestState,
   resetPdfDownloadState,
   resetPrivacyUpdateState,
+  updateFieldVisibilityOptimistic,
 } = staffProfileSlice.actions;
 
 export default staffProfileSlice.reducer;

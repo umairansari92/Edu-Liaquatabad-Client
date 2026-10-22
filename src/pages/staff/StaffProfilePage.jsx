@@ -1,14 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   fetchStaffProfile,
   downloadStaffPdf,
+  updateStaffPrivacySettings,
+  updateFieldVisibilityOptimistic,
+  fetchProfileAttendance,
+  fetchProfileLeaveSummary,
 } from '../../store/slices/staffProfileSlice.js';
 import {
   User,
   ShieldCheck,
-  ShieldAlert,
   Building2,
   FileText,
   Download,
@@ -30,19 +33,32 @@ import {
   Lock,
   AlertCircle,
   Shield,
+  MapPin,
+  GraduationCap,
+  Sparkles,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getErrorMessage } from '../../utils/errorUtils.js';
 import PageContainer from '../../components/layout/PageContainer.jsx';
+
+// Core Profile Cards (Directly modeled after the hand-drawn architectural sketch)
+import { FieldVisibilityEye } from '../../components/staff/FieldVisibilityEye.jsx';
+import { TransferTimelineCard } from '../../components/staff/TransferTimelineCard.jsx';
+import { MonthlyAttendanceCard } from '../../components/staff/MonthlyAttendanceCard.jsx';
+import { CasualLeaveQuotaCard } from '../../components/staff/CasualLeaveQuotaCard.jsx';
+import { CredentialsSecurityCard } from '../../components/staff/CredentialsSecurityCard.jsx';
+
+// Modals
 import ProfilePrivacySettingsModal from '../../components/staff/ProfilePrivacySettingsModal.jsx';
 import PdfAccessRequestModal from '../../components/staff/PdfAccessRequestModal.jsx';
 import StaffAccessHistoryModal from '../../components/staff/StaffAccessHistoryModal.jsx';
 import SecuritySettingsModal from '../../components/common/SecuritySettingsModal.jsx';
 
 export const StaffProfilePage = () => {
-  const { id } = useParams();
-  const targetId = id || 'me';
+  const { id: parameterId } = useParams();
+  const targetId = parameterId || 'me';
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const currentUser = useSelector((state) => state.auth?.user);
   const {
@@ -51,33 +67,118 @@ export const StaffProfilePage = () => {
     error,
     isDownloadingPdf,
     pdfDownloadError,
+    attendanceData,
+    loadingAttendance,
+    leaveSummary,
+    loadingLeave,
   } = useSelector((state) => state.staffProfile);
 
-  const [showSensitive, setShowSensitive] = useState(false);
+  const [showSensitiveFields, setShowSensitiveFields] = useState(false);
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [isSecurityModalOpen, setIsSecurityModalOpen] = useState(false);
 
+  // 1. Parent Isolation Guard: Parents do not have staff dossiers and view verified wards via Parent Portal
+  useEffect(() => {
+    if (currentUser?.role === 'PARENT') {
+      toast('Parent accounts view student records directly in the Parent Portal.', {
+        icon: 'ℹ️',
+      });
+      navigate('/dashboard', { replace: true });
+    }
+  }, [currentUser, navigate]);
+
+  // 2. Fetch Profile Dossier
   useEffect(() => {
     dispatch(fetchStaffProfile(targetId));
   }, [targetId, dispatch]);
 
+  // 3. Fetch Monthly Attendance & Casual Leave Quota for staff / owner
+  useEffect(() => {
+    if (profileData && currentUser?.role !== 'PARENT') {
+      const currentDate = new Date();
+      const currentMonth = currentDate.getMonth() + 1;
+      const currentYear = currentDate.getFullYear();
+      const isTeaching = profileData.profile?.isTeachingStaff ?? true;
+
+      dispatch(
+        fetchProfileAttendance({
+          month: currentMonth,
+          year: currentYear,
+          isTeachingStaff: isTeaching,
+        })
+      );
+
+      // Casual Leave Quota applies to municipal employees (teachers, HMs, staff)
+      if (profileData.user?.role !== 'STUDENT') {
+        dispatch(fetchProfileLeaveSummary());
+      }
+    }
+  }, [profileData, currentUser, dispatch]);
+
   useEffect(() => {
     if (pdfDownloadError) {
-      toast.error(getErrorMessage(pdfDownloadError, 'Failed to download official PDF.'));
+      toast.error(getErrorMessage(pdfDownloadError, 'Failed to download official PDF dossier.'));
     }
   }, [pdfDownloadError]);
+
+  const handleMonthChange = (selectedMonth, selectedYear) => {
+    const isTeaching = profileData?.profile?.isTeachingStaff ?? true;
+    dispatch(
+      fetchProfileAttendance({
+        month: selectedMonth,
+        year: selectedYear,
+        isTeachingStaff: isTeaching,
+      })
+    );
+  };
+
+  // Inline field visibility modifier with optimistic UI feedback
+  const handleFieldVisibilityUpdate = async (fieldName, newTier) => {
+    dispatch(updateFieldVisibilityOptimistic({ field: fieldName, value: newTier }));
+
+    const existingPrivacy =
+      profileData?.profile?.privacySettings || profileData?.privacySettings || {};
+    const existingFieldVisibility = existingPrivacy.fieldVisibility || {};
+
+    const updatedPrivacyPayload = {
+      ...existingPrivacy,
+      fieldVisibility: {
+        ...existingFieldVisibility,
+        [fieldName]: newTier,
+      },
+    };
+
+    try {
+      await dispatch(
+        updateStaffPrivacySettings({
+          targetId,
+          privacySettings: updatedPrivacyPayload,
+        })
+      ).unwrap();
+      toast.success(
+        `Updated visibility for ${fieldName.replace(/([A-Z])/g, ' $1').toLowerCase()} to ${newTier.replace(
+          '_',
+          ' '
+        )}.`
+      );
+    } catch (visibilityUpdateError) {
+      toast.error(
+        getErrorMessage(visibilityUpdateError, 'Failed to update visibility settings.')
+      );
+      dispatch(fetchStaffProfile(targetId));
+    }
+  };
 
   const handleDownloadClick = () => {
     if (!profileData) return;
 
     const { pdfAccess, profile, user } = profileData;
-    const employeeId = profile?.employeeId || user?.fullName || 'Staff';
+    const employeeIdentifier = profile?.employeeId || user?.fullName || 'Staff';
 
-    // Check if official PDF download is permitted
     if (pdfAccess?.allowed) {
-      dispatch(downloadStaffPdf({ targetId, employeeId }))
+      dispatch(downloadStaffPdf({ targetId, employeeId: employeeIdentifier }))
         .unwrap()
         .then(() => {
           toast.success('Official Service Record PDF downloaded successfully.');
@@ -86,7 +187,6 @@ export const StaffProfilePage = () => {
           toast.error(getErrorMessage(downloadError, 'Failed to download official PDF.'));
         });
     } else {
-      // Consent required - open request modal
       setIsRequestModalOpen(true);
     }
   };
@@ -109,7 +209,7 @@ export const StaffProfilePage = () => {
           <div className="w-16 h-16 bg-rose-50 border border-rose-200 rounded-2xl flex items-center justify-center mx-auto text-rose-600">
             <IdCard className="w-8 h-8" />
           </div>
-          <h3 className="text-lg font-bold text-[#102033]">Staff Record Restricted</h3>
+          <h3 className="text-lg font-bold text-[#102033]">Personal Record Restricted</h3>
           <p className="text-xs text-[#526477]">
             {error || 'The requested profile could not be found or you do not have permission to view it.'}
           </p>
@@ -126,45 +226,60 @@ export const StaffProfilePage = () => {
 
   const { user, profile, assignments, pdfAccess } = profileData;
   const isOwner = currentUser && (currentUser._id === user?._id || targetId === 'me');
-  const canManagePrivacy = isOwner || ['ADMIN', 'SUPER_ADMIN'].includes(currentUser?.role);
+  const canManagePrivacy = isOwner || ['ADMIN', 'SUPER_ADMIN', 'ROOT_ADMIN'].includes(currentUser?.role);
+  const isStudentProfile = user?.role === 'STUDENT';
+  const privacySettings = profile?.privacySettings || profileData?.privacySettings || {};
+  const fieldVisibility = privacySettings.fieldVisibility || {};
 
   return (
-    <PageContainer title="Staff Service Record" subtitle="Official institutional profile dossier">
+    <PageContainer
+      title={isStudentProfile ? 'Student Academic Profile' : 'Personal Profile & Service Record'}
+      subtitle={
+        isStudentProfile
+          ? 'Official student academic and enrollment record'
+          : 'Official institutional civil service record dossier — DMC Liaquatabad Town Centre'
+      }
+    >
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Top Navigation & Action Controls */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <Link
-            to="/directory"
+            to={isStudentProfile ? '/students' : '/directory'}
             className="inline-flex items-center gap-1.5 text-xs text-[#526477] hover:text-[#102033] font-bold transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
-            Back to Directory
+            {isStudentProfile ? 'Back to Student Directory' : 'Back to Staff Directory'}
           </Link>
 
           <div className="flex flex-wrap items-center gap-2.5">
             {/* Access History Transparency Button */}
-            <button
-              onClick={() => setIsHistoryModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-[#526477] text-xs font-semibold transition-colors shadow-xs"
-            >
-              <History className="w-4 h-4 text-[#526477]" />
-              Access History
-            </button>
+            {!isStudentProfile && (
+              <button
+                type="button"
+                onClick={() => setIsHistoryModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-[#526477] text-xs font-semibold transition-colors shadow-xs"
+              >
+                <History className="w-4 h-4 text-[#526477]" />
+                Access Audit History
+              </button>
+            )}
 
             {/* Privacy Settings Modal Button */}
             {canManagePrivacy && (
               <button
+                type="button"
                 onClick={() => setIsPrivacyModalOpen(true)}
                 className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-[#102033] text-xs font-semibold transition-colors shadow-xs"
               >
                 <Settings className="w-4 h-4 text-[#006AC7]" />
-                Privacy &amp; Consent Settings
+                Privacy &amp; ABAC Settings
               </button>
             )}
 
             {/* Account Security & Sessions Button (Owner Only) */}
             {isOwner && (
               <button
+                type="button"
                 onClick={() => setIsSecurityModalOpen(true)}
                 className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-[#102033] text-xs font-semibold transition-colors shadow-xs"
               >
@@ -174,31 +289,34 @@ export const StaffProfilePage = () => {
             )}
 
             {/* Download Official PDF Button */}
-            <button
-              onClick={handleDownloadClick}
-              disabled={isDownloadingPdf}
-              className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white text-xs font-bold transition-all shadow-sm disabled:opacity-50 ${
-                pdfAccess?.allowed
-                  ? 'bg-[#006AC7] hover:bg-[#005299]'
-                  : 'bg-amber-600 hover:bg-amber-700'
-              }`}
-            >
-              {pdfAccess?.allowed ? (
-                <Download className="w-4 h-4" />
-              ) : (
-                <Lock className="w-4 h-4" />
-              )}
-              {isDownloadingPdf
-                ? 'Generating PDF...'
-                : pdfAccess?.allowed
-                ? 'Download Official Record (PDF)'
-                : 'Request PDF Access Consent'}
-            </button>
+            {!isStudentProfile && (
+              <button
+                type="button"
+                onClick={handleDownloadClick}
+                disabled={isDownloadingPdf}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white text-xs font-bold transition-all shadow-sm disabled:opacity-50 ${
+                  pdfAccess?.allowed
+                    ? 'bg-[#006AC7] hover:bg-[#005299]'
+                    : 'bg-amber-600 hover:bg-amber-700'
+                }`}
+              >
+                {pdfAccess?.allowed ? (
+                  <Download className="w-4 h-4" />
+                ) : (
+                  <Lock className="w-4 h-4" />
+                )}
+                {isDownloadingPdf
+                  ? 'Generating PDF...'
+                  : pdfAccess?.allowed
+                  ? 'Download Official Record (PDF)'
+                  : 'Request PDF Consent'}
+              </button>
+            )}
           </div>
         </div>
 
         {/* Consent / Access Policy Notice Banner */}
-        {!pdfAccess?.allowed && (
+        {!isStudentProfile && !pdfAccess?.allowed && (
           <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200/80 text-xs text-amber-900 flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
             <div>
@@ -207,38 +325,61 @@ export const StaffProfilePage = () => {
                 {pdfAccess?.activeRequest?.status === 'PENDING' ? (
                   <>
                     An official access request was dispatched on{' '}
-                    <strong>{new Date(pdfAccess.activeRequest.createdAt).toLocaleDateString()}</strong> and is currently{' '}
+                    <strong>
+                      {new Date(pdfAccess.activeRequest.createdAt).toLocaleDateString()}
+                    </strong>{' '}
+                    and is currently{' '}
                     <span className="font-bold underline">PENDING STAFF APPROVAL</span>.
                   </>
                 ) : (
-                  'Direct PDF download is restricted by staff privacy preference. To export this dossier, click "Request PDF Access Consent" to state your official justification.'
+                  'Direct PDF download is restricted by staff privacy preference. Click "Request PDF Consent" to state your official purpose.'
                 )}
               </p>
             </div>
           </div>
         )}
 
-        {/* Official Header Banner */}
-        <div className="bg-white border border-slate-200/80 rounded-2xl p-6 relative overflow-hidden shadow-sm">
+        {/* ZONE 1: TOP IDENTITY CARD & PROFILE DETAILS (From Sketch Zone 1) */}
+        <div className="bg-white border border-slate-200/80 rounded-2xl p-6 relative overflow-hidden shadow-sm space-y-6">
+          {/* Identity Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-slate-100 pb-6">
             <div className="flex items-start gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-[#006AC7] font-bold text-2xl flex-shrink-0">
-                {user?.fullName ? user.fullName.charAt(0) : 'S'}
+              <div className="relative group">
+                <div className="w-20 h-20 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-[#006AC7] font-bold text-2xl flex-shrink-0 shadow-inner overflow-hidden">
+                  {user?.profileImage?.url ? (
+                    <img
+                      src={user.profileImage.url}
+                      alt={user.fullName}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span>{user?.fullName ? user.fullName.charAt(0).toUpperCase() : 'U'}</span>
+                  )}
+                </div>
               </div>
+
               <div>
                 <div className="flex items-center gap-2.5">
-                  <h1 className="text-2xl font-bold text-[#102033] tracking-tight">{user?.fullName}</h1>
+                  <h1 className="text-2xl font-bold text-[#102033] tracking-tight">
+                    {user?.fullName}
+                  </h1>
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase bg-emerald-50 text-[#4B7F3A] border border-emerald-200 flex items-center gap-1">
                     <CheckCircle className="w-3 h-3" />
                     {user?.status || 'ACTIVE'}
                   </span>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[#526477] mt-1">
-                  <span className="font-bold text-[#102033]">{user?.designation || 'Staff'}</span>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[#526477] mt-1.5">
+                  <span className="font-bold text-[#102033]">
+                    {isStudentProfile
+                      ? `Student (Class ${profile?.classId?.name || 'Assigned'})`
+                      : user?.designation || 'Staff'}
+                  </span>
                   <span>&bull;</span>
                   <span className="font-mono font-bold text-[#006AC7]">
-                    Personal ID: {profile?.employeeId || 'N/A'}
+                    {isStudentProfile
+                      ? `Roll No: ${profile?.rollNumber || 'N/A'}`
+                      : `Personal ID: ${profile?.employeeId || 'N/A'}`}
                   </span>
                   <span>&bull;</span>
                   <span className="text-[#526477]">
@@ -251,165 +392,325 @@ export const StaffProfilePage = () => {
 
             <div className="text-right sm:border-l sm:border-slate-100 sm:pl-6 text-xs space-y-1">
               <div className="text-[#8094A8] text-[10px] uppercase font-bold tracking-wider">
-                CIVIL APPOINTMENT
+                {isStudentProfile ? 'ACADEMIC ENROLLMENT' : 'CIVIL APPOINTMENT'}
               </div>
               <div className="text-[#102033] font-bold">
-                {profile?.isTeachingStaff ? 'Teaching Faculty' : 'Non-Teaching Support'}
+                {isStudentProfile
+                  ? `Section: ${profile?.sectionId?.name || 'A'}`
+                  : profile?.isTeachingStaff
+                  ? 'Teaching Faculty'
+                  : 'Non-Teaching Support'}
               </div>
               <div className="text-[11px] text-[#526477]">System Role: {user?.role}</div>
             </div>
           </div>
 
-          {/* Sensitive Field Toggle */}
-          <div className="pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-            <span className="text-[#8094A8] text-[11px] font-medium">
-              Official Government Record &bull; Education Department Liaquatabad Town Centre (DMC)
+          {/* Sensitive Fields Visibility Toggle Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+            <span className="text-[#8094A8] text-[11px] font-medium flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#006AC7]" />
+              Education Department Liaquatabad Town Centre &bull; Field-Level ABAC Protection
             </span>
+
             {profile?.cnic && !profile.cnic.includes('Masked') && (
               <button
-                onClick={() => setShowSensitive(!showSensitive)}
+                type="button"
+                onClick={() => setShowSensitiveFields(!showSensitiveFields)}
                 className="inline-flex items-center gap-1.5 text-xs text-[#006AC7] hover:underline font-bold self-start sm:self-auto"
               >
-                {showSensitive ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                {showSensitive ? 'Hide Sensitive Fields' : 'Reveal Sensitive Fields'}
+                {showSensitiveFields ? (
+                  <EyeOff className="w-3.5 h-3.5" />
+                ) : (
+                  <Eye className="w-3.5 h-3.5" />
+                )}
+                {showSensitiveFields ? 'Hide Sensitive Fields' : 'Reveal Sensitive Fields'}
               </button>
             )}
           </div>
-        </div>
 
-        {/* Section 1: Personal & Employment Details */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Personal Details */}
-          <div className="bg-white border border-slate-200/80 rounded-2xl p-6 space-y-4 shadow-sm">
-            <h3 className="text-sm font-bold text-[#102033] flex items-center gap-2 border-b border-slate-100 pb-2.5">
-              <IdCard className="w-4 h-4 text-[#006AC7]" />
-              1. Personal Identification
-            </h3>
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <div>
-                <span className="text-[#526477] block text-[11px] font-medium">Full Name</span>
-                <span className="font-bold text-[#102033]">{user?.fullName}</span>
+          {/* Section 1 & 2: Personal Identification & Service/Academic Details */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+            {/* Personal Identification (Left Card) */}
+            <div className="bg-slate-50/60 border border-slate-200/80 rounded-xl p-5 space-y-3.5">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#102033] flex items-center gap-2 border-b border-slate-200/60 pb-2">
+                <IdCard className="w-4 h-4 text-[#006AC7]" />
+                1. Personal Identification
+              </h3>
+              <div className="grid grid-cols-2 gap-3.5 text-xs">
+                <div>
+                  <span className="text-[#526477] block text-[11px] font-medium">Full Name</span>
+                  <span className="font-bold text-[#102033]">{user?.fullName}</span>
+                </div>
+
+                <div>
+                  <span className="text-[#526477] block text-[11px] font-medium">
+                    {isStudentProfile ? "Guardian's Name" : "Father's Name"}
+                  </span>
+                  <span className="font-bold text-[#102033]">
+                    {isStudentProfile
+                      ? profile?.guardianName || 'N/A'
+                      : profile?.fatherName || 'N/A'}
+                  </span>
+                </div>
+
+                {/* CNIC / B-Form with Eye Control */}
+                <div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[#526477] text-[11px] font-medium">
+                      {isStudentProfile ? 'B-Form / CRC' : 'CNIC (National ID)'}
+                    </span>
+                    <FieldVisibilityEye
+                      field={isStudentProfile ? 'bFormNumber' : 'cnic'}
+                      label={isStudentProfile ? 'B-Form' : 'CNIC'}
+                      currentTier={
+                        fieldVisibility[isStudentProfile ? 'bFormNumber' : 'cnic'] ||
+                        'AUTHORIZED_ROLE'
+                      }
+                      isOwner={isOwner}
+                      onUpdate={handleFieldVisibilityUpdate}
+                    />
+                  </div>
+                  <span className="font-mono font-bold text-[#006AC7]">
+                    {isStudentProfile
+                      ? profile?.bFormNumber || 'Masked / Restricted'
+                      : profile?.cnic || 'Masked / Restricted'}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-[#526477] block text-[11px] font-medium">
+                    Date of Birth
+                  </span>
+                  <span className="font-bold text-[#102033]">
+                    {profile?.dateOfBirth
+                      ? new Date(profile.dateOfBirth).toLocaleDateString()
+                      : 'N/A'}
+                  </span>
+                </div>
+
+                {/* Email with Eye Control */}
+                <div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[#526477] text-[11px] font-medium">Official Email</span>
+                    <FieldVisibilityEye
+                      field="email"
+                      label="Email"
+                      currentTier={fieldVisibility.email || 'PUBLIC'}
+                      isOwner={isOwner}
+                      onUpdate={handleFieldVisibilityUpdate}
+                    />
+                  </div>
+                  <span className="text-[#102033] font-medium break-all">
+                    {user?.email || 'N/A'}
+                  </span>
+                </div>
+
+                {/* Phone Number with Eye Control */}
+                <div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[#526477] text-[11px] font-medium">
+                      {isStudentProfile ? 'Guardian Phone' : 'Contact Phone'}
+                    </span>
+                    <FieldVisibilityEye
+                      field={isStudentProfile ? 'guardianCellNumber' : 'phoneNumber'}
+                      label="Phone Number"
+                      currentTier={
+                        fieldVisibility[
+                          isStudentProfile ? 'guardianCellNumber' : 'phoneNumber'
+                        ] || 'SCHOOL'
+                      }
+                      isOwner={isOwner}
+                      onUpdate={handleFieldVisibilityUpdate}
+                    />
+                  </div>
+                  <span className="text-[#102033] font-medium">
+                    {isStudentProfile
+                      ? profile?.guardianCellNumber || 'N/A'
+                      : user?.phoneNumber || 'N/A'}
+                  </span>
+                </div>
+
+                {/* Residential Address with Eye Control */}
+                <div className="col-span-2">
+                  <div className="flex items-center gap-1">
+                    <span className="text-[#526477] text-[11px] font-medium">
+                      Residential Address
+                    </span>
+                    <FieldVisibilityEye
+                      field="residentialAddress"
+                      label="Residential Address"
+                      currentTier={fieldVisibility.residentialAddress || 'AUTHORIZED_ROLE'}
+                      isOwner={isOwner}
+                      onUpdate={handleFieldVisibilityUpdate}
+                    />
+                  </div>
+                  <span className="text-[#102033] font-medium">
+                    {profile?.residentialAddress || 'Confidential / Restricted to Authorized Officials'}
+                  </span>
+                </div>
               </div>
-              <div>
-                <span className="text-[#526477] block text-[11px] font-medium">Father's Name</span>
-                <span className="font-bold text-[#102033]">{profile?.fatherName || 'N/A'}</span>
-              </div>
-              <div>
-                <span className="text-[#526477] block text-[11px] font-medium">CNIC (National ID)</span>
-                <span className="font-mono font-bold text-[#006AC7]">
-                  {profile?.cnic ? (showSensitive ? profile.cnic : profile.cnic) : 'Masked / Restricted'}
-                </span>
-              </div>
-              <div>
-                <span className="text-[#526477] block text-[11px] font-medium">Date of Birth</span>
-                <span className="font-bold text-[#102033]">
-                  {profile?.dateOfBirth ? new Date(profile.dateOfBirth).toLocaleDateString() : 'N/A'}
-                </span>
-              </div>
-              <div>
-                <span className="text-[#526477] block text-[11px] font-medium">Official Email</span>
-                <span className="text-[#102033] font-medium">{user?.email || 'N/A'}</span>
-              </div>
-              <div>
-                <span className="text-[#526477] block text-[11px] font-medium">Contact Phone</span>
-                <span className="text-[#102033] font-medium">{user?.phoneNumber || 'N/A'}</span>
+            </div>
+
+            {/* Employment / Service Details or Student Academic Details (Right Card) */}
+            <div className="bg-slate-50/60 border border-slate-200/80 rounded-xl p-5 space-y-3.5">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#102033] flex items-center gap-2 border-b border-slate-200/60 pb-2">
+                <Briefcase className="w-4 h-4 text-[#006AC7]" />
+                {isStudentProfile ? '2. Academic & Enrollment Details' : '2. Civil Service & Employment'}
+              </h3>
+              <div className="grid grid-cols-2 gap-3.5 text-xs">
+                <div>
+                  <span className="text-[#526477] block text-[11px] font-medium">
+                    {isStudentProfile ? 'Admission Number' : 'Personal / Employee No'}
+                  </span>
+                  <span className="font-mono font-bold text-[#102033]">
+                    {isStudentProfile
+                      ? profile?.admissionNumber || 'N/A'
+                      : profile?.employeeId || 'N/A'}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-[#526477] block text-[11px] font-medium">
+                    {isStudentProfile ? 'Academic Session' : 'Official Designation'}
+                  </span>
+                  <span className="font-bold text-[#006AC7]">
+                    {isStudentProfile
+                      ? profile?.academicSession || '2025-2026'
+                      : user?.designation || 'Staff'}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-[#526477] block text-[11px] font-medium">
+                    {isStudentProfile ? 'Admission Date' : 'Date of Appointment'}
+                  </span>
+                  <span className="font-bold text-[#102033]">
+                    {isStudentProfile
+                      ? profile?.admissionDate
+                        ? new Date(profile.admissionDate).toLocaleDateString()
+                        : 'N/A'
+                      : profile?.appointmentDate
+                      ? new Date(profile.appointmentDate).toLocaleDateString()
+                      : 'N/A'}
+                  </span>
+                </div>
+
+                {/* Qualification with Eye Control */}
+                <div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[#526477] text-[11px] font-medium">
+                      {isStudentProfile ? 'Class & Section' : 'Educational Qualification'}
+                    </span>
+                    {!isStudentProfile && (
+                      <FieldVisibilityEye
+                        field="qualification"
+                        label="Qualification"
+                        currentTier={fieldVisibility.qualification || 'PUBLIC'}
+                        isOwner={isOwner}
+                        onUpdate={handleFieldVisibilityUpdate}
+                      />
+                    )}
+                  </div>
+                  <span className="font-bold text-[#102033]">
+                    {isStudentProfile
+                      ? `${profile?.classId?.name || 'Class'} (${profile?.sectionId?.name || 'Sec A'})`
+                      : profile?.qualification || 'N/A'}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-[#526477] block text-[11px] font-medium">
+                    Assigned Institution
+                  </span>
+                  <span className="text-[#102033] font-medium">
+                    {user?.school?.name || 'Unassigned School'}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-[#526477] block text-[11px] font-medium">
+                    Institutional District
+                  </span>
+                  <span className="text-[#102033] font-medium">
+                    Liaquatabad Town Centre (DMC)
+                  </span>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Employment & Service Details */}
-          <div className="bg-white border border-slate-200/80 rounded-2xl p-6 space-y-4 shadow-sm">
-            <h3 className="text-sm font-bold text-[#102033] flex items-center gap-2 border-b border-slate-100 pb-2.5">
-              <Briefcase className="w-4 h-4 text-[#006AC7]" />
-              2. Employment &amp; Service Details
-            </h3>
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <div>
-                <span className="text-[#526477] block text-[11px] font-medium">Personal / Employee No</span>
-                <span className="font-mono font-bold text-[#102033]">{profile?.employeeId || 'N/A'}</span>
+          {/* Section 3: Bank / Payroll Disbursement (Staff Only) */}
+          {!isStudentProfile && (
+            <div className="bg-slate-50/60 border border-slate-200/80 rounded-xl p-5 space-y-3.5">
+              <div className="flex items-center justify-between border-b border-slate-200/60 pb-2">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#102033] flex items-center gap-2">
+                  <CreditCard className="w-4 h-4 text-[#006AC7]" />
+                  3. Bank &amp; Payroll Disbursement Information
+                </h3>
+                <div className="flex items-center gap-1">
+                  <span className="text-[11px] text-[#526477]">Bank Details Privacy:</span>
+                  <FieldVisibilityEye
+                    field="bankDetails"
+                    label="Bank Account Details"
+                    currentTier={fieldVisibility.bankDetails || 'AUTHORIZED_ROLE'}
+                    isOwner={isOwner}
+                    onUpdate={handleFieldVisibilityUpdate}
+                  />
+                </div>
               </div>
-              <div>
-                <span className="text-[#526477] block text-[11px] font-medium">Official Designation</span>
-                <span className="font-bold text-[#006AC7]">{user?.designation || 'Staff'}</span>
-              </div>
-              <div>
-                <span className="text-[#526477] block text-[11px] font-medium">Date of Appointment</span>
-                <span className="font-bold text-[#102033]">
-                  {profile?.appointmentDate
-                    ? new Date(profile.appointmentDate).toLocaleDateString()
-                    : 'N/A'}
-                </span>
-              </div>
-              <div>
-                <span className="text-[#526477] block text-[11px] font-medium">Educational Qualification</span>
-                <span className="font-bold text-[#102033]">{profile?.qualification || 'N/A'}</span>
-              </div>
-              <div>
-                <span className="text-[#526477] block text-[11px] font-medium">Institution</span>
-                <span className="text-[#102033] font-medium">{user?.school?.name || 'Unassigned'}</span>
-              </div>
-              <div>
-                <span className="text-[#526477] block text-[11px] font-medium">Role & Access Level</span>
-                <span className="text-[#102033] font-medium">
-                  {user?.role} ({user?.baseRole})
-                </span>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
+                <div>
+                  <span className="text-[#526477] block text-[11px] font-medium">Bank Name</span>
+                  <span className="font-bold text-[#102033]">{profile?.bankName || 'N/A'}</span>
+                </div>
+                <div>
+                  <span className="text-[#526477] block text-[11px] font-medium">
+                    Branch &amp; Code
+                  </span>
+                  <span className="font-bold text-[#102033]">
+                    {profile?.branchName || 'N/A'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[#526477] block text-[11px] font-medium">Account Title</span>
+                  <span className="font-bold text-[#102033]">
+                    {profile?.accountTitle || 'N/A'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[#526477] block text-[11px] font-medium">
+                    Account Number / IBAN
+                  </span>
+                  <span className="font-mono font-bold text-[#006AC7]">
+                    {profile?.accountNumber || 'Masked / Restricted'}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
-        {/* Section 2: Bank / Payroll Disbursement */}
-        <div className="bg-white border border-slate-200/80 rounded-2xl p-6 space-y-4 shadow-sm">
-          <h3 className="text-sm font-bold text-[#102033] flex items-center gap-2 border-b border-slate-100 pb-2.5">
-            <CreditCard className="w-4 h-4 text-[#006AC7]" />
-            3. Bank &amp; Payroll Disbursement Information
-          </h3>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-            <div>
-              <span className="text-[#526477] block text-[11px] font-medium">Bank Name</span>
-              <span className="font-bold text-[#102033]">{profile?.bankName || 'N/A'}</span>
-            </div>
-            <div>
-              <span className="text-[#526477] block text-[11px] font-medium">Branch &amp; Code</span>
-              <span className="font-bold text-[#102033]">{profile?.branchName || 'N/A'}</span>
-            </div>
-            <div>
-              <span className="text-[#526477] block text-[11px] font-medium">Account Title</span>
-              <span className="font-bold text-[#102033]">{profile?.accountTitle || 'N/A'}</span>
-            </div>
-            <div>
-              <span className="text-[#526477] block text-[11px] font-medium">Account Number / IBAN</span>
-              <span className="font-mono font-bold text-[#006AC7]">
-                {profile?.accountNumber
-                  ? showSensitive
-                    ? profile.accountNumber
-                    : profile.accountNumber
-                  : 'Masked / Restricted'}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Section 3: Teaching Subject Assignments (Teachers Only) */}
-        {profile?.isTeachingStaff && (
+        {/* TEACHER ONLY: Authoritative Subject Assignments */}
+        {profile?.isTeachingStaff && assignments && (
           <div className="bg-white border border-slate-200/80 rounded-2xl p-6 space-y-4 shadow-sm">
             <div className="flex justify-between items-center border-b border-slate-100 pb-2.5">
               <h3 className="text-sm font-bold text-[#102033] flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-[#006AC7]" />
-                4. Authoritative Teaching Subject Assignments &amp; History
+                Teaching Subject Assignments &amp; Historical Trajectory
               </h3>
               <span className="text-[11px] text-[#526477] font-medium">
-                {assignments?.active?.length || 0} Active &bull; {assignments?.history?.length || 0} Historical
+                {assignments.active?.length || 0} Active &bull;{' '}
+                {assignments.history?.length || 0} Historical
               </span>
             </div>
 
             <div className="space-y-4">
-              {/* Active Assignments */}
               <div>
                 <h4 className="text-xs font-bold text-[#526477] uppercase tracking-wider mb-2">
                   Current Active Assignments
                 </h4>
-                {!assignments?.active || assignments.active.length === 0 ? (
+                {!assignments.active || assignments.active.length === 0 ? (
                   <p className="text-xs text-[#8094A8] italic p-4 rounded-xl bg-slate-50 border border-slate-200">
                     No active subject assignments assigned to this teacher currently.
                   </p>
@@ -429,7 +730,8 @@ export const StaffProfilePage = () => {
                           </span>
                         </div>
                         <div className="text-[#006AC7] font-bold">
-                          {assignmentItem.subjectId?.name} [{assignmentItem.subjectId?.code || 'GEN'}]
+                          {assignmentItem.subjectId?.name} [
+                          {assignmentItem.subjectId?.code || 'GEN'}]
                         </div>
                         <div className="text-[10px] text-[#526477]">
                           Session:{' '}
@@ -449,33 +751,39 @@ export const StaffProfilePage = () => {
                 )}
               </div>
 
-              {/* Historical Assignments */}
-              {assignments?.history && assignments.history.length > 0 && (
+              {assignments.history && assignments.history.length > 0 && (
                 <div className="pt-2">
                   <h4 className="text-xs font-bold text-[#526477] uppercase tracking-wider mb-2">
-                    Historical Teaching Assignments (Archived)
+                    Historical Subject Assignments (Archived)
                   </h4>
                   <div className="divide-y divide-slate-100 border border-slate-200 rounded-xl overflow-hidden bg-slate-50 text-xs">
-                    {assignments.history.map((ha) => (
+                    {assignments.history.map((historicalAssignment) => (
                       <div
-                        key={ha._id}
+                        key={historicalAssignment._id}
                         className="p-3 flex items-center justify-between text-[#526477] text-[11px]"
                       >
                         <div>
                           <span className="font-bold text-[#102033]">
-                            {ha.classId?.name} (Sec {ha.sectionId?.name}) &bull; {ha.subjectId?.name}
+                            {historicalAssignment.classId?.name} (Sec{' '}
+                            {historicalAssignment.sectionId?.name}) &bull;{' '}
+                            {historicalAssignment.subjectId?.name}
                           </span>
                           <span className="ml-2 text-[10px] text-[#8094A8]">
-                            ({ha.academicSession})
+                            ({historicalAssignment.academicSession})
                           </span>
                         </div>
                         <div className="flex items-center gap-3">
                           <span className="text-[10px] text-[#8094A8]">
-                            {ha.effectiveFrom ? new Date(ha.effectiveFrom).toLocaleDateString() : ''} -{' '}
-                            {ha.effectiveTo ? new Date(ha.effectiveTo).toLocaleDateString() : 'Ended'}
+                            {historicalAssignment.effectiveFrom
+                              ? new Date(historicalAssignment.effectiveFrom).toLocaleDateString()
+                              : ''}{' '}
+                            -{' '}
+                            {historicalAssignment.effectiveTo
+                              ? new Date(historicalAssignment.effectiveTo).toLocaleDateString()
+                              : 'Ended'}
                           </span>
                           <span className="px-2 py-0.5 rounded-full bg-white border border-slate-200 text-[#526477] text-[10px] font-bold">
-                            {ha.status}
+                            {historicalAssignment.status}
                           </span>
                         </div>
                       </div>
@@ -486,6 +794,42 @@ export const StaffProfilePage = () => {
             </div>
           </div>
         )}
+
+        {/* ZONE 2: TRANSFER & POSTING DETAILS (From Sketch Zone 2) */}
+        {!isStudentProfile && (
+          <TransferTimelineCard
+            transferHistory={profile?.transferHistory || []}
+            currentSchool={user?.school}
+            appointmentDate={profile?.appointmentDate}
+            joiningDate={profile?.joiningDate}
+            employeeId={profile?.employeeId}
+          />
+        )}
+
+        {/* ZONE 3: MONTHLY ATTENDANCE RECORD (From Sketch Zone 3) */}
+        <MonthlyAttendanceCard
+          attendanceData={attendanceData}
+          loading={loadingAttendance}
+          onMonthChange={handleMonthChange}
+          isTeachingStaff={profile?.isTeachingStaff ?? true}
+          schoolName={user?.school?.name || 'Assigned School'}
+        />
+
+        {/* ZONE 4: CASUAL LEAVE QUOTA & APPLICATIONS (From Sketch Zone 4) */}
+        {!isStudentProfile && (
+          <CasualLeaveQuotaCard
+            leaveSummary={leaveSummary}
+            loading={loadingLeave}
+            isOwner={isOwner}
+          />
+        )}
+
+        {/* ZONE 5: CREDENTIALS & SECURITY GOVERNANCE (From Sketch Zone 5) */}
+        <CredentialsSecurityCard
+          isOwner={isOwner}
+          onOpenSecurityModal={() => setIsSecurityModalOpen(true)}
+          userRole={user?.role}
+        />
       </div>
 
       {/* Modals */}
