@@ -43,6 +43,7 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
   const [setupStep, setSetupStep] = useState(1); // 1: Password Prompt, 2: Secret & TOTP, 3: Recovery Codes
   const [stepUpPassword, setStepUpPassword] = useState('');
   const [pendingSecret, setPendingSecret] = useState(null);
+  const [pendingOtpAuthUri, setPendingOtpAuthUri] = useState(null);
   const [confirmTotpCode, setConfirmTotpCode] = useState('');
   const [freshRecoveryCodes, setFreshRecoveryCodes] = useState(null);
   const [hasCopiedSecret, setHasCopiedSecret] = useState(false);
@@ -156,6 +157,7 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
       const setupResponse = await authService.mfaSetup({ password: stepUpPassword });
       if (setupResponse.success && setupResponse.data) {
         setPendingSecret(setupResponse.data.secret);
+        setPendingOtpAuthUri(setupResponse.data.otpAuthUri || null);
         setSetupStep(2);
       }
     } catch (mfaSetupError) {
@@ -977,52 +979,85 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
                 )}
 
                 {setupStep === 2 && pendingSecret && (
-                  <form onSubmit={handleConfirmMfaSetup} className="space-y-3 text-xs">
-                    <div className="rounded-lg bg-slate-50 p-3 border border-slate-200 space-y-2">
-                      <div className="flex items-center justify-between text-[11px] font-bold uppercase text-[#526477]">
-                        <span>Manual Setup Key</span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            navigator.clipboard.writeText(pendingSecret);
-                            setHasCopiedSecret(true);
-                            setTimeout(() => setHasCopiedSecret(false), 2000);
-                          }}
-                          className="text-[#006AC7] hover:underline font-bold"
-                        >
-                          {hasCopiedSecret ? 'Copied!' : 'Copy Key'}
-                        </button>
+                  <form onSubmit={handleConfirmMfaSetup} className="space-y-4 text-xs">
+                    {/* QR Code and Manual Setup Key Dual-Mode Card */}
+                    <div className="p-3.5 bg-blue-50/50 rounded-xl border border-blue-100 flex flex-col sm:flex-row items-center gap-4">
+                      {/* Prominent QR Code */}
+                      <div className="bg-white p-2.5 rounded-xl border border-slate-200/90 shadow-xs flex-shrink-0 flex items-center justify-center">
+                        <img
+                          src={`https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(
+                            pendingOtpAuthUri ||
+                              `otpauth://totp/LiaquatabadSMS:${encodeURIComponent(user?.email || 'User')}?secret=${pendingSecret}&issuer=LiaquatabadSMS`
+                          )}`}
+                          alt="Authenticator Setup QR Code"
+                          className="w-32 h-32 block rounded"
+                        />
                       </div>
-                      <div className="p-2 bg-white rounded border border-slate-200 text-center font-mono font-bold text-sm tracking-widest text-[#102033]">
-                        {pendingSecret}
+
+                      {/* Instructions & Manual Key Box */}
+                      <div className="space-y-2 text-left flex-1 min-w-0">
+                        <div>
+                          <p className="font-bold text-[#102033] text-sm">
+                            1. Scan QR Code
+                          </p>
+                          <p className="text-[11px] text-[#526477] mt-0.5 leading-relaxed">
+                            Open <strong>Google Authenticator</strong> or <strong>Microsoft Authenticator</strong> on your phone and scan this code.
+                          </p>
+                        </div>
+
+                        <div className="pt-2 border-t border-slate-200/80">
+                          <div className="flex items-center justify-between text-[11px] font-bold uppercase text-[#526477] mb-1">
+                            <span>Or Enter Key Manually</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                navigator.clipboard.writeText(pendingSecret);
+                                setHasCopiedSecret(true);
+                                setTimeout(() => setHasCopiedSecret(false), 2000);
+                              }}
+                              className="text-[#006AC7] hover:underline font-bold text-[11px] flex items-center gap-1"
+                            >
+                              <Copy className="w-3 h-3" />
+                              <span>{hasCopiedSecret ? 'Copied!' : 'Copy Key'}</span>
+                            </button>
+                          </div>
+                          <div className="p-2 bg-white rounded-lg border border-slate-200 font-mono font-bold text-xs tracking-wider text-[#102033] break-all select-all">
+                            {pendingSecret}
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-[11px] text-[#526477]">
-                        Enter this key into Google Authenticator or Microsoft Authenticator, then input
-                        the 6-digit verification code below:
-                      </p>
                     </div>
 
-                    <input
-                      type="text"
-                      maxLength={6}
-                      placeholder="000000"
-                      value={confirmTotpCode}
-                      onChange={(changeEvent) => setConfirmTotpCode(changeEvent.target.value.replace(/\D/g, ''))}
-                      className="w-full px-3 py-2.5 text-center font-mono text-xl tracking-[0.3em] font-bold border border-slate-300 rounded-lg focus:outline-none focus:border-[#006AC7]"
-                    />
+                    {/* Step 2: Verification Code Input */}
+                    <div className="space-y-1.5">
+                      <label className="block text-[11px] font-bold text-[#526477] uppercase tracking-wider">
+                        2. Enter 6-Digit Authenticator Code
+                      </label>
+                      <input
+                        type="text"
+                        maxLength={6}
+                        placeholder="000000"
+                        value={confirmTotpCode}
+                        onChange={(changeEvent) => setConfirmTotpCode(changeEvent.target.value.replace(/\D/g, ''))}
+                        className="w-full px-3 py-2.5 text-center font-mono text-xl tracking-[0.3em] font-bold border border-slate-300 rounded-lg focus:outline-none focus:border-[#006AC7] bg-white shadow-xs"
+                      />
+                      <p className="text-[11px] text-[#526477]">
+                        Input the current 6-digit verification code from your authenticator app to complete setup.
+                      </p>
+                    </div>
 
                     <div className="flex gap-2">
                       <button
                         type="submit"
                         disabled={loading || confirmTotpCode.length !== 6}
-                        className="flex-1 py-2 bg-[#006AC7] text-white font-bold rounded-lg hover:bg-[#00529B] disabled:opacity-50 transition"
+                        className="flex-1 py-2.5 bg-[#006AC7] text-white font-bold rounded-lg hover:bg-[#00529B] disabled:opacity-50 transition shadow-xs text-xs"
                       >
                         {loading ? 'Confirming...' : 'Verify Code & Complete Setup'}
                       </button>
                       <button
                         type="button"
                         onClick={() => setIsSetupWizardOpen(false)}
-                        className="px-3 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 font-bold"
+                        className="px-4 py-2.5 border border-slate-200 rounded-lg hover:bg-slate-50 font-bold text-xs"
                       >
                         Cancel
                       </button>

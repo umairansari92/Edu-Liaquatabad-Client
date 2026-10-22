@@ -32,18 +32,20 @@ export const authService = {
     const payload = {};
     if (mfaPendingToken) payload.mfaPendingToken = mfaPendingToken;
     if (password) payload.password = password;
-    const response = await apiClient.post('/auth/mfa/setup', payload, {
-      headers: mfaPendingToken ? { Authorization: `Bearer ${mfaPendingToken}` } : {},
-    });
+    const requestConfig = mfaPendingToken
+      ? { headers: { Authorization: `Bearer ${mfaPendingToken}` } }
+      : {};
+    const response = await apiClient.post('/auth/mfa/setup', payload, requestConfig);
     return response.data;
   },
 
-  mfaConfirm: async ({ totpCode, mfaPendingToken }) => {
+  mfaConfirm: async ({ totpCode, mfaPendingToken } = {}) => {
     const payload = { totpCode };
     if (mfaPendingToken) payload.mfaPendingToken = mfaPendingToken;
-    const response = await apiClient.post('/auth/mfa/confirm', payload, {
-      headers: mfaPendingToken ? { Authorization: `Bearer ${mfaPendingToken}` } : {},
-    });
+    const requestConfig = mfaPendingToken
+      ? { headers: { Authorization: `Bearer ${mfaPendingToken}` } }
+      : {};
+    const response = await apiClient.post('/auth/mfa/confirm', payload, requestConfig);
     return response.data;
   },
 
