@@ -388,9 +388,14 @@ export const RegisterStudentPage = () => {
         <h1 className="text-2xl sm:text-3xl font-display font-bold text-[#102033] tracking-tight">
           Student Admission & Portal Registration
         </h1>
-        <p className="mt-1 text-xs text-[#526477]">
-          Government of Sindh • Education Department Liaquatabad Town Centre (DMC)
-        </p>
+        <div className="mt-1.5 space-y-0.5">
+          <p className="text-xs font-semibold text-[#102033]">
+            Town Municipal Corporation (TMC)
+          </p>
+          <p className="text-xs text-[#526477] font-medium">
+            Education Department Liaquatabad Town • Government of Sindh
+          </p>
+        </div>
 
         {/* Head Master Direct Console Shortcut Banner (If HM is logged in) */}
         {user && (user.role === 'HM' || user.baseRole === 'HM') && (

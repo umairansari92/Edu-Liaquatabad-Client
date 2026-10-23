@@ -18,12 +18,12 @@ export const AppFooter = () => {
               <School className="w-3.5 h-3.5" />
             </div>
             <span className="font-semibold text-slate-800">
-              © {new Date().getFullYear()} Education Department, Liaquatabad Town Centre (DMC)
+              © {new Date().getFullYear()} Town Municipal Corporation (TMC) • Education Department Liaquatabad Town
             </span>
           </div>
 
           <div className="flex items-center gap-4 text-[11px] text-slate-500">
-            <span>Official Municipal Education Portal</span>
+            <span>Government School Management Platform</span>
             <span className="text-slate-300">•</span>
             <span className="flex items-center gap-1">
               <span>Developed by</span>

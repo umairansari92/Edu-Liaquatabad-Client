@@ -1415,7 +1415,7 @@ export const HmDashboard = () => {
   return (
     <PageContainer
       title="School overview"
-      subtitle={`${summary?.school?.name || user?.schoolId?.name || 'Assigned Municipal School'} • Education Department, Liaquatabad Town Centre (DMC)`}
+      subtitle={`${summary?.school?.name || user?.schoolId?.name || 'School Dashboard'} • Liaquatabad Town Centre`}
       maxWidth={
         activeTab === 'timetable' || (activeTab === 'attendance' && attendanceSubTab === 'student-register')
           ? 'max-w-[1680px]'
@@ -5965,11 +5965,11 @@ export const HmDashboard = () => {
         onCancel={() => setConfirmDialog((prev) => ({ ...prev, isOpen: false }))}
       />
 
-      {/* ── Compact Municipal Footer ── */}
+      {/* ── Compact School Portal Footer ── */}
       <div className="mt-12 pt-6 border-t border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
-        <p>© {new Date().getFullYear()} Education Department, Liaquatabad Town Centre (DMC) • Government of Sindh</p>
+        <p>© {new Date().getFullYear()} Town Municipal Corporation (TMC) • Education Department Liaquatabad Town • Government of Sindh</p>
         <div className="flex items-center gap-4 text-xs">
-          <span className="text-slate-400">Official Municipal Education Portal</span>
+          <span className="text-slate-400">School Management System</span>
         </div>
       </div>
     </PageContainer>

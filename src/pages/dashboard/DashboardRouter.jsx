@@ -107,7 +107,7 @@ export const DashboardRouter = () => {
   return (
     <PageContainer
       title={`${user.role.replace(/_/g, ' ')} DASHBOARD`}
-      subtitle={`Education Department Liaquatabad Town Centre (DMC) • Scope: ${user.scope}`}
+      subtitle={`School Management System • Scope: ${user.scope}`}
       actions={
         <div className="flex items-center gap-2">
           <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 border border-emerald-200 text-[#4B7F3A]">
@@ -148,7 +148,7 @@ export const DashboardRouter = () => {
             </div>
           </div>
           <p className="text-3xl font-black text-[#102033] mt-3">{stats.enrolledStudents}</p>
-          <p className="text-xs text-indigo-700 font-medium mt-1">Municipal Students</p>
+          <p className="text-xs text-indigo-700 font-medium mt-1">Enrolled Students</p>
         </div>
 
         <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm">

@@ -93,7 +93,7 @@ export const Sidebar = () => {
           {resolvedSchoolName || 'Liaquatabad Town Centre'}
         </p>
         <p className="mt-0.5 text-slate-500 text-[11px] truncate">
-          {schoolCode ? `School code: ${schoolCode}` : 'Education Department (DMC)'}
+          {schoolCode ? `School code: ${schoolCode}` : 'TMC • Education Department Liaquatabad Town'}
         </p>
         <div className="mt-2.5 flex items-center justify-between text-[11px] text-slate-500 border-t border-slate-200/60 pt-2">
           <span>School access:</span>

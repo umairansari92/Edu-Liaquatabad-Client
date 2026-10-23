@@ -523,7 +523,7 @@ export const RootAdminDashboard = () => {
 
       const response = await apiClient.post('/schools', payload);
       if (response.data?.success) {
-        toast.success(`Municipal school "${registerSchoolFormData.name}" registered successfully!`);
+        toast.success(`School "${registerSchoolFormData.name}" registered successfully!`);
         setIsRegisterSchoolModalOpen(false);
         setRegisterSchoolFormData({
           name: '',
@@ -732,7 +732,7 @@ export const RootAdminDashboard = () => {
                 Liaquatabad Town Education Command Center
               </h1>
               <p className="max-w-3xl text-sm leading-relaxed text-[#526477]">
-                Education Department Liaquatabad Town Centre (DMC) — Municipal schools, authority management, and civic audit.
+                Town Municipal Corporation (TMC) • Education Department Liaquatabad Town — Multi-school governance, authority management, and civic audit.
               </p>
             </div>
 
@@ -765,8 +765,8 @@ export const RootAdminDashboard = () => {
                   type="button"
                   onClick={() => setIsKillSwitchModalOpen(true)}
                   className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold shadow-sm transition active:scale-95 cursor-pointer ${killSwitchStatus.isSuspended
-                      ? 'border-red-500 bg-red-600 text-white animate-pulse'
-                      : 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100'
+                    ? 'border-red-500 bg-red-600 text-white animate-pulse'
+                    : 'border-red-200 bg-red-50 text-red-700 hover:bg-red-100'
                     }`}
                   title="Emergency Infrastructure Outage Control"
                 >
@@ -833,8 +833,8 @@ export const RootAdminDashboard = () => {
           return (
             <div
               className={`rounded-xl border p-4 transition shadow-sm ${hasAttentionItems
-                  ? 'border-amber-200 bg-amber-50/90'
-                  : 'border-emerald-200 bg-emerald-50/90'
+                ? 'border-amber-200 bg-amber-50/90'
+                : 'border-emerald-200 bg-emerald-50/90'
                 }`}
             >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -847,7 +847,7 @@ export const RootAdminDashboard = () => {
                   </div>
                   <div>
                     <h4 className="text-sm font-bold text-[#102033]">
-                      {hasAttentionItems ? 'Operational Attention Required' : 'All Municipal Systems Operational'}
+                      {hasAttentionItems ? 'Operational Attention Required' : 'All Platform Systems Operational'}
                     </h4>
                     <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[#526477]">
                       {pendingCount > 0 && (
@@ -1192,12 +1192,12 @@ export const RootAdminDashboard = () => {
             type="button"
             onClick={() => setActiveTab('schools')}
             className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition cursor-pointer ${activeTab === 'schools'
-                ? 'bg-[#F0F8FF] text-[#006AC7] border border-blue-200 shadow-sm'
-                : 'text-[#526477] hover:text-[#102033] hover:bg-slate-100'
+              ? 'bg-[#F0F8FF] text-[#006AC7] border border-blue-200 shadow-sm'
+              : 'text-[#526477] hover:text-[#102033] hover:bg-slate-100'
               }`}
           >
             <SchoolIcon className="h-4 w-4" />
-            <span>Municipal Schools</span>
+            <span>Schools</span>
             <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs text-[#006AC7] font-mono font-bold">
               {schoolsList.length}
             </span>
@@ -1207,8 +1207,8 @@ export const RootAdminDashboard = () => {
             type="button"
             onClick={() => setActiveTab('academic')}
             className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition cursor-pointer ${activeTab === 'academic'
-                ? 'bg-[#F0F8FF] text-[#006AC7] border border-blue-200 shadow-sm'
-                : 'text-[#526477] hover:text-[#102033] hover:bg-slate-100'
+              ? 'bg-[#F0F8FF] text-[#006AC7] border border-blue-200 shadow-sm'
+              : 'text-[#526477] hover:text-[#102033] hover:bg-slate-100'
               }`}
           >
             <GraduationCap className="h-4 w-4" />
@@ -1219,8 +1219,8 @@ export const RootAdminDashboard = () => {
             type="button"
             onClick={() => setActiveTab('transfers')}
             className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition cursor-pointer ${activeTab === 'transfers'
-                ? 'bg-[#F0F8FF] text-[#006AC7] border border-blue-200 shadow-sm'
-                : 'text-[#526477] hover:text-[#102033] hover:bg-slate-100'
+              ? 'bg-[#F0F8FF] text-[#006AC7] border border-blue-200 shadow-sm'
+              : 'text-[#526477] hover:text-[#102033] hover:bg-slate-100'
               }`}
           >
             <ArrowRightLeft className="h-4 w-4" />
@@ -1231,8 +1231,8 @@ export const RootAdminDashboard = () => {
             type="button"
             onClick={() => setActiveTab('users')}
             className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition cursor-pointer ${activeTab === 'users'
-                ? 'bg-[#F0F8FF] text-[#006AC7] border border-blue-200 shadow-sm'
-                : 'text-[#526477] hover:text-[#102033] hover:bg-slate-100'
+              ? 'bg-[#F0F8FF] text-[#006AC7] border border-blue-200 shadow-sm'
+              : 'text-[#526477] hover:text-[#102033] hover:bg-slate-100'
               }`}
           >
             <Users className="h-4 w-4" />
@@ -1246,8 +1246,8 @@ export const RootAdminDashboard = () => {
             type="button"
             onClick={() => setActiveTab('governance')}
             className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition cursor-pointer ${activeTab === 'governance'
-                ? 'bg-amber-50 text-amber-800 border border-amber-200 shadow-sm'
-                : 'text-[#526477] hover:text-[#102033] hover:bg-slate-100'
+              ? 'bg-amber-50 text-amber-800 border border-amber-200 shadow-sm'
+              : 'text-[#526477] hover:text-[#102033] hover:bg-slate-100'
               }`}
           >
             <Crown className="h-4 w-4" />
@@ -1261,8 +1261,8 @@ export const RootAdminDashboard = () => {
             type="button"
             onClick={() => setActiveTab('approvals')}
             className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition cursor-pointer ${activeTab === 'approvals'
-                ? 'bg-amber-50 text-amber-800 border border-amber-200 shadow-sm'
-                : 'text-[#526477] hover:text-[#102033] hover:bg-slate-100'
+              ? 'bg-amber-50 text-amber-800 border border-amber-200 shadow-sm'
+              : 'text-[#526477] hover:text-[#102033] hover:bg-slate-100'
               }`}
           >
             <UserCheck className="h-4 w-4" />
@@ -1278,8 +1278,8 @@ export const RootAdminDashboard = () => {
             type="button"
             onClick={() => setActiveTab('operations')}
             className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition cursor-pointer ${activeTab === 'operations'
-                ? 'bg-purple-50 text-purple-800 border border-purple-200 shadow-sm'
-                : 'text-[#526477] hover:text-[#102033] hover:bg-slate-100'
+              ? 'bg-purple-50 text-purple-800 border border-purple-200 shadow-sm'
+              : 'text-[#526477] hover:text-[#102033] hover:bg-slate-100'
               }`}
           >
             <Zap className="h-4 w-4" />
@@ -1290,8 +1290,8 @@ export const RootAdminDashboard = () => {
             type="button"
             onClick={() => setActiveTab('audit')}
             className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition cursor-pointer ${activeTab === 'audit'
-                ? 'bg-purple-50 text-purple-800 border border-purple-200 shadow-sm'
-                : 'text-[#526477] hover:text-[#102033] hover:bg-slate-100'
+              ? 'bg-purple-50 text-purple-800 border border-purple-200 shadow-sm'
+              : 'text-[#526477] hover:text-[#102033] hover:bg-slate-100'
               }`}
           >
             <Terminal className="h-4 w-4" />
@@ -1302,8 +1302,8 @@ export const RootAdminDashboard = () => {
             type="button"
             onClick={() => setActiveTab('reports')}
             className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition cursor-pointer ${activeTab === 'reports'
-                ? 'bg-emerald-50 text-[#4B7F3A] border border-emerald-200 shadow-sm'
-                : 'text-[#526477] hover:text-[#102033] hover:bg-slate-100'
+              ? 'bg-emerald-50 text-[#4B7F3A] border border-emerald-200 shadow-sm'
+              : 'text-[#526477] hover:text-[#102033] hover:bg-slate-100'
               }`}
           >
             <FileSpreadsheet className="h-4 w-4" />
@@ -1368,14 +1368,14 @@ export const RootAdminDashboard = () => {
             {isSchoolsLoading ? (
               <div className="flex flex-col items-center justify-center rounded-xl border border-slate-200/80 bg-white p-12 text-[#526477]">
                 <RefreshCw className="h-8 w-8 animate-spin text-[#006AC7]" />
-                <p className="mt-3 text-sm">Querying municipal school infrastructure...</p>
+                <p className="mt-3 text-sm">Querying school directory infrastructure...</p>
               </div>
             ) : schoolsList.length === 0 ? (
               <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white p-12 text-center">
                 <SchoolIcon className="h-12 w-12 text-slate-300 mb-3" />
-                <h3 className="text-base font-bold text-[#102033]">No Municipal Schools Registered Yet</h3>
+                <h3 className="text-base font-bold text-[#102033]">No Schools Registered Yet</h3>
                 <p className="mt-1 max-w-md text-xs text-[#526477]">
-                  As Root Administrator, you can register the first municipal school directly or use the quick action button above.
+                  As Root Administrator, you can register the first school directly or use the quick action button above.
                 </p>
                 <button
                   type="button"
@@ -1410,8 +1410,8 @@ export const RootAdminDashboard = () => {
                         </div>
                         <span
                           className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${schoolRecord.status === 'ACTIVE'
-                              ? 'bg-emerald-50 text-[#4B7F3A] border border-emerald-200'
-                              : 'bg-red-50 text-red-700 border border-red-200'
+                            ? 'bg-emerald-50 text-[#4B7F3A] border border-emerald-200'
+                            : 'bg-red-50 text-red-700 border border-red-200'
                             }`}
                         >
                           {schoolRecord.status}
@@ -1665,14 +1665,14 @@ export const RootAdminDashboard = () => {
                           <td className="px-4 py-4">
                             <span
                               className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-mono font-bold ${userRecord.role === 'ROOT_ADMIN'
-                                  ? 'bg-red-50 text-red-700 border border-red-200'
-                                  : userRecord.role === 'SUPER_ADMIN'
-                                    ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                                    : userRecord.role === 'ADMIN'
-                                      ? 'bg-emerald-50 text-[#4B7F3A] border border-emerald-200'
-                                      : userRecord.role === 'HM'
-                                        ? 'bg-blue-50 text-[#006AC7] border border-blue-200'
-                                        : 'bg-slate-100 text-[#526477] border border-slate-200'
+                                ? 'bg-red-50 text-red-700 border border-red-200'
+                                : userRecord.role === 'SUPER_ADMIN'
+                                  ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                  : userRecord.role === 'ADMIN'
+                                    ? 'bg-emerald-50 text-[#4B7F3A] border border-emerald-200'
+                                    : userRecord.role === 'HM'
+                                      ? 'bg-blue-50 text-[#006AC7] border border-blue-200'
+                                      : 'bg-slate-100 text-[#526477] border border-slate-200'
                                 }`}
                             >
                               {userRecord.role}
@@ -1692,10 +1692,10 @@ export const RootAdminDashboard = () => {
                           <td className="px-4 py-4">
                             <span
                               className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${userRecord.status === 'ACTIVE'
-                                  ? 'bg-emerald-50 text-[#4B7F3A] border border-emerald-200'
-                                  : userRecord.status === 'PENDING_APPROVAL'
-                                    ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                                    : 'bg-red-50 text-red-700 border border-red-200'
+                                ? 'bg-emerald-50 text-[#4B7F3A] border border-emerald-200'
+                                : userRecord.status === 'PENDING_APPROVAL'
+                                  ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                  : 'bg-red-50 text-red-700 border border-red-200'
                                 }`}
                             >
                               {userRecord.status}
@@ -1750,1160 +1750,1160 @@ export const RootAdminDashboard = () => {
                           </td>
                         </tr>
                       )))}
-                    </tbody>
-                  </table>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ─── TAB 3: SUPER ADMIN GOVERNANCE ─── */}
+        {activeTab === 'governance' && (
+          <div className="space-y-4 animate-tab-content">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm">
+              <div>
+                <h3 className="text-base font-bold text-[#102033]">Authorized Super Administrators (Level 90)</h3>
+                <p className="text-xs text-[#526477]">
+                  Super Admins govern operational workflows, faculty onboarding, circulars, and municipal schools across Liaquatabad Town.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthorizeFormData({ userId: '', authority: 'SUPER_ADMIN', scope: 'GLOBAL', reason: '' });
+                  setAuthorizeUserSearch('');
+                  setIsAuthorizeModalOpen(true);
+                }}
+                className="flex items-center gap-2 rounded-xl bg-amber-600 hover:bg-amber-700 px-4 py-2 text-xs font-semibold text-white shadow-sm transition cursor-pointer"
+              >
+                <ShieldCheck className="h-4 w-4" />
+                <span>Authorize Super Admin</span>
+              </button>
+            </div>
+
+            <div className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-[#526477]">
+                  <thead className="border-b border-slate-200 bg-[#F0F8FF]/80 text-[11px] uppercase font-bold text-[#526477] tracking-wider">
+                    <tr>
+                      <th className="px-5 py-3.5">Administrator Name</th>
+                      <th className="px-4 py-3.5">Civil Designation</th>
+                      <th className="px-4 py-3.5">System Role</th>
+                      <th className="px-4 py-3.5">Scope</th>
+                      <th className="px-4 py-3.5">Status</th>
+                      <th className="px-4 py-3.5">Created Date</th>
+                      <th className="px-4 py-3.5 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {isSuperAdminsLoading ? (
+                      <tr>
+                        <td colSpan="7" className="py-12 text-center text-[#8094A8]">
+                          <RefreshCw className="mx-auto h-6 w-6 animate-spin text-amber-600" />
+                          <p className="mt-2 text-xs">Querying Super Admin roster...</p>
+                        </td>
+                      </tr>
+                    ) : superAdminsList.length === 0 ? (
+                      <tr>
+                        <td colSpan="7" className="py-12 text-center text-[#8094A8]">
+                          <Crown className="mx-auto h-8 w-8 text-slate-300 mb-2" />
+                          <p className="text-sm font-semibold text-[#102033]">No Super Admin Accounts Provisioned</p>
+                        </td>
+                      </tr>
+                    ) : (
+                      superAdminsList.map((adminRecord) => (
+                        <tr key={adminRecord._id} className="transition hover:bg-blue-50/30">
+                          <td className="px-5 py-4">
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-amber-200 bg-amber-50 text-xs font-bold text-amber-800">
+                                {adminRecord.fullName.charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <p className="font-bold text-[#102033]">{adminRecord.fullName}</p>
+                                <p className="text-[11px] text-[#8094A8] font-mono">{adminRecord.email}</p>
+                              </div>
+                            </div>
+                          </td>
+
+                          <td className="px-4 py-4 font-medium text-[#102033]">
+                            {adminRecord.designation || 'Town Chairman'}
+                          </td>
+
+                          <td className="px-4 py-4">
+                            <span className="rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-mono font-bold text-amber-800">
+                              SUPER_ADMIN (90)
+                            </span>
+                          </td>
+
+                          <td className="px-4 py-4">
+                            <span className="rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-mono font-bold text-[#006AC7]">
+                              {adminRecord.scope || 'GLOBAL'}
+                            </span>
+                          </td>
+
+                          <td className="px-4 py-4">
+                            <span
+                              className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${adminRecord.status === 'ACTIVE'
+                                ? 'bg-emerald-50 text-[#4B7F3A] border border-emerald-200'
+                                : 'bg-red-50 text-red-700 border border-red-200'
+                                }`}
+                            >
+                              {adminRecord.status}
+                            </span>
+                          </td>
+
+                          <td className="px-4 py-4 text-[#8094A8] font-mono text-[11px]">
+                            {new Date(adminRecord.createdAt).toLocaleDateString()}
+                          </td>
+
+                          <td className="px-4 py-4 text-right">
+                            {adminRecord.status === 'ACTIVE' ? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedSuperAdminToDisable(adminRecord);
+                                  setIsDisableModalOpen(true);
+                                }}
+                                className="rounded-lg border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-100 transition cursor-pointer"
+                              >
+                                Disable Account
+                              </button>
+                            ) : (
+                              <span className="text-[#8094A8] italic text-xs">Disabled</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ─── TAB 4: CLEARANCE & APPROVALS ROSTER ─── */}
+        {activeTab === 'approvals' && (
+          <div className="space-y-4 animate-tab-content">
+            <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm">
+              <h3 className="text-base font-bold text-[#102033]">Personnel Clearance & Approval Queue</h3>
+              <p className="text-xs text-[#526477]">
+                Staff and faculty awaiting civil verification and system activation.
+              </p>
+            </div>
+
+            {isPendingUsersLoading ? (
+              <div className="flex flex-col items-center justify-center rounded-xl border border-slate-200/80 bg-white p-12 text-[#526477]">
+                <RefreshCw className="h-6 w-6 animate-spin text-amber-600" />
+                <p className="mt-2 text-xs">Querying pending approval roster...</p>
+              </div>
+            ) : pendingUsersList.length === 0 ? (
+              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white p-12 text-center">
+                <CheckCircle2 className="h-12 w-12 text-[#4B7F3A] mb-3" />
+                <h4 className="text-base font-bold text-[#102033]">Clearance Roster Up To Date</h4>
+                <p className="mt-1 text-xs text-[#526477]">There are no pending registrations requiring review at this time.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {pendingUsersList.map((pendingUser) => (
+                  <div
+                    key={pendingUser._id}
+                    className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm hover:shadow-md transition"
+                  >
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <h4 className="font-bold text-[#102033] text-base">{pendingUser.fullName}</h4>
+                          <p className="text-xs text-[#8094A8] font-mono">{pendingUser.email}</p>
+                        </div>
+                        <span className="rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-mono font-bold text-amber-800">
+                          {pendingUser.role}
+                        </span>
+                      </div>
+
+                      <div className="space-y-1 text-xs text-[#526477] border-t border-slate-100 pt-3">
+                        <p><span className="text-[#8094A8]">Proposed Title:</span> {pendingUser.designation || 'Teacher / Staff'}</p>
+                        <p><span className="text-[#8094A8]">Target School:</span> {pendingUser.schoolId?.name || 'District Assignment'}</p>
+                        <p><span className="text-[#8094A8]">Registered:</span> {new Date(pendingUser.createdAt).toLocaleString()}</p>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 flex items-center justify-end gap-2 border-t border-slate-100 pt-3">
+                      <button
+                        type="button"
+                        onClick={() => handleProcessUserLifecycle(pendingUser._id, 'INACTIVE', 'Registration rejected by Root Admin')}
+                        disabled={actionProcessingUserId === pendingUser._id}
+                        className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100 transition cursor-pointer"
+                      >
+                        Reject
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleProcessUserLifecycle(pendingUser._id, 'ACTIVE', 'Approved directly by Root Administrator')}
+                        disabled={actionProcessingUserId === pendingUser._id}
+                        className="rounded-lg bg-[#4B7F3A] hover:bg-[#38662D] px-4 py-1.5 text-xs font-semibold text-white transition shadow-sm cursor-pointer"
+                      >
+                        Approve & Activate
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ─── TAB 5: COMMAND OPS & EMERGENCY ─── */}
+        {activeTab === 'operations' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-tab-content">
+            {/* Break Glass Architecture */}
+            <div className="rounded-xl border border-amber-200 bg-white p-6 shadow-sm space-y-4 flex flex-col justify-between">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-lg border border-amber-200 bg-amber-50 p-2 text-amber-700">
+                    <Key className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-[#102033] text-base">Break-Glass Protocol</h3>
+                    <p className="text-xs text-[#526477]">Disaster recovery for lost Super Admin access</p>
+                  </div>
+                </div>
+
+                <p className="text-xs text-[#526477] leading-relaxed">
+                  ROOT_ADMIN holds platform-wide technical governance authority. In disaster scenarios where Super Admins are locked out or compromised, execute the emergency CLI command on the server host:
+                </p>
+
+                <div className="rounded-lg bg-slate-50 p-3 text-xs font-mono text-slate-800 border border-slate-200 break-all">
+                  node scripts/breakGlassRecovery.js &lt;email&gt; &lt;new_password&gt;
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 text-xs text-[#526477] pt-2 border-t border-slate-100">
+                <CheckCircle2 className="h-4 w-4 text-[#4B7F3A] shrink-0" />
+                <span>Triple-Lock v7.0 Cryptographic Guard Active</span>
+              </div>
+            </div>
+
+            {/* Security Lockout Flush Console */}
+            <div className="rounded-xl border border-red-200 bg-white p-6 shadow-sm space-y-4 flex flex-col justify-between">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-lg border border-red-200 bg-red-50 p-2 text-red-600">
+                    <Unlock className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-[#102033] text-base">Platform Lockout Operations</h3>
+                    <p className="text-xs text-[#526477]">Unblock brute-force trapped IPs and accounts</p>
+                  </div>
+                </div>
+
+                <p className="text-xs text-[#526477] leading-relaxed">
+                  The Triple-Lock rate limiter automatically strikes and locks out IPs with abnormal request patterns. Root Admins can purge all active locks with zero downtime.
+                </p>
+
+                <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-xs text-red-700">
+                  ⚠ Purging lockouts will immediately restore access to all currently restricted client IP addresses.
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFlushLockoutReason('');
+                    setFlushLockoutConfirmed(false);
+                    setIsFlushLockoutModalOpen(true);
+                  }}
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition cursor-pointer"
+                >
+                  <Unlock className="h-4 w-4" />
+                  <span>Flush Security Lockouts</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Emergency District Broadcast Console */}
+            <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-sm space-y-4 flex flex-col justify-between">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-lg border border-blue-200 bg-blue-50 p-2 text-[#006AC7]">
+                    <Radio className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-[#102033] text-base">Civic Emergency Broadcast</h3>
+                    <p className="text-xs text-[#526477]">Publish alerts across all platform portals</p>
+                  </div>
+                </div>
+
+                <p className="text-xs text-[#526477] leading-relaxed">
+                  Publish high-priority administrative bulletins, weather advisories, or town-wide alerts. Broadcast banners appear instantly on HM, Teacher, and Student portals.
+                </p>
+
+                <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 text-xs text-[#006AC7]">
+                  ℹ Broadcasts are logged in the immutable audit ledger with severity level and issuing actor identity.
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsBroadcastModalOpen(true)}
+                  className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#006AC7] hover:bg-[#005299] px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition cursor-pointer"
+                >
+                  <Radio className="h-4 w-4" />
+                  <span>Issue Emergency Broadcast</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ─── TAB 6: IMMUTABLE AUDIT STREAM ─── */}
+        {activeTab === 'audit' && (
+          <div className="space-y-4 animate-tab-content">
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm">
+              <div className="flex flex-1 items-center gap-3">
+                <div className="relative flex-1 max-w-md">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8094A8]" />
+                  <input
+                    type="text"
+                    value={auditSearchQuery}
+                    onChange={(eventObject) => setAuditSearchQuery(eventObject.target.value)}
+                    placeholder="Search audit action (e.g. BREAK_GLASS, CREATED)..."
+                    className="w-full rounded-lg border border-slate-200 bg-[#F8FBFD] py-2 pl-9 pr-4 text-xs text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:bg-white focus:outline-none"
+                  />
+                </div>
+
+                <select
+                  value={auditResultFilter}
+                  onChange={(eventObject) => setAuditResultFilter(eventObject.target.value)}
+                  className="rounded-lg border border-slate-200 bg-[#F8FBFD] px-3 py-2 text-xs text-[#102033] focus:border-[#006AC7] focus:bg-white focus:outline-none"
+                >
+                  <option value="">All Results</option>
+                  <option value="SUCCESS">Success</option>
+                  <option value="FAILURE">Failure</option>
+                </select>
+              </div>
+
+              <button
+                type="button"
+                onClick={fetchAuditLogs}
+                className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-[#526477] hover:bg-slate-50 hover:text-[#102033] transition cursor-pointer shadow-sm"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${isAuditLogsLoading ? 'animate-spin' : ''}`} />
+                <span>Refresh Stream</span>
+              </button>
+            </div>
+
+            <div className="overflow-hidden rounded-xl border border-slate-200/80 bg-white p-4 font-mono text-xs shadow-sm">
+              <div className="space-y-2">
+                {isAuditLogsLoading ? (
+                  <div className="py-8 text-center text-[#8094A8]">
+                    <RefreshCw className="mx-auto h-5 w-5 animate-spin text-[#006AC7]" />
+                    <p className="mt-2 text-xs">Streaming audit ledger records...</p>
+                  </div>
+                ) : auditLogsList.length === 0 ? (
+                  <div className="py-8 text-center text-[#8094A8]">
+                    <p>No matching audit records in current view.</p>
+                  </div>
+                ) : (
+                  auditLogsList.map((auditRecord) => (
+                    <div
+                      key={auditRecord._id}
+                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2 text-[#526477] transition hover:bg-blue-50/20 p-2 rounded"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-[10px] text-[#8094A8]">
+                          {new Date(auditRecord.createdAt).toLocaleTimeString()}
+                        </span>
+                        <span
+                          className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${auditRecord.result === 'SUCCESS' ? 'bg-emerald-50 text-[#4B7F3A] border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'
+                            }`}
+                        >
+                          {auditRecord.result}
+                        </span>
+                        <span className="font-bold text-[#006AC7]">{auditRecord.action}</span>
+                        <span className="text-[#526477] truncate max-w-xs">
+                          by {auditRecord.actorRole} ({auditRecord.actorName || 'System'})
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-[#8094A8]">
+                        Target: {auditRecord.targetName || auditRecord.targetModel || 'Global'} • {auditRecord.ipAddress || 'Internal'}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ─── TAB: EXPORTS & SYSTEM HEALTH ─── */}
+        {activeTab === 'reports' && (
+          <ReportingHealthTab />
+        )}
+
+        {/* ─── MODAL: REGISTER SCHOOL ─── */}
+        {isRegisterSchoolModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm animate-modal-backdrop">
+            <div className="relative w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-5 animate-modal-card">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-2 text-[#4B7F3A]">
+                    <SchoolIcon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-extrabold text-[#102033]">Register School</h3>
+                    <p className="text-xs text-[#526477]">Add a new educational entity to Liaquatabad Town Centre</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsRegisterSchoolModalOpen(false)}
+                  className="rounded-lg p-1.5 text-[#8094A8] hover:bg-slate-100 hover:text-[#102033] cursor-pointer"
+                >
+                  <XCircle className="h-5 w-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleRegisterSchoolSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-[#102033]">Official School Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={registerSchoolFormData.name}
+                    onChange={(eventObject) => setRegisterSchoolFormData({ ...registerSchoolFormData, name: eventObject.target.value })}
+                    placeholder="e.g. Molana Muhammad Hussain Azad Govt. Boys Secondary School"
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-[#F8FBFD] px-3 py-2 text-xs text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:bg-white focus:outline-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#102033]">School Code (Prefix) *</label>
+                    <input
+                      type="text"
+                      value={registerSchoolFormData.schoolCode}
+                      onChange={(eventObject) => setRegisterSchoolFormData({ ...registerSchoolFormData, schoolCode: eventObject.target.value.toUpperCase() })}
+                      placeholder="e.g. MMHA, GGSS"
+                      className="mt-1 w-full rounded-lg border border-slate-200 bg-[#F8FBFD] px-3 py-2 text-xs text-[#102033] uppercase font-mono placeholder-slate-400 focus:border-[#006AC7] focus:bg-white focus:outline-none"
+                    />
+                    <p className="mt-1 text-[10px] text-[#8094A8]">Prefix for student IDs (2-10 chars)</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#102033]">EMIS Code</label>
+                    <input
+                      type="text"
+                      value={registerSchoolFormData.emisCode}
+                      onChange={(eventObject) => setRegisterSchoolFormData({ ...registerSchoolFormData, emisCode: eventObject.target.value })}
+                      placeholder="e.g. 408090123"
+                      className="mt-1 w-full rounded-lg border border-slate-200 bg-[#F8FBFD] px-3 py-2 text-xs text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:bg-white focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#102033]">School Category *</label>
+                    <select
+                      value={registerSchoolFormData.schoolType}
+                      onChange={(eventObject) => setRegisterSchoolFormData({ ...registerSchoolFormData, schoolType: eventObject.target.value })}
+                      className="mt-1 w-full rounded-lg border border-slate-200 bg-[#F8FBFD] px-3 py-2 text-xs text-[#102033] focus:border-[#006AC7] focus:bg-white focus:outline-none"
+                    >
+                      <option value="ECE">ECE (Nursery - KG-2)</option>
+                      <option value="PRIMARY">Primary (KG-1 - 5th)</option>
+                      <option value="ELEMENTARY">Elementary (KG-1 - 8th)</option>
+                      <option value="SECONDARY">Secondary (Class 6–10)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#102033]">Gender Orientation *</label>
+                    <select
+                      value={registerSchoolFormData.genderType}
+                      onChange={(eventObject) => setRegisterSchoolFormData({ ...registerSchoolFormData, genderType: eventObject.target.value })}
+                      className="mt-1 w-full rounded-lg border border-slate-200 bg-[#F8FBFD] px-3 py-2 text-xs text-[#102033] focus:border-[#006AC7] focus:bg-white focus:outline-none"
+                    >
+                      <option value="BOYS">Boys</option>
+                      <option value="GIRLS">Girls</option>
+                      <option value="CO_EDUCATION">Co-Education</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#102033]">Institutional Address *</label>
+                  <input
+                    type="text"
+                    required
+                    value={registerSchoolFormData.address}
+                    onChange={(eventObject) => setRegisterSchoolFormData({ ...registerSchoolFormData, address: eventObject.target.value })}
+                    placeholder="e.g. Near Super Market, Liaquatabad No. 4, Karachi"
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-[#F8FBFD] px-3 py-2 text-xs text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:bg-white focus:outline-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#102033]">Official Phone</label>
+                    <input
+                      type="text"
+                      value={registerSchoolFormData.contactPhone}
+                      onChange={(eventObject) => setRegisterSchoolFormData({ ...registerSchoolFormData, contactPhone: eventObject.target.value })}
+                      placeholder="e.g. 021-34981234"
+                      className="mt-1 w-full rounded-lg border border-slate-200 bg-[#F8FBFD] px-3 py-2 text-xs text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:bg-white focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#102033]">Official Email</label>
+                    <input
+                      type="email"
+                      value={registerSchoolFormData.contactEmail}
+                      onChange={(eventObject) => setRegisterSchoolFormData({ ...registerSchoolFormData, contactEmail: eventObject.target.value })}
+                      placeholder="e.g. mmha.boys@liaquatabad.gov.pk"
+                      className="mt-1 w-full rounded-lg border border-slate-200 bg-[#F8FBFD] px-3 py-2 text-xs text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:bg-white focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsRegisterSchoolModalOpen(false)}
+                    className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-[#526477] hover:bg-slate-50 cursor-pointer shadow-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isRegisteringSchoolSubmitting}
+                    className="flex items-center gap-2 rounded-lg bg-[#4B7F3A] hover:bg-[#38662D] px-5 py-2 text-xs font-semibold text-white transition shadow-sm cursor-pointer disabled:opacity-50"
+                  >
+                    {isRegisteringSchoolSubmitting ? 'Registering...' : 'Confirm Registration'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* ─── MODAL: AUTHORIZE SUPER ADMIN (EXISTING USER WORKFLOW) ─── */}
+        {isAuthorizeModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm animate-modal-backdrop">
+            <div className="relative w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-5 animate-modal-card">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="rounded-lg border border-amber-200 bg-amber-50 p-2 text-amber-700">
+                    <ShieldCheck className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-extrabold text-[#102033]">Authorize Super Administrator</h3>
+                    <p className="text-xs text-[#526477]">Grant operational platform authority to an existing personnel account</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsAuthorizeModalOpen(false)}
+                  className="rounded-lg p-1.5 text-[#8094A8] hover:bg-slate-100 hover:text-[#102033] cursor-pointer"
+                >
+                  <XCircle className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Informational Callout */}
+              <div className="rounded-lg border border-amber-200 bg-amber-50/70 p-3 text-xs text-amber-900 leading-relaxed space-y-1">
+                <p className="font-semibold text-amber-800">RBAC Architectural Invariants:</p>
+                <ul className="list-disc pl-4 space-y-0.5 text-[#526477]">
+                  <li>Civil Service Designation (<span className="text-amber-800 font-mono">user.designation</span>) remains 100% unchanged.</li>
+                  <li>Base Registration Category (<span className="text-amber-800 font-mono">user.baseRole</span>) remains 100% unchanged.</li>
+                  <li>Active sessions will be revoked immediately via security token version rotation.</li>
+                </ul>
+              </div>
+
+              <form onSubmit={handleAuthorizeSuperAdminSubmit} className="space-y-4">
+                {/* Step 1: Select Existing Personnel */}
+                <div>
+                  <label className="block text-xs font-semibold text-[#102033] mb-1">
+                    Select Existing Personnel Account *
+                  </label>
+
+                  {/* Search input for filtering */}
+                  <div className="relative mb-2">
+                    <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#8094A8]" />
+                    <input
+                      type="text"
+                      value={authorizeUserSearch}
+                      onChange={(inputChangeEvent) => setAuthorizeUserSearch(inputChangeEvent.target.value)}
+                      placeholder="Filter by name, email, or civil title..."
+                      className="w-full rounded-lg border border-slate-200 bg-[#F8FBFD] py-1.5 pl-9 pr-3 text-xs text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:bg-white focus:outline-none"
+                    />
+                  </div>
+
+                  {/* Scrollable User Selector Roster */}
+                  <div className="max-h-40 overflow-y-auto rounded-lg border border-slate-200 bg-[#F8FBFD] divide-y divide-slate-100">
+                    {(() => {
+                      const candidateUsers = usersList.filter((candidateUser) => {
+                        if (candidateUser.role === 'ROOT_ADMIN' || candidateUser.role === 'SUPER_ADMIN') return false;
+                        if (!authorizeUserSearch.trim()) return true;
+                        const queryNormalized = authorizeUserSearch.toLowerCase();
+                        return (
+                          candidateUser.fullName?.toLowerCase().includes(queryNormalized) ||
+                          candidateUser.email?.toLowerCase().includes(queryNormalized) ||
+                          candidateUser.designation?.toLowerCase().includes(queryNormalized)
+                        );
+                      });
+
+                      if (candidateUsers.length === 0) {
+                        return (
+                          <div className="p-4 text-center text-xs text-[#8094A8]">
+                            No eligible personnel found matching "{authorizeUserSearch}".
+                          </div>
+                        );
+                      }
+
+                      return candidateUsers.map((candidateUser) => {
+                        const isSelected = authorizeFormData.userId === candidateUser._id;
+                        return (
+                          <div
+                            key={candidateUser._id}
+                            onClick={() => setAuthorizeFormData({ ...authorizeFormData, userId: candidateUser._id })}
+                            className={`flex items-center justify-between p-2.5 text-xs transition cursor-pointer ${isSelected
+                              ? 'bg-amber-50 border-l-4 border-amber-600'
+                              : 'hover:bg-slate-100/60'
+                              }`}
+                          >
+                            <div className="flex items-center gap-2.5 truncate">
+                              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-slate-200 bg-white text-[11px] font-bold text-[#102033]">
+                                {candidateUser.fullName?.charAt(0).toUpperCase()}
+                              </div>
+                              <div className="truncate">
+                                <p className="font-bold text-[#102033] truncate">{candidateUser.fullName}</p>
+                                <p className="text-[10px] text-[#8094A8] font-mono truncate">{candidateUser.email}</p>
+                              </div>
+                            </div>
+                            <div className="text-right shrink-0 ml-2">
+                              <span className="text-[10px] text-[#526477] font-medium block">
+                                {candidateUser.designation || 'Staff'}
+                              </span>
+                              <span className="text-[9px] font-mono text-amber-700 uppercase">
+                                Current: {candidateUser.role}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+                </div>
+
+                {/* Selected User Confirmation Card */}
+                {authorizeFormData.userId && (() => {
+                  const selectedCandidateUser = usersList.find((userItem) => userItem._id === authorizeFormData.userId);
+                  if (!selectedCandidateUser) return null;
+                  return (
+                    <div className="rounded-lg border border-emerald-200 bg-emerald-50/80 p-2.5 text-xs flex items-center justify-between">
+                      <div>
+                        <span className="text-[#4B7F3A] font-bold block">Selected Candidate:</span>
+                        <span className="text-[#102033] font-medium">{selectedCandidateUser.fullName} ({selectedCandidateUser.email})</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[#526477] text-[10px] block">Title: {selectedCandidateUser.designation || 'Staff'}</span>
+                        <span className="text-[#4B7F3A] font-mono text-[10px] uppercase">Base: {selectedCandidateUser.baseRole || 'TEACHER'}</span>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Authority & Scope Selection */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#102033]">Target Authority</label>
+                    <div className="mt-1 w-full rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800 font-mono flex items-center gap-2">
+                      <ShieldCheck className="h-3.5 w-3.5 text-amber-600" />
+                      <span>SUPER_ADMIN (Level 90)</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#102033]">Operational Scope *</label>
+                    <select
+                      value={authorizeFormData.scope}
+                      onChange={(selectChangeEvent) => setAuthorizeFormData({ ...authorizeFormData, scope: selectChangeEvent.target.value })}
+                      className="mt-1 w-full rounded-lg border border-slate-200 bg-[#F8FBFD] px-3 py-2 text-xs text-[#102033] focus:border-[#006AC7] focus:bg-white focus:outline-none"
+                    >
+                      <option value="GLOBAL">GLOBAL (Platform-wide Authority)</option>
+                      <option value="TOWN">TOWN (Town Administrative Scope)</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Mandatory Justification Reason */}
+                <div>
+                  <label className="block text-xs font-semibold text-[#102033]">Mandatory Justification Reason *</label>
+                  <textarea
+                    required
+                    rows={2}
+                    minLength={5}
+                    value={authorizeFormData.reason}
+                    onChange={(textareaChangeEvent) => setAuthorizeFormData({ ...authorizeFormData, reason: textareaChangeEvent.target.value })}
+                    placeholder="Provide explicit operational justification for granting Super Admin authority..."
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-[#F8FBFD] p-2.5 text-xs text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:bg-white focus:outline-none"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsAuthorizeModalOpen(false)}
+                    className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-[#526477] hover:bg-slate-50 cursor-pointer shadow-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isAuthorizingSubmitting || !authorizeFormData.userId}
+                    className="flex items-center gap-2 rounded-lg bg-amber-600 hover:bg-amber-700 px-5 py-2 text-xs font-semibold text-white transition shadow-sm cursor-pointer disabled:opacity-50"
+                  >
+                    {isAuthorizingSubmitting ? 'Authorizing...' : 'Grant Super Admin Authority'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* ─── MODAL: DISABLE SUPER ADMIN ─── */}
+        {isDisableModalOpen && selectedSuperAdminToDisable && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm animate-modal-backdrop">
+            <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-5 animate-modal-card">
+              <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
+                <div className="rounded-lg border border-red-200 bg-red-50 p-2 text-red-600">
+                  <AlertTriangle className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-[#102033]">Disable Super Administrator</h3>
+                  <p className="text-xs text-[#526477]">Revokes all active sessions immediately</p>
+                </div>
+              </div>
+
+              <p className="text-xs text-[#526477] leading-relaxed">
+                You are disabling <strong className="text-[#102033]">{selectedSuperAdminToDisable.fullName}</strong> ({selectedSuperAdminToDisable.email}). All active JWT tokens will be revoked via tokenVersion increment.
+              </p>
+
+              <form onSubmit={handleDisableSuperAdminSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-[#102033]">Mandatory Justification Reason *</label>
+                  <textarea
+                    required
+                    rows={3}
+                    value={disableReasonText}
+                    onChange={(eventObject) => setDisableReasonText(eventObject.target.value)}
+                    placeholder="Enter explicit administrative or disciplinary reason..."
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-[#F8FBFD] p-2.5 text-xs text-[#102033] placeholder-slate-400 focus:border-red-500 focus:bg-white focus:outline-none"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsDisableModalOpen(false)}
+                    className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-[#526477] hover:bg-slate-50 cursor-pointer shadow-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isDisablingSubmitting}
+                    className="rounded-lg bg-red-600 hover:bg-red-700 px-5 py-2 text-xs font-semibold text-white transition shadow-sm cursor-pointer disabled:opacity-50"
+                  >
+                    {isDisablingSubmitting ? 'Disabling...' : 'Confirm Disable'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* ─── MODAL: EMERGENCY BROADCAST ─── */}
+        {isBroadcastModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm animate-modal-backdrop">
+            <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-5 animate-modal-card">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="rounded-lg border border-blue-200 bg-blue-50 p-2 text-[#006AC7]">
+                    <Radio className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-extrabold text-[#102033]">Issue District Broadcast</h3>
+                    <p className="text-xs text-[#526477]">Publish high-priority alert across all platform dashboards</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsBroadcastModalOpen(false)}
+                  className="rounded-lg p-1.5 text-[#8094A8] hover:bg-slate-100 hover:text-[#102033] cursor-pointer"
+                >
+                  <XCircle className="h-5 w-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleBroadcastSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-[#102033]">Broadcast Headline *</label>
+                  <input
+                    type="text"
+                    required
+                    value={broadcastFormData.title}
+                    onChange={(eventObject) => setBroadcastFormData({ ...broadcastFormData, title: eventObject.target.value })}
+                    placeholder="e.g. Extreme Weather Advisory: School Timings Adjusted"
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-[#F8FBFD] px-3 py-2 text-xs text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:bg-white focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#102033]">Severity Tier *</label>
+                  <select
+                    value={broadcastFormData.severity}
+                    onChange={(eventObject) => setBroadcastFormData({ ...broadcastFormData, severity: eventObject.target.value })}
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-[#F8FBFD] px-3 py-2 text-xs text-[#102033] focus:border-[#006AC7] focus:bg-white focus:outline-none"
+                  >
+                    <option value="INFO">Informational (Blue)</option>
+                    <option value="WARNING">Administrative Warning (Amber)</option>
+                    <option value="CRITICAL">Emergency / Critical Alert (Red)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-[#102033]">Official Directive Content *</label>
+                  <textarea
+                    required
+                    rows={4}
+                    value={broadcastFormData.message}
+                    onChange={(eventObject) => setBroadcastFormData({ ...broadcastFormData, message: eventObject.target.value })}
+                    placeholder="Detailed instruction or municipal circular text..."
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-[#F8FBFD] p-2.5 text-xs text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:bg-white focus:outline-none"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsBroadcastModalOpen(false)}
+                    className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-[#526477] hover:bg-slate-50 cursor-pointer shadow-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isBroadcastSubmitting}
+                    className="flex items-center gap-2 rounded-lg bg-[#006AC7] hover:bg-[#005299] px-5 py-2 text-xs font-semibold text-white transition shadow-sm cursor-pointer disabled:opacity-50"
+                  >
+                    {isBroadcastSubmitting ? 'Publishing...' : 'Dispatch Broadcast'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* ─── MODAL: FLUSH SECURITY LOCKOUTS (HARDENED WITH TYPED REASON & CONFIRMATION) ─── */}
+        {isFlushLockoutModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm animate-modal-backdrop">
+            <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-5 animate-modal-card">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="rounded-lg border border-red-200 bg-red-50 p-2 text-red-600">
+                    <Unlock className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-extrabold text-[#102033]">Flush Security Lockout Store</h3>
+                    <p className="text-xs text-[#526477]">Critical Infrastructure Operation • Administrative Purge</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsFlushLockoutModalOpen(false)}
+                  className="rounded-lg p-1.5 text-[#8094A8] hover:bg-slate-100 hover:text-[#102033] cursor-pointer"
+                >
+                  <XCircle className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="rounded-lg bg-red-50 border border-red-200 p-3.5 text-xs text-red-800 space-y-1 leading-relaxed">
+                <p className="font-bold flex items-center gap-1.5 text-red-700">
+                  <AlertTriangle className="h-4 w-4 shrink-0" />
+                  High-Impact Security Warning
+                </p>
+                <p>
+                  Purging the security lockout store will immediately clear all active IP bans and reset failed authentication rate-limit strikes. All restricted IP addresses will regain access to platform endpoints immediately.
+                </p>
+              </div>
+
+              <form onSubmit={handleFlushLockoutsSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-[#102033]">
+                    Mandatory Justification Reason * <span className="text-[#8094A8] font-normal">(Recorded in immutable audit ledger)</span>
+                  </label>
+                  <textarea
+                    required
+                    rows={3}
+                    value={flushLockoutReason}
+                    onChange={(eventObject) => setFlushLockoutReason(eventObject.target.value)}
+                    placeholder="Enter explicit administrative or operational justification for purging IP lockouts..."
+                    className="mt-1 w-full rounded-lg border border-slate-200 bg-[#F8FBFD] p-2.5 text-xs text-[#102033] placeholder-slate-400 focus:border-red-500 focus:bg-white focus:outline-none"
+                  />
+                  <span className="text-[10px] text-[#8094A8]">Minimum 5 characters required.</span>
+                </div>
+
+                <div className="rounded-lg border border-slate-200 bg-[#F8FBFD] p-3">
+                  <label className="flex items-start gap-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      required
+                      checked={flushLockoutConfirmed}
+                      onChange={(eventObject) => setFlushLockoutConfirmed(eventObject.target.checked)}
+                      className="mt-0.5 h-4 w-4 rounded border-slate-300 text-red-600 focus:ring-red-500"
+                    />
+                    <span className="text-xs text-[#526477] select-none">
+                      I explicitly confirm and authorize the immediate purge of all security IP lockouts and rate-limiting strike records across the platform.
+                    </span>
+                  </label>
+                </div>
+
+                <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsFlushLockoutModalOpen(false)}
+                    className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-[#526477] hover:bg-slate-50 cursor-pointer shadow-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isFlushingLockoutsSubmitting}
+                    className="flex items-center gap-2 rounded-lg bg-red-600 hover:bg-red-700 px-5 py-2 text-xs font-semibold text-white transition shadow-sm cursor-pointer disabled:opacity-50"
+                  >
+                    <Unlock className="h-4 w-4" />
+                    <span>{isFlushingLockoutsSubmitting ? 'Purging Lockout Records...' : 'Authorize & Flush Lockouts'}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* ─── MODAL: EDIT MUNICIPAL SCHOOL ─── */}
+        <EditSchoolModal
+          isOpen={isEditSchoolModalOpen}
+          onClose={() => setIsEditSchoolModalOpen(false)}
+          school={selectedSchoolForEdit}
+          onSchoolUpdated={fetchMunicipalSchools}
+        />
+
+        {/* ─── MODAL: USER AUTHORITY & DESIGNATION MANAGEMENT ─── */}
+        <UserAuthorityModal
+          isOpen={isAuthorityModalOpen}
+          onClose={() => {
+            setIsAuthorityModalOpen(false);
+            setSelectedUserForAuthority(null);
+          }}
+          targetUser={selectedUserForAuthority}
+          currentUser={authenticatedUser}
+          onAuthorityUpdated={(updatedUser) => {
+            fetchGlobalUsers();
+            fetchSuperAdmins();
+            fetchPlatformOverview();
+          }}
+        />
+
+        {/* ─── MODAL: EMERGENCY OUTAGE & INFRASTRUCTURE GATE (ROOT_ADMIN ONLY) ─── */}
+        {isKillSwitchModalOpen && authenticatedUser?.role === 'ROOT_ADMIN' && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+            <div className="w-full max-w-xl rounded-2xl border border-slate-200 bg-white shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 px-6 py-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-red-200 bg-red-50 text-red-600">
+                    <ShieldAlert className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
+                      Emergency Outage Gate
+                      <span className="rounded-md border border-red-200 bg-red-50 px-1.5 py-0.5 text-[10px] font-mono text-red-700">
+                        ROOT OVERRIDE
+                      </span>
+                    </h3>
+                    <p className="text-xs text-[#526477]">
+                      Simulate unexpected cluster failure (HTTP 503) for non-root users.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsKillSwitchModalOpen(false)}
+                  className="rounded-lg p-1 text-[#8094A8] hover:bg-slate-100 hover:text-[#102033] cursor-pointer"
+                >
+                  <XCircle className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-5">
+                {/* Live Status Badge */}
+                <div
+                  className={`rounded-xl border p-4 flex items-center justify-between ${killSwitchStatus.isSuspended
+                    ? 'border-red-200 bg-red-50 text-red-800'
+                    : 'border-emerald-200 bg-emerald-50 text-[#4B7F3A]'
+                    }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="relative flex h-3.5 w-3.5">
+                      {killSwitchStatus.isSuspended && (
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                      )}
+                      <span
+                        className={`relative inline-flex rounded-full h-3.5 w-3.5 ${killSwitchStatus.isSuspended ? 'bg-red-500' : 'bg-[#4B7F3A]'
+                          }`}
+                      ></span>
+                    </span>
+                    <div>
+                      <div className="text-xs font-bold uppercase tracking-wider">
+                        {killSwitchStatus.isSuspended
+                          ? 'Outage Simulation Active (HTTP 503)'
+                          : 'Platform Normal & Operational (200 OK)'}
+                      </div>
+                      <div className="text-[11px] opacity-80 mt-0.5">
+                        {killSwitchStatus.isSuspended
+                          ? 'All teachers, students, super admins, and public visitors receive an unexpected cluster error.'
+                          : 'All municipal services, portals, logins, and API routes are running normally.'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Explanation Card */}
+                <div className="rounded-xl border border-slate-200 bg-[#F8FBFD] p-3.5 text-xs text-[#526477] space-y-2">
+                  <div className="flex items-center gap-2 text-[#102033] font-semibold">
+                    <Lock className="h-3.5 w-3.5 text-amber-600" />
+                    <span>Stealth Operation Guarantee:</span>
+                  </div>
+                  <p className="leading-relaxed">
+                    Users will <strong>NOT</strong> be told the platform was shut down or suspended. They will see a standard technical error code (e.g. replica failure or connection timeout) so it appears as an unexpected hosting or database crash.
+                  </p>
+                  <p className="text-[#102033] font-medium">
+                    ⚡ Only your <strong>Root Admin</strong> session will continue working normally, and you can restore full platform operations with 1 click anytime.
+                  </p>
+                </div>
+
+                {/* Custom Simulated Error Message Input */}
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-[#102033]">
+                    Simulated Technical Error Message (Returned in HTTP 503 Response):
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={customOutageMessage}
+                    onChange={(textareaChangeEvent) => setCustomOutageMessage(textareaChangeEvent.target.value)}
+                    className="w-full rounded-lg border border-slate-200 bg-[#F8FBFD] p-2.5 text-xs text-[#102033] placeholder-slate-400 focus:border-red-500 focus:bg-white focus:outline-none"
+                    placeholder="Enter technical database error message..."
+                  />
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    <span className="text-[10px] text-[#8094A8] mr-1 self-center">Presets:</span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setCustomOutageMessage(
+                          'Database connection pool exhausted: Connection timed out to primary replica cluster (Error: 0x80040154_DB_CLUSTER_FAIL).'
+                        )
+                      }
+                      className="rounded bg-slate-100 border border-slate-200 px-2 py-0.5 text-[10px] text-[#526477] hover:bg-slate-200 cursor-pointer"
+                    >
+                      Replica Cluster Timeout
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setCustomOutageMessage(
+                          '503 Service Unavailable: Liaquatabad Municipal Cloud node unreachable. Gateway timed out.'
+                        )
+                      }
+                      className="rounded bg-slate-100 border border-slate-200 px-2 py-0.5 text-[10px] text-[#526477] hover:bg-slate-200 cursor-pointer"
+                    >
+                      Gateway 503
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setCustomOutageMessage(
+                          'Network Error: ECONNREFUSED 127.0.0.1:27017. Remote host actively refused connection.'
+                        )
+                      }
+                      className="rounded bg-slate-100 border border-slate-200 px-2 py-0.5 text-[10px] text-[#526477] hover:bg-slate-200 cursor-pointer"
+                    >
+                      ECONNREFUSED
+                    </button>
+                  </div>
+                </div>
+
+                {/* Confirmation Checkbox for Activation */}
+                {!killSwitchStatus.isSuspended && (
+                  <div className="rounded-lg border border-red-200 bg-red-50/70 p-3">
+                    <label className="flex items-start gap-2.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={killSwitchConfirmed}
+                        onChange={(checkboxChangeEvent) => setKillSwitchConfirmed(checkboxChangeEvent.target.checked)}
+                        className="mt-0.5 h-4 w-4 rounded border-slate-300 text-red-600 focus:ring-red-500"
+                      />
+                      <span className="text-xs text-[#526477] select-none">
+                        I confirm that I want to simulate an unexpected infrastructure outage and block all non-root user traffic.
+                      </span>
+                    </label>
+                  </div>
+                )}
+
+                {/* Modal Footer Actions */}
+                <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsKillSwitchModalOpen(false)}
+                    className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-[#526477] hover:bg-slate-50 cursor-pointer shadow-sm"
+                  >
+                    Close
+                  </button>
+
+                  {killSwitchStatus.isSuspended ? (
+                    <button
+                      type="button"
+                      disabled={isKillSwitchToggling}
+                      onClick={() => handleToggleKillSwitch(false)}
+                      className="flex items-center gap-2 rounded-lg bg-[#4B7F3A] hover:bg-[#38662D] px-5 py-2 text-xs font-semibold text-white transition shadow-sm cursor-pointer disabled:opacity-50"
+                    >
+                      <CheckCircle2 className="h-4 w-4" />
+                      <span>{isKillSwitchToggling ? 'Restoring Services...' : 'Restore Normal Operations'}</span>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={!killSwitchConfirmed || isKillSwitchToggling}
+                      onClick={() => handleToggleKillSwitch(true)}
+                      className="flex items-center gap-2 rounded-lg bg-red-600 hover:bg-red-700 px-5 py-2 text-xs font-semibold text-white transition shadow-sm cursor-pointer disabled:opacity-50"
+                    >
+                      <ShieldAlert className="h-4 w-4" />
+                      <span>{isKillSwitchToggling ? 'Triggering Outage...' : 'Simulate Cluster Outage (503)'}</span>
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
-          )}
-
-            {/* ─── TAB 3: SUPER ADMIN GOVERNANCE ─── */}
-            {activeTab === 'governance' && (
-              <div className="space-y-4 animate-tab-content">
-                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm">
-                                  <div>
-                                    <h3 className="text-base font-bold text-[#102033]">Authorized Super Administrators (Level 90)</h3>
-                                    <p className="text-xs text-[#526477]">
-                                      Super Admins govern operational workflows, faculty onboarding, circulars, and municipal schools across Liaquatabad Town.
-                                    </p>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setAuthorizeFormData({ userId: '', authority: 'SUPER_ADMIN', scope: 'GLOBAL', reason: '' });
-                                      setAuthorizeUserSearch('');
-                                      setIsAuthorizeModalOpen(true);
-                                    }}
-                                    className="flex items-center gap-2 rounded-xl bg-amber-600 hover:bg-amber-700 px-4 py-2 text-xs font-semibold text-white shadow-sm transition cursor-pointer"
-                                  >
-                                    <ShieldCheck className="h-4 w-4" />
-                                    <span>Authorize Super Admin</span>
-                                  </button>
-                                </div>
-
-                                <div className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-sm">
-                                  <div className="overflow-x-auto">
-                                    <table className="w-full text-left text-xs text-[#526477]">
-                                      <thead className="border-b border-slate-200 bg-[#F0F8FF]/80 text-[11px] uppercase font-bold text-[#526477] tracking-wider">
-                                        <tr>
-                                          <th className="px-5 py-3.5">Administrator Name</th>
-                                          <th className="px-4 py-3.5">Civil Designation</th>
-                                          <th className="px-4 py-3.5">System Role</th>
-                                          <th className="px-4 py-3.5">Scope</th>
-                                          <th className="px-4 py-3.5">Status</th>
-                                          <th className="px-4 py-3.5">Created Date</th>
-                                          <th className="px-4 py-3.5 text-right">Actions</th>
-                                        </tr>
-                                      </thead>
-                                      <tbody className="divide-y divide-slate-100">
-                                        {isSuperAdminsLoading ? (
-                                          <tr>
-                                            <td colSpan="7" className="py-12 text-center text-[#8094A8]">
-                                              <RefreshCw className="mx-auto h-6 w-6 animate-spin text-amber-600" />
-                                              <p className="mt-2 text-xs">Querying Super Admin roster...</p>
-                                            </td>
-                                          </tr>
-                                        ) : superAdminsList.length === 0 ? (
-                                          <tr>
-                                            <td colSpan="7" className="py-12 text-center text-[#8094A8]">
-                                              <Crown className="mx-auto h-8 w-8 text-slate-300 mb-2" />
-                                              <p className="text-sm font-semibold text-[#102033]">No Super Admin Accounts Provisioned</p>
-                                            </td>
-                                          </tr>
-                                        ) : (
-                                          superAdminsList.map((adminRecord) => (
-                                            <tr key={adminRecord._id} className="transition hover:bg-blue-50/30">
-                                              <td className="px-5 py-4">
-                                                <div className="flex items-center gap-3">
-                                                  <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-amber-200 bg-amber-50 text-xs font-bold text-amber-800">
-                                                    {adminRecord.fullName.charAt(0).toUpperCase()}
-                                                  </div>
-                                                  <div>
-                                                    <p className="font-bold text-[#102033]">{adminRecord.fullName}</p>
-                                                    <p className="text-[11px] text-[#8094A8] font-mono">{adminRecord.email}</p>
-                                                  </div>
-                                                </div>
-                                              </td>
-
-                                              <td className="px-4 py-4 font-medium text-[#102033]">
-                                                {adminRecord.designation || 'Town Chairman'}
-                                              </td>
-
-                                              <td className="px-4 py-4">
-                                                <span className="rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-mono font-bold text-amber-800">
-                                                  SUPER_ADMIN (90)
-                                                </span>
-                                              </td>
-
-                                              <td className="px-4 py-4">
-                                                <span className="rounded-md border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-mono font-bold text-[#006AC7]">
-                                                  {adminRecord.scope || 'GLOBAL'}
-                                                </span>
-                                              </td>
-
-                                              <td className="px-4 py-4">
-                                                <span
-                                                  className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${adminRecord.status === 'ACTIVE'
-                                                      ? 'bg-emerald-50 text-[#4B7F3A] border border-emerald-200'
-                                                      : 'bg-red-50 text-red-700 border border-red-200'
-                                                    }`}
-                                                >
-                                                  {adminRecord.status}
-                                                </span>
-                                              </td>
-
-                                              <td className="px-4 py-4 text-[#8094A8] font-mono text-[11px]">
-                                                {new Date(adminRecord.createdAt).toLocaleDateString()}
-                                              </td>
-
-                                              <td className="px-4 py-4 text-right">
-                                                {adminRecord.status === 'ACTIVE' ? (
-                                                  <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                      setSelectedSuperAdminToDisable(adminRecord);
-                                                      setIsDisableModalOpen(true);
-                                                    }}
-                                                    className="rounded-lg border border-red-200 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-100 transition cursor-pointer"
-                                                  >
-                                                    Disable Account
-                                                  </button>
-                                                ) : (
-                                                  <span className="text-[#8094A8] italic text-xs">Disabled</span>
-                                                )}
-                                              </td>
-                                            </tr>
-                                          ))
-                                        )}
-                                      </tbody>
-                                    </table>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* ─── TAB 4: CLEARANCE & APPROVALS ROSTER ─── */}
-                            {activeTab === 'approvals' && (
-                              <div className="space-y-4 animate-tab-content">
-                                <div className="rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm">
-                                  <h3 className="text-base font-bold text-[#102033]">Personnel Clearance & Approval Queue</h3>
-                                  <p className="text-xs text-[#526477]">
-                                    Staff and faculty awaiting civil verification and system activation.
-                                  </p>
-                                </div>
-
-                                {isPendingUsersLoading ? (
-                                  <div className="flex flex-col items-center justify-center rounded-xl border border-slate-200/80 bg-white p-12 text-[#526477]">
-                                    <RefreshCw className="h-6 w-6 animate-spin text-amber-600" />
-                                    <p className="mt-2 text-xs">Querying pending approval roster...</p>
-                                  </div>
-                                ) : pendingUsersList.length === 0 ? (
-                                  <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white p-12 text-center">
-                                    <CheckCircle2 className="h-12 w-12 text-[#4B7F3A] mb-3" />
-                                    <h4 className="text-base font-bold text-[#102033]">Clearance Roster Up To Date</h4>
-                                    <p className="mt-1 text-xs text-[#526477]">There are no pending registrations requiring review at this time.</p>
-                                  </div>
-                                ) : (
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {pendingUsersList.map((pendingUser) => (
-                                      <div
-                                        key={pendingUser._id}
-                                        className="flex flex-col justify-between rounded-xl border border-slate-200/80 bg-white p-5 shadow-sm hover:shadow-md transition"
-                                      >
-                                        <div className="space-y-3">
-                                          <div className="flex items-start justify-between gap-2">
-                                            <div>
-                                              <h4 className="font-bold text-[#102033] text-base">{pendingUser.fullName}</h4>
-                                              <p className="text-xs text-[#8094A8] font-mono">{pendingUser.email}</p>
-                                            </div>
-                                            <span className="rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-mono font-bold text-amber-800">
-                                              {pendingUser.role}
-                                            </span>
-                                          </div>
-
-                                          <div className="space-y-1 text-xs text-[#526477] border-t border-slate-100 pt-3">
-                                            <p><span className="text-[#8094A8]">Proposed Title:</span> {pendingUser.designation || 'Teacher / Staff'}</p>
-                                            <p><span className="text-[#8094A8]">Target School:</span> {pendingUser.schoolId?.name || 'District Assignment'}</p>
-                                            <p><span className="text-[#8094A8]">Registered:</span> {new Date(pendingUser.createdAt).toLocaleString()}</p>
-                                          </div>
-                                        </div>
-
-                                        <div className="mt-4 flex items-center justify-end gap-2 border-t border-slate-100 pt-3">
-                                          <button
-                                            type="button"
-                                            onClick={() => handleProcessUserLifecycle(pendingUser._id, 'INACTIVE', 'Registration rejected by Root Admin')}
-                                            disabled={actionProcessingUserId === pendingUser._id}
-                                            className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100 transition cursor-pointer"
-                                          >
-                                            Reject
-                                          </button>
-                                          <button
-                                            type="button"
-                                            onClick={() => handleProcessUserLifecycle(pendingUser._id, 'ACTIVE', 'Approved directly by Root Administrator')}
-                                            disabled={actionProcessingUserId === pendingUser._id}
-                                            className="rounded-lg bg-[#4B7F3A] hover:bg-[#38662D] px-4 py-1.5 text-xs font-semibold text-white transition shadow-sm cursor-pointer"
-                                          >
-                                            Approve & Activate
-                                          </button>
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            )}
-
-                            {/* ─── TAB 5: COMMAND OPS & EMERGENCY ─── */}
-                            {activeTab === 'operations' && (
-                              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-tab-content">
-                                {/* Break Glass Architecture */}
-                                <div className="rounded-xl border border-amber-200 bg-white p-6 shadow-sm space-y-4 flex flex-col justify-between">
-                                  <div className="space-y-4">
-                                    <div className="flex items-center gap-3">
-                                      <div className="rounded-lg border border-amber-200 bg-amber-50 p-2 text-amber-700">
-                                        <Key className="h-5 w-5" />
-                                      </div>
-                                      <div>
-                                        <h3 className="font-bold text-[#102033] text-base">Break-Glass Protocol</h3>
-                                        <p className="text-xs text-[#526477]">Disaster recovery for lost Super Admin access</p>
-                                      </div>
-                                    </div>
-
-                                    <p className="text-xs text-[#526477] leading-relaxed">
-                                      ROOT_ADMIN holds platform-wide technical governance authority. In disaster scenarios where Super Admins are locked out or compromised, execute the emergency CLI command on the server host:
-                                    </p>
-
-                                    <div className="rounded-lg bg-slate-50 p-3 text-xs font-mono text-slate-800 border border-slate-200 break-all">
-                                      node scripts/breakGlassRecovery.js &lt;email&gt; &lt;new_password&gt;
-                                    </div>
-                                  </div>
-
-                                  <div className="flex items-center gap-2 text-xs text-[#526477] pt-2 border-t border-slate-100">
-                                    <CheckCircle2 className="h-4 w-4 text-[#4B7F3A] shrink-0" />
-                                    <span>Triple-Lock v7.0 Cryptographic Guard Active</span>
-                                  </div>
-                                </div>
-
-                                {/* Security Lockout Flush Console */}
-                                <div className="rounded-xl border border-red-200 bg-white p-6 shadow-sm space-y-4 flex flex-col justify-between">
-                                  <div className="space-y-4">
-                                    <div className="flex items-center gap-3">
-                                      <div className="rounded-lg border border-red-200 bg-red-50 p-2 text-red-600">
-                                        <Unlock className="h-5 w-5" />
-                                      </div>
-                                      <div>
-                                        <h3 className="font-bold text-[#102033] text-base">Platform Lockout Operations</h3>
-                                        <p className="text-xs text-[#526477]">Unblock brute-force trapped IPs and accounts</p>
-                                      </div>
-                                    </div>
-
-                                    <p className="text-xs text-[#526477] leading-relaxed">
-                                      The Triple-Lock rate limiter automatically strikes and locks out IPs with abnormal request patterns. Root Admins can purge all active locks with zero downtime.
-                                    </p>
-
-                                    <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-xs text-red-700">
-                                      ⚠ Purging lockouts will immediately restore access to all currently restricted client IP addresses.
-                                    </div>
-                                  </div>
-
-                                  <div className="pt-2 border-t border-slate-100">
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        setFlushLockoutReason('');
-                                        setFlushLockoutConfirmed(false);
-                                        setIsFlushLockoutModalOpen(true);
-                                      }}
-                                      className="w-full flex items-center justify-center gap-2 rounded-xl bg-red-600 hover:bg-red-700 px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition cursor-pointer"
-                                    >
-                                      <Unlock className="h-4 w-4" />
-                                      <span>Flush Security Lockouts</span>
-                                    </button>
-                                  </div>
-                                </div>
-
-                                {/* Emergency District Broadcast Console */}
-                                <div className="rounded-xl border border-blue-200 bg-white p-6 shadow-sm space-y-4 flex flex-col justify-between">
-                                  <div className="space-y-4">
-                                    <div className="flex items-center gap-3">
-                                      <div className="rounded-lg border border-blue-200 bg-blue-50 p-2 text-[#006AC7]">
-                                        <Radio className="h-5 w-5" />
-                                      </div>
-                                      <div>
-                                        <h3 className="font-bold text-[#102033] text-base">Civic Emergency Broadcast</h3>
-                                        <p className="text-xs text-[#526477]">Publish alerts across all platform portals</p>
-                                      </div>
-                                    </div>
-
-                                    <p className="text-xs text-[#526477] leading-relaxed">
-                                      Publish high-priority administrative bulletins, weather advisories, or town-wide alerts. Broadcast banners appear instantly on HM, Teacher, and Student portals.
-                                    </p>
-
-                                    <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 text-xs text-[#006AC7]">
-                                      ℹ Broadcasts are logged in the immutable audit ledger with severity level and issuing actor identity.
-                                    </div>
-                                  </div>
-
-                                  <div className="pt-2 border-t border-slate-100">
-                                    <button
-                                      type="button"
-                                      onClick={() => setIsBroadcastModalOpen(true)}
-                                      className="w-full flex items-center justify-center gap-2 rounded-xl bg-[#006AC7] hover:bg-[#005299] px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition cursor-pointer"
-                                    >
-                                      <Radio className="h-4 w-4" />
-                                      <span>Issue Emergency Broadcast</span>
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* ─── TAB 6: IMMUTABLE AUDIT STREAM ─── */}
-                            {activeTab === 'audit' && (
-                              <div className="space-y-4 animate-tab-content">
-                                <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between rounded-xl border border-slate-200/80 bg-white p-4 shadow-sm">
-                                  <div className="flex flex-1 items-center gap-3">
-                                    <div className="relative flex-1 max-w-md">
-                                      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8094A8]" />
-                                      <input
-                                        type="text"
-                                        value={auditSearchQuery}
-                                        onChange={(eventObject) => setAuditSearchQuery(eventObject.target.value)}
-                                        placeholder="Search audit action (e.g. BREAK_GLASS, CREATED)..."
-                                        className="w-full rounded-lg border border-slate-200 bg-[#F8FBFD] py-2 pl-9 pr-4 text-xs text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:bg-white focus:outline-none"
-                                      />
-                                    </div>
-
-                                    <select
-                                      value={auditResultFilter}
-                                      onChange={(eventObject) => setAuditResultFilter(eventObject.target.value)}
-                                      className="rounded-lg border border-slate-200 bg-[#F8FBFD] px-3 py-2 text-xs text-[#102033] focus:border-[#006AC7] focus:bg-white focus:outline-none"
-                                    >
-                                      <option value="">All Results</option>
-                                      <option value="SUCCESS">Success</option>
-                                      <option value="FAILURE">Failure</option>
-                                    </select>
-                                  </div>
-
-                                  <button
-                                    type="button"
-                                    onClick={fetchAuditLogs}
-                                    className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-[#526477] hover:bg-slate-50 hover:text-[#102033] transition cursor-pointer shadow-sm"
-                                  >
-                                    <RefreshCw className={`h-3.5 w-3.5 ${isAuditLogsLoading ? 'animate-spin' : ''}`} />
-                                    <span>Refresh Stream</span>
-                                  </button>
-                                </div>
-
-                                <div className="overflow-hidden rounded-xl border border-slate-200/80 bg-white p-4 font-mono text-xs shadow-sm">
-                                  <div className="space-y-2">
-                                    {isAuditLogsLoading ? (
-                                      <div className="py-8 text-center text-[#8094A8]">
-                                        <RefreshCw className="mx-auto h-5 w-5 animate-spin text-[#006AC7]" />
-                                        <p className="mt-2 text-xs">Streaming audit ledger records...</p>
-                                      </div>
-                                    ) : auditLogsList.length === 0 ? (
-                                      <div className="py-8 text-center text-[#8094A8]">
-                                        <p>No matching audit records in current view.</p>
-                                      </div>
-                                    ) : (
-                                      auditLogsList.map((auditRecord) => (
-                                        <div
-                                          key={auditRecord._id}
-                                          className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-2 text-[#526477] transition hover:bg-blue-50/20 p-2 rounded"
-                                        >
-                                          <div className="flex items-center gap-3">
-                                            <span className="text-[10px] text-[#8094A8]">
-                                              {new Date(auditRecord.createdAt).toLocaleTimeString()}
-                                            </span>
-                                            <span
-                                              className={`rounded px-1.5 py-0.5 text-[10px] font-bold ${auditRecord.result === 'SUCCESS' ? 'bg-emerald-50 text-[#4B7F3A] border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'
-                                                }`}
-                                            >
-                                              {auditRecord.result}
-                                            </span>
-                                            <span className="font-bold text-[#006AC7]">{auditRecord.action}</span>
-                                            <span className="text-[#526477] truncate max-w-xs">
-                                              by {auditRecord.actorRole} ({auditRecord.actorName || 'System'})
-                                            </span>
-                                          </div>
-                                          <div className="text-[11px] text-[#8094A8]">
-                                            Target: {auditRecord.targetName || auditRecord.targetModel || 'Global'} • {auditRecord.ipAddress || 'Internal'}
-                                          </div>
-                                        </div>
-                                      ))
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* ─── TAB: EXPORTS & SYSTEM HEALTH ─── */}
-                            {activeTab === 'reports' && (
-                              <ReportingHealthTab />
-                            )}
-
-                            {/* ─── MODAL: REGISTER SCHOOL ─── */}
-                            {isRegisterSchoolModalOpen && (
-                              <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm animate-modal-backdrop">
-                                <div className="relative w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-5 animate-modal-card">
-                                  <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                                    <div className="flex items-center gap-2.5">
-                                      <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-2 text-[#4B7F3A]">
-                                        <SchoolIcon className="h-5 w-5" />
-                                      </div>
-                                      <div>
-                                        <h3 className="text-lg font-extrabold text-[#102033]">Register School</h3>
-                                        <p className="text-xs text-[#526477]">Add a new educational entity to Liaquatabad Town Centre</p>
-                                      </div>
-                                    </div>
-                                    <button
-                                      type="button"
-                                      onClick={() => setIsRegisterSchoolModalOpen(false)}
-                                      className="rounded-lg p-1.5 text-[#8094A8] hover:bg-slate-100 hover:text-[#102033] cursor-pointer"
-                                    >
-                                      <XCircle className="h-5 w-5" />
-                                    </button>
-                                  </div>
-
-                                  <form onSubmit={handleRegisterSchoolSubmit} className="space-y-4">
-                                    <div>
-                                      <label className="block text-xs font-semibold text-[#102033]">Official School Name *</label>
-                                      <input
-                                        type="text"
-                                        required
-                                        value={registerSchoolFormData.name}
-                                        onChange={(eventObject) => setRegisterSchoolFormData({ ...registerSchoolFormData, name: eventObject.target.value })}
-                                        placeholder="e.g. Molana Muhammad Hussain Azad Govt. Boys Secondary School"
-                                        className="mt-1 w-full rounded-lg border border-slate-200 bg-[#F8FBFD] px-3 py-2 text-xs text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:bg-white focus:outline-none"
-                                      />
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-3">
-                                      <div>
-                                        <label className="block text-xs font-semibold text-[#102033]">School Code (Prefix) *</label>
-                                        <input
-                                          type="text"
-                                          value={registerSchoolFormData.schoolCode}
-                                          onChange={(eventObject) => setRegisterSchoolFormData({ ...registerSchoolFormData, schoolCode: eventObject.target.value.toUpperCase() })}
-                                          placeholder="e.g. MMHA, GGSS"
-                                          className="mt-1 w-full rounded-lg border border-slate-200 bg-[#F8FBFD] px-3 py-2 text-xs text-[#102033] uppercase font-mono placeholder-slate-400 focus:border-[#006AC7] focus:bg-white focus:outline-none"
-                                        />
-                                        <p className="mt-1 text-[10px] text-[#8094A8]">Prefix for student IDs (2-10 chars)</p>
-                                      </div>
-
-                                      <div>
-                                        <label className="block text-xs font-semibold text-[#102033]">EMIS Code</label>
-                                        <input
-                                          type="text"
-                                          value={registerSchoolFormData.emisCode}
-                                          onChange={(eventObject) => setRegisterSchoolFormData({ ...registerSchoolFormData, emisCode: eventObject.target.value })}
-                                          placeholder="e.g. 408090123"
-                                          className="mt-1 w-full rounded-lg border border-slate-200 bg-[#F8FBFD] px-3 py-2 text-xs text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:bg-white focus:outline-none"
-                                        />
-                                      </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-3">
-                                      <div>
-                                        <label className="block text-xs font-semibold text-[#102033]">School Category *</label>
-                                        <select
-                                          value={registerSchoolFormData.schoolType}
-                                          onChange={(eventObject) => setRegisterSchoolFormData({ ...registerSchoolFormData, schoolType: eventObject.target.value })}
-                                          className="mt-1 w-full rounded-lg border border-slate-200 bg-[#F8FBFD] px-3 py-2 text-xs text-[#102033] focus:border-[#006AC7] focus:bg-white focus:outline-none"
-                                        >
-                                          <option value="ECE">ECE (Nursery - KG-2)</option>
-                                          <option value="PRIMARY">Primary (KG-1 - 5th)</option>
-                                          <option value="ELEMENTARY">Elementary (KG-1 - 8th)</option>
-                                          <option value="SECONDARY">Secondary (Class 6–10)</option>
-                                        </select>
-                                      </div>
-
-                                      <div>
-                                        <label className="block text-xs font-semibold text-[#102033]">Gender Orientation *</label>
-                                        <select
-                                          value={registerSchoolFormData.genderType}
-                                          onChange={(eventObject) => setRegisterSchoolFormData({ ...registerSchoolFormData, genderType: eventObject.target.value })}
-                                          className="mt-1 w-full rounded-lg border border-slate-200 bg-[#F8FBFD] px-3 py-2 text-xs text-[#102033] focus:border-[#006AC7] focus:bg-white focus:outline-none"
-                                        >
-                                          <option value="BOYS">Boys</option>
-                                          <option value="GIRLS">Girls</option>
-                                          <option value="CO_EDUCATION">Co-Education</option>
-                                        </select>
-                                      </div>
-                                    </div>
-
-                                    <div>
-                                      <label className="block text-xs font-semibold text-[#102033]">Institutional Address *</label>
-                                      <input
-                                        type="text"
-                                        required
-                                        value={registerSchoolFormData.address}
-                                        onChange={(eventObject) => setRegisterSchoolFormData({ ...registerSchoolFormData, address: eventObject.target.value })}
-                                        placeholder="e.g. Near Super Market, Liaquatabad No. 4, Karachi"
-                                        className="mt-1 w-full rounded-lg border border-slate-200 bg-[#F8FBFD] px-3 py-2 text-xs text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:bg-white focus:outline-none"
-                                      />
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-3">
-                                      <div>
-                                        <label className="block text-xs font-semibold text-[#102033]">Official Phone</label>
-                                        <input
-                                          type="text"
-                                          value={registerSchoolFormData.contactPhone}
-                                          onChange={(eventObject) => setRegisterSchoolFormData({ ...registerSchoolFormData, contactPhone: eventObject.target.value })}
-                                          placeholder="e.g. 021-34981234"
-                                          className="mt-1 w-full rounded-lg border border-slate-200 bg-[#F8FBFD] px-3 py-2 text-xs text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:bg-white focus:outline-none"
-                                        />
-                                      </div>
-
-                                      <div>
-                                        <label className="block text-xs font-semibold text-[#102033]">Official Email</label>
-                                        <input
-                                          type="email"
-                                          value={registerSchoolFormData.contactEmail}
-                                          onChange={(eventObject) => setRegisterSchoolFormData({ ...registerSchoolFormData, contactEmail: eventObject.target.value })}
-                                          placeholder="e.g. mmha.boys@liaquatabad.gov.pk"
-                                          className="mt-1 w-full rounded-lg border border-slate-200 bg-[#F8FBFD] px-3 py-2 text-xs text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:bg-white focus:outline-none"
-                                        />
-                                      </div>
-                                    </div>
-
-                                    <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
-                                      <button
-                                        type="button"
-                                        onClick={() => setIsRegisterSchoolModalOpen(false)}
-                                        className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-[#526477] hover:bg-slate-50 cursor-pointer shadow-sm"
-                                      >
-                                        Cancel
-                                      </button>
-                                      <button
-                                        type="submit"
-                                        disabled={isRegisteringSchoolSubmitting}
-                                        className="flex items-center gap-2 rounded-lg bg-[#4B7F3A] hover:bg-[#38662D] px-5 py-2 text-xs font-semibold text-white transition shadow-sm cursor-pointer disabled:opacity-50"
-                                      >
-                                        {isRegisteringSchoolSubmitting ? 'Registering...' : 'Confirm Registration'}
-                                      </button>
-                                    </div>
-                                  </form>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* ─── MODAL: AUTHORIZE SUPER ADMIN (EXISTING USER WORKFLOW) ─── */}
-                            {isAuthorizeModalOpen && (
-                              <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm animate-modal-backdrop">
-                                <div className="relative w-full max-w-xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-5 animate-modal-card">
-                                  <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                                    <div className="flex items-center gap-2.5">
-                                      <div className="rounded-lg border border-amber-200 bg-amber-50 p-2 text-amber-700">
-                                        <ShieldCheck className="h-5 w-5" />
-                                      </div>
-                                      <div>
-                                        <h3 className="text-lg font-extrabold text-[#102033]">Authorize Super Administrator</h3>
-                                        <p className="text-xs text-[#526477]">Grant operational platform authority to an existing personnel account</p>
-                                      </div>
-                                    </div>
-                                    <button
-                                      type="button"
-                                      onClick={() => setIsAuthorizeModalOpen(false)}
-                                      className="rounded-lg p-1.5 text-[#8094A8] hover:bg-slate-100 hover:text-[#102033] cursor-pointer"
-                                    >
-                                      <XCircle className="h-5 w-5" />
-                                    </button>
-                                  </div>
-
-                                  {/* Informational Callout */}
-                                  <div className="rounded-lg border border-amber-200 bg-amber-50/70 p-3 text-xs text-amber-900 leading-relaxed space-y-1">
-                                    <p className="font-semibold text-amber-800">RBAC Architectural Invariants:</p>
-                                    <ul className="list-disc pl-4 space-y-0.5 text-[#526477]">
-                                      <li>Civil Service Designation (<span className="text-amber-800 font-mono">user.designation</span>) remains 100% unchanged.</li>
-                                      <li>Base Registration Category (<span className="text-amber-800 font-mono">user.baseRole</span>) remains 100% unchanged.</li>
-                                      <li>Active sessions will be revoked immediately via security token version rotation.</li>
-                                    </ul>
-                                  </div>
-
-                                  <form onSubmit={handleAuthorizeSuperAdminSubmit} className="space-y-4">
-                                    {/* Step 1: Select Existing Personnel */}
-                                    <div>
-                                      <label className="block text-xs font-semibold text-[#102033] mb-1">
-                                        Select Existing Personnel Account *
-                                      </label>
-
-                                      {/* Search input for filtering */}
-                                      <div className="relative mb-2">
-                                        <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#8094A8]" />
-                                        <input
-                                          type="text"
-                                          value={authorizeUserSearch}
-                                          onChange={(inputChangeEvent) => setAuthorizeUserSearch(inputChangeEvent.target.value)}
-                                          placeholder="Filter by name, email, or civil title..."
-                                          className="w-full rounded-lg border border-slate-200 bg-[#F8FBFD] py-1.5 pl-9 pr-3 text-xs text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:bg-white focus:outline-none"
-                                        />
-                                      </div>
-
-                                      {/* Scrollable User Selector Roster */}
-                                      <div className="max-h-40 overflow-y-auto rounded-lg border border-slate-200 bg-[#F8FBFD] divide-y divide-slate-100">
-                                        {(() => {
-                                          const candidateUsers = usersList.filter((candidateUser) => {
-                                            if (candidateUser.role === 'ROOT_ADMIN' || candidateUser.role === 'SUPER_ADMIN') return false;
-                                            if (!authorizeUserSearch.trim()) return true;
-                                            const queryNormalized = authorizeUserSearch.toLowerCase();
-                                            return (
-                                              candidateUser.fullName?.toLowerCase().includes(queryNormalized) ||
-                                              candidateUser.email?.toLowerCase().includes(queryNormalized) ||
-                                              candidateUser.designation?.toLowerCase().includes(queryNormalized)
-                                            );
-                                          });
-
-                                          if (candidateUsers.length === 0) {
-                                            return (
-                                              <div className="p-4 text-center text-xs text-[#8094A8]">
-                                                No eligible personnel found matching "{authorizeUserSearch}".
-                                              </div>
-                                            );
-                                          }
-
-                                          return candidateUsers.map((candidateUser) => {
-                                            const isSelected = authorizeFormData.userId === candidateUser._id;
-                                            return (
-                                              <div
-                                                key={candidateUser._id}
-                                                onClick={() => setAuthorizeFormData({ ...authorizeFormData, userId: candidateUser._id })}
-                                                className={`flex items-center justify-between p-2.5 text-xs transition cursor-pointer ${isSelected
-                                                    ? 'bg-amber-50 border-l-4 border-amber-600'
-                                                    : 'hover:bg-slate-100/60'
-                                                  }`}
-                                              >
-                                                <div className="flex items-center gap-2.5 truncate">
-                                                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-slate-200 bg-white text-[11px] font-bold text-[#102033]">
-                                                    {candidateUser.fullName?.charAt(0).toUpperCase()}
-                                                  </div>
-                                                  <div className="truncate">
-                                                    <p className="font-bold text-[#102033] truncate">{candidateUser.fullName}</p>
-                                                    <p className="text-[10px] text-[#8094A8] font-mono truncate">{candidateUser.email}</p>
-                                                  </div>
-                                                </div>
-                                                <div className="text-right shrink-0 ml-2">
-                                                  <span className="text-[10px] text-[#526477] font-medium block">
-                                                    {candidateUser.designation || 'Staff'}
-                                                  </span>
-                                                  <span className="text-[9px] font-mono text-amber-700 uppercase">
-                                                    Current: {candidateUser.role}
-                                                  </span>
-                                                </div>
-                                              </div>
-                                            );
-                                          });
-                                        })()}
-                                      </div>
-                                    </div>
-
-                                    {/* Selected User Confirmation Card */}
-                                    {authorizeFormData.userId && (() => {
-                                      const selectedCandidateUser = usersList.find((userItem) => userItem._id === authorizeFormData.userId);
-                                      if (!selectedCandidateUser) return null;
-                                      return (
-                                        <div className="rounded-lg border border-emerald-200 bg-emerald-50/80 p-2.5 text-xs flex items-center justify-between">
-                                          <div>
-                                            <span className="text-[#4B7F3A] font-bold block">Selected Candidate:</span>
-                                            <span className="text-[#102033] font-medium">{selectedCandidateUser.fullName} ({selectedCandidateUser.email})</span>
-                                          </div>
-                                          <div className="text-right">
-                                            <span className="text-[#526477] text-[10px] block">Title: {selectedCandidateUser.designation || 'Staff'}</span>
-                                            <span className="text-[#4B7F3A] font-mono text-[10px] uppercase">Base: {selectedCandidateUser.baseRole || 'TEACHER'}</span>
-                                          </div>
-                                        </div>
-                                      );
-                                    })()}
-
-                                    {/* Authority & Scope Selection */}
-                                    <div className="grid grid-cols-2 gap-3">
-                                      <div>
-                                        <label className="block text-xs font-semibold text-[#102033]">Target Authority</label>
-                                        <div className="mt-1 w-full rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800 font-mono flex items-center gap-2">
-                                          <ShieldCheck className="h-3.5 w-3.5 text-amber-600" />
-                                          <span>SUPER_ADMIN (Level 90)</span>
-                                        </div>
-                                      </div>
-
-                                      <div>
-                                        <label className="block text-xs font-semibold text-[#102033]">Operational Scope *</label>
-                                        <select
-                                          value={authorizeFormData.scope}
-                                          onChange={(selectChangeEvent) => setAuthorizeFormData({ ...authorizeFormData, scope: selectChangeEvent.target.value })}
-                                          className="mt-1 w-full rounded-lg border border-slate-200 bg-[#F8FBFD] px-3 py-2 text-xs text-[#102033] focus:border-[#006AC7] focus:bg-white focus:outline-none"
-                                        >
-                                          <option value="GLOBAL">GLOBAL (Platform-wide Authority)</option>
-                                          <option value="TOWN">TOWN (Town Administrative Scope)</option>
-                                        </select>
-                                      </div>
-                                    </div>
-
-                                    {/* Mandatory Justification Reason */}
-                                    <div>
-                                      <label className="block text-xs font-semibold text-[#102033]">Mandatory Justification Reason *</label>
-                                      <textarea
-                                        required
-                                        rows={2}
-                                        minLength={5}
-                                        value={authorizeFormData.reason}
-                                        onChange={(textareaChangeEvent) => setAuthorizeFormData({ ...authorizeFormData, reason: textareaChangeEvent.target.value })}
-                                        placeholder="Provide explicit operational justification for granting Super Admin authority..."
-                                        className="mt-1 w-full rounded-lg border border-slate-200 bg-[#F8FBFD] p-2.5 text-xs text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:bg-white focus:outline-none"
-                                      />
-                                    </div>
-
-                                    <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
-                                      <button
-                                        type="button"
-                                        onClick={() => setIsAuthorizeModalOpen(false)}
-                                        className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-[#526477] hover:bg-slate-50 cursor-pointer shadow-sm"
-                                      >
-                                        Cancel
-                                      </button>
-                                      <button
-                                        type="submit"
-                                        disabled={isAuthorizingSubmitting || !authorizeFormData.userId}
-                                        className="flex items-center gap-2 rounded-lg bg-amber-600 hover:bg-amber-700 px-5 py-2 text-xs font-semibold text-white transition shadow-sm cursor-pointer disabled:opacity-50"
-                                      >
-                                        {isAuthorizingSubmitting ? 'Authorizing...' : 'Grant Super Admin Authority'}
-                                      </button>
-                                    </div>
-                                  </form>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* ─── MODAL: DISABLE SUPER ADMIN ─── */}
-                            {isDisableModalOpen && selectedSuperAdminToDisable && (
-                              <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm animate-modal-backdrop">
-                                <div className="relative w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-5 animate-modal-card">
-                                  <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-                                    <div className="rounded-lg border border-red-200 bg-red-50 p-2 text-red-600">
-                                      <AlertTriangle className="h-5 w-5" />
-                                    </div>
-                                    <div>
-                                      <h3 className="text-base font-bold text-[#102033]">Disable Super Administrator</h3>
-                                      <p className="text-xs text-[#526477]">Revokes all active sessions immediately</p>
-                                    </div>
-                                  </div>
-
-                                  <p className="text-xs text-[#526477] leading-relaxed">
-                                    You are disabling <strong className="text-[#102033]">{selectedSuperAdminToDisable.fullName}</strong> ({selectedSuperAdminToDisable.email}). All active JWT tokens will be revoked via tokenVersion increment.
-                                  </p>
-
-                                  <form onSubmit={handleDisableSuperAdminSubmit} className="space-y-4">
-                                    <div>
-                                      <label className="block text-xs font-semibold text-[#102033]">Mandatory Justification Reason *</label>
-                                      <textarea
-                                        required
-                                        rows={3}
-                                        value={disableReasonText}
-                                        onChange={(eventObject) => setDisableReasonText(eventObject.target.value)}
-                                        placeholder="Enter explicit administrative or disciplinary reason..."
-                                        className="mt-1 w-full rounded-lg border border-slate-200 bg-[#F8FBFD] p-2.5 text-xs text-[#102033] placeholder-slate-400 focus:border-red-500 focus:bg-white focus:outline-none"
-                                      />
-                                    </div>
-
-                                    <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
-                                      <button
-                                        type="button"
-                                        onClick={() => setIsDisableModalOpen(false)}
-                                        className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-[#526477] hover:bg-slate-50 cursor-pointer shadow-sm"
-                                      >
-                                        Cancel
-                                      </button>
-                                      <button
-                                        type="submit"
-                                        disabled={isDisablingSubmitting}
-                                        className="rounded-lg bg-red-600 hover:bg-red-700 px-5 py-2 text-xs font-semibold text-white transition shadow-sm cursor-pointer disabled:opacity-50"
-                                      >
-                                        {isDisablingSubmitting ? 'Disabling...' : 'Confirm Disable'}
-                                      </button>
-                                    </div>
-                                  </form>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* ─── MODAL: EMERGENCY BROADCAST ─── */}
-                            {isBroadcastModalOpen && (
-                              <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm animate-modal-backdrop">
-                                <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-5 animate-modal-card">
-                                  <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                                    <div className="flex items-center gap-2.5">
-                                      <div className="rounded-lg border border-blue-200 bg-blue-50 p-2 text-[#006AC7]">
-                                        <Radio className="h-5 w-5" />
-                                      </div>
-                                      <div>
-                                        <h3 className="text-lg font-extrabold text-[#102033]">Issue District Broadcast</h3>
-                                        <p className="text-xs text-[#526477]">Publish high-priority alert across all platform dashboards</p>
-                                      </div>
-                                    </div>
-                                    <button
-                                      type="button"
-                                      onClick={() => setIsBroadcastModalOpen(false)}
-                                      className="rounded-lg p-1.5 text-[#8094A8] hover:bg-slate-100 hover:text-[#102033] cursor-pointer"
-                                    >
-                                      <XCircle className="h-5 w-5" />
-                                    </button>
-                                  </div>
-
-                                  <form onSubmit={handleBroadcastSubmit} className="space-y-4">
-                                    <div>
-                                      <label className="block text-xs font-semibold text-[#102033]">Broadcast Headline *</label>
-                                      <input
-                                        type="text"
-                                        required
-                                        value={broadcastFormData.title}
-                                        onChange={(eventObject) => setBroadcastFormData({ ...broadcastFormData, title: eventObject.target.value })}
-                                        placeholder="e.g. Extreme Weather Advisory: School Timings Adjusted"
-                                        className="mt-1 w-full rounded-lg border border-slate-200 bg-[#F8FBFD] px-3 py-2 text-xs text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:bg-white focus:outline-none"
-                                      />
-                                    </div>
-
-                                    <div>
-                                      <label className="block text-xs font-semibold text-[#102033]">Severity Tier *</label>
-                                      <select
-                                        value={broadcastFormData.severity}
-                                        onChange={(eventObject) => setBroadcastFormData({ ...broadcastFormData, severity: eventObject.target.value })}
-                                        className="mt-1 w-full rounded-lg border border-slate-200 bg-[#F8FBFD] px-3 py-2 text-xs text-[#102033] focus:border-[#006AC7] focus:bg-white focus:outline-none"
-                                      >
-                                        <option value="INFO">Informational (Blue)</option>
-                                        <option value="WARNING">Administrative Warning (Amber)</option>
-                                        <option value="CRITICAL">Emergency / Critical Alert (Red)</option>
-                                      </select>
-                                    </div>
-
-                                    <div>
-                                      <label className="block text-xs font-semibold text-[#102033]">Official Directive Content *</label>
-                                      <textarea
-                                        required
-                                        rows={4}
-                                        value={broadcastFormData.message}
-                                        onChange={(eventObject) => setBroadcastFormData({ ...broadcastFormData, message: eventObject.target.value })}
-                                        placeholder="Detailed instruction or municipal circular text..."
-                                        className="mt-1 w-full rounded-lg border border-slate-200 bg-[#F8FBFD] p-2.5 text-xs text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:bg-white focus:outline-none"
-                                      />
-                                    </div>
-
-                                    <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
-                                      <button
-                                        type="button"
-                                        onClick={() => setIsBroadcastModalOpen(false)}
-                                        className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-[#526477] hover:bg-slate-50 cursor-pointer shadow-sm"
-                                      >
-                                        Cancel
-                                      </button>
-                                      <button
-                                        type="submit"
-                                        disabled={isBroadcastSubmitting}
-                                        className="flex items-center gap-2 rounded-lg bg-[#006AC7] hover:bg-[#005299] px-5 py-2 text-xs font-semibold text-white transition shadow-sm cursor-pointer disabled:opacity-50"
-                                      >
-                                        {isBroadcastSubmitting ? 'Publishing...' : 'Dispatch Broadcast'}
-                                      </button>
-                                    </div>
-                                  </form>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* ─── MODAL: FLUSH SECURITY LOCKOUTS (HARDENED WITH TYPED REASON & CONFIRMATION) ─── */}
-                            {isFlushLockoutModalOpen && (
-                              <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm animate-modal-backdrop">
-                                <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-5 animate-modal-card">
-                                  <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                                    <div className="flex items-center gap-2.5">
-                                      <div className="rounded-lg border border-red-200 bg-red-50 p-2 text-red-600">
-                                        <Unlock className="h-5 w-5" />
-                                      </div>
-                                      <div>
-                                        <h3 className="text-lg font-extrabold text-[#102033]">Flush Security Lockout Store</h3>
-                                        <p className="text-xs text-[#526477]">Critical Infrastructure Operation • Administrative Purge</p>
-                                      </div>
-                                    </div>
-                                    <button
-                                      type="button"
-                                      onClick={() => setIsFlushLockoutModalOpen(false)}
-                                      className="rounded-lg p-1.5 text-[#8094A8] hover:bg-slate-100 hover:text-[#102033] cursor-pointer"
-                                    >
-                                      <XCircle className="h-5 w-5" />
-                                    </button>
-                                  </div>
-
-                                  <div className="rounded-lg bg-red-50 border border-red-200 p-3.5 text-xs text-red-800 space-y-1 leading-relaxed">
-                                    <p className="font-bold flex items-center gap-1.5 text-red-700">
-                                      <AlertTriangle className="h-4 w-4 shrink-0" />
-                                      High-Impact Security Warning
-                                    </p>
-                                    <p>
-                                      Purging the security lockout store will immediately clear all active IP bans and reset failed authentication rate-limit strikes. All restricted IP addresses will regain access to platform endpoints immediately.
-                                    </p>
-                                  </div>
-
-                                  <form onSubmit={handleFlushLockoutsSubmit} className="space-y-4">
-                                    <div>
-                                      <label className="block text-xs font-semibold text-[#102033]">
-                                        Mandatory Justification Reason * <span className="text-[#8094A8] font-normal">(Recorded in immutable audit ledger)</span>
-                                      </label>
-                                      <textarea
-                                        required
-                                        rows={3}
-                                        value={flushLockoutReason}
-                                        onChange={(eventObject) => setFlushLockoutReason(eventObject.target.value)}
-                                        placeholder="Enter explicit administrative or operational justification for purging IP lockouts..."
-                                        className="mt-1 w-full rounded-lg border border-slate-200 bg-[#F8FBFD] p-2.5 text-xs text-[#102033] placeholder-slate-400 focus:border-red-500 focus:bg-white focus:outline-none"
-                                      />
-                                      <span className="text-[10px] text-[#8094A8]">Minimum 5 characters required.</span>
-                                    </div>
-
-                                    <div className="rounded-lg border border-slate-200 bg-[#F8FBFD] p-3">
-                                      <label className="flex items-start gap-2.5 cursor-pointer">
-                                        <input
-                                          type="checkbox"
-                                          required
-                                          checked={flushLockoutConfirmed}
-                                          onChange={(eventObject) => setFlushLockoutConfirmed(eventObject.target.checked)}
-                                          className="mt-0.5 h-4 w-4 rounded border-slate-300 text-red-600 focus:ring-red-500"
-                                        />
-                                        <span className="text-xs text-[#526477] select-none">
-                                          I explicitly confirm and authorize the immediate purge of all security IP lockouts and rate-limiting strike records across the platform.
-                                        </span>
-                                      </label>
-                                    </div>
-
-                                    <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
-                                      <button
-                                        type="button"
-                                        onClick={() => setIsFlushLockoutModalOpen(false)}
-                                        className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-[#526477] hover:bg-slate-50 cursor-pointer shadow-sm"
-                                      >
-                                        Cancel
-                                      </button>
-                                      <button
-                                        type="submit"
-                                        disabled={isFlushingLockoutsSubmitting}
-                                        className="flex items-center gap-2 rounded-lg bg-red-600 hover:bg-red-700 px-5 py-2 text-xs font-semibold text-white transition shadow-sm cursor-pointer disabled:opacity-50"
-                                      >
-                                        <Unlock className="h-4 w-4" />
-                                        <span>{isFlushingLockoutsSubmitting ? 'Purging Lockout Records...' : 'Authorize & Flush Lockouts'}</span>
-                                      </button>
-                                    </div>
-                                  </form>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* ─── MODAL: EDIT MUNICIPAL SCHOOL ─── */}
-                            <EditSchoolModal
-                              isOpen={isEditSchoolModalOpen}
-                              onClose={() => setIsEditSchoolModalOpen(false)}
-                              school={selectedSchoolForEdit}
-                              onSchoolUpdated={fetchMunicipalSchools}
-                            />
-
-                            {/* ─── MODAL: USER AUTHORITY & DESIGNATION MANAGEMENT ─── */}
-                            <UserAuthorityModal
-                              isOpen={isAuthorityModalOpen}
-                              onClose={() => {
-                                setIsAuthorityModalOpen(false);
-                                setSelectedUserForAuthority(null);
-                              }}
-                              targetUser={selectedUserForAuthority}
-                              currentUser={authenticatedUser}
-                              onAuthorityUpdated={(updatedUser) => {
-                                fetchGlobalUsers();
-                                fetchSuperAdmins();
-                                fetchPlatformOverview();
-                              }}
-                            />
-
-                            {/* ─── MODAL: EMERGENCY OUTAGE & INFRASTRUCTURE GATE (ROOT_ADMIN ONLY) ─── */}
-                            {isKillSwitchModalOpen && authenticatedUser?.role === 'ROOT_ADMIN' && (
-                              <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-                                <div className="w-full max-w-xl rounded-2xl border border-slate-200 bg-white shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                                  {/* Header */}
-                                  <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 px-6 py-4">
-                                    <div className="flex items-center gap-3">
-                                      <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-red-200 bg-red-50 text-red-600">
-                                        <ShieldAlert className="h-5 w-5" />
-                                      </div>
-                                      <div>
-                                        <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
-                                          Emergency Outage Gate
-                                          <span className="rounded-md border border-red-200 bg-red-50 px-1.5 py-0.5 text-[10px] font-mono text-red-700">
-                                            ROOT OVERRIDE
-                                          </span>
-                                        </h3>
-                                        <p className="text-xs text-[#526477]">
-                                          Simulate unexpected cluster failure (HTTP 503) for non-root users.
-                                        </p>
-                                      </div>
-                                    </div>
-                                    <button
-                                      type="button"
-                                      onClick={() => setIsKillSwitchModalOpen(false)}
-                                      className="rounded-lg p-1 text-[#8094A8] hover:bg-slate-100 hover:text-[#102033] cursor-pointer"
-                                    >
-                                      <XCircle className="h-5 w-5" />
-                                    </button>
-                                  </div>
-
-                                  <div className="p-6 space-y-5">
-                                    {/* Live Status Badge */}
-                                    <div
-                                      className={`rounded-xl border p-4 flex items-center justify-between ${killSwitchStatus.isSuspended
-                                          ? 'border-red-200 bg-red-50 text-red-800'
-                                          : 'border-emerald-200 bg-emerald-50 text-[#4B7F3A]'
-                                        }`}
-                                    >
-                                      <div className="flex items-center gap-3">
-                                        <span className="relative flex h-3.5 w-3.5">
-                                          {killSwitchStatus.isSuspended && (
-                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                                          )}
-                                          <span
-                                            className={`relative inline-flex rounded-full h-3.5 w-3.5 ${killSwitchStatus.isSuspended ? 'bg-red-500' : 'bg-[#4B7F3A]'
-                                              }`}
-                                          ></span>
-                                        </span>
-                                        <div>
-                                          <div className="text-xs font-bold uppercase tracking-wider">
-                                            {killSwitchStatus.isSuspended
-                                              ? 'Outage Simulation Active (HTTP 503)'
-                                              : 'Platform Normal & Operational (200 OK)'}
-                                          </div>
-                                          <div className="text-[11px] opacity-80 mt-0.5">
-                                            {killSwitchStatus.isSuspended
-                                              ? 'All teachers, students, super admins, and public visitors receive an unexpected cluster error.'
-                                              : 'All municipal services, portals, logins, and API routes are running normally.'}
-                                          </div>
-                                        </div>
-                                      </div>
-                                    </div>
-
-                                    {/* Explanation Card */}
-                                    <div className="rounded-xl border border-slate-200 bg-[#F8FBFD] p-3.5 text-xs text-[#526477] space-y-2">
-                                      <div className="flex items-center gap-2 text-[#102033] font-semibold">
-                                        <Lock className="h-3.5 w-3.5 text-amber-600" />
-                                        <span>Stealth Operation Guarantee:</span>
-                                      </div>
-                                      <p className="leading-relaxed">
-                                        Users will <strong>NOT</strong> be told the platform was shut down or suspended. They will see a standard technical error code (e.g. replica failure or connection timeout) so it appears as an unexpected hosting or database crash.
-                                      </p>
-                                      <p className="text-[#102033] font-medium">
-                                        ⚡ Only your <strong>Root Admin</strong> session will continue working normally, and you can restore full platform operations with 1 click anytime.
-                                      </p>
-                                    </div>
-
-                                    {/* Custom Simulated Error Message Input */}
-                                    <div className="space-y-2">
-                                      <label className="text-xs font-medium text-[#102033]">
-                                        Simulated Technical Error Message (Returned in HTTP 503 Response):
-                                      </label>
-                                      <textarea
-                                        rows={2}
-                                        value={customOutageMessage}
-                                        onChange={(textareaChangeEvent) => setCustomOutageMessage(textareaChangeEvent.target.value)}
-                                        className="w-full rounded-lg border border-slate-200 bg-[#F8FBFD] p-2.5 text-xs text-[#102033] placeholder-slate-400 focus:border-red-500 focus:bg-white focus:outline-none"
-                                        placeholder="Enter technical database error message..."
-                                      />
-                                      <div className="flex flex-wrap gap-1.5 pt-1">
-                                        <span className="text-[10px] text-[#8094A8] mr-1 self-center">Presets:</span>
-                                        <button
-                                          type="button"
-                                          onClick={() =>
-                                            setCustomOutageMessage(
-                                              'Database connection pool exhausted: Connection timed out to primary replica cluster (Error: 0x80040154_DB_CLUSTER_FAIL).'
-                                            )
-                                          }
-                                          className="rounded bg-slate-100 border border-slate-200 px-2 py-0.5 text-[10px] text-[#526477] hover:bg-slate-200 cursor-pointer"
-                                        >
-                                          Replica Cluster Timeout
-                                        </button>
-                                        <button
-                                          type="button"
-                                          onClick={() =>
-                                            setCustomOutageMessage(
-                                              '503 Service Unavailable: Liaquatabad Municipal Cloud node unreachable. Gateway timed out.'
-                                            )
-                                          }
-                                          className="rounded bg-slate-100 border border-slate-200 px-2 py-0.5 text-[10px] text-[#526477] hover:bg-slate-200 cursor-pointer"
-                                        >
-                                          Gateway 503
-                                        </button>
-                                        <button
-                                          type="button"
-                                          onClick={() =>
-                                            setCustomOutageMessage(
-                                              'Network Error: ECONNREFUSED 127.0.0.1:27017. Remote host actively refused connection.'
-                                            )
-                                          }
-                                          className="rounded bg-slate-100 border border-slate-200 px-2 py-0.5 text-[10px] text-[#526477] hover:bg-slate-200 cursor-pointer"
-                                        >
-                                          ECONNREFUSED
-                                        </button>
-                                      </div>
-                                    </div>
-
-                                    {/* Confirmation Checkbox for Activation */}
-                                    {!killSwitchStatus.isSuspended && (
-                                      <div className="rounded-lg border border-red-200 bg-red-50/70 p-3">
-                                        <label className="flex items-start gap-2.5 cursor-pointer">
-                                          <input
-                                            type="checkbox"
-                                            checked={killSwitchConfirmed}
-                                            onChange={(checkboxChangeEvent) => setKillSwitchConfirmed(checkboxChangeEvent.target.checked)}
-                                            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-red-600 focus:ring-red-500"
-                                          />
-                                          <span className="text-xs text-[#526477] select-none">
-                                            I confirm that I want to simulate an unexpected infrastructure outage and block all non-root user traffic.
-                                          </span>
-                                        </label>
-                                      </div>
-                                    )}
-
-                                    {/* Modal Footer Actions */}
-                                    <div className="flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
-                                      <button
-                                        type="button"
-                                        onClick={() => setIsKillSwitchModalOpen(false)}
-                                        className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-xs font-medium text-[#526477] hover:bg-slate-50 cursor-pointer shadow-sm"
-                                      >
-                                        Close
-                                      </button>
-
-                                      {killSwitchStatus.isSuspended ? (
-                                        <button
-                                          type="button"
-                                          disabled={isKillSwitchToggling}
-                                          onClick={() => handleToggleKillSwitch(false)}
-                                          className="flex items-center gap-2 rounded-lg bg-[#4B7F3A] hover:bg-[#38662D] px-5 py-2 text-xs font-semibold text-white transition shadow-sm cursor-pointer disabled:opacity-50"
-                                        >
-                                          <CheckCircle2 className="h-4 w-4" />
-                                          <span>{isKillSwitchToggling ? 'Restoring Services...' : 'Restore Normal Operations'}</span>
-                                        </button>
-                                      ) : (
-                                        <button
-                                          type="button"
-                                          disabled={!killSwitchConfirmed || isKillSwitchToggling}
-                                          onClick={() => handleToggleKillSwitch(true)}
-                                          className="flex items-center gap-2 rounded-lg bg-red-600 hover:bg-red-700 px-5 py-2 text-xs font-semibold text-white transition shadow-sm cursor-pointer disabled:opacity-50"
-                                        >
-                                          <ShieldAlert className="h-4 w-4" />
-                                          <span>{isKillSwitchToggling ? 'Triggering Outage...' : 'Simulate Cluster Outage (503)'}</span>
-                                        </button>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </PageContainer>
-
-                      );
+          </div>
+        )}
+      </div>
+    </PageContainer>
+
+  );
 };
 
 export default RootAdminDashboard;

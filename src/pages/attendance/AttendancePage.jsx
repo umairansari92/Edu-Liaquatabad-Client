@@ -565,8 +565,8 @@ const AdminAttendanceWorkspace = ({ user }) => {
 
   return (
     <PageContainer
-      title="Municipal Digital Attendance Telemetry"
-      subtitle="Education Department Liaquatabad Town Centre (DMC) — Daily attendance tracking, student rosters, and school-level analytics"
+      title="Digital Attendance Register & Telemetry"
+      subtitle="Daily attendance tracking, student rosters, and school-level analytics"
       actions={
         <div className="flex items-center gap-2">
           <input

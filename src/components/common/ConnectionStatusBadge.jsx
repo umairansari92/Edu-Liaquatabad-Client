@@ -25,7 +25,7 @@ export const ConnectionStatusBadge = () => {
     return (
       <div
         className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-2xs"
-        title="Live connection to DMC Liaquatabad Town Server established"
+        title="Live connection to platform server established"
       >
         <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
         <Wifi className="w-3.5 h-3.5 text-emerald-600" />
@@ -38,7 +38,7 @@ export const ConnectionStatusBadge = () => {
     return (
       <div
         className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-full bg-blue-50 text-blue-700 border border-blue-200 animate-pulse shadow-2xs"
-        title="Synchronizing local drafts with DMC server..."
+        title="Synchronizing local drafts with server..."
       >
         <RefreshCw className="w-3.5 h-3.5 text-blue-600 animate-spin" />
         <span>Syncing...</span>

@@ -108,7 +108,7 @@ export const AdminDashboard = () => {
   return (
     <PageContainer
       title="TOWN ADMIN COMMAND CENTER"
-      subtitle={`Education Department ${townName} (DMC) • Municipal Jurisdiction (Level 80)`}
+      subtitle="School Management System • Town Administration (Level 80)"
       actions={
         <div className="flex items-center gap-3">
           <button
@@ -164,7 +164,7 @@ export const AdminDashboard = () => {
           <p className="text-2xl font-black text-[#102033] mt-2">
             {isOverviewLoading ? '...' : (overview?.roleDistribution?.students || 0)}
           </p>
-          <p className="text-[11px] text-indigo-600 mt-0.5">Municipal Enrollment</p>
+          <p className="text-[11px] text-indigo-600 mt-0.5">Total Enrollment</p>
         </div>
 
         <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
@@ -183,7 +183,7 @@ export const AdminDashboard = () => {
       <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-6 border-b border-slate-200 text-xs font-bold">
         {[
           { id: 'overview', label: 'Town Overview', icon: Activity },
-          { id: 'schools', label: 'Municipal Schools', icon: Building2 },
+          { id: 'schools', label: 'Schools', icon: Building2 },
           { id: 'users', label: 'Faculty & Staff', icon: Users },
           { id: 'transfers', label: 'Teacher Transfers', icon: ArrowRightLeft },
           { id: 'live_monitor', label: 'Live Class Monitor', icon: Clock },
@@ -219,13 +219,13 @@ export const AdminDashboard = () => {
                 Town Admin Governance Scope & Boundaries
               </h3>
               <p className="text-xs text-[#526477] leading-relaxed">
-                As Town Administrator for <strong>{townName}</strong>, you manage operational academic institutions, teachers, and student rosters within your municipal boundaries.
+                As Town Administrator for <strong>{townName}</strong>, you manage operational academic institutions, teachers, and student rosters within your town jurisdiction.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                 <div className="p-3.5 rounded-xl bg-blue-50/60 border border-blue-100 text-xs space-y-1">
                   <p className="font-bold text-[#006AC7]">Institutional Supervision</p>
                   <p className="text-blue-700 text-[11px]">
-                    Direct municipal oversight over elementary and secondary schools, teachers, attendance registries, and local transfers.
+                    Direct oversight over elementary and secondary schools, teachers, attendance registries, and local transfers.
                   </p>
                 </div>
                 <div className="p-3.5 rounded-xl bg-amber-50/60 border border-amber-100 text-xs space-y-1">

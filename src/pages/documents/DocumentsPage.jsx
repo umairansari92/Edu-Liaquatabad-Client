@@ -25,8 +25,8 @@ export const DocumentsPage = () => {
 
   return (
     <PageContainer
-      title="Municipal Circulars, Documents & Reporting Exports"
-      subtitle="Education Department Liaquatabad Town Centre (DMC) — Official directives, personnel CSV exports, and infrastructure vitals"
+      title="School Circulars, Documents & Reporting Exports"
+      subtitle="Official directives, personnel CSV exports, and school vitals"
     >
       <div className="space-y-6">
         <ReportingHealthTab />

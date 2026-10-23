@@ -60,7 +60,7 @@ export const AuditLogsPage = () => {
   return (
     <PageContainer
       title="Platform Security & Immutable Audit Stream"
-      subtitle="Education Department Liaquatabad Town Centre (DMC) — Cryptographic audit trail, administrative role mutations, and security events"
+      subtitle="Cryptographic audit trail, administrative role mutations, and security events"
       actions={
         <button
           type="button"

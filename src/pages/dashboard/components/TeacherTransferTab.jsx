@@ -282,33 +282,30 @@ export const TeacherTransferTab = ({ schoolsList = [], teachersList = [] }) => {
           <button
             type="button"
             onClick={() => setDirectionFilter('incoming')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-2 ${
-              directionFilter === 'incoming'
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-2 ${directionFilter === 'incoming'
                 ? 'bg-white text-[#006AC7] shadow-sm'
                 : 'text-[#526477] hover:text-[#102033]'
-            }`}
+              }`}
           >
             <span>Incoming Staff (Joining Requests)</span>
           </button>
           <button
             type="button"
             onClick={() => setDirectionFilter('outgoing')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-2 ${
-              directionFilter === 'outgoing'
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-2 ${directionFilter === 'outgoing'
                 ? 'bg-white text-[#006AC7] shadow-sm'
                 : 'text-[#526477] hover:text-[#102033]'
-            }`}
+              }`}
           >
             <span>Departing Staff (Clearance & Relieving)</span>
           </button>
           <button
             type="button"
             onClick={() => setDirectionFilter('all')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-2 ${
-              directionFilter === 'all'
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-2 ${directionFilter === 'all'
                 ? 'bg-white text-[#006AC7] shadow-sm'
                 : 'text-[#526477] hover:text-[#102033]'
-            }`}
+              }`}
           >
             <span>All School Transfers</span>
           </button>
@@ -437,15 +434,14 @@ export const TeacherTransferTab = ({ schoolsList = [], teachersList = [] }) => {
 
                     <td className="px-4 py-4">
                       <span
-                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
-                          transferRecord.status === 'APPROVED' || transferRecord.status === 'JOINED' || transferRecord.status === 'JOINING_APPROVED'
+                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold ${transferRecord.status === 'APPROVED' || transferRecord.status === 'JOINED' || transferRecord.status === 'JOINING_APPROVED'
                             ? 'bg-emerald-50 text-[#4B7F3A] border border-emerald-200'
                             : transferRecord.status === 'PENDING' || transferRecord.status === 'PENDING_TARGET_HM_APPROVAL' || transferRecord.status === 'TRANSFER_REQUESTED'
-                            ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                            : transferRecord.status === 'RELIEVED' || transferRecord.status === 'AWAITING_DESTINATION_HM'
-                            ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
-                            : 'bg-rose-50 text-rose-700 border border-rose-200'
-                        }`}
+                              ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                              : transferRecord.status === 'RELIEVED' || transferRecord.status === 'AWAITING_DESTINATION_HM'
+                                ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
+                                : 'bg-rose-50 text-rose-700 border border-rose-200'
+                          }`}
                       >
                         {(transferRecord.status === 'APPROVED' || transferRecord.status === 'JOINED' || transferRecord.status === 'JOINING_APPROVED') && <CheckCircle2 className="h-3 w-3" />}
                         {(transferRecord.status === 'PENDING' || transferRecord.status === 'PENDING_TARGET_HM_APPROVAL' || transferRecord.status === 'TRANSFER_REQUESTED') && <Clock className="h-3 w-3" />}
@@ -453,10 +449,10 @@ export const TeacherTransferTab = ({ schoolsList = [], teachersList = [] }) => {
                         {transferRecord.status === 'PENDING_TARGET_HM_APPROVAL'
                           ? 'Awaiting HM Review'
                           : transferRecord.status === 'JOINED' || transferRecord.status === 'JOINING_APPROVED'
-                          ? 'Joined'
-                          : transferRecord.status === 'REJECTED_BY_HM'
-                          ? 'Rejected by HM'
-                          : transferRecord.status}
+                            ? 'Joined'
+                            : transferRecord.status === 'REJECTED_BY_HM'
+                              ? 'Rejected by HM'
+                              : transferRecord.status}
                       </span>
                     </td>
 

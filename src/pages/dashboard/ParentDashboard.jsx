@@ -187,7 +187,7 @@ export const ParentDashboard = () => {
   return (
     <PageContainer
       title="PARENT & GUARDIAN WORKSPACE"
-      subtitle={`Education Department Liaquatabad Town Centre (DMC) • Welcome, ${user?.fullName || 'Parent'}`}
+      subtitle={`Welcome, ${user?.fullName || 'Parent'} • Ward academic monitoring and verified school records`}
       actions={
         <div className="flex items-center gap-2">
           <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 border border-blue-200 text-[#006AC7]">
@@ -421,7 +421,7 @@ export const ParentDashboard = () => {
                   <div className="text-right">
                     <p className="text-[10px] uppercase font-bold text-[#8094A8]">EMIS Code</p>
                     <p className="text-sm font-black text-[#102033]">{activeWardData.profile?.school?.emisCode || '4080101'}</p>
-                    <p className="text-[10px] text-[#526477] mt-0.5">Municipal Registry</p>
+                    <p className="text-[10px] text-[#526477] mt-0.5">School Registry</p>
                   </div>
                 </div>
               </div>
@@ -940,7 +940,7 @@ export const ParentDashboard = () => {
             {!claimWizard.candidate && !claimWizard.initiatedClaim && (
               <form onSubmit={handleLookupSubmit} className="space-y-4 max-w-xl">
                 <div>
-                  <label className="block text-xs font-bold text-[#102033] mb-1.5">Municipal School</label>
+                  <label className="block text-xs font-bold text-[#102033] mb-1.5">School</label>
                   <select
                     value={selectedSchoolId}
                     onChange={(changeEvent) => setSelectedSchoolId(changeEvent.target.value)}

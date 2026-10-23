@@ -324,8 +324,9 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
     if (!freshRecoveryCodes || freshRecoveryCodes.length === 0) return;
     const content = [
       '========================================================================',
-      'EDUCATION DEPARTMENT LIAQUATABAD TOWN CENTRE (DMC)',
-      'EMERGENCY MFA BACKUP RECOVERY CODES',
+      'TOWN MUNICIPAL CORPORATION (TMC)',
+      'EDUCATION DEPARTMENT LIAQUATABAD TOWN',
+      'SCHOOL MANAGEMENT SYSTEM — EMERGENCY MFA BACKUP RECOVERY CODES',
       '========================================================================',
       `Account: ${user?.email || 'Administrator'}`,
       `Date Generated: ${new Date().toUTCString()}`,

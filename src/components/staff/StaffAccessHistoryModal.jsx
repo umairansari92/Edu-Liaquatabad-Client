@@ -138,7 +138,7 @@ export const StaffAccessHistoryModal = ({ isOpen, onClose, targetId, staffName }
 
         {/* Footer */}
         <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
-          <span>Immutable audit logs logged by DMC Security Subsystem</span>
+          <span>Immutable audit logs recorded by Security Subsystem</span>
           <button
             onClick={onClose}
             className="px-4 py-1.5 rounded-xl border border-slate-200 bg-white font-semibold text-slate-600 hover:bg-slate-50"

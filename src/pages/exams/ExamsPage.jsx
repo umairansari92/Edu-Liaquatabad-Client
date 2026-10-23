@@ -43,7 +43,7 @@ export const ExamsPage = () => {
   return (
     <PageContainer
       title="Exams, Curriculum & Student Results"
-      subtitle="Education Department Liaquatabad Town Centre (DMC) — Municipal assessment cycles, grading standards, and academic marks transcripts"
+      subtitle="Assessment cycles, grading standards, and academic marks transcripts"
     >
       <div className="space-y-6">
         {/* Term Selector Cards */}
@@ -71,7 +71,7 @@ export const ExamsPage = () => {
                 <span className="text-xs text-[#8094A8] font-medium">{termItem.date}</span>
               </div>
               <h4 className="mt-3 font-bold text-[#102033] text-sm">{termItem.label}</h4>
-              <p className="mt-1 text-xs text-[#526477]">Liaquatabad Town DMC Jurisdiction</p>
+              <p className="mt-1 text-xs text-[#526477]">Liaquatabad Town Jurisdiction</p>
             </div>
           ))}
         </div>
@@ -83,8 +83,8 @@ export const ExamsPage = () => {
               <Award className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-[#102033]">Board & Municipal Standard Grading Policy</h3>
-              <p className="text-xs text-[#526477]">Standardized evaluation matrix across all primary and secondary municipal schools</p>
+              <h3 className="text-sm font-bold text-[#102033]">Board Standard Grading Policy</h3>
+              <p className="text-xs text-[#526477]">Standardized evaluation matrix across all primary and secondary schools</p>
             </div>
           </div>
 

@@ -241,7 +241,7 @@ export const StaffProfilePage = () => {
       subtitle={
         isStudentProfile
           ? 'Official student academic and enrollment record'
-          : 'Official institutional civil service record dossier — DMC Liaquatabad Town Centre'
+          : 'Official faculty and staff service record dossier — Liaquatabad Town'
       }
     >
       <div className="max-w-6xl mx-auto space-y-6">
@@ -298,11 +298,10 @@ export const StaffProfilePage = () => {
                 type="button"
                 onClick={handleDownloadClick}
                 disabled={isDownloadingPdf}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white text-xs font-bold transition-all shadow-sm disabled:opacity-50 ${
-                  canDirectDownloadPdf
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white text-xs font-bold transition-all shadow-sm disabled:opacity-50 ${canDirectDownloadPdf
                     ? 'bg-[#006AC7] hover:bg-[#005299]'
                     : 'bg-amber-600 hover:bg-amber-700'
-                }`}
+                  }`}
               >
                 {canDirectDownloadPdf ? (
                   <Download className="w-4 h-4" />
@@ -312,8 +311,8 @@ export const StaffProfilePage = () => {
                 {isDownloadingPdf
                   ? 'Generating PDF...'
                   : canDirectDownloadPdf
-                  ? 'Download Official Record (PDF)'
-                  : 'Request PDF Consent'}
+                    ? 'Download Official Record (PDF)'
+                    : 'Request PDF Consent'}
               </button>
             )}
           </div>
@@ -443,8 +442,8 @@ export const StaffProfilePage = () => {
                           ? new Date(student.dateOfBirth).toLocaleDateString()
                           : 'Not Recorded'
                         : profile?.dateOfBirth
-                        ? new Date(profile.dateOfBirth).toLocaleDateString()
-                        : 'Not Recorded'}
+                          ? new Date(profile.dateOfBirth).toLocaleDateString()
+                          : 'Not Recorded'}
                     </span>
                   </div>
 
@@ -476,7 +475,7 @@ export const StaffProfilePage = () => {
                         label="Phone Number"
                         currentTier={
                           fieldVisibility[
-                            isStudentProfile ? 'guardianCellNumber' : 'phoneNumber'
+                          isStudentProfile ? 'guardianCellNumber' : 'phoneNumber'
                           ] || 'SCHOOL'
                         }
                         isOwner={isOwner}
@@ -552,8 +551,8 @@ export const StaffProfilePage = () => {
                           ? new Date(student.admissionDate).toLocaleDateString()
                           : 'Not Recorded'
                         : profile?.appointmentDate
-                        ? new Date(profile.appointmentDate).toLocaleDateString()
-                        : 'Not Recorded'}
+                          ? new Date(profile.appointmentDate).toLocaleDateString()
+                          : 'Not Recorded'}
                     </span>
                   </div>
 
@@ -576,8 +575,8 @@ export const StaffProfilePage = () => {
                     <span className="font-bold text-[#102033]">
                       {isStudentProfile
                         ? (student?.class?.name && student?.section?.name
-                            ? `${student.class.name} (${student.section.name})`
-                            : student?.class?.name || 'Unassigned Class')
+                          ? `${student.class.name} (${student.section.name})`
+                          : student?.class?.name || 'Unassigned Class')
                         : profile?.qualification || 'Not Recorded'}
                     </span>
                   </div>
@@ -596,7 +595,7 @@ export const StaffProfilePage = () => {
                       Institutional District
                     </span>
                     <span className="text-[#102033] font-medium">
-                      Liaquatabad Town Centre (DMC)
+                      Town Municipal Corporation (TMC) Liaquatabad
                     </span>
                   </div>
                 </div>

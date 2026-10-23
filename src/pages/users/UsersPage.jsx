@@ -270,7 +270,7 @@ export const UsersPage = () => {
         return {
           title: 'Employee Directory',
           subtitle:
-            'Education Department Liaquatabad Town Centre (DMC) — Staff roster, civil service designations, and authority governance',
+            'Staff roster, role designations, and access governance',
         };
       case 'STUDENTS':
         return {

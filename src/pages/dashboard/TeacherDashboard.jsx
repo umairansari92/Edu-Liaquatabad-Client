@@ -2255,7 +2255,7 @@ export const TeacherDashboard = () => {
                   onChange={(e) => setLeaveType(e.target.value)}
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
                 >
-                  <option value="CASUAL_LEAVE">Casual Leave (CL) — Municipal Entitlement</option>
+                  <option value="CASUAL_LEAVE">Casual Leave (CL) — Standard Entitlement</option>
                   <option value="MEDICAL_LEAVE">Medical Leave (ML)</option>
                   <option value="EARNED_LEAVE">Earned Leave (EL)</option>
                 </select>
@@ -2315,7 +2315,7 @@ export const TeacherDashboard = () => {
                   <div>
                     <span className="font-bold">Casual Leave Limit Exceeded ({calculatedLeaveDays} Days):</span>
                     <p className="mt-0.5 text-amber-800">
-                      Municipal regulations limit Casual Leave (CL) to a maximum of 3 consecutive calendar days. For leaves of 4 or more days, please select <strong>Earned Leave (EL)</strong> above, which will be forwarded by your Head Master to the Town Education Office.
+                      Institutional regulations limit Casual Leave (CL) to a maximum of 3 consecutive calendar days. For leaves of 4 or more days, please select <strong>Earned Leave (EL)</strong> above, which will be forwarded by your Head Master to the Town Education Office.
                     </p>
                   </div>
                 </div>

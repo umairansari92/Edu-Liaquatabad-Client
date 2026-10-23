@@ -189,7 +189,7 @@ export const SuperAdminDashboard = () => {
   return (
     <PageContainer
       title="SUPER ADMIN COMMAND CENTER"
-      subtitle="Education Department Liaquatabad Town Centre (DMC) • Primary Operational Authority (Level 90)"
+      subtitle="Town Municipal Corporation (TMC) • Education Department Liaquatabad Town • Operational Directorate (Level 90)"
       actions={
         <div className="flex items-center gap-3">
           <button
@@ -219,7 +219,7 @@ export const SuperAdminDashboard = () => {
           <p className="text-2xl font-black text-[#102033] mt-2">
             {isOverviewLoading ? '...' : (overview?.activeSchools || schoolsList.length || 0)}
           </p>
-          <p className="text-[11px] text-[#526477] mt-0.5">Municipal Registry</p>
+          <p className="text-[11px] text-[#526477] mt-0.5">School Registry</p>
         </div>
 
         <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
@@ -328,7 +328,7 @@ export const SuperAdminDashboard = () => {
                 <div className="p-3.5 rounded-xl bg-blue-50/60 border border-blue-100 text-xs space-y-1">
                   <p className="font-bold text-[#006AC7]">Admin Account Management</p>
                   <p className="text-blue-700 text-[11px]">
-                    You can assign, promote, and configure municipal town Admins across towns in DMC Liaquatabad.
+                    You can assign, promote, and configure town administrators across schools in Liaquatabad Town.
                   </p>
                 </div>
                 <div className="p-3.5 rounded-xl bg-emerald-50/60 border border-emerald-100 text-xs space-y-1">

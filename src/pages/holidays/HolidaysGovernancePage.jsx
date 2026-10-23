@@ -518,7 +518,7 @@ export const HolidaysGovernancePage = () => {
               <p className="font-bold text-amber-900">Headmaster Bounded Closure Policy</p>
               <p className="mt-0.5 text-amber-700 font-medium">
                 You may declare single-school emergency closures exclusively for your verified school assignment.
-                Town-wide breaks are managed by the Liaquatabad DMC Directorate. Backdating is strictly blocked.
+                Town-wide breaks are managed by the Education Department, TMC Liaquatabad. Backdating is strictly blocked.
               </p>
             </div>
           </div>
@@ -984,7 +984,7 @@ export const HolidaysGovernancePage = () => {
                       <input
                         type="text"
                         disabled
-                        value="Liaquatabad Town Centre (DMC)"
+                        value="Town Municipal Corporation (TMC) Liaquatabad"
                         className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-mono text-[#526477]"
                       />
                     </div>

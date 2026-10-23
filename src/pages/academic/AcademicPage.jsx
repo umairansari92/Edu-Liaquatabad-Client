@@ -29,7 +29,7 @@ export const AcademicPage = () => {
   return (
     <PageContainer
       title="Academic Management & Institutional Curriculum"
-      subtitle="Education Department Liaquatabad Town Centre (DMC) — Grade levels, class rosters, sections, and subject allocations"
+      subtitle="Grade levels, class rosters, sections, and subject allocations"
       actions={
         <button
           type="button"

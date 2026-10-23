@@ -970,26 +970,23 @@ export const HmTimetableBuilder = ({
               <button
                 key={day}
                 onClick={() => setSelectedDay(day)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
-                  isSelected
+                className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${isSelected
                     ? 'bg-[#102033] text-white shadow-md'
                     : isDayWeeklyOff
-                    ? 'bg-slate-100/70 border border-slate-200 text-slate-400 hover:bg-slate-100'
-                    : 'bg-slate-50 border border-slate-200 text-[#526477] hover:bg-slate-100'
-                }`}
+                      ? 'bg-slate-100/70 border border-slate-200 text-slate-400 hover:bg-slate-100'
+                      : 'bg-slate-50 border border-slate-200 text-[#526477] hover:bg-slate-100'
+                  }`}
               >
                 <span>{day}</span>
                 {isFridayPill && !isDayWeeklyOff && (
-                  <span className={`text-[9px] px-1 py-0.2 rounded font-mono ${
-                    isSelected ? 'bg-indigo-400/30 text-indigo-200' : 'bg-indigo-100 text-indigo-800'
-                  }`}>
+                  <span className={`text-[9px] px-1 py-0.2 rounded font-mono ${isSelected ? 'bg-indigo-400/30 text-indigo-200' : 'bg-indigo-100 text-indigo-800'
+                    }`}>
                     Jummah
                   </span>
                 )}
                 {isDayWeeklyOff && (
-                  <span className={`text-[9px] px-1 py-0.2 rounded font-mono ${
-                    isSelected ? 'bg-amber-400/30 text-amber-200' : 'bg-slate-200 text-slate-600'
-                  }`}>
+                  <span className={`text-[9px] px-1 py-0.2 rounded font-mono ${isSelected ? 'bg-amber-400/30 text-amber-200' : 'bg-slate-200 text-slate-600'
+                    }`}>
                     Off
                   </span>
                 )}
@@ -997,9 +994,8 @@ export const HmTimetableBuilder = ({
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="Today in Karachi" />
                 )}
                 <span
-                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
-                    isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 text-[#526477]'
-                  }`}
+                  className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 text-[#526477]'
+                    }`}
                 >
                   {dayEntryCount}
                 </span>
@@ -1095,9 +1091,8 @@ export const HmTimetableBuilder = ({
                 return (
                   <th
                     key={slot.periodNumber}
-                    className={`py-3 px-2 text-center border-r border-slate-200 last:border-r-0 ${
-                      isLiveSlot ? 'bg-emerald-500/15 border-b-2 border-b-emerald-600' : ''
-                    }`}
+                    className={`py-3 px-2 text-center border-r border-slate-200 last:border-r-0 ${isLiveSlot ? 'bg-emerald-500/15 border-b-2 border-b-emerald-600' : ''
+                      }`}
                   >
                     <div className="flex flex-col items-center">
                       <span className={`text-xs sm:text-sm font-black ${isLiveSlot ? 'text-emerald-800' : 'text-[#102033]'}`}>
@@ -1124,9 +1119,8 @@ export const HmTimetableBuilder = ({
                 return (
                   <th
                     key={`time_${slot.periodNumber}`}
-                    className={`py-2 px-1 sm:px-2 text-center border-r border-slate-200 last:border-r-0 ${
-                      isBreak ? 'w-12 sm:w-14 md:w-16 shrink-0 bg-amber-50/50 border-r-amber-200 text-amber-800 text-[9px] sm:text-[10px]' : ''
-                    }`}
+                    className={`py-2 px-1 sm:px-2 text-center border-r border-slate-200 last:border-r-0 ${isBreak ? 'w-12 sm:w-14 md:w-16 shrink-0 bg-amber-50/50 border-r-amber-200 text-amber-800 text-[9px] sm:text-[10px]' : ''
+                      }`}
                   >
                     <span className="truncate block">{slot.startTime}–{slot.endTime}</span>
                   </th>
@@ -1163,9 +1157,8 @@ export const HmTimetableBuilder = ({
                           <div className="text-[10px] sm:text-[11px] font-medium text-[#526477] flex items-center gap-1 mt-0.5 min-w-0">
                             <User className="w-3 h-3 text-[#8094A8] shrink-0" />
                             <span
-                              className={`truncate max-w-[100px] sm:max-w-[120px] lg:max-w-[130px] ${
-                                designatedTeacher ? 'font-bold text-[#102033]' : 'text-[#8094A8]'
-                              }`}
+                              className={`truncate max-w-[100px] sm:max-w-[120px] lg:max-w-[130px] ${designatedTeacher ? 'font-bold text-[#102033]' : 'text-[#8094A8]'
+                                }`}
                               title={teacherDisplayName}
                             >
                               {teacherDisplayName}
@@ -1237,9 +1230,8 @@ export const HmTimetableBuilder = ({
                         <td
                           key={slot.periodNumber}
                           onClick={() => handleOpenCellEditor(classItem, slot)}
-                          className={`py-2 px-1.5 sm:px-2 border-r border-slate-200 last:border-r-0 cursor-pointer transition group ${
-                            isLiveSlot ? 'bg-emerald-500/10' : 'hover:bg-blue-50/40'
-                          }`}
+                          className={`py-2 px-1.5 sm:px-2 border-r border-slate-200 last:border-r-0 cursor-pointer transition group ${isLiveSlot ? 'bg-emerald-500/10' : 'hover:bg-blue-50/40'
+                            }`}
                         >
                           {isAllocated ? (
                             <div className="p-1.5 sm:p-2 rounded-xl bg-blue-50/90 border border-blue-200/80 group-hover:border-[#006AC7] transition space-y-0.5">
@@ -1361,22 +1353,20 @@ export const HmTimetableBuilder = ({
               <button
                 type="button"
                 onClick={() => setManagerTab('REGULAR')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer ${
-                  managerTab === 'REGULAR'
+                className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer ${managerTab === 'REGULAR'
                     ? 'bg-[#102033] text-white'
                     : 'bg-slate-100 text-[#526477] hover:bg-slate-200'
-                }`}
+                  }`}
               >
                 Regular Days Slots ({editableSlots.length})
               </button>
               <button
                 type="button"
                 onClick={() => setManagerTab('FRIDAY')}
-                className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer ${
-                  managerTab === 'FRIDAY'
+                className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer ${managerTab === 'FRIDAY'
                     ? 'bg-[#102033] text-white'
                     : 'bg-slate-100 text-[#526477] hover:bg-slate-200'
-                }`}
+                  }`}
               >
                 Friday Jummah Slots ({editableFridaySlots.length})
               </button>
@@ -1407,9 +1397,8 @@ export const HmTimetableBuilder = ({
                         </td>
                         <td className="py-2 px-3 font-bold">{slot.label}</td>
                         <td className="py-2 px-3">
-                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
-                            slot.slotType === 'RECESS' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'
-                          }`}>
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${slot.slotType === 'RECESS' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'
+                            }`}>
                             {slot.slotType}
                           </span>
                         </td>

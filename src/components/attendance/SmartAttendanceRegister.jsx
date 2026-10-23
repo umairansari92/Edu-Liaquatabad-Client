@@ -550,8 +550,8 @@ export const SmartAttendanceRegister = ({
                             const fontClass = bandText.length > 20
                               ? 'text-[8.5px] tracking-wider'
                               : bandText.length > 14
-                              ? 'text-[9.5px] tracking-wide'
-                              : 'text-[11px] tracking-widest';
+                                ? 'text-[9.5px] tracking-wide'
+                                : 'text-[11px] tracking-widest';
 
                             return (
                               <td
@@ -641,9 +641,8 @@ export const SmartAttendanceRegister = ({
                     return (
                       <td
                         key={calDay.date}
-                        className={`py-2.5 px-0.5 border-r border-slate-200 text-center font-mono ${
-                          isClosed ? 'text-slate-400 bg-slate-100' : 'text-emerald-700 font-bold bg-emerald-50/30'
-                        }`}
+                        className={`py-2.5 px-0.5 border-r border-slate-200 text-center font-mono ${isClosed ? 'text-slate-400 bg-slate-100' : 'text-emerald-700 font-bold bg-emerald-50/30'
+                          }`}
                       >
                         {isClosed ? '—' : t?.present ?? 0}
                       </td>
@@ -664,9 +663,8 @@ export const SmartAttendanceRegister = ({
                     return (
                       <td
                         key={calDay.date}
-                        className={`py-2 px-0.5 border-r border-slate-200 text-center font-mono ${
-                          isClosed ? 'text-slate-300 bg-slate-50' : 'text-rose-700 bg-rose-50/30'
-                        }`}
+                        className={`py-2 px-0.5 border-r border-slate-200 text-center font-mono ${isClosed ? 'text-slate-300 bg-slate-50' : 'text-rose-700 bg-rose-50/30'
+                          }`}
                       >
                         {isClosed ? '—' : t?.absent ?? 0}
                       </td>
@@ -860,33 +858,30 @@ export const SmartAttendanceRegister = ({
                         <button
                           type="button"
                           onClick={() => handleToggleClearanceStatus(student.studentProfileId, 'PRESENT')}
-                          className={`px-2.5 py-1 rounded text-xs font-black transition cursor-pointer ${
-                            student.status === 'PRESENT'
+                          className={`px-2.5 py-1 rounded text-xs font-black transition cursor-pointer ${student.status === 'PRESENT'
                               ? 'bg-emerald-600 text-white shadow-xs'
                               : 'text-slate-600 hover:bg-emerald-50 hover:text-emerald-700'
-                          }`}
+                            }`}
                         >
                           P
                         </button>
                         <button
                           type="button"
                           onClick={() => handleToggleClearanceStatus(student.studentProfileId, 'ABSENT')}
-                          className={`px-2.5 py-1 rounded text-xs font-black transition cursor-pointer ${
-                            student.status === 'ABSENT'
+                          className={`px-2.5 py-1 rounded text-xs font-black transition cursor-pointer ${student.status === 'ABSENT'
                               ? 'bg-rose-600 text-white shadow-xs'
                               : 'text-slate-600 hover:bg-rose-50 hover:text-rose-700'
-                          }`}
+                            }`}
                         >
                           A
                         </button>
                         <button
                           type="button"
                           onClick={() => handleToggleClearanceStatus(student.studentProfileId, 'LEAVE')}
-                          className={`px-2.5 py-1 rounded text-xs font-black transition cursor-pointer ${
-                            student.status === 'LEAVE'
+                          className={`px-2.5 py-1 rounded text-xs font-black transition cursor-pointer ${student.status === 'LEAVE'
                               ? 'bg-amber-500 text-white shadow-xs'
                               : 'text-slate-600 hover:bg-amber-50 hover:text-amber-700'
-                          }`}
+                            }`}
                         >
                           L
                         </button>

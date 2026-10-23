@@ -137,9 +137,14 @@ export const RegisterTeacherPage = () => {
         <h2 className="text-2xl sm:text-3xl font-display font-bold text-[#102033] tracking-tight">
           Official Staff &amp; Faculty Registration
         </h2>
-        <p className="mt-1 text-xs sm:text-sm text-[#526477]">
-          Education Department Liaquatabad Town Centre (DMC) — Institutional Service Record Portal
-        </p>
+        <div className="mt-1.5 space-y-0.5">
+          <p className="text-xs font-semibold text-[#102033]">
+            Town Municipal Corporation (TMC)
+          </p>
+          <p className="text-xs sm:text-sm text-[#526477] font-medium">
+            Education Department Liaquatabad Town — Faculty Registration Portal
+          </p>
+        </div>
 
         {/* Step Indicator Tabs */}
         {!submitted && (
@@ -350,7 +355,7 @@ export const RegisterTeacherPage = () => {
                         <option value="">Select your institution</option>
                         {schools.map((schoolItem) => (
                           <option key={schoolItem._id} value={schoolItem._id}>
-                            {schoolItem.name} ({schoolItem.schoolCode || 'DMC'})
+                            {schoolItem.name} ({schoolItem.schoolCode || 'SCH'})
                           </option>
                         ))}
                       </select>

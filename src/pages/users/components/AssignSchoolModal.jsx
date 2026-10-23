@@ -94,9 +94,9 @@ export const AssignSchoolModal = ({
               <School className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-[#102033]">Assign Municipal School</h2>
+              <h2 className="text-sm font-bold text-[#102033]">Assign School</h2>
               <p className="text-[11px] text-[#526477]">
-                Education Department Liaquatabad Town Centre (DMC)
+                Education Department Liaquatabad Town
               </p>
             </div>
           </div>
@@ -139,7 +139,7 @@ export const AssignSchoolModal = ({
               {/* School Search & Selection */}
               <div>
                 <label className="block font-bold text-[#102033] mb-1.5">
-                  Select Municipal School <span className="text-rose-500">*</span>
+                  Select School <span className="text-rose-500">*</span>
                 </label>
                 <div className="space-y-2">
                   <input

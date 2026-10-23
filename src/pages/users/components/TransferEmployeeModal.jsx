@@ -117,7 +117,7 @@ export const TransferEmployeeModal = ({
             <div>
               <h2 className="text-sm font-bold text-[#102033]">Initiate Faculty Transfer</h2>
               <p className="text-[11px] text-[#526477]">
-                Education Department Liaquatabad Town Centre (DMC)
+                Education Department Liaquatabad Town
               </p>
             </div>
           </div>
@@ -195,7 +195,7 @@ export const TransferEmployeeModal = ({
                 type="text"
                 value={officialOrderNumber}
                 onChange={(changeEvent) => setOfficialOrderNumber(changeEvent.target.value)}
-                placeholder="e.g. DMC/LTC/ED/2026/891"
+                placeholder="e.g. TMC/LTC/ED/2026/891"
                 className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-[#102033] focus:border-[#006AC7] focus:bg-white focus:outline-none"
               />
             </div>

@@ -206,7 +206,7 @@ export const FieldVisibilityEye = ({
             <div className="mt-2 pt-2 border-t border-slate-100 flex items-start gap-1.5 text-[9px] text-amber-800 bg-amber-50/50 p-1.5 rounded-lg">
               <Info className="w-3 h-3 text-amber-600 flex-shrink-0 mt-0.5" />
               <span>
-                Per DMC Cyber &amp; Civil Service Policy, national identity &amp; bank records are capped and cannot be exposed publicly.
+                Per Institutional Civil Service Policy, national identity &amp; bank records are capped and cannot be exposed publicly.
               </span>
             </div>
           )}

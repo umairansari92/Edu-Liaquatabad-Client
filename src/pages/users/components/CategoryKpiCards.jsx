@@ -105,7 +105,7 @@ export const CategoryKpiCards = ({ activeCategory, summaryCounts = {} }) => {
           </div>
           <div className="mt-2 text-2xl font-black text-[#102033]">{totalStudents}</div>
           <div className="text-[10px] text-[#526477] mt-0.5 font-medium">
-            Registered Across Municipal Schools
+            Registered Across Schools
           </div>
         </div>
 
@@ -133,7 +133,7 @@ export const CategoryKpiCards = ({ activeCategory, summaryCounts = {} }) => {
               <School className="w-4 h-4" />
             </div>
           </div>
-          <div className="mt-2 text-2xl font-black text-[#102033]">Liaquatabad DMC</div>
+          <div className="mt-2 text-2xl font-black text-[#102033]">Liaquatabad Town</div>
           <div className="text-[10px] text-[#526477] mt-0.5 font-medium">
             Town Primary & Secondary Institutions
           </div>

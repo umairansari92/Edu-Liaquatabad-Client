@@ -261,8 +261,8 @@ export const SchoolsPage = () => {
   if (!isAuthorizedToView) {
     return (
       <PageContainer
-        title="Municipal Schools Directory"
-        subtitle="Education Department Liaquatabad Town Centre (DMC)"
+        title="Schools Directory"
+        subtitle="Town Municipal Corporation (TMC) • Education Department Liaquatabad Town"
       >
         <div className="flex flex-col items-center justify-center rounded-2xl border border-rose-200 bg-white p-12 text-center shadow-sm max-w-lg mx-auto mt-8">
           <div className="w-14 h-14 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center mb-4 shadow-xs">
@@ -270,7 +270,7 @@ export const SchoolsPage = () => {
           </div>
           <h3 className="text-lg font-bold text-[#102033]">403 — Unauthorized Resource</h3>
           <p className="mt-2 text-xs text-[#526477] leading-relaxed">
-            Your authenticated role (<span className="font-mono font-semibold text-[#006AC7] bg-blue-50 px-2 py-0.5 rounded border border-blue-200">{user?.role || 'GUEST'}</span>) does not possess authority to browse the central Municipal Schools Directory.
+            Your authenticated role (<span className="font-mono font-semibold text-[#006AC7] bg-blue-50 px-2 py-0.5 rounded border border-blue-200">{user?.role || 'GUEST'}</span>) does not possess authority to browse the central Schools Directory.
           </p>
           <Link
             to="/dashboard"
@@ -285,8 +285,8 @@ export const SchoolsPage = () => {
 
   return (
     <PageContainer
-      title="Municipal Schools Directory"
-      subtitle="Education Department Liaquatabad Town Centre (DMC) — Official institutional directory, academic grade ranges, operational timings, and administrative oversight"
+      title="Schools Directory"
+      subtitle="Official institutional directory, academic grade ranges, operational timings, and administrative oversight"
       actions={
         <div className="flex items-center gap-2">
           <button
@@ -477,11 +477,10 @@ export const SchoolsPage = () => {
                           {school.schoolType || 'SECONDARY'} • {school.genderType || 'CO_EDUCATION'}
                         </span>
                         <span
-                          className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${
-                            school.status === 'ACTIVE'
+                          className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${school.status === 'ACTIVE'
                               ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
                               : 'bg-rose-50 text-rose-700 border-rose-200'
-                          }`}
+                            }`}
                         >
                           {school.status || 'ACTIVE'}
                         </span>
@@ -667,11 +666,10 @@ export const SchoolsPage = () => {
                             {school.schoolType || 'SECONDARY'} • {school.genderType || 'CO_ED'}
                           </span>
                           <span
-                            className={`rounded-full px-2 py-0.5 text-[10px] font-bold border ${
-                              school.status === 'ACTIVE'
+                            className={`rounded-full px-2 py-0.5 text-[10px] font-bold border ${school.status === 'ACTIVE'
                                 ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
                                 : 'bg-rose-50 text-rose-700 border-rose-200'
-                            }`}
+                              }`}
                           >
                             {school.status || 'ACTIVE'}
                           </span>
@@ -789,8 +787,8 @@ export const SchoolsPage = () => {
 
                   {/* Card Footer */}
                   <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-[11px]">
-                    <span className="text-[#8094A8] font-medium">Liaquatabad Town DMC</span>
-                    <span className="font-semibold text-[#006AC7] hover:underline cursor-pointer" title="Town Municipal Jurisdiction">
+                    <span className="text-[#8094A8] font-medium">Liaquatabad Town</span>
+                    <span className="font-semibold text-[#006AC7] hover:underline cursor-pointer" title="Town Jurisdiction">
                       Education Dept
                     </span>
                   </div>
@@ -810,7 +808,7 @@ export const SchoolsPage = () => {
                     <SchoolIcon className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-[#102033]">Register Municipal School</h3>
+                    <h3 className="text-base font-bold text-[#102033]">Register School</h3>
                     <p className="text-xs text-[#526477]">Add institutional record to Liaquatabad Town registry</p>
                   </div>
                 </div>

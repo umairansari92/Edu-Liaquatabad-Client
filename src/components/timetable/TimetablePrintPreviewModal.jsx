@@ -240,11 +240,10 @@ export const TimetablePrintPreviewModal = ({
                 {daySlots.map((slot) => (
                   <th
                     key={`${slot.periodNumber}-${slot.startTime}`}
-                    className={`p-2 border border-slate-900 text-center ${
-                      slot.slotType === 'RECESS'
+                    className={`p-2 border border-slate-900 text-center ${slot.slotType === 'RECESS'
                         ? 'bg-amber-100 text-amber-900 font-black w-20'
                         : 'bg-slate-800 text-white font-bold'
-                    }`}
+                      }`}
                   >
                     <div className="text-[11px] font-extrabold uppercase">
                       {slot.slotType === 'RECESS' ? 'BREAK' : slot.label || `${slot.periodNumber}th`}
@@ -274,9 +273,8 @@ export const TimetablePrintPreviewModal = ({
                   return (
                     <tr
                       key={classId}
-                      className={`border-b border-slate-400 ${
-                        rowIndex % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'
-                      }`}
+                      className={`border-b border-slate-400 ${rowIndex % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'
+                        }`}
                     >
                       {/* Class Name */}
                       <td className="p-2 border border-slate-400 font-black text-slate-900 text-center whitespace-nowrap bg-slate-100/80">
@@ -309,9 +307,8 @@ export const TimetablePrintPreviewModal = ({
                         return (
                           <td
                             key={`cell-${classId}-${slot.periodNumber}`}
-                            className={`p-1.5 border border-slate-400 text-center align-middle ${
-                              entry ? 'bg-blue-50/30' : 'bg-white'
-                            }`}
+                            className={`p-1.5 border border-slate-400 text-center align-middle ${entry ? 'bg-blue-50/30' : 'bg-white'
+                              }`}
                           >
                             {entry ? (
                               <div className="space-y-0.5">
@@ -415,11 +412,10 @@ export const TimetablePrintPreviewModal = ({
                   setSelectedDay(day);
                   setViewScope('SINGLE_DAY');
                 }}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${
-                  isSelected
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition cursor-pointer ${isSelected
                     ? 'bg-[#006AC7] text-white shadow-sm'
                     : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
-                }`}
+                  }`}
               >
                 {day.slice(0, 3)}
               </button>
@@ -428,11 +424,10 @@ export const TimetablePrintPreviewModal = ({
           <div className="w-px h-5 bg-slate-700 mx-1" />
           <button
             onClick={() => setViewScope('ALL_DAYS')}
-            className={`px-3 py-1 rounded-lg text-xs font-black uppercase transition cursor-pointer ${
-              viewScope === 'ALL_DAYS'
+            className={`px-3 py-1 rounded-lg text-xs font-black uppercase transition cursor-pointer ${viewScope === 'ALL_DAYS'
                 ? 'bg-emerald-600 text-white shadow-sm'
                 : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
-            }`}
+              }`}
           >
             All Working Days (Binder)
           </button>

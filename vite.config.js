@@ -23,10 +23,10 @@ export default defineConfig({
         'pwa-maskable-512x512.png',
       ],
       manifest: {
-        name: 'Education Department Liaquatabad Town Centre (DMC)',
-        short_name: 'DMC Schools',
+        name: 'School Management System — Town Municipal Corporation (TMC) & Education Department Liaquatabad',
+        short_name: 'School Portal',
         description:
-          'Official management and governance portal for municipal schools under Education Department, Liaquatabad Town Centre (DMC).',
+          'Government School Management Platform for schools under Town Municipal Corporation (TMC) and Education Department Liaquatabad Town.',
         start_url: '/',
         scope: '/',
         display: 'standalone',

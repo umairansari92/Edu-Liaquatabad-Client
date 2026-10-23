@@ -76,9 +76,14 @@ export const ResetPasswordPage = () => {
         <h2 className="text-2xl sm:text-3xl font-bold text-[#102033] tracking-tight">
           Set New Password
         </h2>
-        <p className="mt-1.5 text-xs text-[#526477] font-medium">
-          Education Department Liaquatabad Town Centre (DMC)
-        </p>
+        <div className="mt-1.5 space-y-0.5">
+          <p className="text-xs font-semibold text-[#102033]">
+            Town Municipal Corporation (TMC)
+          </p>
+          <p className="text-xs text-[#526477] font-medium">
+            Education Department Liaquatabad Town
+          </p>
+        </div>
       </div>
 
       <div className="mt-7 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">

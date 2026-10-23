@@ -824,7 +824,7 @@ export const NotificationDropdown = ({ isOpen, onClose }) => {
       {/* ─── Footer ────────────────────────────────────────────────────────── */}
       <div className="p-2.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 px-4">
         <span className="text-[10px] text-slate-400 font-medium">
-          DMC Education Notifications
+          School Notifications
         </span>
         {displayedNotifications.length > 0 && (
           <span className="text-[10px] text-slate-400 font-semibold">

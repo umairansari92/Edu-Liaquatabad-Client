@@ -57,12 +57,12 @@ const ProtectedScreenWrapper = ({ children }) => {
     const schoolIdentity = user.schoolId?.name
       ? user.schoolId.name
       : user.schoolId?.code
-      ? user.schoolId.code
-      : typeof user.schoolId === 'string' && user.schoolId
-      ? user.schoolId.slice(-6).toUpperCase()
-      : Array.isArray(user.assignedSchools) && user.assignedSchools.length > 0
-      ? `${user.assignedSchools.length} Assigned Schools`
-      : 'CENTRAL HQ';
+        ? user.schoolId.code
+        : typeof user.schoolId === 'string' && user.schoolId
+          ? user.schoolId.slice(-6).toUpperCase()
+          : Array.isArray(user.assignedSchools) && user.assignedSchools.length > 0
+            ? `${user.assignedSchools.length} Assigned Schools`
+            : 'CENTRAL HQ';
 
     const actorName = user.fullName || 'OFFICIAL ACTOR';
     const actorRole = user.role || 'CIVIL_USER';
@@ -111,7 +111,7 @@ const ProtectedScreenWrapper = ({ children }) => {
 
         // Sanitize clipboard immediately to flush any OS-buffered screenshot
         if (navigator.clipboard?.writeText) {
-          navigator.clipboard.writeText('').catch(() => {});
+          navigator.clipboard.writeText('').catch(() => { });
         }
 
         setShowCaptureWarning(true);
@@ -128,7 +128,7 @@ const ProtectedScreenWrapper = ({ children }) => {
     const handleKeyUp = (event) => {
       if (event.key === 'PrintScreen' || event.keyCode === 44) {
         if (navigator.clipboard?.writeText) {
-          navigator.clipboard.writeText('').catch(() => {});
+          navigator.clipboard.writeText('').catch(() => { });
         }
         setShowCaptureWarning(true);
         notifyCaptureBlocked();
@@ -213,17 +213,15 @@ const ProtectedScreenWrapper = ({ children }) => {
     <div className="relative min-h-screen select-none">
       {/* ── Dynamic Anti-Leak Forensic Civic Watermark (ALWAYS Rendered for Forensic Attribution) ── */}
       <div
-        className={`pointer-events-none fixed inset-0 z-40 overflow-hidden select-none flex flex-wrap gap-x-16 gap-y-12 p-4 transition-opacity duration-200 ${
-          isSensitiveModule ? 'opacity-[0.065]' : 'opacity-[0.045]'
-        }`}
+        className={`pointer-events-none fixed inset-0 z-40 overflow-hidden select-none flex flex-wrap gap-x-16 gap-y-12 p-4 transition-opacity duration-200 ${isSensitiveModule ? 'opacity-[0.065]' : 'opacity-[0.045]'
+          }`}
         aria-hidden="true"
       >
         {Array.from({ length: 36 }).map((_, index) => (
           <div
             key={index}
-            className={`transform -rotate-25 text-[10px] sm:text-[11px] font-mono tracking-widest text-slate-800 dark:text-slate-300 uppercase whitespace-nowrap ${
-              isSensitiveModule ? 'font-extrabold' : 'font-bold'
-            }`}
+            className={`transform -rotate-25 text-[10px] sm:text-[11px] font-mono tracking-widest text-slate-800 dark:text-slate-300 uppercase whitespace-nowrap ${isSensitiveModule ? 'font-extrabold' : 'font-bold'
+              }`}
           >
             {watermarkText}
           </div>

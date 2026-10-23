@@ -306,7 +306,7 @@ export const StudentDashboard = () => {
   return (
     <PageContainer
       title="Student Operational Workspace"
-      subtitle={`${user?.fullName || 'Student'} • GR #${studentProfileData?.grNumber || '—'} • ${studentProfileData?.school?.name || user?.schoolId?.name || 'Municipal School'} • Liaquatabad Town Centre`}
+      subtitle={`${user?.fullName || 'Student'} • GR #${studentProfileData?.grNumber || '—'} • ${studentProfileData?.school?.name || user?.schoolId?.name || 'Enrolled School'} • Liaquatabad Town`}
       actions={
         <div className="flex items-center gap-2">
           <button
@@ -331,7 +331,7 @@ export const StudentDashboard = () => {
                 Urgent Directive
               </span>
               <span className="text-xs font-bold text-amber-900">
-                Liaquatabad Town Centre Municipal Education Alert
+                Liaquatabad Town Education Alert
               </span>
             </div>
             <h4 className="text-sm font-black text-amber-950 mt-1">
@@ -411,7 +411,7 @@ export const StudentDashboard = () => {
               <div className="space-y-2">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md border border-white/20 text-xs font-bold text-white tracking-wide">
                   <School className="w-3.5 h-3.5" />
-                  <span>DMC Liaquatabad Town Centre • Student Portal</span>
+                  <span>Student Portal • Liaquatabad Town</span>
                 </div>
                 <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
                   Welcome back, {studentProfileData?.studentFullName || user?.fullName || 'Student'}!
@@ -528,7 +528,7 @@ export const StudentDashboard = () => {
               <div className="mt-3">
                 <p className="text-3xl font-black text-[#102033]">{circularsList.length}</p>
                 <span className="text-xs text-[#526477] font-medium mt-1 block">
-                  Municipal circulars & directives
+                  Official circulars & directives
                 </span>
               </div>
             </div>
@@ -1239,7 +1239,7 @@ export const StudentDashboard = () => {
                 Official Student Identity Card
               </h3>
               <p className="text-xs text-[#526477]">
-                Certified computerized student credential issued by DMC Liaquatabad Town Centre.
+                Certified computerized student credential issued by Town Municipal Corporation (TMC) Liaquatabad.
               </p>
             </div>
 

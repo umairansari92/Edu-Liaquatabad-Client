@@ -43,7 +43,7 @@ export const TransfersPage = () => {
       subtitle={
         isHM
           ? 'Review staff members assigned to this school by the education administration.'
-          : 'Education Department Liaquatabad Town Centre (DMC) — Municipal transfer rosters, deputations, and school reassignments'
+          : 'Faculty transfer rosters, postings, and school reassignments'
       }
       actions={
         <button

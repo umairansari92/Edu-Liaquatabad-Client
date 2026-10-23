@@ -82,13 +82,13 @@ export const Navbar = () => {
           </div>
           <div>
             <div className="font-bold text-base sm:text-lg leading-tight tracking-tight text-[#102033] flex items-center gap-1.5">
-              Education Department
+              School Management System
               <span className="text-xs px-2 py-0.5 rounded-full bg-[#E3F0DC] text-[#4B7F3A] border border-[#C9DFBC] font-semibold">
-                DMC
+                TMC
               </span>
             </div>
             <p className="text-xs text-[#526477] font-medium tracking-wide">
-              Liaquatabad Town Centre
+              Town Municipal Corporation (TMC) • Education Department Liaquatabad Town
             </p>
           </div>
         </Link>
@@ -122,8 +122,8 @@ export const Navbar = () => {
             <button
               onClick={triggerInstallPrompt}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-blue-50 text-[#006AC7] border border-[#B9DEFF] hover:bg-blue-100 transition-colors shadow-xs btn-tactile"
-              title="Install DMC Schools Application on this device"
-              aria-label="Install DMC Schools Application"
+              title="Install School Portal on this device"
+              aria-label="Install School Portal"
             >
               <Download className="w-4 h-4" />
               <span className="hidden sm:inline">Install App</span>

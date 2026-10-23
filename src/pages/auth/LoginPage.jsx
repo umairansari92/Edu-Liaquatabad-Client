@@ -169,8 +169,9 @@ export const LoginPage = () => {
     if (!unmaskedRecoveryCodes || unmaskedRecoveryCodes.length === 0) return;
     const content = [
       '========================================================================',
-      'EDUCATION DEPARTMENT LIAQUATABAD TOWN CENTRE (DMC)',
-      'EMERGENCY MFA BACKUP RECOVERY CODES - HIGH SECURITY ACCESS',
+      'TOWN MUNICIPAL CORPORATION (TMC)',
+      'EDUCATION DEPARTMENT LIAQUATABAD TOWN',
+      'SCHOOL MANAGEMENT SYSTEM — EMERGENCY MFA BACKUP RECOVERY CODES',
       '========================================================================',
       `Date Generated: ${new Date().toUTCString()}`,
       '',
@@ -189,7 +190,7 @@ export const LoginPage = () => {
     const url = URL.createObjectURL(blob);
     const downloadAnchor = document.createElement('a');
     downloadAnchor.href = url;
-    downloadAnchor.download = `dmc-liaquatabad-mfa-recovery-codes-${Date.now()}.txt`;
+    downloadAnchor.download = `tmc-liaquatabad-mfa-recovery-codes-${Date.now()}.txt`;
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     document.body.removeChild(downloadAnchor);
@@ -382,11 +383,16 @@ export const LoginPage = () => {
           </div>
         </Link>
         <h2 className="text-2xl sm:text-3xl font-bold text-[#102033] tracking-tight">
-          Official Portal Sign In
+          School Management System
         </h2>
-        <p className="mt-1.5 text-xs text-[#526477] font-medium">
-          Education Department Liaquatabad Town Centre (DMC)
-        </p>
+        <div className="mt-1.5 space-y-0.5">
+          <p className="text-xs font-semibold text-[#102033]">
+            Town Municipal Corporation (TMC)
+          </p>
+          <p className="text-xs text-[#526477] font-medium">
+            Education Department Liaquatabad Town
+          </p>
+        </div>
       </div>
 
       <div className="mt-7 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">

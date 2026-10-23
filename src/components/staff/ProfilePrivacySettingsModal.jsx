@@ -45,7 +45,7 @@ export const ProfilePrivacySettingsModal = ({
   const handleFieldChange = (field, value) => {
     // Client-side guard on security ceilings
     if ((field === 'cnic' || field === 'bankDetails') && (value === 'PUBLIC' || value === 'SCHOOL')) {
-      toast.error('CNIC and Bank Details cannot be set to Public or School visibility per DMC Security Policy.');
+      toast.error('CNIC and Bank Details cannot be set to Public or School visibility per Institutional Security Policy.');
       return;
     }
     setFieldVisibility((prev) => ({ ...prev, [field]: value }));

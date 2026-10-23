@@ -1311,7 +1311,7 @@ export const HmOverviewTab = ({
 
           <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
             <span className="text-xs text-slate-500 truncate mr-2">
-              DMC Liaquatabad Town Centre • Government of Sindh
+              Town Municipal Corporation (TMC) Liaquatabad • Government of Sindh
             </span>
             <button
               type="button"

@@ -89,9 +89,14 @@ export const ForgotPasswordPage = () => {
           <KeyRound className="w-6 h-6 text-[#006AC7]" />
           Password Recovery
         </h2>
-        <p className="mt-1.5 text-xs text-[#526477] font-medium">
-          Education Department Liaquatabad Town Centre (DMC)
-        </p>
+        <div className="mt-1.5 space-y-0.5">
+          <p className="text-xs font-semibold text-[#102033]">
+            Town Municipal Corporation (TMC)
+          </p>
+          <p className="text-xs text-[#526477] font-medium">
+            Education Department Liaquatabad Town
+          </p>
+        </div>
       </div>
 
       <div className="mt-7 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
@@ -195,7 +200,7 @@ export const ForgotPasswordPage = () => {
         {/* Security badge footer */}
         <div className="mt-4 flex items-center justify-center gap-2 text-[11px] text-[#526477] font-medium">
           <ShieldCheck className="w-3.5 h-3.5 text-[#4B7F3A]" />
-          <span>Encrypted Password Recovery Protected by DMC Security</span>
+          <span>Encrypted Password Recovery Protected by Platform Security</span>
         </div>
       </div>
     </div>
