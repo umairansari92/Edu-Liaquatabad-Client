@@ -65,10 +65,10 @@ const resolveNotificationActionLink = (actionLink, userRole) => {
   }
 
   // Direct mapping for legacy / backend leave route references
-  if (trimmedLink === '/leave/my-requests') {
-    if (normalizedRole === 'TEACHER') return '/dashboard?tab=service';
+  if (trimmedLink === '/leave/my-requests' || trimmedLink === '/dashboard?tab=service') {
+    if (normalizedRole === 'TEACHER') return '/profile';
     if (normalizedRole === 'HM') return '/dashboard?tab=leaves';
-    return '/dashboard?tab=service';
+    return '/profile';
   }
 
   if (trimmedLink === '/leave/pending') {
@@ -84,7 +84,7 @@ const resolveNotificationActionLink = (actionLink, userRole) => {
   }
 
   if (trimmedLink === '/staff-attendance/my-record') {
-    if (normalizedRole === 'TEACHER') return '/dashboard?tab=service';
+    if (normalizedRole === 'TEACHER') return '/profile';
     return '/dashboard?tab=attendance';
   }
 

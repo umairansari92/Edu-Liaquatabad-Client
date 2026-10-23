@@ -54,7 +54,6 @@ export const getNavigationItemsForRole = (userRole) => {
       { label: 'Homework', path: '/dashboard?tab=homework', icon: BookOpen },
       { label: 'Class Timetable', path: '/dashboard?tab=timetable', icon: CalendarDays },
       { label: 'Notice Board', path: '/dashboard?tab=circulars', icon: FileText },
-      { label: 'My Service & Leave', path: '/dashboard?tab=service', icon: IdCard },
       { label: 'Holidays & Calendar', path: '/holidays', icon: Calendar },
       { label: 'Personal Profile', path: '/profile', icon: IdCard },
     ];

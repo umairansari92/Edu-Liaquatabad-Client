@@ -72,7 +72,7 @@ export const AppRoutes = () => {
 
         {/* Canonical Notification & Legacy URL Aliases (Deep Links) */}
         <Route path="/classes" element={<Navigate to="/my-classes" replace />} />
-        <Route path="/leave/my-requests" element={<Navigate to="/dashboard?tab=service" replace />} />
+        <Route path="/leave/my-requests" element={<Navigate to="/profile" replace />} />
         <Route path="/leave/pending" element={<Navigate to="/approvals" replace />} />
         <Route path="/staff-attendance/pending" element={<Navigate to="/attendance" replace />} />
         <Route path="/staff-attendance/my-record" element={<Navigate to="/dashboard?tab=attendance" replace />} />

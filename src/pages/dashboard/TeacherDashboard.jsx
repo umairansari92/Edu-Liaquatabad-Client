@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   GraduationCap,
@@ -110,7 +110,6 @@ const DASHBOARD_TABS = [
   { id: 'HOMEWORK', label: 'Homework', icon: FileText },
   { id: 'TIMETABLE', label: 'Timetable', icon: CalendarDays },
   { id: 'CIRCULARS', label: 'Notice Board', icon: FileSpreadsheet },
-  { id: 'SERVICE', label: 'My Service Record', icon: IdCard },
 ];
 
 // ─── KPI Summary Card ────────────────────────────────────────────────────────
@@ -146,6 +145,7 @@ const KpiCard = ({ icon: IconComponent, label, value, sub, color = 'blue', loadi
 // ─── Main Teacher Dashboard ──────────────────────────────────────────────────
 export const TeacherDashboard = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user: authenticatedUser } = useSelector((state) => state.auth);
   const user = authenticatedUser;
@@ -184,7 +184,6 @@ export const TeacherDashboard = () => {
     if (normalized === 'HOMEWORK') return 'HOMEWORK';
     if (normalized === 'TIMETABLE' || normalized === 'SCHEDULE') return 'TIMETABLE';
     if (normalized === 'CIRCULARS' || normalized === 'NOTICES') return 'CIRCULARS';
-    if (normalized === 'SERVICE' || normalized === 'PROFILE') return 'SERVICE';
     return 'OVERVIEW';
   }, []);
 
@@ -206,21 +205,24 @@ export const TeacherDashboard = () => {
         return 'Weekly Class Timetable';
       case 'CIRCULARS':
         return 'School Notices & Circulars';
-      case 'SERVICE':
-        return 'My Service Record & Leave';
       case 'OVERVIEW':
       default:
         return 'Teacher Dashboard';
     }
   }, [activeTab]);
 
-  // Sync activeTab with URL search params
+  // Sync activeTab with URL search params (redirect legacy ?tab=service to /profile)
   useEffect(() => {
     if (urlTab) {
+      const normalized = urlTab.toUpperCase();
+      if (normalized === 'SERVICE' || normalized === 'PROFILE') {
+        navigate('/profile', { replace: true });
+        return;
+      }
       const resolvedTab = resolveTabFromParam(urlTab);
       setActiveTab(resolvedTab);
     }
-  }, [urlTab, resolveTabFromParam]);
+  }, [urlTab, resolveTabFromParam, navigate]);
 
   const handleTabChange = (tabIdentifier) => {
     setActiveTab(tabIdentifier);
@@ -1733,268 +1735,6 @@ export const TeacherDashboard = () => {
               ))}
             </div>
           )}
-        </div>
-      )}
-
-      {/* ─── TAB 6: SERVICE RECORD ───────────────────────────────────────────── */}
-      {activeTab === 'SERVICE' && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Profile Card */}
-            <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-4">
-              <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
-                <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-[#006AC7] font-black text-lg">
-                  {(authenticatedUser?.fullName || 'T')[0]}
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-[#102033]">{authenticatedUser?.fullName}</h3>
-                  <p className="text-xs text-[#526477]">{authenticatedUser?.designation || 'Teacher'}</p>
-                </div>
-              </div>
-
-              <div className="space-y-3 text-xs">
-                <div className="flex items-center justify-between py-1 border-b border-slate-50">
-                  <span className="text-[#8094A8] font-medium">Employee ID</span>
-                  <span className="font-mono font-bold text-[#102033]">
-                    {authenticatedUser?._id?.slice(-8).toUpperCase()}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between py-1 border-b border-slate-50">
-                  <span className="text-[#8094A8] font-medium">National CNIC</span>
-                  <span className="font-mono font-bold text-[#102033]">
-                    {authenticatedUser?.cnic ? `42101-*******-${authenticatedUser.cnic.slice(-1)}` : 'Verified on File'}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between py-1 border-b border-slate-50">
-                  <span className="text-[#8094A8] font-medium">Current School</span>
-                  <span className="font-bold text-[#006AC7]">
-                    {summary?.school?.name || authenticatedUser?.schoolId?.name || 'Assigned School'}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between py-1 border-b border-slate-50">
-                  <span className="text-[#8094A8] font-medium">Cadre & Grade</span>
-                  <span className="font-bold text-emerald-700">PST (BPS-14)</span>
-                </div>
-                <div className="flex items-center justify-between py-1">
-                  <span className="text-[#8094A8] font-medium">Service Status</span>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    Active Staff
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Monthly Attendance Breakdown */}
-            <div className="lg:col-span-2 p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-2">
-                <div>
-                  <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
-                    <CalendarDays className="w-5 h-5 text-[#006AC7]" />
-                    My Attendance Record
-                  </h3>
-                  <p className="text-xs text-[#526477]">
-                    Monthly attendance recorded by your Head Master
-                  </p>
-                </div>
-                <span className="text-xs font-bold text-[#006AC7]">
-                  {new Date().toLocaleDateString('en-PK', { month: 'long', year: 'numeric' })}
-                </span>
-              </div>
-
-              {/* Attendance Mini KPIs */}
-              <div className="grid grid-cols-3 gap-3 my-5">
-                <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-center">
-                  <p className="text-xl font-black text-emerald-700">
-                    {selfAttendance?.summary?.presentCount ?? selfAttendance?.summary?.presentDays ?? 0}
-                  </p>
-                  <p className="text-xs text-[#526477] font-semibold mt-0.5">Days Present</p>
-                </div>
-                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-center">
-                  <p className="text-xl font-black text-rose-700">
-                    {selfAttendance?.summary?.absentCount ?? selfAttendance?.summary?.absentDays ?? 0}
-                  </p>
-                  <p className="text-xs text-[#526477] font-semibold mt-0.5">Days Absent</p>
-                </div>
-                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-center">
-                  <p className="text-xl font-black text-amber-700">
-                    {selfAttendance?.summary?.leaveCount ?? selfAttendance?.summary?.leaveDays ?? 0}
-                  </p>
-                  <p className="text-xs text-[#526477] font-semibold mt-0.5">Approved Leave</p>
-                </div>
-              </div>
-
-              <div className="p-4 rounded-xl bg-blue-50/60 border border-blue-200 text-xs text-[#526477] flex items-start gap-3">
-                <Info className="w-4 h-4 text-[#006AC7] shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-bold text-[#102033] mb-0.5">Official Attendance Record</p>
-                  <p>
-                    Faculty attendance records are officially submitted and locked by the School Head Master on a daily basis. If you notice any discrepancy, please contact your Head Master.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/*  Casual Leave (CL) Balance & Application Section */}
-          <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-4">
-              <div>
-                <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
-                  <CalendarCheck className="w-5 h-5 text-[#006AC7]" />
-                  Casual Leave (CL) Quota &amp; Applications
-                </h3>
-                <p className="text-xs text-[#526477]">
-                  Education Department Liaquatabad Town Centre — Annual casual leave entitlement for faculty
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setLeaveStartDate(new Date().toISOString().split('T')[0]);
-                  setLeaveEndDate(new Date().toISOString().split('T')[0]);
-                  setLeaveReason('');
-                  setLeaveModalOpen(true);
-                }}
-                className="px-4 py-2 rounded-xl bg-[#006AC7] hover:bg-[#00529B] text-white text-xs font-bold transition flex items-center gap-2 shadow-xs cursor-pointer shrink-0"
-              >
-                <PlusCircle className="w-4 h-4" />
-                Apply for Casual / Medical Leave
-              </button>
-            </div>
-
-            {/* Quota KPI Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div className="p-4 rounded-xl bg-blue-50/70 border border-blue-200">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-[#526477]">Total Entitlement</span>
-                <p className="text-2xl font-black text-[#006AC7] mt-1">
-                  {clBalance?.entitlementDays ?? clBalance?.totalEntitlement ?? 24} <span className="text-xs font-bold text-[#526477]">Days</span>
-                </p>
-                <p className="text-[10px] text-[#8094A8] mt-1">Academic Year {clBalance?.year ?? new Date().getFullYear()}</p>
-              </div>
-
-              <div className="p-4 rounded-xl bg-emerald-50/70 border border-emerald-200">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-800">Remaining Balance</span>
-                <p className="text-2xl font-black text-emerald-700 mt-1">
-                  {clBalance?.remainingDays ?? clBalance?.entitlementDays ?? 24} <span className="text-xs font-bold text-emerald-800">Days</span>
-                </p>
-                <p className="text-[10px] text-emerald-600 mt-1">Available for application</p>
-              </div>
-
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-[#526477]">Days Utilized</span>
-                <p className="text-2xl font-black text-[#102033] mt-1">
-                  {clBalance?.usedDays ?? 0} <span className="text-xs font-bold text-[#526477]">Days</span>
-                </p>
-                <p className="text-[10px] text-[#8094A8] mt-1">Approved by Head Master</p>
-              </div>
-
-              <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-amber-800">Pending Review</span>
-                <p className="text-2xl font-black text-amber-700 mt-1">
-                  {clBalance?.pendingDays ?? 0} <span className="text-xs font-bold text-amber-800">Days</span>
-                </p>
-                <p className="text-[10px] text-amber-600 mt-1">Awaiting HM decision</p>
-              </div>
-            </div>
-
-            {/* Quota Progress Bar */}
-            {clBalance && (
-              <div className="space-y-1.5">
-                <div className="flex justify-between text-xs font-semibold text-[#526477]">
-                  <span>Annual Quota Utilization</span>
-                  <span>
-                    {Math.round(((clBalance.usedDays || 0) / (clBalance.entitlementDays || clBalance.totalEntitlement || 24)) * 100)}% utilized
-                  </span>
-                </div>
-                <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
-                  <div
-                    className="h-full bg-[#006AC7] rounded-full transition-all duration-500"
-                    style={{
-                      width: `${Math.min(100, Math.round(((clBalance.usedDays || 0) / (clBalance.entitlementDays || clBalance.totalEntitlement || 24)) * 100))}%`,
-                    }}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Recent Leave Requests Roster */}
-            <div className="space-y-3 pt-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#526477]">
-                Leave Application History ({myLeaveRequests.length})
-              </h4>
-
-              {leaveRequestsLoading ? (
-                <div className="py-8 flex items-center justify-center gap-2 text-xs text-[#526477]">
-                  <Loader2 className="w-4 h-4 animate-spin text-[#006AC7]" />
-                  <span>Loading leave application history...</span>
-                </div>
-              ) : myLeaveRequests.length === 0 ? (
-                <div className="p-8 text-center rounded-xl bg-slate-50 border border-slate-200/60 text-xs text-[#8094A8]">
-                  <Calendar className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                  <p className="font-bold text-[#102033]">No Leave Applications on File</p>
-                  <p className="mt-1">You have not submitted any casual or medical leave requests this academic year.</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto rounded-xl border border-slate-200">
-                  <table className="w-full text-xs text-left">
-                    <thead className="bg-slate-50 text-[#526477] font-bold border-b border-slate-200">
-                      <tr>
-                        <th className="px-4 py-3">Leave Type</th>
-                        <th className="px-4 py-3">Dates &amp; Duration</th>
-                        <th className="px-4 py-3">Reason / Purpose</th>
-                        <th className="px-4 py-3">Submitted On</th>
-                        <th className="px-4 py-3 text-right">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {myLeaveRequests.map((requestItem) => {
-                        const statusConfig = {
-                          PENDING: requestItem.leaveType === 'EARNED_LEAVE'
-                            ? requestItem.forwardedByHm
-                              ? { label: 'Forwarded to Town Office (Pending Sanction)', bg: 'bg-indigo-50 text-indigo-700 border-indigo-200' }
-                              : { label: 'Pending HM Recommendation', bg: 'bg-amber-50 text-amber-700 border-amber-200' }
-                            : { label: 'Pending HM Approval', bg: 'bg-amber-50 text-amber-700 border-amber-200' },
-                          APPROVED: { label: 'Approved', bg: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-                          REJECTED: { label: 'Rejected', bg: 'bg-rose-50 text-rose-700 border-rose-200' },
-                          CANCELLED: { label: 'Cancelled', bg: 'bg-slate-100 text-slate-700 border-slate-200' },
-                        };
-                        const currentStatus = statusConfig[requestItem.status] || statusConfig.PENDING;
-                        return (
-                          <tr key={String(requestItem._id)} className="hover:bg-slate-50/50">
-                            <td className="px-4 py-3 font-bold text-[#102033]">
-                              {requestItem.leaveType === 'CASUAL_LEAVE' ? 'Casual Leave (CL)' : requestItem.leaveType === 'EARNED_LEAVE' ? 'Earned Leave (EL)' : requestItem.leaveType}
-                            </td>
-                            <td className="px-4 py-3">
-                              <span className="font-semibold text-[#102033]">
-                                {formatDate(requestItem.startDate)}
-                              </span>
-                              {requestItem.startDate !== requestItem.endDate && (
-                                <span className="text-[#526477]"> to {formatDate(requestItem.endDate)}</span>
-                              )}
-                              <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-[#526477]">
-                                {requestItem.durationDays ?? requestItem.duration ?? 1} Day(s)
-                              </span>
-                            </td>
-                            <td className="px-4 py-3 text-[#526477] max-w-xs truncate" title={requestItem.reason}>
-                              {requestItem.reason}
-                            </td>
-                            <td className="px-4 py-3 text-[#8094A8]">
-                              {formatDate(requestItem.createdAt)}
-                            </td>
-                            <td className="px-4 py-3 text-right">
-                              <span className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-bold border ${currentStatus.bg}`}>
-                                {currentStatus.label}
-                              </span>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-          </div>
         </div>
       )}
 

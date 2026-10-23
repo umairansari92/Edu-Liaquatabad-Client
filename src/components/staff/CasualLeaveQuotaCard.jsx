@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
+import { useDispatch } from 'react-redux';
 import {
   FileText,
   Calendar,
@@ -11,8 +12,14 @@ import {
   ShieldCheck,
   Award,
   ChevronRight,
+  PlusCircle,
+  Loader2,
+  X,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import apiClient from '../../services/apiClient.js';
+import { fetchProfileLeaveSummary } from '../../store/slices/staffProfileSlice.js';
+import { getErrorMessage } from '../../utils/errorUtils.js';
 
 /**
  * 🏖️ CasualLeaveQuotaCard
@@ -25,6 +32,14 @@ export const CasualLeaveQuotaCard = ({
   loading = false,
   isOwner = false,
 }) => {
+  const dispatch = useDispatch();
+  const [isLeaveModalOpen, setIsLeaveModalOpen] = useState(false);
+  const [leaveType, setLeaveType] = useState('CASUAL_LEAVE');
+  const [leaveStartDate, setLeaveStartDate] = useState('');
+  const [leaveEndDate, setLeaveEndDate] = useState('');
+  const [leaveReason, setLeaveReason] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const clBalance = leaveSummary?.clBalance;
   const hasClData = Boolean(
     clBalance &&
@@ -45,6 +60,53 @@ export const CasualLeaveQuotaCard = ({
     hasClData && totalQuota && totalQuota > 0
       ? Math.min(100, Math.round((usedDays / totalQuota) * 100))
       : 0;
+
+  const calculatedLeaveDays = useMemo(() => {
+    if (!leaveStartDate || !leaveEndDate) return 0;
+    const start = new Date(leaveStartDate);
+    const end = new Date(leaveEndDate);
+    if (isNaN(start.getTime()) || isNaN(end.getTime()) || end < start) return 0;
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    return Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+  }, [leaveStartDate, leaveEndDate]);
+
+  const handleSubmitLeave = async (submitEvent) => {
+    submitEvent.preventDefault();
+    if (!leaveStartDate || !leaveEndDate || !leaveReason?.trim()) {
+      toast.error('Please fill all required leave application fields.');
+      return;
+    }
+    if (leaveReason.trim().length < 5) {
+      toast.error('Please provide a meaningful reason (minimum 5 characters).');
+      return;
+    }
+    if (leaveType === 'CASUAL_LEAVE' && calculatedLeaveDays > 3) {
+      toast.error('Casual Leave (CL) cannot exceed 3 consecutive calendar days under municipal regulations. Please select Earned Leave (EL).');
+      return;
+    }
+    if (leaveType === 'CASUAL_LEAVE' && remainingBalance !== null && calculatedLeaveDays > remainingBalance) {
+      toast.error(`Requested ${calculatedLeaveDays} day(s) exceeds your remaining CL balance of ${remainingBalance} day(s).`);
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await apiClient.post('/leave/submit', {
+        leaveType,
+        startDate: leaveStartDate,
+        endDate: leaveEndDate,
+        reason: leaveReason.trim(),
+      });
+      toast.success('Leave application submitted successfully. Pending Head Master approval.');
+      setIsLeaveModalOpen(false);
+      setLeaveReason('');
+      dispatch(fetchProfileLeaveSummary());
+    } catch (errorObject) {
+      toast.error(getErrorMessage(errorObject, 'Failed to submit leave application.'));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -107,13 +169,21 @@ export const CasualLeaveQuotaCard = ({
         </div>
 
         {isOwner && (
-          <Link
-            to="/dashboard?tab=service"
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#006AC7] hover:bg-[#005299] text-white text-xs font-bold transition-all shadow-xs self-start sm:self-auto"
+          <button
+            type="button"
+            onClick={() => {
+              const today = new Date().toISOString().split('T')[0];
+              setLeaveStartDate(today);
+              setLeaveEndDate(today);
+              setLeaveReason('');
+              setLeaveType('CASUAL_LEAVE');
+              setIsLeaveModalOpen(true);
+            }}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#006AC7] hover:bg-[#005299] text-white text-xs font-bold transition-all shadow-xs self-start sm:self-auto cursor-pointer"
           >
-            <Send className="w-3.5 h-3.5" />
-            <span>Submit Leave Application</span>
-          </Link>
+            <PlusCircle className="w-3.5 h-3.5" />
+            <span>Apply for Leave</span>
+          </button>
         )}
       </div>
 
@@ -259,6 +329,129 @@ export const CasualLeaveQuotaCard = ({
           </div>
         )}
       </div>
+
+      {/* ── Leave Application Modal (In-Profile) ─────────────────────────── */}
+      {isLeaveModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+            onClick={() => !isSubmitting && setIsLeaveModalOpen(false)}
+          />
+          <div className="relative w-full max-w-lg bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden z-10 animate-in fade-in zoom-in-95 duration-150">
+            <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/60">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-blue-50 border border-blue-200 text-[#006AC7]">
+                  <Calendar className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-[#102033]">Apply for Casual / Medical Leave</h3>
+                  <p className="text-[11px] text-[#526477]">Institutional Leave Application &bull; Liaquatabad Town</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => !isSubmitting && setIsLeaveModalOpen(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitLeave} className="p-5 space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-[#526477] mb-1">Leave Category *</label>
+                <select
+                  value={leaveType}
+                  onChange={(e) => setLeaveType(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
+                >
+                  <option value="CASUAL_LEAVE">Casual Leave (CL) &mdash; Max 3 Consecutive Days</option>
+                  <option value="EARNED_LEAVE">Earned Leave (EL) &mdash; Extended / Sanction Required</option>
+                  <option value="MEDICAL_LEAVE">Medical Leave (Medical Certificate Required)</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-bold text-[#526477] mb-1">From Date *</label>
+                  <input
+                    type="date"
+                    value={leaveStartDate}
+                    onChange={(e) => setLeaveStartDate(e.target.value)}
+                    required
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-[#526477] mb-1">To Date *</label>
+                  <input
+                    type="date"
+                    value={leaveEndDate}
+                    onChange={(e) => setLeaveEndDate(e.target.value)}
+                    required
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
+                  />
+                </div>
+              </div>
+
+              {calculatedLeaveDays > 0 && (
+                <div className="p-3 rounded-xl bg-blue-50/70 border border-blue-200 flex items-center justify-between text-xs">
+                  <span className="font-semibold text-[#526477]">Requested Duration:</span>
+                  <span className="font-bold text-[#006AC7]">
+                    {calculatedLeaveDays} calendar day(s)
+                    {leaveType === 'CASUAL_LEAVE' && remainingBalance !== null && (
+                      <span className="text-[#526477] font-normal ml-1">
+                        (Remaining Balance: {remainingBalance} days)
+                      </span>
+                    )}
+                  </span>
+                </div>
+              )}
+
+              <div>
+                <label className="block font-bold text-[#526477] mb-1">Reason / Institutional Justification *</label>
+                <textarea
+                  rows="3"
+                  value={leaveReason}
+                  onChange={(e) => setLeaveReason(e.target.value)}
+                  placeholder="Explain the reason for leave request (minimum 5 characters)..."
+                  required
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsLeaveModalOpen(false)}
+                  disabled={isSubmitting}
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={
+                    isSubmitting ||
+                    (leaveType === 'CASUAL_LEAVE' && (calculatedLeaveDays > 3 || (remainingBalance !== null && calculatedLeaveDays > remainingBalance)))
+                  }
+                  className="px-5 py-2 rounded-xl bg-[#006AC7] hover:bg-[#00529B] disabled:opacity-50 text-white font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" /> Submitting...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" /> Submit Application
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

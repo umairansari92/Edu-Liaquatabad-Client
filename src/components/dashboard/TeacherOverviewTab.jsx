@@ -455,12 +455,12 @@ export const TeacherOverviewTab = ({
 
               <button
                 type="button"
-                onClick={() => onNavigateTab('SERVICE')}
+                onClick={() => navigate('/profile')}
                 className="p-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/70 text-left transition group cursor-pointer"
               >
-                <IdCard className="w-4 h-4 text-slate-600 mb-1.5" />
-                <div className="text-xs font-bold text-[#102033]">Service Record</div>
-                <div className="text-[10px] text-[#8094A8]">Punch history</div>
+                <IdCard className="w-4 h-4 text-[#006AC7] mb-1.5" />
+                <div className="text-xs font-bold text-[#102033] group-hover:text-[#006AC7]">Personal Profile</div>
+                <div className="text-[10px] text-[#8094A8]">Service dossier &amp; leaves</div>
               </button>
             </div>
           </div>

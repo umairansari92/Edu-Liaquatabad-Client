@@ -45,7 +45,7 @@ runTest('TEACHER role receives teacher workspace items with Personal Profile and
   const items = getNavigationItemsForRole('TEACHER');
   const paths = items.map((item) => item.path);
 
-  assert.strictEqual(items.length, 10, 'Teacher should receive exactly 10 navigation items');
+  assert.strictEqual(items.length, 9, 'Teacher should receive exactly 9 navigation items');
   assert.ok(paths.includes('/dashboard'), 'Teacher must have /dashboard');
   assert.ok(paths.includes('/my-classes'), 'Teacher must have /my-classes');
   assert.ok(paths.includes('/dashboard?tab=attendance'), 'Teacher must have Daily Attendance');
@@ -53,7 +53,7 @@ runTest('TEACHER role receives teacher workspace items with Personal Profile and
   assert.ok(paths.includes('/dashboard?tab=homework'), 'Teacher must have Homework');
   assert.ok(paths.includes('/dashboard?tab=timetable'), 'Teacher must have Timetable');
   assert.ok(paths.includes('/dashboard?tab=circulars'), 'Teacher must have Notice Board');
-  assert.ok(paths.includes('/dashboard?tab=service'), 'Teacher must have My Service & Leave');
+  assert.ok(!paths.includes('/dashboard?tab=service'), 'Teacher must NOT have redundant /dashboard?tab=service (consolidated into /profile)');
   assert.ok(paths.includes('/holidays'), 'Teacher must have Holidays & Calendar');
   assert.ok(paths.includes('/profile'), 'Teacher must have Personal Profile');
 
