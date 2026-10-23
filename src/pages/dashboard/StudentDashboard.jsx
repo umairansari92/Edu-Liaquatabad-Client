@@ -964,7 +964,10 @@ export const StudentDashboard = () => {
 
                     {/* Attachments & Learning Materials */}
                     {homeworkItem.attachments?.length > 0 && (
-                      <HomeworkAttachmentsViewer attachments={homeworkItem.attachments} />
+                      <HomeworkAttachmentsViewer
+                        attachments={homeworkItem.attachments}
+                        homeworkId={homeworkItem._id || homeworkItem.id}
+                      />
                     )}
                   </div>
                 );

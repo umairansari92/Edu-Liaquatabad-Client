@@ -871,7 +871,10 @@ export const ParentDashboard = () => {
                     
                     {/* Attached Learning Materials */}
                     {homeworkItem.attachments?.length > 0 && (
-                      <HomeworkAttachmentsViewer attachments={homeworkItem.attachments} />
+                      <HomeworkAttachmentsViewer
+                        attachments={homeworkItem.attachments}
+                        homeworkId={homeworkItem.id || homeworkItem._id}
+                      />
                     )}
                   </div>
 

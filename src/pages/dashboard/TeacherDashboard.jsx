@@ -1658,7 +1658,11 @@ export const TeacherDashboard = () => {
 
                       {/* Attached Learning Materials */}
                       {homeworkItem.attachments?.length > 0 && (
-                        <HomeworkAttachmentsViewer attachments={homeworkItem.attachments} isCompact />
+                        <HomeworkAttachmentsViewer
+                          attachments={homeworkItem.attachments}
+                          homeworkId={homeworkItem._id}
+                          isCompact
+                        />
                       )}
                     </div>
 
