@@ -40,6 +40,7 @@ import {
   fetchStudentAttendance,
   fetchStudentCirculars,
   setSelectedExamId,
+  selectStudentTodayClosure,
 } from '../../store/slices/studentSlice.js';
 
 // ─── Tab Button Component ───────────────────────────────────────────────────────
@@ -107,6 +108,7 @@ export const StudentDashboard = () => {
     attendance,
     circulars,
   } = useSelector((state) => state.student);
+  const todayClosure = useSelector(selectStudentTodayClosure);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const urlTabKey = searchParams.get('tab');
@@ -446,6 +448,31 @@ export const StudentDashboard = () => {
             <div className="absolute -right-10 -bottom-10 w-60 h-60 rounded-full bg-white/5 pointer-events-none" />
             <div className="absolute right-32 -top-10 w-40 h-40 rounded-full bg-white/5 pointer-events-none" />
           </div>
+
+          {/* Dynamic School Closure / Holiday Alert Banner */}
+          {todayClosure?.isClosed && (
+            <div className="p-4 rounded-2xl bg-purple-500/10 border-2 border-purple-500/30 flex items-start gap-3.5 shadow-xs">
+              <div className="p-2.5 rounded-xl bg-purple-600 text-white flex-shrink-0 mt-0.5">
+                <CalendarDays className="w-5 h-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-700 text-white">
+                    {todayClosure.type === 'HOLIDAY' ? 'Official Holiday' : 'Weekly Off'}
+                  </span>
+                  <span className="text-xs font-bold text-purple-950">
+                    School Closed Today
+                  </span>
+                </div>
+                <h4 className="text-sm font-black text-purple-950 mt-1">
+                  {todayClosure.title}
+                </h4>
+                <p className="text-xs text-purple-900/80 mt-0.5 leading-relaxed">
+                  {todayClosure.reason}. Regular classroom teaching and timetable periods are officially suspended for today.
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Quick Metrics Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

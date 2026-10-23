@@ -426,6 +426,31 @@ export const ParentDashboard = () => {
                 </div>
               </div>
 
+              {/* Dynamic Ward School Closure / Holiday Alert */}
+              {activeWardData.profile?.todayClosure?.isClosed && (
+                <div className="p-4 rounded-2xl bg-purple-500/10 border-2 border-purple-500/30 flex items-start gap-3.5 shadow-xs">
+                  <div className="p-2.5 rounded-xl bg-purple-600 text-white flex-shrink-0 mt-0.5">
+                    <Calendar className="w-5 h-5" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-purple-700 text-white">
+                        {activeWardData.profile.todayClosure.type === 'HOLIDAY' ? 'Official Holiday' : 'Weekly Off'}
+                      </span>
+                      <span className="text-xs font-bold text-purple-950">
+                        {activeWardData.profile.school?.name || 'School'} Closed Today
+                      </span>
+                    </div>
+                    <h4 className="text-sm font-black text-purple-950 mt-1">
+                      {activeWardData.profile.todayClosure.title}
+                    </h4>
+                    <p className="text-xs text-purple-900/80 mt-0.5 leading-relaxed">
+                      {activeWardData.profile.todayClosure.reason}. Regular school hours and attendance roll call are officially suspended for today.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* 4 Metric Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs">

@@ -94,6 +94,7 @@ const initialState = {
     isLoading: false,
     error: null,
   },
+  todayClosure: null,
   examinationResults: {
     records: [],
     totalCount: 0,
@@ -145,7 +146,8 @@ const studentSlice = createSlice({
       })
       .addCase(fetchStudentProfile.fulfilled, (stateDraft, action) => {
         stateDraft.profile.isLoading = false;
-        stateDraft.profile.data = action.payload;
+        stateDraft.profile.data = action.payload?.profile || action.payload;
+        stateDraft.todayClosure = action.payload?.todayClosure || null;
       })
       .addCase(fetchStudentProfile.rejected, (stateDraft, action) => {
         stateDraft.profile.isLoading = false;
@@ -239,4 +241,7 @@ const studentSlice = createSlice({
 });
 
 export const { setSelectedExamId, clearStudentErrors } = studentSlice.actions;
+
+export const selectStudentTodayClosure = (state) => state.student.todayClosure;
+
 export default studentSlice.reducer;
