@@ -923,6 +923,23 @@ export const TeacherDashboard = () => {
                 </div>
               </div>
 
+              {/* School Closed: Holiday or Weekly Off Alert */}
+              {attendanceSheetData?.windowStatus?.isClosed && (
+                <div className="p-4 my-3 rounded-2xl bg-purple-50 border border-purple-200/80 flex items-start gap-3 text-xs text-purple-900 shadow-xs">
+                  <div className="p-1.5 rounded-xl bg-purple-100 text-purple-700 flex-shrink-0 mt-0.5">
+                    <CalendarDays className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="font-bold text-purple-950">
+                      School Closed Today: {attendanceSheetData.windowStatus.closureReason || 'Official Holiday / Off Day'}
+                    </div>
+                    <p className="text-purple-800 text-[11px] mt-0.5">
+                      Classroom attendance marking is suspended during official holidays and statutory off days. Official off days are automatically registered in the Smart Monthly Register.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Active Clearance Granted Notice */}
               {attendanceSheetData?.windowStatus?.isLateOverride && (
                 <div className="p-4 my-3 rounded-2xl bg-emerald-50 border border-emerald-200/80 flex items-start sm:items-center justify-between gap-3 text-xs text-emerald-900 shadow-xs">
@@ -943,7 +960,7 @@ export const TeacherDashboard = () => {
               )}
 
               {/* Window Closed: Pending HM Clearance Approval */}
-              {attendanceSheetData?.windowStatus && !attendanceSheetData.windowStatus.allowed && attendanceSheetData.windowStatus.clearance?.status === 'PENDING' && (
+              {attendanceSheetData?.windowStatus && !attendanceSheetData.windowStatus.allowed && !attendanceSheetData.windowStatus.isClosed && attendanceSheetData.windowStatus.clearance?.status === 'PENDING' && (
                 <div className="p-4 my-3 rounded-2xl bg-amber-50 border border-amber-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-amber-900 shadow-xs">
                   <div className="flex items-start sm:items-center gap-2.5">
                     <div className="p-1.5 rounded-xl bg-amber-100 text-amber-700 flex-shrink-0 mt-0.5 sm:mt-0">
@@ -970,7 +987,7 @@ export const TeacherDashboard = () => {
               )}
 
               {/* Window Closed: Clearance Rejected by HM */}
-              {attendanceSheetData?.windowStatus && !attendanceSheetData.windowStatus.allowed && attendanceSheetData.windowStatus.clearance?.status === 'REJECTED' && (
+              {attendanceSheetData?.windowStatus && !attendanceSheetData.windowStatus.allowed && !attendanceSheetData.windowStatus.isClosed && attendanceSheetData.windowStatus.clearance?.status === 'REJECTED' && (
                 <div className="p-4 my-3 rounded-2xl bg-rose-50 border border-rose-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-rose-900 shadow-xs">
                   <div className="flex items-start sm:items-center gap-2.5">
                     <div className="p-1.5 rounded-xl bg-rose-100 text-rose-700 flex-shrink-0 mt-0.5 sm:mt-0">
@@ -1013,7 +1030,7 @@ export const TeacherDashboard = () => {
               )}
 
               {/* Today Before Window Opens Notice */}
-              {attendanceSheetData?.windowStatus && !attendanceSheetData.windowStatus.allowed && isSelectedDateToday && attendanceSheetData.windowStatus.code === 'WINDOW_NOT_OPENED' && (
+              {attendanceSheetData?.windowStatus && !attendanceSheetData.windowStatus.allowed && !attendanceSheetData.windowStatus.isClosed && isSelectedDateToday && attendanceSheetData.windowStatus.code === 'WINDOW_NOT_OPENED' && (
                 <div className="p-4 my-3 rounded-2xl bg-blue-50 border border-blue-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-blue-900 shadow-xs">
                   <div className="flex items-start sm:items-center gap-2.5">
                     <div className="p-1.5 rounded-xl bg-blue-100 text-blue-700 flex-shrink-0 mt-0.5 sm:mt-0">
@@ -1032,7 +1049,7 @@ export const TeacherDashboard = () => {
               )}
 
               {/* Today Window Closed: Standard Notice + Request Clearance Button */}
-              {attendanceSheetData?.windowStatus && !attendanceSheetData.windowStatus.allowed && isSelectedDateToday && !['WINDOW_NOT_OPENED', 'PAST_DATE_CLOSED'].includes(attendanceSheetData.windowStatus.code) && (!attendanceSheetData.windowStatus.clearance || !['PENDING', 'REJECTED'].includes(attendanceSheetData.windowStatus.clearance.status)) && (
+              {attendanceSheetData?.windowStatus && !attendanceSheetData.windowStatus.allowed && !attendanceSheetData.windowStatus.isClosed && isSelectedDateToday && !['WINDOW_NOT_OPENED', 'PAST_DATE_CLOSED'].includes(attendanceSheetData.windowStatus.code) && (!attendanceSheetData.windowStatus.clearance || !['PENDING', 'REJECTED'].includes(attendanceSheetData.windowStatus.clearance.status)) && (
                 <div className="p-4 my-3 rounded-2xl bg-amber-50 border border-amber-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-amber-900 shadow-xs">
                   <div className="flex items-start sm:items-center gap-2.5">
                     <div className="p-1.5 rounded-xl bg-amber-100 text-amber-700 flex-shrink-0 mt-0.5 sm:mt-0">

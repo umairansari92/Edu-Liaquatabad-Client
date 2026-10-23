@@ -78,7 +78,15 @@ export const LivePeriodBadge = ({ liveStatus, isDark = false }) => {
       text: isDark ? 'text-slate-200' : 'text-slate-600',
       pulse: null,
       icon: AlertCircle,
-      title: 'Weekly Off (Sunday)',
+      title: currentDay ? `Weekly Off (${currentDay.charAt(0) + currentDay.slice(1).toLowerCase()})` : 'Weekly Off',
+    },
+    HOLIDAY: {
+      bg: isDark ? 'bg-purple-500/20 backdrop-blur-xs' : 'bg-purple-500/10',
+      border: isDark ? 'border-purple-400/30' : 'border-purple-500/30',
+      text: isDark ? 'text-purple-200' : 'text-purple-700',
+      pulse: null,
+      icon: AlertCircle,
+      title: 'Official Holiday',
     },
     UNCONFIGURED: {
       bg: isDark ? 'bg-slate-500/20 backdrop-blur-xs' : 'bg-slate-500/10',

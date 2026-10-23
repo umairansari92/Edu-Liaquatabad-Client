@@ -95,6 +95,21 @@ export const TeacherOverviewTab = ({
     [assignedSections]
   );
 
+  // Closure and Off-Day State
+  const todayClosure = summary?.todayClosure || summaryData?.todayClosure || personalScheduleData?.todayClosure || null;
+  const isSchoolClosed = Boolean(
+    summaryData?.isSchoolClosed ||
+    summary?.todayClosure?.isClosed ||
+    personalScheduleData?.isSchoolClosed ||
+    liveStatus?.isSchoolClosed ||
+    liveStatus?.status === 'OFF_DAY' ||
+    liveStatus?.status === 'HOLIDAY' ||
+    primarySection?.todayAttendance?.isSchoolClosed
+  );
+  const closureType = todayClosure?.type || summaryData?.closureType || (liveStatus?.status === 'HOLIDAY' ? 'HOLIDAY' : 'WEEKLY_OFF');
+  const closureReason = todayClosure?.reason || summaryData?.closureReason || liveStatus?.closureReason || liveStatus?.message || primarySection?.todayAttendance?.closureReason || 'School is officially closed today.';
+  const closureTitle = todayClosure?.title || summaryData?.closureTitle || (closureType === 'HOLIDAY' ? 'Official Holiday Observed' : 'Official Weekly Off');
+
   return (
     <div className="space-y-6">
       {/* ─── 1. Live Schedule & Period Status Hero HUD ─── */}
@@ -112,13 +127,17 @@ export const TeacherOverviewTab = ({
 
             <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-amber-300" />
-              {liveStatus?.status === 'ACTIVE_TEACHING'
+              {isSchoolClosed
+                ? `${closureTitle} — School Closed Today`
+                : liveStatus?.status === 'ACTIVE_TEACHING'
                 ? `Active Class: ${liveStatus.activeSlot?.label || 'Period'} (${liveStatus.activeSlot?.startTime} – ${liveStatus.activeSlot?.endTime})`
                 : liveStatus?.message || "Welcome to your Teacher Dashboard"}
             </h2>
 
             <p className="text-xs text-blue-100 max-w-xl">
-              {todayLessons.length > 0
+              {isSchoolClosed
+                ? `${closureReason}. Regular teaching periods and morning student attendance are suspended.`
+                : todayLessons.length > 0
                 ? `You have ${todayLessons.length} teaching period${todayLessons.length > 1 ? 's' : ''} scheduled for today across your assigned classrooms.`
                 : 'No scheduled teaching periods for today on the official school timetable.'}
             </p>
@@ -170,19 +189,31 @@ export const TeacherOverviewTab = ({
         <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs hover:shadow-sm transition">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-bold uppercase tracking-wider text-[#526477]">Class Attendance</span>
-            <div className={`p-2 rounded-xl ${classTeacherSectionCount === 0 ? 'bg-slate-100 text-slate-600' : pendingAttendanceCount > 0 ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-[#4B7F3A]'}`}>
-              <ClipboardList className="w-4 h-4" />
+            <div className={`p-2 rounded-xl ${
+              isSchoolClosed
+                ? 'bg-purple-50 text-purple-700'
+                : classTeacherSectionCount === 0
+                ? 'bg-slate-100 text-slate-600'
+                : pendingAttendanceCount > 0
+                ? 'bg-amber-50 text-amber-700'
+                : 'bg-emerald-50 text-[#4B7F3A]'
+            }`}>
+              {isSchoolClosed ? <CalendarCheck className="w-4 h-4" /> : <ClipboardList className="w-4 h-4" />}
             </div>
           </div>
           <p className="text-2xl sm:text-3xl font-black tracking-tight text-[#102033]">
-            {classTeacherSectionCount === 0
+            {isSchoolClosed
+              ? (closureType === 'HOLIDAY' ? 'Holiday' : 'Off Today')
+              : classTeacherSectionCount === 0
               ? 'No Class Duty'
               : pendingAttendanceCount === 0
               ? 'All Done ✓'
               : `${pendingAttendanceCount} Pending`}
           </p>
-          <p className="text-xs text-[#8094A8] mt-1 font-medium">
-            {classTeacherSectionCount === 0
+          <p className="text-xs text-[#8094A8] mt-1 font-medium truncate" title={isSchoolClosed ? closureReason : undefined}>
+            {isSchoolClosed
+              ? (closureType === 'HOLIDAY' ? 'Official Holiday Observed' : 'Official Weekly Off')
+              : classTeacherSectionCount === 0
               ? 'Managed by assigned Class Teachers'
               : pendingAttendanceCount === 0
               ? 'Assigned class attendance marked'
@@ -222,7 +253,20 @@ export const TeacherOverviewTab = ({
             </div>
 
             {primarySection ? (
-              primarySection.todayAttendance?.submitted ? (
+              isSchoolClosed ? (
+                <div className="p-4 rounded-xl bg-purple-50/90 border border-purple-200 text-xs space-y-1.5 mb-4">
+                  <div className="font-bold text-purple-900 flex items-center gap-1.5 text-sm">
+                    <CalendarCheck className="w-4 h-4 text-purple-600" />
+                    {closureTitle}
+                  </div>
+                  <p className="text-purple-800 leading-relaxed">
+                    Attendance marking is suspended today for <strong>{primarySection.class?.name || 'Class'} {primarySection.name ? `Section ${primarySection.name}` : ''}</strong> ({primarySection.studentCount} students).
+                  </p>
+                  <p className="text-[11px] text-purple-700 font-medium">
+                    {closureReason}
+                  </p>
+                </div>
+              ) : primarySection.todayAttendance?.submitted ? (
                 <div className="p-4 rounded-xl bg-emerald-50/80 border border-emerald-200 text-xs space-y-1 mb-4">
                   <div className="font-bold text-emerald-800 flex items-center gap-1.5 text-sm">
                     <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Attendance Complete
@@ -251,17 +295,30 @@ export const TeacherOverviewTab = ({
 
           <div className="pt-2 border-t border-slate-100">
             {primarySection ? (
-              <button
-                type="button"
-                onClick={() => {
-                  if (onSelectAttendanceSection) onSelectAttendanceSection(String(primarySection._id));
-                  onNavigateTab('ATTENDANCE');
-                }}
-                className="w-full py-2.5 px-4 rounded-xl bg-[#006AC7] hover:bg-[#00529B] text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-xs cursor-pointer"
-              >
-                <ClipboardList className="w-4 h-4" />
-                {primarySection.todayAttendance?.submitted ? 'Review Attendance Sheet' : 'Take Attendance Now'}
-              </button>
+              isSchoolClosed ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onSelectAttendanceSection) onSelectAttendanceSection(String(primarySection._id));
+                    onNavigateTab('ATTENDANCE');
+                  }}
+                  className="w-full py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200/80 transition flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <FileSpreadsheet className="w-4 h-4 text-[#006AC7]" /> View Monthly Register
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onSelectAttendanceSection) onSelectAttendanceSection(String(primarySection._id));
+                    onNavigateTab('ATTENDANCE');
+                  }}
+                  className="w-full py-2.5 px-4 rounded-xl bg-[#006AC7] hover:bg-[#00529B] text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+                >
+                  <ClipboardList className="w-4 h-4" />
+                  {primarySection.todayAttendance?.submitted ? 'Review Attendance Sheet' : 'Take Attendance Now'}
+                </button>
+              )
             ) : (
               <button
                 type="button"
@@ -282,11 +339,21 @@ export const TeacherOverviewTab = ({
                 <Clock className="w-4 h-4 text-[#006AC7]" /> Today's Classes ({todayDayName})
               </span>
               <span className="text-[11px] font-bold text-[#8094A8]">
-                {todayLessons.length} Period{todayLessons.length !== 1 ? 's' : ''}
+                {isSchoolClosed ? 'School Closed' : `${todayLessons.length} Period${todayLessons.length !== 1 ? 's' : ''}`}
               </span>
             </div>
 
-            {todayLessons.length === 0 ? (
+            {isSchoolClosed ? (
+              <div className="py-7 text-center space-y-2">
+                <div className="w-10 h-10 mx-auto rounded-full bg-purple-50 text-purple-700 flex items-center justify-center">
+                  <CalendarDays className="w-5 h-5" />
+                </div>
+                <p className="text-xs font-bold text-[#102033]">{closureTitle}</p>
+                <p className="text-[11px] text-[#8094A8] max-w-xs mx-auto leading-relaxed">
+                  No teaching periods in session today. Regular academic timetable will resume on the next working day.
+                </p>
+              </div>
+            ) : todayLessons.length === 0 ? (
               <div className="py-8 text-center text-xs text-[#8094A8]">
                 No teaching periods scheduled on timetable for today.
               </div>
