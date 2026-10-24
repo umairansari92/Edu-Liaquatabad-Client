@@ -184,13 +184,14 @@ export const ProfilePrivacySettingsModal = ({
               <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200/80">
                 <div>
                   <span className="font-bold text-[#102033] block">Mobile Phone Number</span>
-                  <span className="text-[11px] text-slate-500">Restricted from Public directory</span>
+                  <span className="text-[11px] text-slate-500">Official contact phone visibility</span>
                 </div>
                 <select
                   value={fieldVisibility.phoneNumber}
                   onChange={(changeEvent) => handleFieldChange('phoneNumber', changeEvent.target.value)}
                   className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white font-medium text-[#102033] focus:ring-1 focus:ring-[#006AC7]"
                 >
+                  <option value="PUBLIC">Public (Directory)</option>
                   <option value="SCHOOL">School Members</option>
                   <option value="AUTHORIZED_ROLE">Authorized Leadership Only</option>
                   <option value="PRIVATE">Private (Only Me)</option>
@@ -208,6 +209,7 @@ export const ProfilePrivacySettingsModal = ({
                   onChange={(changeEvent) => handleFieldChange('email', changeEvent.target.value)}
                   className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white font-medium text-[#102033] focus:ring-1 focus:ring-[#006AC7]"
                 >
+                  <option value="PUBLIC">Public (Directory)</option>
                   <option value="SCHOOL">School Members</option>
                   <option value="AUTHORIZED_ROLE">Authorized Leadership Only</option>
                   <option value="PRIVATE">Private (Only Me)</option>
