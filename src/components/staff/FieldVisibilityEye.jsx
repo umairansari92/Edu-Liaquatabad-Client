@@ -43,9 +43,6 @@ export const FieldVisibilityEye = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
 
-  // Determine permitted tiers per field category
-  const isStrictlySensitive = ['cnic', 'bFormNumber', 'bankDetails', 'residentialAddress'].includes(field);
-  const isSemiPrivate = ['phoneNumber', 'email', 'guardianCellNumber', 'guardianEmail'].includes(field);
 
   // Tier configuration definitions (Strictly adhering to DMC 4-Tier Privacy Standard)
   const tierConfigs = {
@@ -127,13 +124,14 @@ export const FieldVisibilityEye = ({
     );
   }
 
-  // Available options for this field type:
-  // For strictly sensitive PII (CNIC, B-Form, Bank, Residential Address): ONLY 'Officials' & 'Private'
-  // For standard personal/contact fields: all four options ('School Based', 'Private', 'Officials', 'Public')
-  const allTiers = ['SCHOOL', 'PRIVATE', 'AUTHORIZED_ROLE', 'PUBLIC'];
+  // Institutional Security Ceilings:
+  // National identity, financial, and residential records possess hard ceilings.
+  // Permitted options are restricted to 'Officials' (AUTHORIZED_ROLE) or 'Private' (PRIVATE).
+  // Standard contact and professional credentials support all 4 tiers: 'School Based', 'Private', 'Officials', 'Public'.
+  const isStrictlySensitive = ['cnic', 'bFormNumber', 'bankDetails', 'residentialAddress'].includes(field);
   const permittedTiers = isStrictlySensitive
     ? ['AUTHORIZED_ROLE', 'PRIVATE']
-    : allTiers;
+    : ['SCHOOL', 'PRIVATE', 'AUTHORIZED_ROLE', 'PUBLIC'];
 
   return (
     <div className="relative inline-block" ref={popoverRef}>

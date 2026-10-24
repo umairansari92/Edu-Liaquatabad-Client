@@ -44,8 +44,8 @@ export const ProfilePrivacySettingsModal = ({
 
   const handleFieldChange = (field, value) => {
     // Client-side guard on security ceilings
-    if ((field === 'cnic' || field === 'bankDetails') && (value === 'PUBLIC' || value === 'SCHOOL')) {
-      toast.error('CNIC and Bank Details cannot be set to Public or School visibility per Institutional Security Policy.');
+    if (['cnic', 'bankDetails', 'residentialAddress'].includes(field) && (value === 'PUBLIC' || value === 'SCHOOL')) {
+      toast.error('Sensitive records (CNIC, Bank, Address) cannot be set to Public or School visibility per Institutional Security Policy.');
       return;
     }
     setFieldVisibility((prev) => ({ ...prev, [field]: value }));
@@ -139,8 +139,9 @@ export const ProfilePrivacySettingsModal = ({
                   onChange={(changeEvent) => handleFieldChange('profilePhoto', changeEvent.target.value)}
                   className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white font-medium text-[#102033] focus:ring-1 focus:ring-[#006AC7]"
                 >
-                  <option value="PUBLIC">Public (Everyone)</option>
+                  <option value="PUBLIC">Public (Directory / Everyone)</option>
                   <option value="SCHOOL">School Members</option>
+                  <option value="AUTHORIZED_ROLE">Officials (Authorized Leadership)</option>
                   <option value="PRIVATE">Private (Only Me)</option>
                 </select>
               </div>
@@ -156,8 +157,9 @@ export const ProfilePrivacySettingsModal = ({
                   onChange={(changeEvent) => handleFieldChange('designation', changeEvent.target.value)}
                   className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white font-medium text-[#102033] focus:ring-1 focus:ring-[#006AC7]"
                 >
-                  <option value="PUBLIC">Public (Everyone)</option>
+                  <option value="PUBLIC">Public (Directory / Everyone)</option>
                   <option value="SCHOOL">School Members</option>
+                  <option value="AUTHORIZED_ROLE">Officials (Authorized Leadership)</option>
                   <option value="PRIVATE">Private (Only Me)</option>
                 </select>
               </div>
@@ -173,9 +175,9 @@ export const ProfilePrivacySettingsModal = ({
                   onChange={(changeEvent) => handleFieldChange('qualification', changeEvent.target.value)}
                   className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white font-medium text-[#102033] focus:ring-1 focus:ring-[#006AC7]"
                 >
-                  <option value="PUBLIC">Public (Everyone)</option>
+                  <option value="PUBLIC">Public (Directory / Everyone)</option>
                   <option value="SCHOOL">School Members</option>
-                  <option value="AUTHORIZED_ROLE">Authorized Officials Only</option>
+                  <option value="AUTHORIZED_ROLE">Officials (Authorized Leadership)</option>
                   <option value="PRIVATE">Private (Only Me)</option>
                 </select>
               </div>
@@ -191,9 +193,9 @@ export const ProfilePrivacySettingsModal = ({
                   onChange={(changeEvent) => handleFieldChange('phoneNumber', changeEvent.target.value)}
                   className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white font-medium text-[#102033] focus:ring-1 focus:ring-[#006AC7]"
                 >
-                  <option value="PUBLIC">Public (Directory)</option>
+                  <option value="PUBLIC">Public (Directory / Everyone)</option>
                   <option value="SCHOOL">School Members</option>
-                  <option value="AUTHORIZED_ROLE">Authorized Leadership Only</option>
+                  <option value="AUTHORIZED_ROLE">Officials (Authorized Leadership)</option>
                   <option value="PRIVATE">Private (Only Me)</option>
                 </select>
               </div>
@@ -209,9 +211,9 @@ export const ProfilePrivacySettingsModal = ({
                   onChange={(changeEvent) => handleFieldChange('email', changeEvent.target.value)}
                   className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white font-medium text-[#102033] focus:ring-1 focus:ring-[#006AC7]"
                 >
-                  <option value="PUBLIC">Public (Directory)</option>
+                  <option value="PUBLIC">Public (Directory / Everyone)</option>
                   <option value="SCHOOL">School Members</option>
-                  <option value="AUTHORIZED_ROLE">Authorized Leadership Only</option>
+                  <option value="AUTHORIZED_ROLE">Officials (Authorized Leadership)</option>
                   <option value="PRIVATE">Private (Only Me)</option>
                 </select>
               </div>
@@ -234,7 +236,7 @@ export const ProfilePrivacySettingsModal = ({
                   onChange={(changeEvent) => handleFieldChange('cnic', changeEvent.target.value)}
                   className="px-3 py-1.5 rounded-lg border border-rose-300 bg-white font-bold text-rose-900 focus:ring-1 focus:ring-rose-500"
                 >
-                  <option value="AUTHORIZED_ROLE">Authorized Leadership Only (HM / DDO)</option>
+                  <option value="AUTHORIZED_ROLE">Officials (Authorized Leadership Only)</option>
                   <option value="PRIVATE">Strictly Private (Only Me)</option>
                 </select>
               </div>
@@ -257,7 +259,30 @@ export const ProfilePrivacySettingsModal = ({
                   onChange={(changeEvent) => handleFieldChange('bankDetails', changeEvent.target.value)}
                   className="px-3 py-1.5 rounded-lg border border-amber-300 bg-white font-bold text-amber-900 focus:ring-1 focus:ring-amber-500"
                 >
-                  <option value="AUTHORIZED_ROLE">Authorized Leadership Only (DDO / Accounts)</option>
+                  <option value="AUTHORIZED_ROLE">Officials (Authorized Leadership Only)</option>
+                  <option value="PRIVATE">Strictly Private (Only Me)</option>
+                </select>
+              </div>
+
+              {/* Residential Address (Strict Security Ceiling) */}
+              <div className="flex items-center justify-between p-3 rounded-xl bg-amber-50/50 border border-amber-200">
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-bold text-amber-900 block">Residential Address</span>
+                    <span className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 text-[9px] font-bold">
+                      RESIDENTIAL PII
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-amber-800/80">
+                    High Security: Public &amp; School access disabled by institutional policy
+                  </span>
+                </div>
+                <select
+                  value={fieldVisibility.residentialAddress}
+                  onChange={(changeEvent) => handleFieldChange('residentialAddress', changeEvent.target.value)}
+                  className="px-3 py-1.5 rounded-lg border border-amber-300 bg-white font-bold text-amber-900 focus:ring-1 focus:ring-amber-500"
+                >
+                  <option value="AUTHORIZED_ROLE">Officials (Authorized Leadership Only)</option>
                   <option value="PRIVATE">Strictly Private (Only Me)</option>
                 </select>
               </div>

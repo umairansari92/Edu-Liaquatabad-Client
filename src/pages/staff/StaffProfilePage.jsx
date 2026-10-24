@@ -531,9 +531,20 @@ export const StaffProfilePage = () => {
                   </div>
 
                   <div>
-                    <span className="text-[#526477] block text-[11px] font-medium">
-                      {isStudentProfile ? 'Medium of Instruction' : 'Official Designation'}
-                    </span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[#526477] text-[11px] font-medium">
+                        {isStudentProfile ? 'Medium of Instruction' : 'Official Designation'}
+                      </span>
+                      {!isStudentProfile && (
+                        <FieldVisibilityEye
+                          field="designation"
+                          label="Designation"
+                          currentTier={fieldVisibility.designation || 'PUBLIC'}
+                          isOwner={isOwner}
+                          onUpdate={handleFieldVisibilityUpdate}
+                        />
+                      )}
+                    </div>
                     <span className="font-bold text-[#006AC7]">
                       {isStudentProfile
                         ? student?.mediumOfInstruction || 'Not Specified'
