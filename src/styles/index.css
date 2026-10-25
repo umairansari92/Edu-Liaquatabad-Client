@@ -442,6 +442,8 @@ td.register-closure-band {
     box-shadow: none !important;
     border: none !important;
     overflow: visible !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
   body.print-register-mode .printable-attendance-register table {

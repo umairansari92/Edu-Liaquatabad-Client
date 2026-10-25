@@ -365,7 +365,15 @@ export const SmartAttendanceRegister = ({
         @media print {
           @page {
             size: legal landscape;
-            margin: 8mm 6mm;
+            margin: 6mm 5mm;
+          }
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          .printable-attendance-register {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
           }
         }
       `}</style>
@@ -373,14 +381,14 @@ export const SmartAttendanceRegister = ({
       {/* ─── Official Physical Register Header (Printed and Visual) ─────────── */}
       <div className="printable-attendance-register bg-white border border-slate-300 rounded-2xl shadow-sm overflow-hidden print:border-none print:shadow-none print:m-0 print:p-0">
         {/* Printable Official Government Header */}
-        <div className="p-6 border-b border-slate-300 bg-linear-to-r from-slate-50 via-white to-slate-50 print:bg-white text-center space-y-1">
-          <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">
+        <div className="p-6 print:py-2 print:px-4 border-b border-slate-300 bg-linear-to-r from-slate-50 via-white to-slate-50 print:bg-white text-center space-y-1 print:space-y-0.5">
+          <p className="text-[11px] print:text-[9.5px] font-bold uppercase tracking-widest text-slate-500">
             Education Department · Liaquatabad Town Centre (DMC) · Karachi
           </p>
-          <h1 className="text-lg sm:text-xl font-black text-[#102033] uppercase tracking-wide">
+          <h1 className="text-lg sm:text-xl print:text-base font-black text-[#102033] uppercase tracking-wide">
             {schoolName}
           </h1>
-          <div className="flex flex-wrap items-center justify-center gap-4 text-xs font-semibold text-slate-700 pt-1">
+          <div className="flex flex-wrap items-center justify-center gap-4 print:gap-3 text-xs print:text-[10px] font-semibold text-slate-700 pt-1 print:pt-0.5">
             <span><strong>School Code:</strong> {schoolCode}</span>
             <span>•</span>
             <span><strong>Standard / Class:</strong> {className}</span>
@@ -560,7 +568,7 @@ export const SmartAttendanceRegister = ({
                                 className={`register-closure-band select-none ${bandBg}`}
                                 title={`${calDay.date} (${calDay.dayNameFull}) — ${calDay.closureLabel || calDay.status}`}
                               >
-                                <div className="h-full min-h-[140px] flex items-center justify-center py-4 px-0.5">
+                                <div className="h-full min-h-[140px] print:min-h-0 print:py-1 flex items-center justify-center py-4 px-0.5">
                                   <span className={`register-vertical-band font-black ${fontClass}`}>
                                     {bandText}
                                   </span>
@@ -678,103 +686,108 @@ export const SmartAttendanceRegister = ({
         )}
 
         {/* ─── Official Physical Register Footer / Statistics Block ──────────── */}
-        <div className="p-6 bg-slate-50 border-t border-slate-300 text-xs text-slate-700 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Enrollment Reconciliation Box */}
-            <div className="p-4 rounded-xl bg-white border border-slate-300 space-y-2">
-              <h4 className="font-black text-[#102033] uppercase text-[11px] tracking-wider border-b border-slate-200 pb-1.5">
-                Monthly Enrollment & Attendance Statistics
-              </h4>
-              <ul className="space-y-1.5 text-[11px]">
-                <li className="flex justify-between">
+        <div className="p-6 print:p-2.5 bg-slate-50 print:bg-white border-t border-slate-300 text-xs text-slate-700 space-y-6 print:space-y-2">
+          {/* Enrollment Reconciliation Box (Image 2 Section - 2 Columns) */}
+          <div className="p-4 print:p-2 rounded-xl print:rounded-lg bg-white border border-slate-300 space-y-2 print:space-y-1">
+            <h4 className="font-black text-[#102033] uppercase text-[11px] print:text-[10px] tracking-wider border-b border-slate-200 pb-1.5 print:pb-1">
+              Monthly Enrollment & Attendance Statistics
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-x-8 gap-y-1.5 print:gap-x-8 print:gap-y-0.5 text-[11px] print:text-[9.5px]">
+              {/* Column 1: Enrollment Counts (Items 1 to 4) */}
+              <ul className="space-y-1.5 print:space-y-0.5">
+                <li className="flex justify-between items-center py-0.5 border-b border-slate-100">
                   <span>1. Number of students on roll at start of month:</span>
-                  <strong className="font-mono">{students.length}</strong>
+                  <strong className="font-mono text-slate-900">{students.length}</strong>
                 </li>
-                <li className="flex justify-between">
+                <li className="flex justify-between items-center py-0.5 border-b border-slate-100">
                   <span>2. Number of students admitted during the month:</span>
-                  <strong className="font-mono">0</strong>
+                  <strong className="font-mono text-slate-900">0</strong>
                 </li>
-                <li className="flex justify-between">
+                <li className="flex justify-between items-center py-0.5 border-b border-slate-100">
                   <span>3. Number of students struck off / transferred:</span>
-                  <strong className="font-mono">0</strong>
+                  <strong className="font-mono text-slate-900">0</strong>
                 </li>
-                <li className="flex justify-between">
+                <li className="flex justify-between items-center py-0.5">
                   <span>4. Number of students on roll at end of month:</span>
-                  <strong className="font-mono">{students.length}</strong>
+                  <strong className="font-mono text-slate-900">{students.length}</strong>
                 </li>
-                <li className="flex justify-between border-t border-slate-100 pt-1">
+              </ul>
+
+              {/* Column 2: Working Days & Aggregate Percentages (Items 5 to 8) */}
+              <ul className="space-y-1.5 print:space-y-0.5">
+                <li className="flex justify-between items-center py-0.5 border-b border-slate-100">
                   <span>5. Total days of school work during month:</span>
-                  <strong className="font-mono">{registerData?.totalWorkingDays || 0}</strong>
+                  <strong className="font-mono text-slate-900">{registerData?.totalWorkingDays || 0}</strong>
                 </li>
-                <li className="flex justify-between">
+                <li className="flex justify-between items-center py-0.5 border-b border-slate-100">
                   <span>6. Total days attendance officially recorded:</span>
-                  <strong className="font-mono text-emerald-700">{registerData?.recordedWorkingDays || 0}</strong>
+                  <strong className="font-mono text-emerald-700 font-bold">{registerData?.recordedWorkingDays || 0}</strong>
                 </li>
-                <li className="flex justify-between">
+                <li className="flex justify-between items-center py-0.5 border-b border-slate-100">
                   <span>7. Unrecorded working days (Not Taken):</span>
-                  <strong className="font-mono text-amber-700">{registerData?.missedWorkingDays || 0}</strong>
+                  <strong className="font-mono text-amber-700 font-bold">{registerData?.missedWorkingDays || 0}</strong>
                 </li>
-                <li className="flex justify-between border-t border-slate-100 pt-1">
+                <li className="flex justify-between items-center py-0.5">
                   <span>8. Monthly class aggregate attendance:</span>
                   <strong className="font-mono text-indigo-700 font-bold">{registerData?.classAggregatePct || 'N/A'}</strong>
                 </li>
               </ul>
             </div>
+          </div>
 
-            {/* Attendance Legend & Municipal Instructions */}
-            <div className="p-4 rounded-xl bg-white border border-slate-300 space-y-2">
-              <h4 className="font-black text-[#102033] uppercase text-[11px] tracking-wider border-b border-slate-200 pb-1.5">
-                Register Code Legend & Legal Instructions
-              </h4>
-              <div className="grid grid-cols-2 gap-2 text-[11px]">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-5 h-5 rounded flex items-center justify-center font-black bg-emerald-100 text-emerald-800">P</span>
-                  <span>Present</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-5 h-5 rounded flex items-center justify-center font-black bg-rose-100 text-rose-800">A</span>
-                  <span>Absent</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-5 h-5 rounded flex items-center justify-center font-black bg-amber-100 text-amber-800">L</span>
-                  <span>Approved Leave</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-5 h-5 rounded flex items-center justify-center font-black bg-amber-200 text-amber-900">S</span>
-                  <span>Sunday Weekly Off</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-5 h-5 rounded flex items-center justify-center font-black bg-orange-200 text-orange-900">Sat</span>
-                  <span>Saturday Weekly Off</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-5 h-5 rounded flex items-center justify-center font-black bg-rose-200 text-rose-900">H</span>
-                  <span>Gazetted Holiday</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-5 h-5 rounded flex items-center justify-center font-black bg-slate-100 text-slate-500">—</span>
-                  <span>Attendance Not Taken</span>
-                </div>
+          {/* Attendance Legend & Municipal Instructions (Screen Only, Hidden in Print) */}
+          <div className="p-4 rounded-xl bg-white border border-slate-300 space-y-2 print:hidden">
+            <h4 className="font-black text-[#102033] uppercase text-[11px] tracking-wider border-b border-slate-200 pb-1.5">
+              Register Code Legend & Legal Instructions
+            </h4>
+            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2 text-[11px]">
+              <div className="flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded flex items-center justify-center font-black bg-emerald-100 text-emerald-800">P</span>
+                <span>Present</span>
               </div>
-              <p className="text-[10px] text-slate-500 italic pt-2 border-t border-slate-100">
-                Rule 14: All unrecorded working days are explicitly designated as "Attendance Not Taken". Students are never inferred absent. Retrospective clearance requires recorded Head Master justification under municipal ordinance.
-              </p>
+              <div className="flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded flex items-center justify-center font-black bg-rose-100 text-rose-800">A</span>
+                <span>Absent</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded flex items-center justify-center font-black bg-amber-100 text-amber-800">L</span>
+                <span>Approved Leave</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded flex items-center justify-center font-black bg-amber-200 text-amber-900">S</span>
+                <span>Sunday Weekly Off</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded flex items-center justify-center font-black bg-orange-200 text-orange-900">Sat</span>
+                <span>Saturday Weekly Off</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded flex items-center justify-center font-black bg-rose-200 text-rose-900">H</span>
+                <span>Gazetted Holiday</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-5 h-5 rounded flex items-center justify-center font-black bg-slate-100 text-slate-500">—</span>
+                <span>Attendance Not Taken</span>
+              </div>
             </div>
+            <p className="text-[10px] text-slate-500 italic pt-2 border-t border-slate-100">
+              Rule 14: All unrecorded working days are explicitly designated as "Attendance Not Taken". Students are never inferred absent. Retrospective clearance requires recorded Head Master justification under municipal ordinance.
+            </p>
           </div>
 
           {/* Official Signatures Block */}
-          <div className="grid grid-cols-3 gap-6 pt-8 text-center text-xs font-bold text-slate-600">
-            <div className="space-y-12">
+          <div className="grid grid-cols-3 gap-6 pt-6 print:pt-3 text-center text-xs print:text-[10px] font-bold text-slate-600 print:text-slate-800">
+            <div className="space-y-8 print:space-y-4">
               <div className="border-b border-slate-400 w-3/4 mx-auto"></div>
               <p>Signature of Class Teacher</p>
             </div>
-            <div className="space-y-12">
+            <div className="space-y-8 print:space-y-4">
               <div className="border-b border-slate-400 w-3/4 mx-auto"></div>
               <p>Signature of Head Master / Head Mistress</p>
             </div>
-            <div className="space-y-12">
+            <div className="space-y-8 print:space-y-4">
               <div className="border-b border-slate-400 w-3/4 mx-auto"></div>
-              <p>Signature Of The<br></br>Deputy Director Of Education<br></br>(DDE)</p>
+              <p>Signature Of The<br />Deputy Director Of Education (DDE)</p>
             </div>
           </div>
         </div>
