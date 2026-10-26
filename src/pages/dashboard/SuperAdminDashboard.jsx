@@ -33,6 +33,7 @@ import EditSchoolModal from './components/EditSchoolModal.jsx';
 import AcademicManagementTab from './components/AcademicManagementTab.jsx';
 import TeacherTransferTab from './components/TeacherTransferTab.jsx';
 import ReportingHealthTab from './components/ReportingHealthTab.jsx';
+import OfficeAttendanceTerminalTab from './components/OfficeAttendanceTerminalTab.jsx';
 import UserAuthorityModal from '../../components/common/UserAuthorityModal.jsx';
 import {
   fetchAdminOverview,
@@ -76,6 +77,7 @@ export const SuperAdminDashboard = () => {
     const currentPath = window.location.pathname;
     if (currentPath === '/schools') return 'schools';
     if (currentPath === '/users') return 'users';
+    if (currentPath === '/office-attendance' || currentPath === '/staff-attendance') return 'officeAttendance';
     if (currentPath === '/transfers') return 'transfers';
     if (currentPath === '/audit-logs') return 'audit';
     if (currentPath === '/attendance' || currentPath === '/exams') return 'academic';
@@ -280,6 +282,7 @@ export const SuperAdminDashboard = () => {
         {[
           { id: 'overview', label: 'Overview & Governance', icon: Activity },
           { id: 'superAdmins', label: 'Super Admin Governance', icon: ShieldCheck },
+          { id: 'officeAttendance', label: 'Office Staff Terminal', icon: Building2 },
           { id: 'users', label: 'People & Access', icon: Users },
           { id: 'schools', label: 'Schools Registry', icon: Building2 },
           { id: 'transfers', label: 'Teacher Transfers', icon: ArrowRightLeft },
@@ -561,6 +564,11 @@ export const SuperAdminDashboard = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ─── TAB: OFFICE STAFF ATTENDANCE TERMINAL ─────────────────────────── */}
+      {activeTab === 'officeAttendance' && (
+        <OfficeAttendanceTerminalTab authenticatedUser={authenticatedUser} />
       )}
 
       {/* ─── TAB 3: PEOPLE & ACCESS ────────────────────────────────────────── */}

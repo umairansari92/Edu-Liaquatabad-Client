@@ -32,6 +32,7 @@ import {
   Eye,
   CalendarCheck,
   Calendar,
+  Clock3,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PageContainer from '../../components/layout/PageContainer.jsx';
@@ -44,6 +45,9 @@ import useReliabilityDraft from '../../hooks/useReliabilityDraft.js';
 import DraftRecoveryBanner from '../../components/common/DraftRecoveryBanner.jsx';
 import DraftStatusIndicator from '../../components/common/DraftStatusIndicator.jsx';
 import SmartAttendanceRegister from '../../components/attendance/SmartAttendanceRegister.jsx';
+import staffAttendanceService from '../../services/staffAttendanceService.js';
+import { TeacherArrivalAttendanceBanner } from '../../components/staff/TeacherArrivalAttendanceBanner.jsx';
+import { MonthlyAttendanceCard } from '../../components/staff/MonthlyAttendanceCard.jsx';
 import { LateAttendanceClearanceModal } from '../../components/attendance/LateAttendanceClearanceModal.jsx';
 import TeacherOverviewTab from '../../components/dashboard/TeacherOverviewTab.jsx';
 import MyClassesPage from '../classes/MyClassesPage.jsx';
@@ -79,6 +83,7 @@ import {
   selectHomeworkLoading,
   selectTeacherCirculars,
   selectTeacherSelfAttendance,
+  selectTeacherSelfAttendanceLoading,
   selectTeacherSectionRoster,
   selectTeacherClBalance,
   selectTeacherClBalanceLoading,
@@ -164,6 +169,7 @@ export const TeacherDashboard = () => {
   const homeworkLoading = useSelector(selectHomeworkLoading);
   const circularsList = useSelector(selectTeacherCirculars);
   const selfAttendance = useSelector(selectTeacherSelfAttendance);
+  const selfAttendanceLoading = useSelector(selectTeacherSelfAttendanceLoading);
   const sectionRosterData = useSelector(selectTeacherSectionRoster);
   const clBalance = useSelector(selectTeacherClBalance);
   const clBalanceLoading = useSelector(selectTeacherClBalanceLoading);
@@ -380,6 +386,54 @@ export const TeacherDashboard = () => {
     }
   };
 
+  // Teacher Daily Physical Arrival Self-Attendance (School Staff Flow)
+  const [teacherSelfRecord, setTeacherSelfRecord] = useState(null);
+  const [teacherSelfLoading, setTeacherSelfLoading] = useState(false);
+  const [submittingSelfAttendance, setSubmittingSelfAttendance] = useState(false);
+
+  const loadTeacherSelfAttendance = useCallback(async () => {
+    setTeacherSelfLoading(true);
+    try {
+      const todayString = getKarachiTodayDateString();
+      const response = await staffAttendanceService.getMyStaffAttendanceHistory({ limit: 10 });
+      const records = response?.records || [];
+      const todayRecord = records.find((attendanceRecord) => {
+        const recordDate = attendanceRecord.attendanceDate ? attendanceRecord.attendanceDate.split('T')[0] : '';
+        return recordDate === todayString;
+      });
+      setTeacherSelfRecord(todayRecord || null);
+    } catch (_) {
+      // Non-fatal probe
+    } finally {
+      setTeacherSelfLoading(false);
+    }
+  }, []);
+
+  const handleMarkTeacherSelfAttendance = async () => {
+    setSubmittingSelfAttendance(true);
+    const todayString = getKarachiTodayDateString();
+    try {
+      await staffAttendanceService.submitStaffAttendance({ attendanceDate: todayString });
+      toast.success('Arrival attendance submitted! Head Master notified for verification.');
+      await loadTeacherSelfAttendance();
+      dispatch(fetchTeacherSelfAttendance({
+        month: new Date().getMonth() + 1,
+        year: new Date().getFullYear(),
+      }));
+    } catch (apiError) {
+      toast.error(getErrorMessage(apiError, 'Failed to submit arrival attendance.'));
+    } finally {
+      setSubmittingSelfAttendance(false);
+    }
+  };
+
+  const handleSelfAttendanceMonthChange = useCallback((monthNumber, yearNumber) => {
+    dispatch(fetchTeacherSelfAttendance({
+      month: monthNumber,
+      year: yearNumber,
+    }));
+  }, [dispatch]);
+
   // Initial Load
   useEffect(() => {
     dispatch(fetchTeacherSummary());
@@ -392,7 +446,8 @@ export const TeacherDashboard = () => {
     }));
     dispatch(fetchClBalance());
     dispatch(fetchMyLeaveRequests());
-  }, [dispatch]);
+    loadTeacherSelfAttendance();
+  }, [dispatch, loadTeacherSelfAttendance]);
 
   // Sync sections list
   const assignedSections = useMemo(() => summary?.sections || [], [summary]);
@@ -785,6 +840,20 @@ export const TeacherDashboard = () => {
         </div>
       }
     >
+      {/* ─── Institutional Arrival Attendance Check-In Banner (School Staff Flow) ─── */}
+      <TeacherArrivalAttendanceBanner
+        record={teacherSelfRecord}
+        loading={teacherSelfLoading}
+        submitting={submittingSelfAttendance}
+        onMarkAttendance={handleMarkTeacherSelfAttendance}
+        onRefresh={loadTeacherSelfAttendance}
+        onViewMusterRoll={() => {
+          handleTabChange('ATTENDANCE');
+          setAttendanceViewMode('MY_MUSTER');
+        }}
+        schoolName={user?.school?.name || 'Assigned School'}
+      />
+
       {/* ─── Responsive Tab Navigation Bar ───────────────────────────────────── */}
       <div
         role="tablist"
@@ -833,12 +902,12 @@ export const TeacherDashboard = () => {
         />
       )}
 
-      {/* ─── TAB 2: ATTENDANCE (DAILY ATTENDANCE) ───────────────────────────── */}
+      {/* ─── TAB 2: ATTENDANCE (DAILY ATTENDANCE & MUSTER ROLL) ────────────────── */}
       {activeTab === 'ATTENDANCE' && (
         <div className="space-y-6">
-          {/* View Mode Toggle: Daily Marking vs Smart Monthly Register */}
+          {/* View Mode Toggle: Daily Student Marking vs Smart Monthly Register vs My Muster Roll */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs print:hidden">
-            <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200">
+            <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200 flex-wrap">
               <button
                 type="button"
                 onClick={() => setAttendanceViewMode('DAILY')}
@@ -848,7 +917,7 @@ export const TeacherDashboard = () => {
                     : 'text-[#526477] hover:text-[#102033]'
                 }`}
               >
-                <ClipboardList className="w-3.5 h-3.5" /> Daily Marking
+                <ClipboardList className="w-3.5 h-3.5" /> Student Daily Marking
               </button>
               <button
                 type="button"
@@ -859,17 +928,38 @@ export const TeacherDashboard = () => {
                     : 'text-[#526477] hover:text-[#102033]'
                 }`}
               >
-                <FileSpreadsheet className="w-3.5 h-3.5" /> Smart Monthly Register
+                <FileSpreadsheet className="w-3.5 h-3.5" /> Class Monthly Register
+              </button>
+              <button
+                type="button"
+                onClick={() => setAttendanceViewMode('MY_MUSTER')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                  attendanceViewMode === 'MY_MUSTER'
+                    ? 'bg-white text-[#006AC7] shadow-xs'
+                    : 'text-[#526477] hover:text-[#102033]'
+                }`}
+              >
+                <Clock className="w-3.5 h-3.5" /> My Muster Roll & Timestamps
               </button>
             </div>
             <p className="text-xs text-[#526477]">
               {attendanceViewMode === 'DAILY'
-                ? 'Mark exceptions (Absent / Leave) for today. Saved records automatically reflect in the monthly register.'
-                : 'Physical register format with monthly date grid, weekly offs, holidays, and official roll summary.'}
+                ? 'Mark exceptions (Absent / Leave) for students today.'
+                : attendanceViewMode === 'REGISTER'
+                ? 'Physical classroom register format with official roll summary.'
+                : 'Authoritative personal arrival muster roll with verified HM approval timestamps.'}
             </p>
           </div>
 
-          {attendanceViewMode === 'REGISTER' ? (
+          {attendanceViewMode === 'MY_MUSTER' ? (
+            <MonthlyAttendanceCard
+              attendanceData={selfAttendance}
+              loading={selfAttendanceLoading}
+              onMonthChange={handleSelfAttendanceMonthChange}
+              isTeachingStaff={true}
+              schoolName={user?.school?.name || 'Assigned School'}
+            />
+          ) : attendanceViewMode === 'REGISTER' ? (
             <SmartAttendanceRegister
               sectionId={selectedAttendanceSectionId}
               sections={assignedSections}

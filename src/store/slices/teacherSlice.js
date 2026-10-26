@@ -596,6 +596,7 @@ export const selectTeacherHomework = (state) => state.teacher.homeworkList;
 export const selectHomeworkLoading = (state) => state.teacher.homeworkLoading;
 export const selectTeacherCirculars = (state) => state.teacher.circularsList;
 export const selectTeacherSelfAttendance = (state) => state.teacher.selfAttendance;
+export const selectTeacherSelfAttendanceLoading = (state) => state.teacher.selfAttendanceLoading;
 export const selectTeacherSectionRoster = (state) => state.teacher.sectionRoster;
 export const selectTeacherClBalance = (state) => state.teacher.clBalance;
 export const selectTeacherClBalanceLoading = (state) => state.teacher.clBalanceLoading;

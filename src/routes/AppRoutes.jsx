@@ -76,6 +76,8 @@ export const AppRoutes = () => {
         <Route path="/leave/pending" element={<Navigate to="/approvals" replace />} />
         <Route path="/staff-attendance/pending" element={<Navigate to="/attendance" replace />} />
         <Route path="/staff-attendance/my-record" element={<Navigate to="/dashboard?tab=attendance" replace />} />
+        <Route path="/staff-attendance/roster" element={<Navigate to="/dashboard?tab=officeAttendance" replace />} />
+        <Route path="/office-attendance" element={<Navigate to="/dashboard?tab=officeAttendance" replace />} />
         <Route path="/hm/parent-links" element={<Navigate to="/dashboard?tab=approvals" replace />} />
         <Route path="/parent/dashboard" element={<Navigate to="/dashboard" replace />} />
         <Route path="/homework" element={<Navigate to="/dashboard?tab=homework" replace />} />

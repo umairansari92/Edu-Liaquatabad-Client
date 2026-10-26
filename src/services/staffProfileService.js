@@ -79,7 +79,7 @@ export const staffProfileService = {
         const response = await apiClient.get('/staff-attendance/my-history', {
           params: { month, year },
         });
-        return response.data?.data;
+        return response.data?.data || response.data;
       }
     } catch {
       return null;
