@@ -20,6 +20,8 @@ import {
   Check,
   X,
   PlusCircle,
+  UserX,
+  MessageSquare,
 } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
@@ -66,6 +68,20 @@ export const SmartAttendanceRegister = ({
   const [selectedMissedDate, setSelectedMissedDate] = useState(null);
   const [clearanceReason, setClearanceReason] = useState('');
   const [clearanceRoster, setClearanceRoster] = useState([]);
+
+  // Absence & Leave Reason Modal State
+  const [selectedRemarkDetail, setSelectedRemarkDetail] = useState(null);
+
+  // Keyboard shortcut listener to close reason modal on Escape
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setSelectedRemarkDetail(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Sync sectionId from props
   useEffect(() => {
@@ -587,6 +603,10 @@ export const SmartAttendanceRegister = ({
 
                         let cellContent = '—';
                         let cellClass = 'text-slate-300';
+                        const isException = status === 'ABSENT' || status === 'LEAVE';
+                        const studentRemark = student.attendanceRemarks?.[dateStr] || student.dailyStatus?.[dateStr]?.remarks || '';
+
+                        let cellTitle = `${student.fullName} on ${dateStr}: ${status || calDay.closureLabel || calDay.status}`;
 
                         if (status === 'PRESENT') {
                           cellContent = 'P';
@@ -594,9 +614,17 @@ export const SmartAttendanceRegister = ({
                         } else if (status === 'ABSENT') {
                           cellContent = 'A';
                           cellClass = 'text-rose-700 font-black bg-rose-50/60';
+                          cellTitle = `${student.fullName} (Roll #${student.rollNumber || '—'}, GR: ${student.grNumber || '—'})\nStatus: ABSENT on ${dateStr} (${calDay.dayNameFull || calDay.dayNameShort})\n` +
+                            (studentRemark
+                              ? `Reason / Remarks: "${studentRemark}"\n(Click to view details)`
+                              : `Reason: No specific remarks recorded by teacher.\n(Click to view details)`);
                         } else if (status === 'LEAVE') {
                           cellContent = 'L';
                           cellClass = 'text-amber-700 font-black bg-amber-50/40';
+                          cellTitle = `${student.fullName} (Roll #${student.rollNumber || '—'}, GR: ${student.grNumber || '—'})\nStatus: LEAVE on ${dateStr} (${calDay.dayNameFull || calDay.dayNameShort})\n` +
+                            (studentRemark
+                              ? `Reason / Remarks: "${studentRemark}"\n(Click to view details)`
+                              : `Reason: Approved leave (no extra remarks recorded).\n(Click to view details)`);
                         } else if (isMissed) {
                           cellContent = '—';
                           cellClass = 'text-amber-600/80 font-bold bg-amber-50/40';
@@ -609,9 +637,39 @@ export const SmartAttendanceRegister = ({
                           <td
                             key={dateStr}
                             className={`py-2 px-0.5 border-r border-slate-200 text-center font-mono ${cellClass}`}
-                            title={`${student.fullName} on ${dateStr}: ${status || calDay.closureLabel || calDay.status}`}
+                            title={cellTitle}
                           >
-                            {cellContent}
+                            {isException ? (
+                              <button
+                                type="button"
+                                onClick={() => setSelectedRemarkDetail({
+                                  student,
+                                  dateStr,
+                                  dayNameFull: calDay.dayNameFull || calDay.dayNameShort || '',
+                                  status,
+                                  remarks: studentRemark,
+                                })}
+                                className={`inline-flex items-center justify-center relative w-full h-full min-h-[22px] cursor-pointer group focus:outline-none transition-all rounded-xs ${
+                                  status === 'ABSENT'
+                                    ? 'hover:bg-rose-100/90 text-rose-700'
+                                    : 'hover:bg-amber-100/90 text-amber-700'
+                                }`}
+                              >
+                                <span className="font-black underline decoration-dotted underline-offset-2 group-hover:scale-110 transition-transform">
+                                  {cellContent}
+                                </span>
+                                {studentRemark ? (
+                                  <span
+                                    className={`absolute top-0 right-0 w-1.5 h-1.5 rounded-full ring-1 ring-white print:hidden ${
+                                      status === 'ABSENT' ? 'bg-rose-600' : 'bg-amber-600'
+                                    }`}
+                                    title="Teacher remark attached"
+                                  />
+                                ) : null}
+                              </button>
+                            ) : (
+                              cellContent
+                            )}
                           </td>
                         );
                       })}
@@ -932,6 +990,155 @@ export const SmartAttendanceRegister = ({
                   {clearanceSubmitting ? 'Clearing…' : 'Authorize & Clear Missed Attendance'}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── Reason / Remarks Details Modal ─────────────────────────────── */}
+      {selectedRemarkDetail && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 print:hidden animate-in fade-in duration-150"
+          onClick={() => setSelectedRemarkDetail(null)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl border border-slate-200/90 max-w-md w-full overflow-hidden transition-all transform scale-100"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className={`p-5 border-b flex items-start justify-between gap-3 ${
+              selectedRemarkDetail.status === 'ABSENT'
+                ? 'bg-rose-50/50 border-rose-100'
+                : 'bg-amber-50/50 border-amber-100'
+            }`}>
+              <div className="flex items-center gap-3">
+                <span className={`p-2.5 rounded-xl border shadow-xs ${
+                  selectedRemarkDetail.status === 'ABSENT'
+                    ? 'bg-rose-100 text-rose-700 border-rose-200'
+                    : 'bg-amber-100 text-amber-700 border-amber-200'
+                }`}>
+                  {selectedRemarkDetail.status === 'ABSENT' ? (
+                    <UserX className="w-5 h-5" />
+                  ) : (
+                    <Calendar className="w-5 h-5" />
+                  )}
+                </span>
+                <div>
+                  <h3 className="text-base font-black text-[#102033] tracking-tight">
+                    {selectedRemarkDetail.status === 'ABSENT' ? 'Absence Record & Reason' : 'Approved Leave Record & Reason'}
+                  </h3>
+                  <p className="text-xs text-slate-500 font-medium">
+                    Daily Attendance Register • {schoolName}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedRemarkDetail(null)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                title="Close (Esc)"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 space-y-4">
+              {/* Student Metadata Card */}
+              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-slate-500 font-medium">Student Name</span>
+                  <span className="text-xs font-mono font-bold text-slate-400">
+                    Roll #{selectedRemarkDetail.student.rollNumber || '—'}
+                  </span>
+                </div>
+                <p className="text-base font-black text-[#102033]">
+                  {selectedRemarkDetail.student.fullName}
+                </p>
+                <div className="pt-2 border-t border-slate-200/60 grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">G.R. Number</span>
+                    <span className="font-mono font-bold text-slate-700">
+                      {selectedRemarkDetail.student.grNumber || '—'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px] uppercase font-bold tracking-wider">Class & Section</span>
+                    <span className="font-bold text-slate-700">
+                      {className} — {sectionName}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Date & Status Strip */}
+              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50/70 border border-slate-200">
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Record Date</span>
+                  <span className="text-xs font-bold text-[#102033]">
+                    {selectedRemarkDetail.dayNameFull ? `${selectedRemarkDetail.dayNameFull}, ` : ''}{selectedRemarkDetail.dateStr}
+                  </span>
+                </div>
+                <div>
+                  {selectedRemarkDetail.status === 'ABSENT' ? (
+                    <span className="px-3 py-1 rounded-full text-xs font-black bg-rose-100 text-rose-800 border border-rose-200 inline-flex items-center gap-1.5 shadow-xs">
+                      <span className="w-2 h-2 rounded-full bg-rose-600 animate-pulse" />
+                      [A] Marked Absent
+                    </span>
+                  ) : (
+                    <span className="px-3 py-1 rounded-full text-xs font-black bg-amber-100 text-amber-800 border border-amber-200 inline-flex items-center gap-1.5 shadow-xs">
+                      <span className="w-2 h-2 rounded-full bg-amber-600 animate-pulse" />
+                      [L] Approved Leave
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Teacher Remarks / Reason Box */}
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                  <MessageSquare className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Teacher's Recorded Reason / Remarks:</span>
+                </div>
+
+                {selectedRemarkDetail.remarks ? (
+                  <div className={`p-4 rounded-xl border-l-4 shadow-xs ${
+                    selectedRemarkDetail.status === 'ABSENT'
+                      ? 'bg-rose-50/60 border-l-rose-500 border border-rose-200/80 text-rose-950'
+                      : 'bg-amber-50/60 border-l-amber-500 border border-amber-200/80 text-amber-950'
+                  }`}>
+                    <p className="text-sm font-semibold italic leading-relaxed whitespace-pre-wrap">
+                      "{selectedRemarkDetail.remarks}"
+                    </p>
+                    <p className="mt-2 text-[10px] text-slate-500 font-medium">
+                      Official note recorded during daily attendance roll call.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 text-xs flex items-start gap-2">
+                    <Info className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-semibold text-slate-700">No specific remarks recorded</p>
+                      <p className="mt-0.5 text-[11px] text-slate-500">
+                        The class teacher marked this student as {selectedRemarkDetail.status === 'ABSENT' ? 'Absent' : 'Leave'} without specifying an additional written reason.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-end">
+              <button
+                type="button"
+                onClick={() => setSelectedRemarkDetail(null)}
+                className="px-5 py-2 rounded-xl bg-[#102033] hover:bg-slate-800 text-white text-xs font-bold transition shadow-xs cursor-pointer"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>

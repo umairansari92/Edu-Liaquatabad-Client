@@ -474,6 +474,13 @@ td.register-closure-band {
     line-height: 1.1 !important;
   }
 
+  body.print-register-mode .printable-attendance-register button {
+    all: unset !important;
+    display: inline !important;
+    text-decoration: none !important;
+    cursor: default !important;
+  }
+
   body.print-register-mode .printable-attendance-register td.register-closure-band {
     vertical-align: middle !important;
     text-align: center !important;
