@@ -95,7 +95,51 @@ export const fetchStaffAccessHistory = createAsyncThunk(
   async (targetId = 'me', { rejectWithValue }) => {
     try {
       const response = await staffProfileService.getStaffAccessHistory(targetId);
-      return response.data;
+      const payloadData = response?.data || response;
+
+      if (Array.isArray(payloadData)) {
+        return payloadData;
+      }
+      if (Array.isArray(payloadData?.history)) {
+        return payloadData.history;
+      }
+
+      // If payloadData has separate requests or downloads arrays, normalize into unified array
+      const normalizedHistory = [];
+      if (Array.isArray(payloadData?.downloads)) {
+        for (const dl of payloadData.downloads) {
+          normalizedHistory.push({
+            id: dl.id || dl._id,
+            action: dl.action || 'PROFILE_PDF_DOWNLOADED',
+            actorName: dl.actorName || 'Official',
+            actorRole: dl.actorRole || 'Official',
+            actorDesignation: dl.actorDesignation || '',
+            timestamp: dl.downloadedAt || dl.createdAt || dl.timestamp,
+            purpose: dl.reason || dl.purpose || 'Official PDF Download',
+          });
+        }
+      }
+      if (Array.isArray(payloadData?.requests)) {
+        for (const req of payloadData.requests) {
+          let action = 'PROFILE_ACCESS_REQUESTED';
+          if (req.status === 'APPROVED') action = 'PROFILE_ACCESS_APPROVED';
+          else if (req.status === 'DENIED') action = 'PROFILE_ACCESS_DENIED';
+          else if (req.status === 'REVOKED') action = 'PROFILE_ACCESS_REVOKED';
+          else if (req.status === 'EXPIRED') action = 'PROFILE_ACCESS_EXPIRED';
+
+          normalizedHistory.push({
+            id: req._id || req.id,
+            action,
+            actorName: req.requesterName || 'Official',
+            actorRole: req.requesterRole || 'Staff',
+            actorDesignation: req.requesterDesignation || '',
+            timestamp: req.decisionDate || req.createdAt,
+            purpose: req.purpose || req.decisionRemarks || '',
+          });
+        }
+      }
+
+      return normalizedHistory.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     } catch (apiRequestError) {
       return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch access audit history');
     }
@@ -299,10 +343,12 @@ const staffProfileSlice = createSlice({
       })
       .addCase(fetchStaffAccessHistory.fulfilled, (state, action) => {
         state.loadingAccessHistory = false;
-        state.accessHistory = action.payload;
+        state.accessHistory = Array.isArray(action.payload) ? action.payload : [];
+        state.accessHistoryError = null;
       })
       .addCase(fetchStaffAccessHistory.rejected, (state, action) => {
         state.loadingAccessHistory = false;
+        state.accessHistory = [];
         state.accessHistoryError = action.payload;
       })
 
