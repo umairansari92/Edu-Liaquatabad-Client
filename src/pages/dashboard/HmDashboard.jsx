@@ -232,6 +232,29 @@ export const HmDashboard = () => {
     });
   }, [transfers, userSchoolId]);
 
+  // Aggregate pending approvals across staff, students, guardian claims, leaves, and attendance
+  const totalPendingApprovalsCount = React.useMemo(() => {
+    return (
+      (staffApprovals?.length || 0) +
+      (studentApprovals?.length || 0) +
+      ((parentClaims || []).filter(
+        (claimItem) =>
+          claimItem.status === 'PENDING_HM_APPROVAL' ||
+          claimItem.verificationStatus === 'PENDING_HM_APPROVAL'
+      ).length) +
+      (pendingLeaveRequests?.length || 0) +
+      (pendingStaffAttendance?.length || 0)
+    );
+  }, [staffApprovals, studentApprovals, parentClaims, pendingLeaveRequests, pendingStaffAttendance]);
+
+  // Dynamic real-time badge counts for module navigation
+  const navBadges = React.useMemo(() => ({
+    students: studentsPagination?.totalRecords ?? summary?.studentCount ?? null,
+    faculty: faculty?.length ?? summary?.facultyCount ?? null,
+    approvals: totalPendingApprovalsCount > 0 ? totalPendingApprovalsCount : null,
+    transfers: pendingIncomingTransfers?.length > 0 ? pendingIncomingTransfers.length : null,
+  }), [studentsPagination?.totalRecords, summary?.studentCount, faculty?.length, summary?.facultyCount, totalPendingApprovalsCount, pendingIncomingTransfers?.length]);
+
   // Student Directory State
   const [studentSearchQuery, setStudentSearchQuery] = useState('');
   const [studentClassFilter, setStudentClassFilter] = useState('');
@@ -1439,13 +1462,20 @@ export const HmDashboard = () => {
         </div>
       }
     >
+      {/* ─── Responsive HM Module Navigation Tab Bar ──────────────────────── */}
+      <HmNavigation
+        activeTab={activeTab}
+        onSelectTab={handleSelectTab}
+        badges={navBadges}
+      />
+
       {/* Sub-tab navigation breadcrumb when navigated from contextual Quick Actions */}
       {activeTab !== 'overview' && (
         <div className="mb-6 flex items-center justify-between p-3.5 rounded-2xl bg-white border border-slate-200/80 shadow-xs">
           <button
             type="button"
             onClick={() => handleSelectTab('overview')}
-            className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-[#006AC7] hover:text-[#005299] transition cursor-pointer"
+            className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-[#4B7F3A] hover:text-[#38662D] transition cursor-pointer"
           >
             <ChevronLeft className="w-4 h-4" />
             <span>Back to Dashboard Overview</span>
@@ -1944,7 +1974,7 @@ export const HmDashboard = () => {
               </div>
 
               {/* Status Filter Selector */}
-              <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
+              <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl max-w-full overflow-x-auto scrollbar-thin shrink-0">
                 {[
                   { id: 'PENDING_HM_APPROVAL', label: 'Pending Approval' },
                   { id: 'VERIFIED', label: 'Verified' },
@@ -1954,7 +1984,7 @@ export const HmDashboard = () => {
                   <button
                     key={statusTab.id}
                     onClick={() => setParentClaimsFilter(statusTab.id)}
-                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition cursor-pointer ${
                       parentClaimsFilter === statusTab.id
                         ? 'bg-white text-[#006AC7] shadow-xs font-bold'
                         : 'text-[#526477] hover:text-[#102033]'
@@ -2614,11 +2644,11 @@ export const HmDashboard = () => {
                 Daily faculty physical register sign-off, staff self-submissions approval queue, and CL/EL leave records.
               </p>
             </div>
-            <div className="flex flex-wrap p-1 bg-slate-100 rounded-xl border border-slate-200/80 gap-1 self-start sm:self-auto">
+            <div className="flex items-center p-1 bg-slate-100 rounded-xl border border-slate-200/80 gap-1 max-w-full overflow-x-auto scrollbar-thin shrink-0">
               <button
                 id="attendance-subtab-faculty-btn"
                 onClick={() => setAttendanceSubTab('faculty')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition cursor-pointer ${
                   attendanceSubTab === 'faculty'
                     ? 'bg-white text-[#006AC7] shadow-sm'
                     : 'text-[#526477] hover:text-[#102033]'
@@ -2629,7 +2659,7 @@ export const HmDashboard = () => {
               <button
                 id="attendance-subtab-staff-queue-btn"
                 onClick={() => setAttendanceSubTab('staff-queue')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition cursor-pointer flex items-center gap-1.5 ${
                   attendanceSubTab === 'staff-queue'
                     ? 'bg-white text-[#006AC7] shadow-sm'
                     : 'text-[#526477] hover:text-[#102033]'
@@ -2645,7 +2675,7 @@ export const HmDashboard = () => {
               <button
                 id="attendance-subtab-leave-btn"
                 onClick={() => setAttendanceSubTab('leave-approvals')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition cursor-pointer flex items-center gap-1.5 ${
                   attendanceSubTab === 'leave-approvals'
                     ? 'bg-white text-[#006AC7] shadow-sm'
                     : 'text-[#526477] hover:text-[#102033]'
@@ -2661,7 +2691,7 @@ export const HmDashboard = () => {
               <button
                 id="attendance-subtab-analytics-btn"
                 onClick={() => setAttendanceSubTab('analytics')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition cursor-pointer ${
                   attendanceSubTab === 'analytics'
                     ? 'bg-white text-[#006AC7] shadow-sm'
                     : 'text-[#526477] hover:text-[#102033]'
@@ -2672,7 +2702,7 @@ export const HmDashboard = () => {
               <button
                 id="attendance-subtab-student-register-btn"
                 onClick={() => setAttendanceSubTab('student-register')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition cursor-pointer flex items-center gap-1.5 ${
                   attendanceSubTab === 'student-register'
                     ? 'bg-white text-[#006AC7] shadow-sm'
                     : 'text-[#526477] hover:text-[#102033]'
