@@ -298,7 +298,7 @@ export const NotificationDropdown = ({ isOpen, onClose }) => {
     }
 
     try {
-      await dispatch(
+      const result = await dispatch(
         respondToLateAttendanceRequest({
           requestId,
           decision,
@@ -306,8 +306,11 @@ export const NotificationDropdown = ({ isOpen, onClose }) => {
         })
       ).unwrap();
 
+      const alreadyDecided = result?.alreadyDecided;
       toast.success(
-        decision === 'APPROVE'
+        alreadyDecided
+          ? 'Clearance request was already decided and is now resolved.'
+          : decision === 'APPROVE'
           ? 'Late attendance clearance approved! Teacher may now submit attendance.'
           : 'Late attendance request rejected.'
       );
@@ -549,7 +552,7 @@ export const NotificationDropdown = ({ isOpen, onClose }) => {
             <Loader2 className="w-7 h-7 animate-spin mx-auto mb-2 text-[#006AC7]" />
             <p className="text-xs font-semibold text-slate-600">Loading notifications...</p>
           </div>
-        ) : error ? (
+        ) : error && (!notifications || notifications.length === 0) ? (
           <div className="p-8 text-center space-y-3">
             <AlertCircle className="w-8 h-8 mx-auto text-rose-500" />
             <div>
@@ -711,7 +714,7 @@ export const NotificationDropdown = ({ isOpen, onClose }) => {
                     {/* Late Attendance Clearance Request Inline Actions */}
                     {isLateAttendanceRequest && (
                       <div className="mt-2 pt-2 border-t border-slate-100 space-y-2">
-                        {requestStatus === 'APPROVED' ? (
+                        {requestStatus === 'APPROVED' || requestStatus === 'DECIDED' ? (
                           <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md px-2 py-0.5 inline-flex items-center gap-1">
                             <Check className="w-3 h-3" />
                             Clearance Approved (Unlocked until 23:59 PKT)

@@ -2,16 +2,28 @@
 
 /**
  * Education Department Liaquatabad Town Centre (DMC)
- * VERSION 2.0 — FROZEN DESIGN CONSTITUTION (August 2026)
+ * VERSION 2.1 — GOVERNMENT GREEN PRIMARY (October 2026)
  * In accordance with docs/DESIGN.md:
- * - BLUE = Identity & Authority (55% of UI surface area)
- * - WHITE / SURFACE = Breathing space (25% of UI surface area)
- * - NEUTRAL = Structure & text (12% of UI surface area)
- * - GREEN = Accent only (8% — strictly <= 8%)
+ * - GREEN = Primary Institutional Brand & Actions (#4B7F3A, #38662D)
+ * - WHITE / SURFACE = Clean Canvas & Breathing space (#F8FBFD, #FFFFFF)
+ * - NEUTRAL = Structure & high-contrast text (#102033, #526477)
+ * - BLUE = Secondary & Supporting Accent (#006AC7)
  */
 
 @theme {
-  /* ── Primary Brand Blue Scale ── */
+  /* ── Primary Government Green Scale (Primary Brand & Actions) ── */
+  --color-gov-green-50: #F2F8EF;
+  --color-gov-green-100: #E3F0DC;
+  --color-gov-green-200: #C9DFBC;
+  --color-gov-green-300: #A7C895;
+  --color-gov-green-400: #7FAE6A;
+  --color-gov-green-500: #4B7F3A;
+  --color-gov-green-600: #38662D;
+  --color-gov-green-700: #294D22;
+  --color-brand-primary: #4B7F3A;
+  --color-brand-primary-hover: #38662D;
+
+  /* ── Secondary Civic Blue Scale (Supporting & Informational) ── */
   --color-brand-blue-50: #F0F8FF;
   --color-brand-blue-100: #DCEFFF;
   --color-brand-blue-200: #B9DEFF;
@@ -22,16 +34,6 @@
   --color-brand-blue-700: #003F75;
   --color-brand-blue-800: #00213D;
 
-  /* ── Government Green Scale (Accent Only <= 8%) ── */
-  --color-gov-green-50: #F2F8EF;
-  --color-gov-green-100: #E3F0DC;
-  --color-gov-green-200: #C9DFBC;
-  --color-gov-green-300: #A7C895;
-  --color-gov-green-400: #7FAE6A;
-  --color-gov-green-500: #4B7F3A;
-  --color-gov-green-600: #38662D;
-  --color-gov-green-700: #294D22;
-
   /* ── Neutral & Surface Tokens ── */
   --color-surface: #F8FBFD;
   --color-surface-hero: #F0F8FF;
@@ -40,7 +42,7 @@
   --color-text-body: #526477;
   --color-text-muted: #8094A8;
   --color-border-subtle: rgba(16, 32, 51, 0.10);
-  --color-border-brand: rgba(0, 106, 199, 0.14);
+  --color-border-brand: rgba(75, 127, 58, 0.16);
 
   /* ── Status Tokens ── */
   --color-status-active: #4B7F3A;
@@ -100,12 +102,12 @@
   }
 }
 
-/* ── V2.0 Glassmorphism & Card Standards ── */
+/* ── V2.1 Glassmorphism & Card Standards ── */
 .glass-card {
   background-color: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
-  border: 1px solid rgba(0, 106, 199, 0.12);
+  border: 1px solid rgba(75, 127, 58, 0.12);
   box-shadow: 0 8px 30px rgba(0, 33, 61, 0.05);
 }
 
@@ -113,7 +115,7 @@
   background-color: rgba(255, 255, 255, 0.90);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(0, 106, 199, 0.10);
+  border: 1px solid rgba(75, 127, 58, 0.12);
   box-shadow: 0 4px 20px rgba(0, 33, 61, 0.04);
 }
 
@@ -123,21 +125,40 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  background-color: #006AC7;
+  background-color: #4B7F3A;
   color: #FFFFFF;
   font-weight: 600;
   border-radius: 0.75rem;
   padding: 0.625rem 1.25rem;
   transition: all 0.2s ease-in-out;
-  box-shadow: 0 4px 14px rgba(0, 106, 199, 0.25);
+  box-shadow: 0 4px 14px rgba(75, 127, 58, 0.25);
 }
 
 .btn-primary:hover {
-  background-color: #005299;
-  box-shadow: 0 6px 18px rgba(0, 106, 199, 0.35);
+  background-color: #38662D;
+  box-shadow: 0 6px 18px rgba(75, 127, 58, 0.35);
 }
 
 .btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: #F2F8EF;
+  color: #38662D;
+  border: 1px solid rgba(75, 127, 58, 0.25);
+  font-weight: 600;
+  border-radius: 0.75rem;
+  padding: 0.625rem 1.25rem;
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-secondary:hover {
+  background-color: #E3F0DC;
+  border-color: rgba(75, 127, 58, 0.40);
+}
+
+.btn-secondary-blue {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -151,11 +172,11 @@
   transition: all 0.2s ease-in-out;
 }
 
-.btn-secondary:hover {
+.btn-secondary-blue:hover {
   background-color: #DCEFFF;
 }
 
-/* ── V2.0 Component Utility Classes ── */
+/* ── V2.1 Component Utility Classes ── */
 .card-light {
   background-color: #FFFFFF;
   border: 1px solid rgba(16, 32, 51, 0.08);
@@ -173,7 +194,7 @@
 
 .card-light-hover:hover {
   transform: translateY(-2px);
-  border-color: rgba(0, 106, 199, 0.25);
+  border-color: rgba(75, 127, 58, 0.25);
   box-shadow: 0 10px 25px -5px rgba(0, 33, 61, 0.08);
 }
 
@@ -186,7 +207,7 @@
 }
 
 .table-header-light {
-  background-color: #F0F8FF;
+  background-color: #F8FBFD;
   color: #526477;
   font-weight: 700;
   font-size: 0.6875rem;
@@ -202,7 +223,7 @@
 }
 
 .table-row-light:hover {
-  background-color: rgba(240, 248, 255, 0.6);
+  background-color: rgba(242, 248, 239, 0.6);
 }
 
 .input-light {
@@ -217,9 +238,9 @@
 }
 
 .input-light:focus {
-  border-color: #006AC7;
+  border-color: #4B7F3A;
   background-color: #FFFFFF;
-  box-shadow: 0 0 0 3px rgba(0, 106, 199, 0.12);
+  box-shadow: 0 0 0 3px rgba(75, 127, 58, 0.15);
 }
 
 .badge-blue {
@@ -240,8 +261,8 @@
   align-items: center;
   gap: 0.25rem;
   background-color: #F2F8EF;
-  color: #4B7F3A;
-  border: 1px solid rgba(75, 127, 58, 0.20);
+  color: #38662D;
+  border: 1px solid rgba(75, 127, 58, 0.25);
   font-weight: 600;
   border-radius: 9999px;
   padding: 0.125rem 0.625rem;

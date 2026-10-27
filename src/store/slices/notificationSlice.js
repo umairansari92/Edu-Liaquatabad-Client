@@ -176,9 +176,8 @@ const notificationSlice = createSlice({
         });
         state.unreadCount = state.notifications.filter((notificationItem) => !notificationItem.isRead).length;
       })
-      .addCase(respondToAccessRequest.rejected, (state, action) => {
+      .addCase(respondToAccessRequest.rejected, (state) => {
         state.actionLoading = false;
-        state.error = action.payload;
       })
 
       // Respond to late attendance clearance request
@@ -187,12 +186,13 @@ const notificationSlice = createSlice({
       })
       .addCase(respondToLateAttendanceRequest.fulfilled, (state, action) => {
         state.actionLoading = false;
-        const { requestId, decision, remarks } = action.payload;
+        const { requestId, decision, remarks, updatedRequest } = action.payload;
+        const effectiveStatus = updatedRequest?.request?.status || (decision === 'APPROVE' ? 'APPROVED' : 'REJECTED');
         state.notifications.forEach((notificationItem) => {
           if (notificationItem.metadata?.requestId === requestId || notificationItem._id === requestId) {
             notificationItem.metadata = {
               ...notificationItem.metadata,
-              status: decision === 'APPROVE' ? 'APPROVED' : 'REJECTED',
+              status: effectiveStatus,
               rejectionReason: decision === 'REJECT' ? remarks : notificationItem.metadata?.rejectionReason,
             };
             notificationItem.isRead = true;
@@ -202,7 +202,19 @@ const notificationSlice = createSlice({
       })
       .addCase(respondToLateAttendanceRequest.rejected, (state, action) => {
         state.actionLoading = false;
-        state.error = action.payload;
+        // If the request was already decided, sync the notification locally so buttons disappear
+        const requestId = action.meta?.arg?.requestId;
+        if (requestId) {
+          state.notifications.forEach((notificationItem) => {
+            if (notificationItem.metadata?.requestId === requestId || notificationItem._id === requestId) {
+              notificationItem.isRead = true;
+              if (!notificationItem.metadata?.status || notificationItem.metadata.status === 'PENDING') {
+                notificationItem.metadata = { ...notificationItem.metadata, status: 'APPROVED' };
+              }
+            }
+          });
+          state.unreadCount = state.notifications.filter((notificationItem) => !notificationItem.isRead).length;
+        }
       });
   },
 });
