@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link, Navigate } from 'react-router-dom';
@@ -375,10 +376,10 @@ export const LoginPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FBFD] flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans selection:bg-[#006AC7] selection:text-white">
+    <div className="min-h-screen bg-[#F8FBFD] flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans selection:bg-[#4B7F3A] selection:text-white">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <Link to="/" className="inline-flex items-center justify-center space-x-3 mb-5 group">
-          <div className="w-12 h-12 rounded-2xl bg-[#006AC7] flex items-center justify-center shadow-md group-hover:bg-[#00529B] transition-colors">
+          <div className="w-12 h-12 rounded-2xl bg-[#4B7F3A] flex items-center justify-center shadow-md group-hover:bg-[#38662D] transition-colors">
             <School className="w-6 h-6 text-white" />
           </div>
         </Link>
@@ -457,7 +458,7 @@ export const LoginPage = () => {
                         <button
                           type="button"
                           onClick={handleCopyRecoveryCodes}
-                          className="text-[11px] font-bold text-[#006AC7] hover:underline flex items-center gap-1"
+                          className="text-[11px] font-bold text-[#38662D] hover:underline flex items-center gap-1"
                         >
                           {hasCopiedRecoveryCodes ? (
                             <>
@@ -475,7 +476,7 @@ export const LoginPage = () => {
                         <button
                           type="button"
                           onClick={handleDownloadRecoveryCodes}
-                          className="text-[11px] font-bold text-[#006AC7] hover:underline flex items-center gap-1"
+                          className="text-[11px] font-bold text-[#38662D] hover:underline flex items-center gap-1"
                         >
                           <Download className="w-3 h-3" />
                           Download .txt
@@ -502,7 +503,7 @@ export const LoginPage = () => {
                       type="checkbox"
                       checked={hasConfirmedVaultStorage}
                       onChange={(changeEvent) => setHasConfirmedVaultStorage(changeEvent.target.checked)}
-                      className="mt-0.5 rounded border-slate-300 text-[#006AC7] focus:ring-[#006AC7]"
+                      className="mt-0.5 rounded border-slate-300 text-[#4B7F3A] focus:ring-[#4B7F3A]"
                     />
                     <span>
                       I have safely saved these recovery codes in a secure password manager or offline vault.
@@ -513,7 +514,7 @@ export const LoginPage = () => {
                     type="button"
                     disabled={!hasConfirmedVaultStorage}
                     onClick={handleFinalizeMfaSetup}
-                    className="w-full py-2.5 px-4 bg-[#006AC7] text-white text-xs font-bold rounded-xl shadow hover:bg-[#00529B] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="w-full py-2.5 px-4 bg-[#4B7F3A] text-white text-xs font-bold rounded-xl shadow hover:bg-[#38662D] transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     <span>Proceed to Official Dashboard</span>
                     <ArrowRight className="w-4 h-4" />
@@ -526,7 +527,7 @@ export const LoginPage = () => {
                   className="space-y-4"
                 >
                   <div className="text-center pb-1">
-                    <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 text-[#006AC7] mx-auto flex items-center justify-center mb-2 shadow-xs">
+                    <div className="w-10 h-10 rounded-xl bg-[#F2F8EF] border border-[#C9DFBC] text-[#38662D] mx-auto flex items-center justify-center mb-2 shadow-xs">
                       {mfaChallenge.requiresSetup ? (
                         <Smartphone className="w-5 h-5" />
                       ) : recoveryMode ? (
@@ -559,7 +560,7 @@ export const LoginPage = () => {
                         <button
                           type="button"
                           onClick={handleCopySecret}
-                          className="text-[#006AC7] hover:underline flex items-center gap-1 font-bold"
+                          className="text-[#38662D] hover:underline flex items-center gap-1 font-bold"
                         >
                           {hasCopiedSecret ? (
                             <>
@@ -605,7 +606,7 @@ export const LoginPage = () => {
                             setRecoveryCode('');
                             setRecoveryMode(false);
                           }}
-                          className="self-start text-[11px] font-bold text-[#006AC7] hover:underline flex items-center gap-1 mt-0.5 cursor-pointer"
+                          className="self-start text-[11px] font-bold text-[#38662D] hover:underline flex items-center gap-1 mt-0.5 cursor-pointer"
                         >
                           <ChevronLeft className="w-3 h-3" />
                           <span>Click here to re-enter password</span>
@@ -625,7 +626,7 @@ export const LoginPage = () => {
                         placeholder="e.g. A1B2-C3D4-E5F6-G7H8"
                         value={recoveryCode}
                         onChange={(changeEvent) => setRecoveryCode(changeEvent.target.value)}
-                        className="block w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono text-center tracking-widest focus:bg-white focus:outline-none focus:border-[#006AC7]"
+                        className="block w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono text-center tracking-widest focus:bg-white focus:outline-none focus:border-[#4B7F3A]"
                       />
                     </div>
                   ) : (
@@ -640,7 +641,7 @@ export const LoginPage = () => {
                         placeholder="000000"
                         value={totpCode}
                         onChange={(changeEvent) => setTotpCode(changeEvent.target.value.replace(/\D/g, ''))}
-                        className="block w-full px-3 py-3 bg-slate-50 border border-slate-300 rounded-xl text-2xl font-mono font-bold text-center tracking-[0.35em] text-[#102033] focus:bg-white focus:outline-none focus:border-[#006AC7] shadow-inner"
+                        className="block w-full px-3 py-3 bg-slate-50 border border-slate-300 rounded-xl text-2xl font-mono font-bold text-center tracking-[0.35em] text-[#102033] focus:bg-white focus:outline-none focus:border-[#4B7F3A] shadow-inner"
                       />
                     </div>
                   )}
@@ -648,7 +649,7 @@ export const LoginPage = () => {
                   <button
                     type="submit"
                     disabled={mfaLoading || (!recoveryMode && totpCode.length !== 6)}
-                    className="w-full py-2.5 px-4 bg-[#006AC7] text-white text-xs font-bold rounded-xl shadow hover:bg-[#00529B] transition disabled:opacity-50 flex items-center justify-center gap-2"
+                    className="w-full py-2.5 px-4 bg-[#4B7F3A] text-white text-xs font-bold rounded-xl shadow hover:bg-[#38662D] transition disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     {mfaLoading ? (
                       <>
@@ -678,7 +679,7 @@ export const LoginPage = () => {
                           setRecoveryCode('');
                           setTotpCode('');
                         }}
-                        className="text-[#006AC7] hover:underline font-bold"
+                        className="text-[#38662D] hover:underline font-bold"
                       >
                         {recoveryMode ? 'Use Authenticator Code' : 'Lost Device? Use Recovery Code'}
                       </button>
@@ -732,7 +733,7 @@ export const LoginPage = () => {
                     autoCapitalize="off"
                     spellCheck="false"
                     placeholder="Official email or GR Number (e.g. 1045)"
-                    className="block w-full pl-10 pr-3 py-2.5 bg-slate-50/50 border border-slate-300 rounded-xl text-[#102033] placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#006AC7] focus:ring-1 focus:ring-[#006AC7] text-xs font-medium"
+                    className="block w-full pl-10 pr-3 py-2.5 bg-slate-50/50 border border-slate-300 rounded-xl text-[#102033] placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#4B7F3A] focus:ring-1 focus:ring-[#4B7F3A] text-xs font-medium"
                   />
                 </div>
                 {errors.email && (
@@ -747,7 +748,7 @@ export const LoginPage = () => {
                   </label>
                   <Link
                     to="/forgot-password"
-                    className="text-[11px] text-[#006AC7] hover:underline font-bold transition-colors"
+                    className="text-[11px] text-[#38662D] hover:underline font-bold transition-colors"
                   >
                     Forgot password?
                   </Link>
@@ -761,7 +762,7 @@ export const LoginPage = () => {
                     {...register('password')}
                     autoComplete="new-password"
                     placeholder="••••••••••••"
-                    className="block w-full pl-10 pr-10 py-2.5 bg-slate-50/50 border border-slate-300 rounded-xl text-[#102033] placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#006AC7] focus:ring-1 focus:ring-[#006AC7] text-xs font-medium"
+                    className="block w-full pl-10 pr-10 py-2.5 bg-slate-50/50 border border-slate-300 rounded-xl text-[#102033] placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#4B7F3A] focus:ring-1 focus:ring-[#4B7F3A] text-xs font-medium"
                   />
                   <button
                     type="button"
@@ -783,7 +784,7 @@ export const LoginPage = () => {
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="block text-xs font-bold uppercase tracking-wider text-[#526477] flex items-center gap-1.5">
-                      <Calculator className="w-3.5 h-3.5 text-[#006AC7]" />
+                      <Calculator className="w-3.5 h-3.5 text-[#4B7F3A]" />
                       Security Math Challenge
                     </label>
                     <button
@@ -793,7 +794,7 @@ export const LoginPage = () => {
                       className={`text-[11px] flex items-center gap-1 font-bold transition-colors ${
                         captchaCooldown > 0
                           ? 'text-slate-400 cursor-not-allowed'
-                          : 'text-[#006AC7] hover:underline'
+                          : 'text-[#38662D] hover:underline'
                       }`}
                     >
                       <RefreshCw className={`w-3 h-3 ${captchaLoading ? 'animate-spin' : ''}`} />
@@ -801,14 +802,14 @@ export const LoginPage = () => {
                     </button>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="px-4 py-2 rounded-xl bg-blue-50 border border-blue-200 text-[#006AC7] font-mono text-xs font-bold tracking-wider select-none shadow-sm">
+                    <div className="px-4 py-2 rounded-xl bg-[#F2F8EF] border border-[#C9DFBC] text-[#38662D] font-mono text-xs font-bold tracking-wider select-none shadow-sm">
                       {captcha.question} = ?
                     </div>
                     <input
                       type="text"
                       {...register('captchaAnswer')}
                       placeholder="Result"
-                      className="block flex-1 px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-xl text-[#102033] placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#006AC7] focus:ring-1 focus:ring-[#006AC7] text-xs text-center font-mono font-bold"
+                      className="block flex-1 px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-xl text-[#102033] placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#4B7F3A] focus:ring-1 focus:ring-[#4B7F3A] text-xs text-center font-mono font-bold"
                     />
                   </div>
                 </div>
@@ -821,7 +822,7 @@ export const LoginPage = () => {
                   className={`w-full flex justify-center items-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold text-white shadow-sm transition-all ${
                     lockoutSeconds > 0
                       ? 'bg-slate-300 cursor-not-allowed opacity-70 text-slate-600'
-                      : 'bg-[#006AC7] hover:bg-[#00529B] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#006AC7]'
+                      : 'bg-[#4B7F3A] hover:bg-[#38662D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4B7F3A]'
                   }`}
                 >
                   {lockoutSeconds > 0 ? (
@@ -845,13 +846,13 @@ export const LoginPage = () => {
           <div className="mt-6 border-t border-slate-100 pt-5 text-center text-xs text-[#526477] space-y-2 font-medium">
             <p>
               Student Self-Registration?{' '}
-              <Link to="/register-student" className="text-[#006AC7] hover:underline font-bold">
+              <Link to="/register-student" className="text-[#38662D] hover:underline font-bold">
                 Register Student Account
               </Link>
             </p>
             <p>
               Faculty Registration?{' '}
-              <Link to="/register-teacher" className="text-[#006AC7] hover:underline font-bold">
+              <Link to="/register-teacher" className="text-[#38662D] hover:underline font-bold">
                 Register Faculty Account
               </Link>
             </p>

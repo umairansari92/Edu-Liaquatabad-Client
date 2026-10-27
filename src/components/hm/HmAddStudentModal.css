@@ -44,7 +44,7 @@
 .hm-modal-icon {
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  background: #4B7F3A;
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -290,19 +290,19 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 0.7rem 1.2rem;
-  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  background: #4B7F3A;
   color: white;
   border: none;
   border-radius: 10px;
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.2s, transform 0.15s;
+  transition: opacity 0.2s, transform 0.15s, background-color 0.2s;
   font-family: inherit;
 }
 
 .hm-btn-primary:hover:not(:disabled) {
-  opacity: 0.9;
+  background: #38662D;
   transform: translateY(-1px);
 }
 

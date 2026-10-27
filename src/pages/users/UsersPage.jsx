@@ -438,7 +438,7 @@ export const UsersPage = () => {
                     ? 'Search parent name, phone, or email...'
                     : 'Search across all accounts...'
                 }
-                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2 pl-9 pr-4 text-xs font-medium text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50/50 py-2 pl-9 pr-4 text-xs font-medium text-[#102033] placeholder-slate-400 focus:border-[#4B7F3A] focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#4B7F3A]"
               />
             </div>
 
@@ -447,7 +447,7 @@ export const UsersPage = () => {
               <select
                 value={roleFilter}
                 onChange={(changeEvent) => setRoleFilter(changeEvent.target.value)}
-                className="rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-bold text-[#526477] focus:border-[#006AC7] focus:bg-white focus:outline-none"
+                className="rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-bold text-[#526477] focus:border-[#4B7F3A] focus:bg-white focus:outline-none"
               >
                 <option value="">All Roles</option>
                 <option value="TEACHER">Teacher</option>
@@ -463,7 +463,7 @@ export const UsersPage = () => {
               <select
                 value={roleFilter}
                 onChange={(changeEvent) => setRoleFilter(changeEvent.target.value)}
-                className="rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-bold text-[#526477] focus:border-[#006AC7] focus:bg-white focus:outline-none"
+                className="rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-bold text-[#526477] focus:border-[#4B7F3A] focus:bg-white focus:outline-none"
               >
                 <option value="">All Roles</option>
                 <option value="TEACHER">Teacher</option>
@@ -481,7 +481,7 @@ export const UsersPage = () => {
             <select
               value={schoolFilter}
               onChange={(changeEvent) => setSchoolFilter(changeEvent.target.value)}
-              className="rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-bold text-[#526477] focus:border-[#006AC7] focus:bg-white focus:outline-none max-w-[200px]"
+              className="rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-bold text-[#526477] focus:border-[#4B7F3A] focus:bg-white focus:outline-none max-w-[200px]"
             >
               <option value="">All Schools</option>
               {schoolsList.map((schoolItem) => (
@@ -495,7 +495,7 @@ export const UsersPage = () => {
             <select
               value={statusFilter}
               onChange={(changeEvent) => setStatusFilter(changeEvent.target.value)}
-              className="rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-bold text-[#526477] focus:border-[#006AC7] focus:bg-white focus:outline-none"
+              className="rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs font-bold text-[#526477] focus:border-[#4B7F3A] focus:bg-white focus:outline-none"
             >
               <option value="">All Statuses</option>
               <option value="ACTIVE">Active</option>
@@ -511,8 +511,8 @@ export const UsersPage = () => {
 
         {/* Bulk Actions Command Strip (Employees Tab Only) */}
         {activeCategory === 'EMPLOYEES' && selectedUserIds.length > 0 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 rounded-2xl border border-blue-200 bg-blue-50/70 p-3.5 text-xs text-[#102033] shadow-xs">
-            <span className="font-bold text-[#006AC7]">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 rounded-2xl border border-[#C9DFBC] bg-[#F2F8EF] p-3.5 text-xs text-[#102033] shadow-xs">
+            <span className="font-bold text-[#38662D]">
               {selectedUserIds.length} employee{selectedUserIds.length > 1 ? 's' : ''} selected
             </span>
             <div className="flex items-center gap-2">
@@ -520,7 +520,7 @@ export const UsersPage = () => {
                 type="button"
                 onClick={() => handleExecuteBulkAction('APPROVE')}
                 disabled={isBulkOperating}
-                className="flex items-center gap-1 rounded-xl bg-[#4B7F3A] px-3.5 py-2 text-xs font-bold text-white hover:bg-[#3D692F] disabled:opacity-50 transition shadow-xs"
+                className="flex items-center gap-1 rounded-xl bg-[#4B7F3A] px-3.5 py-2 text-xs font-bold text-white hover:bg-[#38662D] disabled:opacity-50 transition shadow-xs"
               >
                 <UserCheck className="h-3.5 w-3.5" />
                 <span>Bulk Approve</span>

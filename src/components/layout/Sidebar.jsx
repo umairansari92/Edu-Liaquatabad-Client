@@ -76,11 +76,11 @@ export const Sidebar = () => {
               to={navItem.path}
               className={`flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
                 isActive
-                  ? 'bg-[#F0F8FF] text-[#006AC7] border border-[#B9DEFF] font-semibold shadow-xs'
+                  ? 'bg-[#F2F8EF] text-[#38662D] border border-[#C9DFBC] font-semibold shadow-xs'
                   : 'hover:bg-[#F8FBFD] hover:text-[#102033] text-[#526477]'
               }`}
             >
-              <Icon className={`w-5 h-5 ${isActive ? 'text-[#006AC7]' : 'text-[#8094A8]'}`} />
+              <Icon className={`w-5 h-5 ${isActive ? 'text-[#38662D]' : 'text-[#8094A8]'}`} />
               <span>{navItem.label}</span>
             </Link>
           );

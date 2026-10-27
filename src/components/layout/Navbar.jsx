@@ -77,7 +77,7 @@ export const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand / Logo */}
         <Link to="/" className="flex items-center space-x-3 group shrink-0">
-          <div className="w-10 h-10 rounded-xl bg-[#006AC7] flex items-center justify-center shadow-md group-hover:bg-[#005299] transition-colors">
+          <div className="w-10 h-10 rounded-xl bg-[#4B7F3A] flex items-center justify-center shadow-md group-hover:bg-[#38662D] transition-colors">
             <School className="w-6 h-6 text-white" />
           </div>
           <div>
@@ -101,7 +101,7 @@ export const Navbar = () => {
               <input
                 type="text"
                 placeholder="Search students, staff or records..."
-                className="w-full pl-9 pr-4 py-1.5 text-xs bg-slate-50 border border-slate-200/80 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#006AC7]/20 focus:border-[#006AC7] focus:bg-white transition"
+                className="w-full pl-9 pr-4 py-1.5 text-xs bg-slate-50 border border-slate-200/80 rounded-xl text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-[#4B7F3A]/20 focus:border-[#4B7F3A] focus:bg-white transition"
                 onKeyDown={(event) => {
                   if (event.key === 'Enter' && event.target.value.trim()) {
                     navigate(`/directory?search=${encodeURIComponent(event.target.value.trim())}`);
@@ -138,8 +138,8 @@ export const Navbar = () => {
                   onClick={() => setShowNotifications((prev) => !prev)}
                   className={`relative p-2 rounded-xl transition-all ${
                     showNotifications
-                      ? 'text-[#006AC7] bg-blue-50 ring-2 ring-[#006AC7]/20'
-                      : 'text-[#526477] hover:text-[#006AC7] hover:bg-slate-100'
+                      ? 'text-[#38662D] bg-[#F2F8EF] ring-2 ring-[#4B7F3A]/20'
+                      : 'text-[#526477] hover:text-[#38662D] hover:bg-slate-100'
                   }`}
                   title={unreadCount > 0 ? `${unreadCount} unread notification${unreadCount === 1 ? '' : 's'}` : 'Notifications'}
                   aria-label={unreadCount > 0 ? `Notifications (${unreadCount} unread)` : 'Notifications'}
@@ -168,8 +168,8 @@ export const Navbar = () => {
                 onClick={() => setShowSecurityModal(true)}
                 className={`p-2 rounded-xl transition-all ${
                   showSecurityModal
-                    ? 'text-[#006AC7] bg-blue-50 ring-2 ring-[#006AC7]/20'
-                    : 'text-[#526477] hover:text-[#006AC7] hover:bg-slate-100'
+                    ? 'text-[#38662D] bg-[#F2F8EF] ring-2 ring-[#4B7F3A]/20'
+                    : 'text-[#526477] hover:text-[#38662D] hover:bg-slate-100'
                 }`}
                 title="Account Security & Active Sessions"
                 aria-label="Account Security & Active Sessions"
@@ -185,13 +185,13 @@ export const Navbar = () => {
                   <p className="text-sm font-bold text-[#102033] leading-tight">
                     {user.fullName}
                   </p>
-                  <p className="text-xs text-[#006AC7] font-semibold">
+                  <p className="text-xs text-[#38662D] font-semibold">
                     {user.designation
                       ? user.designation.replace(/\s*\(Break-Glass Recovery\)/i, '')
                       : user.role}
                   </p>
                 </div>
-                <div className="w-9 h-9 rounded-full bg-[#F0F8FF] border border-[#B9DEFF] flex items-center justify-center text-[#006AC7] font-bold">
+                <div className="w-9 h-9 rounded-full bg-[#F2F8EF] border border-[#C9DFBC] flex items-center justify-center text-[#38662D] font-bold">
                   <User className="w-5 h-5" />
                 </div>
                 <button
@@ -218,7 +218,7 @@ export const Navbar = () => {
             <div className="flex items-center space-x-3">
               <Link
                 to="/login"
-                className="text-sm font-semibold text-[#526477] hover:text-[#006AC7] px-3.5 py-2 rounded-xl hover:bg-slate-100 transition-colors"
+                className="text-sm font-semibold text-[#526477] hover:text-[#38662D] px-3.5 py-2 rounded-xl hover:bg-slate-100 transition-colors"
               >
                 Sign In
               </Link>
