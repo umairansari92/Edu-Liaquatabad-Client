@@ -14,7 +14,7 @@ export const AppFooter = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2.5">
-            <div className="w-6 h-6 rounded-lg bg-[#006AC7] flex items-center justify-center text-white shadow-2xs">
+            <div className="w-6 h-6 rounded-lg bg-[#4B7F3A] flex items-center justify-center text-white shadow-2xs">
               <School className="w-3.5 h-3.5" />
             </div>
             <span className="font-semibold text-slate-800">
@@ -31,7 +31,7 @@ export const AppFooter = () => {
                 href="https://app-cvifypro.vercel.app/p/umairansari92"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-medium text-[#006AC7] hover:underline inline-flex items-center gap-0.5"
+                className="font-medium text-[#38662D] hover:underline inline-flex items-center gap-0.5"
               >
                 Umair Ahmed
                 <ExternalLink className="w-2.5 h-2.5" />

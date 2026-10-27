@@ -118,14 +118,15 @@ const DASHBOARD_TABS = [
 ];
 
 // ─── KPI Summary Card ────────────────────────────────────────────────────────
-const KpiCard = ({ icon: IconComponent, label, value, sub, color = 'blue', loading = false }) => {
+const KpiCard = ({ icon: IconComponent, label, value, sub, color = 'green', loading = false }) => {
   const colorMap = {
+    green: { bg: 'bg-[#F2F8EF]', text: 'text-[#38662D]', border: 'border-[#C9DFBC]' },
     blue: { bg: 'bg-blue-50', text: 'text-[#006AC7]', border: 'border-blue-100' },
     emerald: { bg: 'bg-emerald-50', text: 'text-[#4B7F3A]', border: 'border-emerald-100' },
     amber: { bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-100' },
     indigo: { bg: 'bg-indigo-50', text: 'text-indigo-700', border: 'border-indigo-100' },
   };
-  const theme = colorMap[color] || colorMap.blue;
+  const theme = colorMap[color] || colorMap.green;
 
   return (
     <div className="relative p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs overflow-hidden hover:shadow-sm transition-all">
@@ -835,7 +836,7 @@ export const TeacherDashboard = () => {
             title="Refresh dashboard"
             aria-label="Refresh dashboard data"
           >
-            <RefreshCw className={`w-4 h-4 ${summaryLoading ? 'animate-spin text-[#006AC7]' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${summaryLoading ? 'animate-spin text-[#4B7F3A]' : ''}`} />
           </button>
         </div>
       }
@@ -870,9 +871,9 @@ export const TeacherDashboard = () => {
               aria-selected={isActiveTab}
               type="button"
               onClick={() => handleTabChange(tabItem.id)}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all whitespace-nowrap text-xs sm:text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-[#006AC7] shrink-0 cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all whitespace-nowrap text-xs sm:text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4B7F3A] shrink-0 cursor-pointer ${
                 isActiveTab
-                  ? 'bg-white text-[#006AC7] shadow-xs font-bold border border-slate-200/60'
+                  ? 'bg-white text-[#38662D] shadow-xs font-bold border border-[#C9DFBC]'
                   : 'text-[#526477] hover:text-[#102033] hover:bg-white/60'
               }`}
             >
@@ -913,7 +914,7 @@ export const TeacherDashboard = () => {
                 onClick={() => setAttendanceViewMode('DAILY')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                   attendanceViewMode === 'DAILY'
-                    ? 'bg-white text-[#006AC7] shadow-xs'
+                    ? 'bg-white text-[#38662D] shadow-xs border border-[#C9DFBC]/80'
                     : 'text-[#526477] hover:text-[#102033]'
                 }`}
               >
@@ -924,7 +925,7 @@ export const TeacherDashboard = () => {
                 onClick={() => setAttendanceViewMode('REGISTER')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                   attendanceViewMode === 'REGISTER'
-                    ? 'bg-white text-[#006AC7] shadow-xs'
+                    ? 'bg-white text-[#38662D] shadow-xs border border-[#C9DFBC]/80'
                     : 'text-[#526477] hover:text-[#102033]'
                 }`}
               >
@@ -935,7 +936,7 @@ export const TeacherDashboard = () => {
                 onClick={() => setAttendanceViewMode('MY_MUSTER')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                   attendanceViewMode === 'MY_MUSTER'
-                    ? 'bg-white text-[#006AC7] shadow-xs'
+                    ? 'bg-white text-[#38662D] shadow-xs border border-[#C9DFBC]/80'
                     : 'text-[#526477] hover:text-[#102033]'
                 }`}
               >
@@ -973,7 +974,7 @@ export const TeacherDashboard = () => {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
                 <div>
                   <h2 className="text-lg font-bold text-[#102033] flex items-center gap-2">
-                    <ClipboardList className="w-5 h-5 text-[#006AC7]" />
+                    <ClipboardList className="w-5 h-5 text-[#4B7F3A]" />
                     Daily Student Attendance
                   </h2>
                   <p className="text-xs text-[#526477] mt-0.5">
@@ -988,7 +989,7 @@ export const TeacherDashboard = () => {
                     <select
                       value={selectedAttendanceSectionId}
                       onChange={(changeEvent) => setSelectedAttendanceSectionId(changeEvent.target.value)}
-                      className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-[#102033] focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
+                      className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-[#102033] focus:outline-none focus:ring-2 focus:ring-[#4B7F3A]"
                     >
                       {assignedSections.map((sectionItem) => {
                         const sectionLabel = sectionItem.name && sectionItem.name !== 'null' && sectionItem.name.toLowerCase() !== 'default'
@@ -1009,7 +1010,7 @@ export const TeacherDashboard = () => {
                       value={attendanceDate}
                       max={todayPkt}
                       onChange={(changeEvent) => setAttendanceDate(changeEvent.target.value)}
-                      className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-[#102033] focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
+                      className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-[#102033] focus:outline-none focus:ring-2 focus:ring-[#4B7F3A]"
                     />
                   </div>
                 </div>
@@ -1155,7 +1156,7 @@ export const TeacherDashboard = () => {
                   <button
                     type="button"
                     onClick={() => setLateClearanceModalOpen(true)}
-                    className="px-3.5 py-1.5 rounded-xl bg-[#006AC7] hover:bg-[#00529B] text-white font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs flex-shrink-0"
+                    className="px-3.5 py-1.5 rounded-xl bg-[#4B7F3A] hover:bg-[#38662D] text-white font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs flex-shrink-0"
                   >
                     <Clock className="w-3.5 h-3.5" /> Request Late Clearance
                   </button>
@@ -1196,7 +1197,7 @@ export const TeacherDashboard = () => {
                   placeholder="Search by name, roll number, or GR number…"
                   value={attendanceSearchQuery}
                   onChange={(changeEvent) => setAttendanceSearchQuery(changeEvent.target.value)}
-                  className="w-full pl-9 pr-8 py-2 rounded-xl border border-slate-200 text-xs font-medium text-[#102033] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
+                  className="w-full pl-9 pr-8 py-2 rounded-xl border border-slate-200 text-xs font-medium text-[#102033] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4B7F3A]"
                 />
                 {attendanceSearchQuery && (
                   <button
@@ -1226,7 +1227,7 @@ export const TeacherDashboard = () => {
                       onClick={() => setAttendanceStatusFilter(filterTab.id)}
                       className={`px-2.5 py-1 rounded-lg transition-all ${
                         attendanceStatusFilter === filterTab.id
-                          ? 'bg-white text-[#006AC7] shadow-xs'
+                          ? 'bg-white text-[#38662D] shadow-xs border border-[#C9DFBC]/80'
                           : 'text-[#526477] hover:text-[#102033]'
                       }`}
                     >
@@ -1269,7 +1270,7 @@ export const TeacherDashboard = () => {
             {/* Attendance Roster Table */}
             {attendanceLoading ? (
               <div className="py-16 flex flex-col items-center justify-center gap-3 text-[#526477]">
-                <Loader2 className="w-8 h-8 animate-spin text-[#006AC7]" />
+                <Loader2 className="w-8 h-8 animate-spin text-[#4B7F3A]" />
                 <p className="text-xs font-medium">Loading class attendance roster…</p>
               </div>
             ) : filteredAttendanceRecords.length === 0 ? (
@@ -1345,7 +1346,7 @@ export const TeacherDashboard = () => {
                         onChange={(changeEvent) =>
                           handleUpdateRecordRemarks(studentRecord.studentProfileId, changeEvent.target.value)
                         }
-                        className="px-3 py-1.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#006AC7] w-48 sm:w-56 text-[#102033]"
+                        className="px-3 py-1.5 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-[#4B7F3A] w-48 sm:w-56 text-[#102033]"
                       />
                     </div>
                   </div>
@@ -1396,7 +1397,7 @@ export const TeacherDashboard = () => {
           <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm">
             <div className="pb-5 border-b border-slate-100">
               <h2 className="text-lg font-bold text-[#102033] flex items-center gap-2">
-                <Award className="w-5 h-5 text-[#006AC7]" />
+                <Award className="w-5 h-5 text-[#4B7F3A]" />
                 Enter Exam Marks
               </h2>
               <p className="text-xs text-[#526477] mt-0.5">
@@ -1410,7 +1411,7 @@ export const TeacherDashboard = () => {
                   <select
                     value={selectedExamId}
                     onChange={(changeEvent) => setSelectedExamId(changeEvent.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-[#102033] focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-[#102033] focus:outline-none focus:ring-2 focus:ring-[#4B7F3A]"
                   >
                     <option value="">-- Select Examination --</option>
                     {examsList.map((examItem) => (
@@ -1429,7 +1430,7 @@ export const TeacherDashboard = () => {
                       setSelectedExamSectionId(changeEvent.target.value);
                       setSelectedExamSubjectId('');
                     }}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-[#102033] focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-[#102033] focus:outline-none focus:ring-2 focus:ring-[#4B7F3A]"
                   >
                     <option value="">-- Select Class & Section --</option>
                     {assignedSections.map((sectionItem) => {
@@ -1450,7 +1451,7 @@ export const TeacherDashboard = () => {
                   <select
                     value={selectedExamSubjectId}
                     onChange={(changeEvent) => setSelectedExamSubjectId(changeEvent.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-[#102033] focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-[#102033] focus:outline-none focus:ring-2 focus:ring-[#4B7F3A]"
                   >
                     <option value="">-- Select Subject --</option>
                     {(() => {
@@ -1470,7 +1471,7 @@ export const TeacherDashboard = () => {
                     type="button"
                     onClick={handleLoadExamMarksRoster}
                     disabled={!selectedExamId || !selectedExamSectionId}
-                    className="w-full py-2 px-4 rounded-xl bg-[#006AC7] hover:bg-[#00529B] disabled:opacity-50 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
+                    className="w-full py-2 px-4 rounded-xl bg-[#4B7F3A] hover:bg-[#38662D] disabled:opacity-50 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
                   >
                     <Search className="w-3.5 h-3.5" /> Load Students
                   </button>
@@ -1500,7 +1501,7 @@ export const TeacherDashboard = () => {
             {/* Exam Marks Entry Table */}
             {examRosterLoading ? (
               <div className="py-16 flex flex-col items-center justify-center gap-3 text-[#526477]">
-                <Loader2 className="w-8 h-8 animate-spin text-[#006AC7]" />
+                <Loader2 className="w-8 h-8 animate-spin text-[#4B7F3A]" />
                 <p className="text-xs font-medium">Loading student list for marks entry…</p>
               </div>
             ) : localMarksEntries.length === 0 ? (
@@ -1569,7 +1570,7 @@ export const TeacherDashboard = () => {
                                     )
                                   }
                                   placeholder="0-20"
-                                  className="w-20 px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                                  className="w-20 px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#4B7F3A]"
                                 />
                               </td>
                               <td className="py-3 px-2">
@@ -1586,7 +1587,7 @@ export const TeacherDashboard = () => {
                                     )
                                   }
                                   placeholder="0-80"
-                                  className="w-20 px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                                  className="w-20 px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#4B7F3A]"
                                 />
                               </td>
                               <td className="py-3 px-2 font-bold text-[#102033]">
@@ -1603,7 +1604,7 @@ export const TeacherDashboard = () => {
                                 onChange={(changeEvent) =>
                                   handleUpdateMarksEntry(markEntry.studentId, 'letterGrade', changeEvent.target.value)
                                 }
-                                className="px-3 py-1 rounded-lg border border-slate-200 text-xs font-bold text-[#006AC7] focus:outline-none"
+                                className="px-3 py-1 rounded-lg border border-slate-200 text-xs font-bold text-[#38662D] focus:outline-none"
                               >
                                 {['A+', 'A', 'B', 'C', 'D', 'FAIL'].map((gradeOption) => (
                                   <option key={gradeOption} value={gradeOption}>
@@ -1631,7 +1632,7 @@ export const TeacherDashboard = () => {
                                     )
                                   }
                                   placeholder="Marks"
-                                  className="w-24 px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                                  className="w-24 px-2.5 py-1 rounded-lg border border-slate-200 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-[#4B7F3A]"
                                 />
                               </td>
                               <td className="py-3 px-2 text-[#526477] font-semibold">{maximumMarks}</td>
@@ -1648,7 +1649,7 @@ export const TeacherDashboard = () => {
                               onChange={(changeEvent) =>
                                 handleUpdateMarksEntry(markEntry.studentId, 'remarks', changeEvent.target.value)
                               }
-                              className="w-48 px-2.5 py-1 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                              className="w-48 px-2.5 py-1 rounded-lg border border-slate-200 text-xs focus:outline-none focus:ring-1 focus:ring-[#4B7F3A]"
                             />
                           </td>
                         </tr>
@@ -1673,7 +1674,7 @@ export const TeacherDashboard = () => {
                     type="button"
                     onClick={handleBulkSubmitMarks}
                     disabled={examMarksSubmitting || localMarksEntries.length === 0}
-                    className="px-6 py-2.5 rounded-xl bg-[#006AC7] hover:bg-[#00529B] disabled:opacity-50 text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+                    className="px-6 py-2.5 rounded-xl bg-[#4B7F3A] hover:bg-[#38662D] disabled:opacity-50 text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm cursor-pointer"
                   >
                     {examMarksSubmitting ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -1700,7 +1701,7 @@ export const TeacherDashboard = () => {
             <button
               type="button"
               onClick={() => setAssignHomeworkModal(true)}
-              className="px-4 py-2 rounded-xl bg-[#006AC7] hover:bg-[#00529B] text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm cursor-pointer self-start sm:self-auto"
+              className="px-4 py-2 rounded-xl bg-[#4B7F3A] hover:bg-[#38662D] text-white text-xs font-bold transition flex items-center justify-center gap-2 shadow-sm cursor-pointer self-start sm:self-auto"
             >
               <PlusCircle className="w-4 h-4" /> Assign Homework
             </button>
@@ -1708,7 +1709,7 @@ export const TeacherDashboard = () => {
 
           {homeworkLoading ? (
             <div className="py-16 flex flex-col items-center justify-center gap-3 text-[#526477]">
-              <Loader2 className="w-8 h-8 animate-spin text-[#006AC7]" />
+              <Loader2 className="w-8 h-8 animate-spin text-[#4B7F3A]" />
               <p className="text-xs font-medium">Loading homework assignments…</p>
             </div>
           ) : homeworkList.length === 0 ? (
@@ -1733,7 +1734,7 @@ export const TeacherDashboard = () => {
                   >
                     <div>
                       <div className="flex items-start justify-between gap-3 mb-2">
-                        <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-[#006AC7] border border-blue-200">
+                        <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#F2F8EF] text-[#38662D] border border-[#C9DFBC]">
                           {homeworkItem.subjectId?.name || 'Subject'}
                         </span>
                         <span className="text-xs font-semibold text-[#8094A8]">
@@ -1956,7 +1957,7 @@ export const TeacherDashboard = () => {
                     handleUpdateHomeworkDraft({ sectionId: selectedSectionId, subjectId: '' });
                   }}
                   required
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#4B7F3A]"
                 >
                   <option value="">-- Choose Class & Section --</option>
                   {assignedSections.map((sectionItem) => {
@@ -1982,7 +1983,7 @@ export const TeacherDashboard = () => {
                     handleUpdateHomeworkDraft({ subjectId: selectedSubjectId });
                   }}
                   required
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#4B7F3A]"
                 >
                   <option value="">-- Choose Subject --</option>
                   {(() => {
@@ -2008,7 +2009,7 @@ export const TeacherDashboard = () => {
                     handleUpdateHomeworkDraft({ title: enteredTitle });
                   }}
                   required
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#4B7F3A]"
                 />
               </div>
 
@@ -2023,7 +2024,7 @@ export const TeacherDashboard = () => {
                     setNewHwDescription(enteredDescription);
                     handleUpdateHomeworkDraft({ description: enteredDescription });
                   }}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-[#4B7F3A]"
                 />
               </div>
 
@@ -2039,7 +2040,7 @@ export const TeacherDashboard = () => {
                     handleUpdateHomeworkDraft({ dueDate: selectedDate });
                   }}
                   required
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#4B7F3A]"
                 />
               </div>
 
@@ -2061,7 +2062,7 @@ export const TeacherDashboard = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-[#006AC7] hover:bg-[#00529B] text-white font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+                  className="px-5 py-2 rounded-xl bg-[#4B7F3A] hover:bg-[#38662D] text-white font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
                 >
                   <Check className="w-4 h-4" /> Post Homework
                 </button>
@@ -2082,7 +2083,7 @@ export const TeacherDashboard = () => {
             <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
               <div>
                 <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
-                  <CalendarDays className="w-5 h-5 text-[#006AC7]" />
+                  <CalendarDays className="w-5 h-5 text-[#4B7F3A]" />
                   Apply for Leave
                 </h3>
                 <p className="text-xs text-[#526477]">
@@ -2104,7 +2105,7 @@ export const TeacherDashboard = () => {
                 <select
                   value={leaveType}
                   onChange={(e) => setLeaveType(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#4B7F3A]"
                 >
                   <option value="CASUAL_LEAVE">Casual Leave (CL) — Standard Entitlement</option>
                   <option value="MEDICAL_LEAVE">Medical Leave (ML)</option>
@@ -2126,7 +2127,7 @@ export const TeacherDashboard = () => {
                       }
                     }}
                     required
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#4B7F3A]"
                   />
                 </div>
                 <div>
@@ -2137,7 +2138,7 @@ export const TeacherDashboard = () => {
                     value={leaveEndDate}
                     onChange={(e) => setLeaveEndDate(e.target.value)}
                     required
-                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#4B7F3A]"
                   />
                 </div>
               </div>
@@ -2189,7 +2190,7 @@ export const TeacherDashboard = () => {
                   onChange={(e) => setLeaveReason(e.target.value)}
                   placeholder="Explain the reason for leave request (minimum 5 characters)..."
                   required
-                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-[#4B7F3A]"
                 />
               </div>
 
@@ -2207,7 +2208,7 @@ export const TeacherDashboard = () => {
                     leaveSubmitting ||
                     (leaveType === 'CASUAL_LEAVE' && (calculatedLeaveDays > 3 || (clBalance && calculatedLeaveDays > (clBalance.remainingDays ?? 0))))
                   }
-                  className="px-5 py-2 rounded-xl bg-[#006AC7] hover:bg-[#00529B] disabled:opacity-50 text-white font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+                  className="px-5 py-2 rounded-xl bg-[#4B7F3A] hover:bg-[#38662D] disabled:opacity-50 text-white font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer"
                 >
                   {leaveSubmitting ? (
                     <>

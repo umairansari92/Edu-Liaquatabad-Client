@@ -80,18 +80,18 @@ export const TeacherArrivalAttendanceBanner = ({
       {/* ─── STATE 1: LOADING ─── */}
       {loading && !record && (
         <div className="bg-slate-50 border-slate-200/80 p-5 flex items-center justify-center gap-3 text-sm text-[#526477]">
-          <Loader2 className="w-5 h-5 animate-spin text-[#006AC7]" />
+          <Loader2 className="w-5 h-5 animate-spin text-[#4B7F3A]" />
           <span>Verifying today's campus arrival attendance status...</span>
         </div>
       )}
 
       {/* ─── STATE 2: UNMARKED (Ready for check-in) ─── */}
       {!loading && !isMarkedToday && (
-        <div className="bg-gradient-to-r from-blue-50/80 via-white to-indigo-50/50 border-blue-200/70 p-5 sm:p-6">
+        <div className="bg-gradient-to-r from-[#F2F8EF] via-white to-[#F2F8EF]/60 border-[#C9DFBC]/80 p-5 sm:p-6">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
             <div className="space-y-1.5 max-w-2xl">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-blue-100/90 text-[#006AC7] border border-blue-200">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-[#E3F0DC] text-[#38662D] border border-[#C9DFBC]">
                   <Building className="w-3.5 h-3.5" /> Campus Physical Arrival
                 </span>
                 <span className="text-xs text-[#526477] font-medium flex items-center gap-1">
@@ -122,7 +122,7 @@ export const TeacherArrivalAttendanceBanner = ({
                 type="button"
                 onClick={onMarkAttendance}
                 disabled={submitting}
-                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#006AC7] to-[#00529B] hover:from-[#0058A8] hover:to-[#004077] disabled:opacity-60 text-white text-xs sm:text-sm font-black transition-all flex items-center gap-2 shadow-md hover:shadow-lg cursor-pointer transform hover:-translate-y-0.5"
+                className="px-6 py-2.5 rounded-xl bg-[#4B7F3A] hover:bg-[#38662D] disabled:opacity-60 text-white text-xs sm:text-sm font-black transition-all flex items-center gap-2 shadow-md hover:shadow-lg cursor-pointer transform hover:-translate-y-0.5"
               >
                 {submitting ? (
                   <>
