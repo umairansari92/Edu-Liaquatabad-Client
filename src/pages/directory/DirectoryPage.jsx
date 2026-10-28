@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Navigate } from 'react-router-dom';
 import {
   Users,
   GraduationCap,
@@ -1162,6 +1162,15 @@ const GuardiansDirectoryView = () => {
 
 export const DirectoryPage = () => {
   const { user: authenticatedUser } = useSelector((state) => state.auth);
+  const canAccessDirectory = ['ROOT_ADMIN', 'SUPER_ADMIN', 'ADMIN', 'SUPERVISOR', 'HM'].includes(
+    authenticatedUser?.role
+  );
+
+  // Strict Institutional Boundary: Direct unauthorized roles immediately back to their dashboard
+  if (!canAccessDirectory) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   const isPlatformAdministrator = ['ROOT_ADMIN', 'SUPER_ADMIN', 'ADMIN'].includes(authenticatedUser?.role);
   const isHM = authenticatedUser?.role === 'HM';
 

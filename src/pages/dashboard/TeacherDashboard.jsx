@@ -6,6 +6,7 @@ import {
   GraduationCap,
   Users,
   ClipboardList,
+  ClipboardCheck,
   CheckCircle2,
   XCircle,
   AlertCircle,
@@ -106,15 +107,17 @@ const getKarachiTodayDateString = () => {
   }
 };
 
-// ─── Dashboard Tabs Definition ────────────────────────────────────────────────
+// ─── Dashboard Tabs Definition (Matches Sidebar Navigation on Mobile/Tablet) ──
 const DASHBOARD_TABS = [
-  { id: 'OVERVIEW', label: 'Daily Overview', icon: LayoutDashboard },
+  { id: 'OVERVIEW', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'CLASSES', label: 'My Classes', icon: GraduationCap },
-  { id: 'ATTENDANCE', label: 'Daily Attendance', icon: ClipboardList },
+  { id: 'ATTENDANCE', label: 'Daily Attendance', icon: ClipboardCheck },
   { id: 'EXAMS', label: 'Exam Marks', icon: Award },
-  { id: 'HOMEWORK', label: 'Homework', icon: FileText },
-  { id: 'TIMETABLE', label: 'Timetable', icon: CalendarDays },
-  { id: 'CIRCULARS', label: 'Notice Board', icon: FileSpreadsheet },
+  { id: 'HOMEWORK', label: 'Homework', icon: BookOpen },
+  { id: 'TIMETABLE', label: 'Class Timetable', icon: CalendarDays },
+  { id: 'CIRCULARS', label: 'Notice Board', icon: FileText },
+  { id: 'HOLIDAYS', label: 'Holidays & Calendar', icon: Calendar, path: '/holidays' },
+  { id: 'PROFILE', label: 'Personal Profile', icon: IdCard, path: '/profile' },
 ];
 
 // ─── KPI Summary Card ────────────────────────────────────────────────────────
@@ -228,10 +231,16 @@ export const TeacherDashboard = () => {
       }
       const resolvedTab = resolveTabFromParam(urlTab);
       setActiveTab(resolvedTab);
+    } else {
+      setActiveTab('OVERVIEW');
     }
   }, [urlTab, resolveTabFromParam, navigate]);
 
-  const handleTabChange = (tabIdentifier) => {
+  const handleTabChange = (tabIdentifier, tabPath) => {
+    if (tabPath) {
+      navigate(tabPath);
+      return;
+    }
     setActiveTab(tabIdentifier);
     if (tabIdentifier === 'OVERVIEW') {
       setSearchParams({});
@@ -854,35 +863,6 @@ export const TeacherDashboard = () => {
         }}
         schoolName={user?.school?.name || 'Assigned School'}
       />
-
-      {/* ─── Responsive Tab Navigation Bar ───────────────────────────────────── */}
-      <div
-        role="tablist"
-        aria-label="Dashboard sections"
-        className="flex items-center gap-1.5 p-1.5 bg-slate-100/90 rounded-2xl mb-6 border border-slate-200/70 overflow-x-auto scrollbar-thin select-none print:hidden"
-      >
-        {DASHBOARD_TABS.map((tabItem) => {
-          const IconComponent = tabItem.icon;
-          const isActiveTab = activeTab === tabItem.id;
-          return (
-            <button
-              key={tabItem.id}
-              role="tab"
-              aria-selected={isActiveTab}
-              type="button"
-              onClick={() => handleTabChange(tabItem.id)}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all whitespace-nowrap text-xs sm:text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4B7F3A] shrink-0 cursor-pointer ${
-                isActiveTab
-                  ? 'bg-white text-[#38662D] shadow-xs font-bold border border-[#C9DFBC]'
-                  : 'text-[#526477] hover:text-[#102033] hover:bg-white/60'
-              }`}
-            >
-              <IconComponent className="w-4 h-4 shrink-0" />
-              <span>{tabItem.label}</span>
-            </button>
-          );
-        })}
-      </div>
 
       {/* ─── TAB 0: DAILY OVERVIEW DASHBOARD ─────────────────────────────────── */}
       {activeTab === 'OVERVIEW' && (

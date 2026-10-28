@@ -62,6 +62,7 @@ export const StaffProfilePage = () => {
   const navigate = useNavigate();
 
   const currentUser = useSelector((state) => state.auth?.user);
+  const canAccessDirectory = ['ROOT_ADMIN', 'SUPER_ADMIN', 'ADMIN', 'SUPERVISOR', 'HM'].includes(currentUser?.role);
   const {
     profileData,
     loading,
@@ -216,10 +217,10 @@ export const StaffProfilePage = () => {
             {error || 'The requested profile could not be found or you do not have permission to view it.'}
           </p>
           <Link
-            to="/directory"
+            to={canAccessDirectory ? '/directory' : '/dashboard'}
             className="inline-block text-xs font-bold text-[#006AC7] hover:underline"
           >
-            &larr; Return to Staff Directory
+            &larr; {canAccessDirectory ? 'Return to Staff Directory' : 'Return to Dashboard'}
           </Link>
         </div>
       </PageContainer>
@@ -248,11 +249,11 @@ export const StaffProfilePage = () => {
         {/* Top Navigation & Action Controls */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <Link
-            to={isStudentProfile ? '/dashboard' : '/directory'}
+            to={isStudentProfile || isOwner || !canAccessDirectory ? '/dashboard' : '/directory?tab=staff'}
             className="inline-flex items-center gap-1.5 text-xs text-[#526477] hover:text-[#102033] font-bold transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
-            {isStudentProfile ? 'Back to Student Workspace' : 'Back to Staff Directory'}
+            {isStudentProfile || isOwner || !canAccessDirectory ? 'Back to Dashboard' : 'Back to Staff Directory'}
           </Link>
 
           <div className="flex flex-wrap items-center gap-2.5">

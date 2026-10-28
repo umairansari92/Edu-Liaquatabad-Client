@@ -14,6 +14,8 @@ import {
   TrendingUp,
   Building2,
   History,
+  Calendar,
+  IdCard,
 } from 'lucide-react';
 
 export const HM_NAV_ITEMS = [
@@ -30,6 +32,8 @@ export const HM_NAV_ITEMS = [
   { id: 'notices', label: 'Circulars & Notices', icon: FileText },
   { id: 'reports', label: 'Reports', icon: TrendingUp },
   { id: 'profile', label: 'School Profile', icon: Building2 },
+  { id: 'holidays', label: 'Holidays & Calendar', icon: Calendar, path: '/holidays' },
+  { id: 'personal-profile', label: 'Personal Profile', icon: IdCard, path: '/profile' },
   { id: 'activity', label: 'Activity Log', icon: History },
 ];
 
@@ -40,7 +44,7 @@ export const HmNavigation = ({ activeTab, onSelectTab, badges = {} }) => {
     <nav
       role="tablist"
       aria-label="Head Master Module Navigation"
-      className="w-full mb-6 print:hidden"
+      className="w-full mb-6 lg:hidden print:hidden"
     >
       <div
         ref={scrollContainerRef}
@@ -57,7 +61,7 @@ export const HmNavigation = ({ activeTab, onSelectTab, badges = {} }) => {
               role="tab"
               aria-selected={isActive}
               type="button"
-              onClick={() => onSelectTab(item.id)}
+              onClick={() => onSelectTab(item.id, item.path)}
               className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all whitespace-nowrap text-xs sm:text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4B7F3A] shrink-0 cursor-pointer ${
                 isActive
                   ? 'bg-white text-[#38662D] shadow-xs font-bold border border-[#C9DFBC]'

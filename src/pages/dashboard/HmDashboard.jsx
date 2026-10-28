@@ -181,7 +181,11 @@ export const HmDashboard = () => {
   }, [location.pathname, location.key, location.search]);
 
   const handleSelectTab = useCallback(
-    (newTab) => {
+    (newTab, tabPath) => {
+      if (tabPath) {
+        navigate(tabPath);
+        return;
+      }
       setActiveTab(newTab);
       if (newTab === 'overview') {
         navigate('/dashboard', { replace: false });
@@ -1437,6 +1441,7 @@ export const HmDashboard = () => {
 
   return (
     <PageContainer
+      hideMobileNav={true}
       title="School overview"
       subtitle={`${summary?.school?.name || user?.schoolId?.name || 'School Dashboard'} • Liaquatabad Town Centre`}
       maxWidth={
