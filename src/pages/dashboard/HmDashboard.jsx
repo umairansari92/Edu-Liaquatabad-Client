@@ -443,6 +443,7 @@ export const HmDashboard = () => {
 
   // School Circulars & Official Notice Board State
   const [newNoticeModal, setNewNoticeModal] = useState(false);
+  const [showNoticePreview, setShowNoticePreview] = useState(false);
   const [isPublishingNotice, setIsPublishingNotice] = useState(false);
   const [noticeCategoryFilter, setNoticeCategoryFilter] = useState('all'); // 'all' | 'school' | 'department'
   const [noticeTypeFilter, setNoticeTypeFilter] = useState('');
@@ -5222,137 +5223,216 @@ export const HmDashboard = () => {
       {/* Publish Notice Modal */}
       {newNoticeModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-          <form onSubmit={handlePublishNoticeSubmit} className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4 border border-slate-200">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
-                <FileText className="w-5 h-5 text-[#006AC7]" />
-                Publish School Circular
-              </h3>
+          <form onSubmit={handlePublishNoticeSubmit} className="bg-white rounded-2xl max-w-xl w-full p-6 shadow-xl space-y-4 border border-slate-200">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-3">
+                <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-[#006AC7]" />
+                  Publish School Circular
+                </h3>
+                <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200/80 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setShowNoticePreview(false)}
+                    className={`px-2.5 py-1 rounded-md font-bold transition cursor-pointer ${
+                      !showNoticePreview ? 'bg-white text-[#006AC7] shadow-xs' : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    Form
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowNoticePreview(true)}
+                    className={`px-2.5 py-1 rounded-md font-bold transition flex items-center gap-1 cursor-pointer ${
+                      showNoticePreview ? 'bg-white text-[#38662D] shadow-xs' : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    <Sparkles className="w-3 h-3 text-amber-500" />
+                    Card Preview
+                  </button>
+                </div>
+              </div>
               <button
                 type="button"
                 disabled={isPublishingNotice}
-                onClick={() => setNewNoticeModal(false)}
+                onClick={() => {
+                  setNewNoticeModal(false);
+                  setShowNoticePreview(false);
+                }}
                 className="text-slate-400 hover:text-slate-600 disabled:opacity-50 cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div>
-              <label className="text-xs font-bold text-[#102033] block mb-1">
-                Circular / Notice Title <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={noticeData.title}
-                onChange={(changeEvent) => setNoticeData({ ...noticeData, title: changeEvent.target.value })}
-                placeholder="e.g. Annual Sports Day Schedule 2026"
-                required
-                maxLength={200}
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
-              />
-            </div>
+            {/* Live Card Preview Tab */}
+            {showNoticePreview ? (
+              <div className="space-y-3">
+                <div className="p-1 rounded-xl bg-slate-100 text-[11px] text-[#526477] text-center font-medium">
+                  👀 Live Preview: This is how your circular will look in the Dashboard Announcement Hero for staff &amp; students.
+                </div>
+                <div className="rounded-2xl bg-[#183925] text-white p-5 shadow-md border border-[#255234]">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1 rounded bg-emerald-800/60 text-emerald-300">
+                        <Megaphone className="w-3.5 h-3.5" />
+                      </div>
+                      <span className="text-[11px] font-black uppercase tracking-wider text-emerald-200/90">
+                        OFFICIAL CIRCULAR · {(user?.school?.name || 'Assigned School').toUpperCase()}
+                      </span>
+                    </div>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                      noticeData.priority === 'URGENT'
+                        ? 'bg-rose-900/70 text-rose-200 border border-rose-500/40'
+                        : 'bg-[#225736] text-[#69dc8f] border border-[#2d6f46]'
+                    }`}>
+                      {noticeData.priority === 'URGENT' ? 'Urgent' : 'Notice'}
+                    </span>
+                  </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-bold text-[#102033] block mb-1">Reference Number</label>
-                <input
-                  type="text"
-                  value={noticeData.referenceNumber}
-                  onChange={(changeEvent) => setNoticeData({ ...noticeData, referenceNumber: changeEvent.target.value })}
-                  placeholder="e.g. HM/CIR/2026/01"
-                  maxLength={50}
-                  className="w-full text-xs p-2.5 rounded-xl border border-slate-200 font-mono focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
-                />
-              </div>
+                  <div className="mt-3 space-y-1.5">
+                    <h4 className="text-lg font-black text-white tracking-tight">
+                      {noticeData.title.trim() || 'Untitled Announcement Title'}
+                    </h4>
+                    <p className="text-xs text-[#c3dac9] leading-relaxed line-clamp-3">
+                      {noticeData.description.trim() || 'Your announcement details or instructions will appear here in clean, high-readability typography...'}
+                    </p>
+                  </div>
 
-              <div>
-                <label className="text-xs font-bold text-[#102033] block mb-1">Document Type</label>
-                <select
-                  value={noticeData.documentType}
-                  onChange={(changeEvent) => setNoticeData({ ...noticeData, documentType: changeEvent.target.value })}
-                  className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-white font-medium text-[#102033] focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
-                >
-                  <option value="CIRCULAR">Circular</option>
-                  <option value="NOTIFICATION">Notification</option>
-                  <option value="POLICY">Policy</option>
-                  <option value="EVENT_NOTICE">Event Notice</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs font-bold text-[#102033] block mb-1">Priority</label>
-                <select
-                  value={noticeData.priority}
-                  onChange={(changeEvent) => setNoticeData({ ...noticeData, priority: changeEvent.target.value })}
-                  className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-white font-medium text-[#102033] focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
-                >
-                  <option value="NORMAL">Normal Priority</option>
-                  <option value="URGENT">Urgent (Pins Notice)</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-[#102033] block mb-1">Notice Scope</label>
-                <div className="text-xs p-2.5 rounded-xl bg-slate-50 border border-slate-200 font-bold text-emerald-700">
-                  School-Wide (This School Only)
+                  <div className="mt-3.5 pt-2.5 border-t border-emerald-800/40 flex items-center gap-3 text-[11px] text-[#95b89e]">
+                    <div className="flex items-center gap-1 text-emerald-100">
+                      <CalendarDays className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Effective: <strong>Immediate</strong></span>
+                    </div>
+                    <span>•</span>
+                    <div className="text-emerald-100">
+                      <span>Issued by: <strong>Office of the Head Master</strong></span>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-
-            {/* Target Audience Multi-Checkboxes */}
-            <div>
-              <label className="text-xs font-bold text-[#102033] block mb-1.5">
-                Target Audience <span className="text-rose-500">*</span>
-              </label>
-              <div className="flex items-center gap-3">
-                {['TEACHERS', 'STUDENTS', 'PARENTS'].map((role) => (
-                  <label key={role} className="flex items-center gap-1.5 text-xs text-[#526477] cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={noticeData.targetAudience.includes(role)}
-                      onChange={() => handleToggleAudience(role)}
-                      className="rounded text-[#006AC7] focus:ring-[#006AC7]"
-                    />
-                    <span className="font-semibold capitalize">{role.toLowerCase()}</span>
+            ) : (
+              <>
+                <div>
+                  <label className="text-xs font-bold text-[#102033] block mb-1">
+                    Circular / Notice Title <span className="text-rose-500">*</span>
                   </label>
-                ))}
-              </div>
-            </div>
+                  <input
+                    type="text"
+                    value={noticeData.title}
+                    onChange={(changeEvent) => setNoticeData({ ...noticeData, title: changeEvent.target.value })}
+                    placeholder="e.g. Annual Sports Day Schedule 2026"
+                    required
+                    maxLength={200}
+                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                  />
+                </div>
 
-            <div>
-              <label className="text-xs font-bold text-[#102033] block mb-1">Notice Description / Remarks</label>
-              <textarea
-                value={noticeData.description}
-                onChange={(changeEvent) => setNoticeData({ ...noticeData, description: changeEvent.target.value })}
-                rows={3}
-                placeholder="Detailed instructions or description..."
-                maxLength={2000}
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
-              />
-            </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-bold text-[#102033] block mb-1">Reference Number</label>
+                    <input
+                      type="text"
+                      value={noticeData.referenceNumber}
+                      onChange={(changeEvent) => setNoticeData({ ...noticeData, referenceNumber: changeEvent.target.value })}
+                      placeholder="e.g. HM/CIR/2026/01"
+                      maxLength={50}
+                      className="w-full text-xs p-2.5 rounded-xl border border-slate-200 font-mono focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                    />
+                  </div>
 
-            {/* File Attachment Upload */}
-            <div>
-              <label className="text-xs font-bold text-[#102033] block mb-1">Document Attachment (Optional)</label>
-              <input
-                type="file"
-                accept=".pdf,image/jpeg,image/png,image/webp"
-                onChange={(changeEvent) => setSelectedNoticeFile(changeEvent.target.files?.[0] || null)}
-                className="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-[#006AC7] hover:file:bg-blue-100 cursor-pointer"
-              />
-              <p className="text-[10px] text-[#8094A8] mt-1">
-                Supported: PDF, JPEG, PNG, WebP (Max: 10MB). Magic bytes validation active.
-              </p>
-            </div>
+                  <div>
+                    <label className="text-xs font-bold text-[#102033] block mb-1">Document Type</label>
+                    <select
+                      value={noticeData.documentType}
+                      onChange={(changeEvent) => setNoticeData({ ...noticeData, documentType: changeEvent.target.value })}
+                      className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-white font-medium text-[#102033] focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                    >
+                      <option value="CIRCULAR">Circular</option>
+                      <option value="NOTIFICATION">Notification</option>
+                      <option value="POLICY">Policy</option>
+                      <option value="EVENT_NOTICE">Event Notice</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-bold text-[#102033] block mb-1">Priority</label>
+                    <select
+                      value={noticeData.priority}
+                      onChange={(changeEvent) => setNoticeData({ ...noticeData, priority: changeEvent.target.value })}
+                      className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-white font-medium text-[#102033] focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                    >
+                      <option value="NORMAL">Normal Priority</option>
+                      <option value="URGENT">Urgent (Pins Notice)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-xs font-bold text-[#102033] block mb-1">Notice Scope</label>
+                    <div className="text-xs p-2.5 rounded-xl bg-slate-50 border border-slate-200 font-bold text-emerald-700">
+                      School-Wide (This School Only)
+                    </div>
+                  </div>
+                </div>
+
+                {/* Target Audience Multi-Checkboxes */}
+                <div>
+                  <label className="text-xs font-bold text-[#102033] block mb-1.5">
+                    Target Audience <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="flex items-center gap-3">
+                    {['TEACHERS', 'STUDENTS', 'PARENTS'].map((role) => (
+                      <label key={role} className="flex items-center gap-1.5 text-xs text-[#526477] cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={noticeData.targetAudience.includes(role)}
+                          onChange={() => handleToggleAudience(role)}
+                          className="rounded text-[#006AC7] focus:ring-[#006AC7]"
+                        />
+                        <span className="font-semibold capitalize">{role.toLowerCase()}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-[#102033] block mb-1">Notice Description / Remarks</label>
+                  <textarea
+                    value={noticeData.description}
+                    onChange={(changeEvent) => setNoticeData({ ...noticeData, description: changeEvent.target.value })}
+                    rows={3}
+                    placeholder="Detailed instructions or description..."
+                    maxLength={2000}
+                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                  />
+                </div>
+
+                {/* File Attachment Upload */}
+                <div>
+                  <label className="text-xs font-bold text-[#102033] block mb-1">Document Attachment (Optional)</label>
+                  <input
+                    type="file"
+                    accept=".pdf,image/jpeg,image/png,image/webp"
+                    onChange={(changeEvent) => setSelectedNoticeFile(changeEvent.target.files?.[0] || null)}
+                    className="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-[#006AC7] hover:file:bg-blue-100 cursor-pointer"
+                  />
+                  <p className="text-[10px] text-[#8094A8] mt-1">
+                    Supported: PDF, JPEG, PNG, WebP (Max: 10MB). Magic bytes validation active.
+                  </p>
+                </div>
+              </>
+            )}
 
             <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
               <button
                 type="button"
                 disabled={isPublishingNotice}
-                onClick={() => setNewNoticeModal(false)}
+                onClick={() => {
+                  setNewNoticeModal(false);
+                  setShowNoticePreview(false);
+                }}
                 className="px-4 py-2 rounded-xl text-xs font-semibold text-[#526477] hover:bg-slate-100 disabled:opacity-50 transition cursor-pointer"
               >
                 Cancel

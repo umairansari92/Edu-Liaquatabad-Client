@@ -52,6 +52,7 @@ import { TeacherArrivalAttendanceBanner } from '../../components/staff/TeacherAr
 import { MonthlyAttendanceCard } from '../../components/staff/MonthlyAttendanceCard.jsx';
 import { LateAttendanceClearanceModal } from '../../components/attendance/LateAttendanceClearanceModal.jsx';
 import TeacherOverviewTab from '../../components/dashboard/TeacherOverviewTab.jsx';
+import OfficialAnnouncementHero from '../../components/dashboard/OfficialAnnouncementHero.jsx';
 import MyClassesPage from '../classes/MyClassesPage.jsx';
 import {
   fetchTeacherSummary,
@@ -852,18 +853,12 @@ export const TeacherDashboard = () => {
         </div>
       }
     >
-      {/* ─── Institutional Arrival Attendance Check-In Banner (School Staff Flow) ─── */}
-      <TeacherArrivalAttendanceBanner
-        record={teacherSelfRecord}
-        loading={teacherSelfLoading}
-        submitting={submittingSelfAttendance}
-        onMarkAttendance={handleMarkTeacherSelfAttendance}
-        onRefresh={loadTeacherSelfAttendance}
-        onViewMusterRoll={() => {
-          handleTabChange('ATTENDANCE');
-          setAttendanceViewMode('MY_MUSTER');
-        }}
+      {/* ─── Dynamic Official Announcement Hero (Holidays, Emergency Closures & Official Notices) ─── */}
+      <OfficialAnnouncementHero
+        todayClosure={summary?.todayClosure}
+        circulars={circularsList}
         schoolName={user?.school?.name || 'Assigned School'}
+        onViewAllNotices={() => handleTabChange('CIRCULARS')}
       />
 
       {/* ─── TAB 0: DAILY OVERVIEW DASHBOARD ─────────────────────────────────── */}
@@ -873,6 +868,16 @@ export const TeacherDashboard = () => {
           onSelectAttendanceSection={setSelectedAttendanceSectionId}
           onOpenHomeworkModal={() => setAssignHomeworkModal(true)}
           onOpenLeaveModal={handleOpenLeaveModal}
+          teacherSelfRecord={teacherSelfRecord}
+          teacherSelfLoading={teacherSelfLoading}
+          submittingSelfAttendance={submittingSelfAttendance}
+          onMarkTeacherSelfAttendance={handleMarkTeacherSelfAttendance}
+          onRefreshTeacherSelfAttendance={loadTeacherSelfAttendance}
+          onViewMusterRoll={() => {
+            handleTabChange('ATTENDANCE');
+            setAttendanceViewMode('MY_MUSTER');
+          }}
+          schoolName={user?.school?.name || 'Assigned School'}
         />
       )}
 
@@ -888,6 +893,17 @@ export const TeacherDashboard = () => {
       {/* ─── TAB 2: ATTENDANCE (DAILY ATTENDANCE & MUSTER ROLL) ────────────────── */}
       {activeTab === 'ATTENDANCE' && (
         <div className="space-y-6">
+          {/* Institutional Arrival Attendance Verification Banner */}
+          <TeacherArrivalAttendanceBanner
+            record={teacherSelfRecord}
+            loading={teacherSelfLoading}
+            submitting={submittingSelfAttendance}
+            onMarkAttendance={handleMarkTeacherSelfAttendance}
+            onRefresh={loadTeacherSelfAttendance}
+            onViewMusterRoll={() => setAttendanceViewMode('MY_MUSTER')}
+            schoolName={user?.school?.name || 'Assigned School'}
+          />
+
           {/* View Mode Toggle: Daily Student Marking vs Smart Monthly Register vs My Muster Roll */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs print:hidden">
             <div className="flex items-center gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200 flex-wrap">

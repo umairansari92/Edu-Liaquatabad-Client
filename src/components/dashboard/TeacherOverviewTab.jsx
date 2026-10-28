@@ -23,6 +23,7 @@ import {
   CalendarCheck,
 } from 'lucide-react';
 import LivePeriodBadge from '../timetable/LivePeriodBadge.jsx';
+import CompactArrivalAttendanceCard from '../staff/CompactArrivalAttendanceCard.jsx';
 import { fetchMySchedule } from '../../store/slices/timetableSlice.js';
 import {
   selectTeacherSummary,
@@ -41,6 +42,13 @@ export const TeacherOverviewTab = ({
   onSelectAttendanceSection,
   onOpenHomeworkModal,
   onOpenLeaveModal,
+  teacherSelfRecord = null,
+  teacherSelfLoading = false,
+  submittingSelfAttendance = false,
+  onMarkTeacherSelfAttendance,
+  onRefreshTeacherSelfAttendance,
+  onViewMusterRoll,
+  schoolName = 'Assigned School',
 }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -160,6 +168,17 @@ export const TeacherOverviewTab = ({
           </div>
         </div>
       </div>
+
+      {/* ─── 1.5 Compact Daily Physical Arrival Attendance Card ─── */}
+      <CompactArrivalAttendanceCard
+        record={teacherSelfRecord}
+        loading={teacherSelfLoading}
+        submitting={submittingSelfAttendance}
+        onMarkAttendance={onMarkTeacherSelfAttendance}
+        onRefresh={onRefreshTeacherSelfAttendance}
+        onViewMusterRoll={onViewMusterRoll}
+        schoolName={schoolName}
+      />
 
       {/* ─── 2. Top Accurate Contextual KPI Cards ─── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
