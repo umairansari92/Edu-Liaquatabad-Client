@@ -59,6 +59,7 @@ import HmSchoolProfileTab from '../../components/hm/HmSchoolProfileTab.jsx';
 import HmReportsTab from '../../components/hm/HmReportsTab.jsx';
 import HmActivityLogTab from '../../components/hm/HmActivityLogTab.jsx';
 import ConfirmModal from '../../components/common/ConfirmModal.jsx';
+import OfficialAnnouncementHero from '../../components/dashboard/OfficialAnnouncementHero.jsx';
 import SmartAttendanceRegister from '../../components/attendance/SmartAttendanceRegister.jsx';
 import { fetchSchoolTimetable } from '../../store/slices/timetableSlice.js';
 import {
@@ -455,7 +456,10 @@ export const HmDashboard = () => {
     documentType: 'CIRCULAR',
     priority: 'NORMAL',
     description: '',
-    targetAudience: ['TEACHERS', 'STUDENTS', 'PARENTS'],
+    effectiveDate: new Date().toISOString().split('T')[0],
+    displayDuration: '7_DAYS',
+    customExpiresAt: '',
+    targetAudience: ['TEACHERS'],
   });
 
   const loadNotices = useCallback(() => {
@@ -475,6 +479,7 @@ export const HmDashboard = () => {
     dispatch(fetchAcademicClasses({ schoolId: userSchoolId }));
     dispatch(fetchAcademicSections({ schoolId: userSchoolId }));
     dispatch(fetchAcademicSubjects({ schoolId: userSchoolId }));
+    dispatch(fetchSchoolNotices({}));
   }, [dispatch, userSchoolId]);
 
   // Sync Redux teacher attendance with local interactive state
@@ -1340,6 +1345,26 @@ export const HmDashboard = () => {
         formData.append('description', noticeData.description.trim());
       }
       formData.append('schoolId', effectiveSchoolId);
+      if (noticeData.effectiveDate) {
+        formData.append('effectiveDate', noticeData.effectiveDate);
+      }
+      let calculatedExpiresAt = null;
+      if (noticeData.displayDuration === '1_DAY') {
+        calculatedExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      } else if (noticeData.displayDuration === '3_DAYS') {
+        calculatedExpiresAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
+      } else if (noticeData.displayDuration === '7_DAYS') {
+        calculatedExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+      } else if (noticeData.displayDuration === '14_DAYS') {
+        calculatedExpiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+      } else if (noticeData.displayDuration === '30_DAYS') {
+        calculatedExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      } else if (noticeData.displayDuration === 'CUSTOM' && noticeData.customExpiresAt) {
+        calculatedExpiresAt = new Date(noticeData.customExpiresAt).toISOString();
+      }
+      if (calculatedExpiresAt) {
+        formData.append('expiresAt', calculatedExpiresAt);
+      }
       noticeData.targetAudience.forEach((targetAudienceRole) => formData.append('targetAudience[]', targetAudienceRole));
       if (selectedNoticeFile) {
         formData.append('file', selectedNoticeFile);
@@ -1348,13 +1373,17 @@ export const HmDashboard = () => {
       await dispatch(publishSchoolNotice(formData)).unwrap();
       toast.success('School circular published successfully.');
       setNewNoticeModal(false);
+      setShowNoticePreview(false);
       setNoticeData({
         title: '',
         referenceNumber: '',
         documentType: 'CIRCULAR',
         priority: 'NORMAL',
         description: '',
-        targetAudience: ['TEACHERS', 'STUDENTS', 'PARENTS'],
+        effectiveDate: new Date().toISOString().split('T')[0],
+        displayDuration: '7_DAYS',
+        customExpiresAt: '',
+        targetAudience: ['TEACHERS'],
       });
       setSelectedNoticeFile(null);
       loadNotices();
@@ -1430,12 +1459,25 @@ export const HmDashboard = () => {
 
   const handleToggleAudience = (audienceRole) => {
     setNoticeData((prev) => {
-      const exists = prev.targetAudience.includes(audienceRole);
+      if (audienceRole === 'ALL') {
+        const isAllSelected = prev.targetAudience.includes('ALL');
+        return {
+          ...prev,
+          targetAudience: isAllSelected ? ['TEACHERS'] : ['ALL'],
+        };
+      }
+      // Specific role selected: clear 'ALL' if it was present
+      const audiencesWithoutAll = prev.targetAudience.filter((aud) => aud !== 'ALL');
+      const exists = audiencesWithoutAll.includes(audienceRole);
+      let updated = exists
+        ? audiencesWithoutAll.filter((roleItem) => roleItem !== audienceRole)
+        : [...audiencesWithoutAll, audienceRole];
+      if (updated.length === 0) {
+        updated = ['TEACHERS'];
+      }
       return {
         ...prev,
-        targetAudience: exists
-          ? prev.targetAudience.filter((roleItem) => roleItem !== audienceRole)
-          : [...prev.targetAudience, audienceRole],
+        targetAudience: updated,
       };
     });
   };
@@ -1491,6 +1533,15 @@ export const HmDashboard = () => {
           </span>
         </div>
       )}
+
+      {/* ─── Dynamic Official Announcement Hero (Holidays, Emergency Closures & Official Notices) ─── */}
+      <OfficialAnnouncementHero
+        todayClosure={summary?.todayClosure}
+        circulars={notices}
+        schoolName={user?.schoolId?.name || summary?.school?.name || 'Assigned School'}
+        userRole={user?.role}
+        onViewAllNotices={() => handleSelectTab('notices')}
+      />
 
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {/* TAB 1: OVERVIEW (TODAY'S OPERATIONS & NEEDS ATTENTION)              */}
@@ -5269,21 +5320,29 @@ export const HmDashboard = () => {
             {showNoticePreview ? (
               <div className="space-y-3">
                 <div className="p-1 rounded-xl bg-slate-100 text-[11px] text-[#526477] text-center font-medium">
-                  👀 Live Preview: This is how your circular will look in the Dashboard Announcement Hero for staff &amp; students.
+                  👀 Live Preview: This is how your circular will appear on eligible staff &amp; student dashboards until its expiry.
                 </div>
-                <div className="rounded-2xl bg-[#183925] text-white p-5 shadow-md border border-[#255234]">
+                <div className={`rounded-2xl text-white p-5 shadow-md border ${
+                  noticeData.priority === 'URGENT'
+                    ? 'bg-[#2b1014] border-[#5c1c24]'
+                    : 'bg-[#183925] border-[#255234]'
+                }`}>
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-2">
-                      <div className="p-1 rounded bg-emerald-800/60 text-emerald-300">
+                      <div className={`p-1 rounded ${
+                        noticeData.priority === 'URGENT'
+                          ? 'bg-rose-900/60 text-rose-300'
+                          : 'bg-emerald-800/60 text-emerald-300'
+                      }`}>
                         <Megaphone className="w-3.5 h-3.5" />
                       </div>
-                      <span className="text-[11px] font-black uppercase tracking-wider text-emerald-200/90">
+                      <span className="text-[11px] font-black uppercase tracking-wider text-white/90">
                         OFFICIAL CIRCULAR · {(user?.school?.name || 'Assigned School').toUpperCase()}
                       </span>
                     </div>
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
                       noticeData.priority === 'URGENT'
-                        ? 'bg-rose-900/70 text-rose-200 border border-rose-500/40'
+                        ? 'bg-rose-950 text-rose-200 border border-rose-500/50'
                         : 'bg-[#225736] text-[#69dc8f] border border-[#2d6f46]'
                     }`}>
                       {noticeData.priority === 'URGENT' ? 'Urgent' : 'Notice'}
@@ -5294,19 +5353,23 @@ export const HmDashboard = () => {
                     <h4 className="text-lg font-black text-white tracking-tight">
                       {noticeData.title.trim() || 'Untitled Announcement Title'}
                     </h4>
-                    <p className="text-xs text-[#c3dac9] leading-relaxed line-clamp-3">
+                    <p className="text-xs text-white/80 leading-relaxed line-clamp-3">
                       {noticeData.description.trim() || 'Your announcement details or instructions will appear here in clean, high-readability typography...'}
                     </p>
                   </div>
 
-                  <div className="mt-3.5 pt-2.5 border-t border-emerald-800/40 flex items-center gap-3 text-[11px] text-[#95b89e]">
-                    <div className="flex items-center gap-1 text-emerald-100">
-                      <CalendarDays className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>Effective: <strong>Immediate</strong></span>
+                  <div className="mt-3.5 pt-2.5 border-t border-white/10 flex flex-wrap items-center gap-3 text-[11px] text-white/70">
+                    <div className="flex items-center gap-1 text-white/90">
+                      <CalendarDays className="w-3.5 h-3.5 text-white/70" />
+                      <span>Effective: <strong>{noticeData.effectiveDate || 'Immediate'}</strong></span>
                     </div>
                     <span>•</span>
-                    <div className="text-emerald-100">
+                    <div className="text-white/90">
                       <span>Issued by: <strong>Office of the Head Master</strong></span>
+                    </div>
+                    <span>•</span>
+                    <div className="text-white/80">
+                      <span>Audience: <strong>{noticeData.targetAudience.includes('ALL') ? 'All School Members' : noticeData.targetAudience.join(', ')}</strong></span>
                     </div>
                   </div>
                 </div>
@@ -5370,6 +5433,34 @@ export const HmDashboard = () => {
                   </div>
 
                   <div>
+                    <label className="text-xs font-bold text-[#102033] block mb-1">Effective Date</label>
+                    <input
+                      type="date"
+                      value={noticeData.effectiveDate}
+                      onChange={(changeEvent) => setNoticeData({ ...noticeData, effectiveDate: changeEvent.target.value })}
+                      className="w-full text-xs p-2 rounded-xl border border-slate-200 bg-white font-medium text-[#102033] focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-bold text-[#102033] block mb-1">Display Expiry / Duration</label>
+                    <select
+                      value={noticeData.displayDuration}
+                      onChange={(changeEvent) => setNoticeData({ ...noticeData, displayDuration: changeEvent.target.value })}
+                      className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-white font-medium text-[#102033] focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                    >
+                      <option value="1_DAY">24 Hours (1 Day)</option>
+                      <option value="3_DAYS">3 Days (Urgent)</option>
+                      <option value="7_DAYS">7 Days (Standard)</option>
+                      <option value="14_DAYS">14 Days (2 Weeks)</option>
+                      <option value="30_DAYS">30 Days (1 Month)</option>
+                      <option value="CUSTOM">Custom Date</option>
+                    </select>
+                  </div>
+
+                  <div>
                     <label className="text-xs font-bold text-[#102033] block mb-1">Notice Scope</label>
                     <div className="text-xs p-2.5 rounded-xl bg-slate-50 border border-slate-200 font-bold text-emerald-700">
                       School-Wide (This School Only)
@@ -5377,24 +5468,45 @@ export const HmDashboard = () => {
                   </div>
                 </div>
 
+                {noticeData.displayDuration === 'CUSTOM' && (
+                  <div>
+                    <label className="text-xs font-bold text-[#102033] block mb-1">Custom Expiry Date &amp; Time</label>
+                    <input
+                      type="datetime-local"
+                      value={noticeData.customExpiresAt}
+                      onChange={(changeEvent) => setNoticeData({ ...noticeData, customExpiresAt: changeEvent.target.value })}
+                      className="w-full text-xs p-2 rounded-xl border border-slate-200 bg-white font-medium text-[#102033] focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                    />
+                  </div>
+                )}
+
                 {/* Target Audience Multi-Checkboxes */}
                 <div>
                   <label className="text-xs font-bold text-[#102033] block mb-1.5">
-                    Target Audience <span className="text-rose-500">*</span>
+                    Target Recipient Groups <span className="text-rose-500">*</span>
                   </label>
-                  <div className="flex items-center gap-3">
-                    {['TEACHERS', 'STUDENTS', 'PARENTS'].map((role) => (
-                      <label key={role} className="flex items-center gap-1.5 text-xs text-[#526477] cursor-pointer">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {[
+                      { roleKey: 'ALL', label: 'All School Members' },
+                      { roleKey: 'TEACHERS', label: 'Teachers' },
+                      { roleKey: 'STUDENTS', label: 'Students' },
+                      { roleKey: 'PARENTS', label: 'Parents' },
+                      { roleKey: 'NON_TEACHING_STAFF', label: 'Support Staff / Peons' },
+                    ].map((roleGroup) => (
+                      <label key={roleGroup.roleKey} className="flex items-center gap-1.5 text-xs text-[#526477] p-1.5 rounded-lg border border-slate-200 bg-slate-50/70 hover:bg-slate-100 cursor-pointer">
                         <input
                           type="checkbox"
-                          checked={noticeData.targetAudience.includes(role)}
-                          onChange={() => handleToggleAudience(role)}
+                          checked={noticeData.targetAudience.includes(roleGroup.roleKey)}
+                          onChange={() => handleToggleAudience(roleGroup.roleKey)}
                           className="rounded text-[#006AC7] focus:ring-[#006AC7]"
                         />
-                        <span className="font-semibold capitalize">{role.toLowerCase()}</span>
+                        <span className="font-semibold text-slate-700">{roleGroup.label}</span>
                       </label>
                     ))}
                   </div>
+                  <p className="text-[10px] text-[#8094A8] mt-1">
+                    Notice will be visible only to selected audiences inside this school.
+                  </p>
                 </div>
 
                 <div>

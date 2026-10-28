@@ -858,6 +858,7 @@ export const TeacherDashboard = () => {
         todayClosure={summary?.todayClosure}
         circulars={circularsList}
         schoolName={user?.school?.name || 'Assigned School'}
+        userRole={user?.role}
         onViewAllNotices={() => handleTabChange('CIRCULARS')}
       />
 
