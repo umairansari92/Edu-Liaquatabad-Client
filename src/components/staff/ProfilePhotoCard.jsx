@@ -27,6 +27,7 @@ export const ProfilePhotoCard = ({
   canManagePrivacy = false,
   onVisibilityChange,
   fieldVisibility = {},
+  isColleagueView = false,
 }) => {
   const dispatch = useDispatch();
   const { isUploadingPhoto } = useSelector((state) => state.staffProfile);
@@ -73,16 +74,18 @@ export const ProfilePhotoCard = ({
             {user?.status || 'ACTIVE'}
           </span>
 
-          <div className="flex items-center gap-1">
-            <span className="text-[10px] font-medium text-slate-400">Photo:</span>
-            <FieldVisibilityEye
-              field="profilePhoto"
-              label="Profile Photo"
-              currentTier={fieldVisibility.profilePhoto || 'PUBLIC'}
-              isOwner={canManagePrivacy}
-              onUpdate={onVisibilityChange}
-            />
-          </div>
+          {!isColleagueView && (
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] font-medium text-slate-400">Photo:</span>
+              <FieldVisibilityEye
+                field="profilePhoto"
+                label="Profile Photo"
+                currentTier={fieldVisibility.profilePhoto || 'PUBLIC'}
+                isOwner={canManagePrivacy}
+                onUpdate={onVisibilityChange}
+              />
+            </div>
+          )}
         </div>
 
         {/* Prominent Profile Photo Portrait Area (Directly matching user sketch) */}
@@ -175,13 +178,15 @@ export const ProfilePhotoCard = ({
             {isStudent ? 'Enrolled Student' : user?.designation || 'Teacher / Staff'}
           </div>
 
-          <div className="font-mono text-[11px] font-bold text-slate-600 flex items-center justify-center gap-1.5 pt-0.5">
-            <IdCard className="w-3.5 h-3.5 text-slate-400" />
-            <span>
-              {isStudent ? 'Roll No:' : 'Personal ID:'}{' '}
-              <span className="text-[#102033]">{employeeIdentifier}</span>
-            </span>
-          </div>
+          {!isColleagueView && (
+            <div className="font-mono text-[11px] font-bold text-slate-600 flex items-center justify-center gap-1.5 pt-0.5">
+              <IdCard className="w-3.5 h-3.5 text-slate-400" />
+              <span>
+                {isStudent ? 'Roll No:' : 'Personal ID:'}{' '}
+                <span className="text-[#102033]">{employeeIdentifier}</span>
+              </span>
+            </div>
+          )}
 
           <div className="text-[11px] text-[#526477] flex items-center justify-center gap-1 pt-1 truncate">
             <Building2 className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
