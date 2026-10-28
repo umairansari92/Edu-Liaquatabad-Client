@@ -33,7 +33,7 @@ export const Sidebar = () => {
   }
 
   return (
-    <aside className="w-64 bg-white border-r border-slate-200 text-[#526477] h-[calc(100vh-4rem)] sticky top-16 shrink-0 flex flex-col justify-between p-4 overflow-y-auto z-30 select-none shadow-xs">
+    <aside className="hidden lg:flex w-64 bg-white border-r border-slate-200 text-[#526477] h-[calc(100vh-4rem)] sticky top-16 shrink-0 flex-col justify-between p-4 overflow-y-auto z-30 select-none shadow-xs">
       <div className="space-y-1">
         <div className="px-3 py-2 text-xs font-bold uppercase tracking-wider text-[#8094A8]">
           Navigation &amp; Modules

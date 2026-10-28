@@ -19,14 +19,14 @@ export const PageContainer = ({
       <Navbar />
       <div className="flex-1 flex">
         {isAuthenticated && <Sidebar />}
-        <main className={`flex-1 p-4 sm:p-6 lg:p-8 ${fluid ? 'max-w-full px-3 sm:px-6' : maxWidth} mx-auto w-full min-w-0 ${className}`}>
+        <main className={`flex-1 p-3.5 sm:p-6 lg:p-8 ${fluid ? 'max-w-full px-3 sm:px-6' : maxWidth} mx-auto w-full min-w-0 ${className}`}>
           {(title || actions) && (
-            <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/80 pb-5 print:hidden">
-              <div>
-                {title && <h1 className="text-2xl sm:text-3xl font-display font-bold text-[#102033] tracking-tight">{title}</h1>}
-                {subtitle && <p className="text-sm text-[#526477] mt-1">{subtitle}</p>}
+            <div className="mb-6 sm:mb-8 flex items-center justify-between gap-4 border-b border-slate-200/80 pb-4 sm:pb-5 print:hidden">
+              <div className="min-w-0">
+                {title && <h1 className="text-xl sm:text-2xl md:text-3xl font-display font-bold text-[#102033] tracking-tight truncate">{title}</h1>}
+                {subtitle && <p className="text-xs sm:text-sm text-[#526477] mt-1 truncate">{subtitle}</p>}
               </div>
-              {actions && <div className="flex items-center gap-3">{actions}</div>}
+              {actions && <div className="flex items-center gap-3 shrink-0">{actions}</div>}
             </div>
           )}
           {children}

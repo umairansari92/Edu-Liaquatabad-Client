@@ -22,6 +22,11 @@ import {
   PlusCircle,
   UserX,
   MessageSquare,
+  LayoutGrid,
+  Table as TableIcon,
+  Search,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
@@ -71,6 +76,11 @@ export const SmartAttendanceRegister = ({
 
   // Absence & Leave Reason Modal State
   const [selectedRemarkDetail, setSelectedRemarkDetail] = useState(null);
+
+  // Mobile View & Filter State: 'CARDS' (mobile roster card view) vs 'TABLE' (official ledger table)
+  const [displayMode, setDisplayMode] = useState('CARDS');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [expandedStudentId, setExpandedStudentId] = useState(null);
 
   // Keyboard shortcut listener to close reason modal on Escape
   useEffect(() => {
@@ -232,6 +242,19 @@ export const SmartAttendanceRegister = ({
   // Derive register columns & summaries
   const calendarDays = useMemo(() => registerData?.calendarDays || [], [registerData]);
   const students = useMemo(() => registerData?.students || [], [registerData]);
+
+  // Filtered student list for responsive card search & filtering
+  const filteredStudents = useMemo(() => {
+    if (!searchQuery.trim()) return students;
+    const query = searchQuery.toLowerCase().trim();
+    return students.filter((student) =>
+      student.fullName?.toLowerCase().includes(query) ||
+      String(student.grNumber || '').toLowerCase().includes(query) ||
+      String(student.rollNumber || '').toLowerCase().includes(query) ||
+      String(student.srNo || '').includes(query)
+    );
+  }, [students, searchQuery]);
+
   const schoolName = registerData?.school?.name || user?.schoolId?.name || 'School';
   const schoolCode = registerData?.school?.schoolCode || user?.schoolId?.schoolCode || 'LT';
   const sectionName = registerData?.section?.name || 'Section';
@@ -331,6 +354,36 @@ export const SmartAttendanceRegister = ({
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-[#006AC7]' : ''}`} />
             </button>
+
+            {/* View Mode Toggle: Cards vs Ledger Table */}
+            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 print:hidden">
+              <button
+                type="button"
+                onClick={() => setDisplayMode('CARDS')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                  displayMode === 'CARDS'
+                    ? 'bg-white text-[#38662D] shadow-xs border border-[#C9DFBC]'
+                    : 'text-[#526477] hover:text-[#102033]'
+                }`}
+                title="Student Roster Card View (Best for Mobile)"
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+                <span>Cards</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setDisplayMode('TABLE')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                  displayMode === 'TABLE'
+                    ? 'bg-white text-[#38662D] shadow-xs border border-[#C9DFBC]'
+                    : 'text-[#526477] hover:text-[#102033]'
+                }`}
+                title="Full Matrix Attendance Ledger (Official Table)"
+              >
+                <TableIcon className="w-3.5 h-3.5" />
+                <span>Ledger</span>
+              </button>
+            </div>
 
             {/* Print Button */}
             <button
@@ -438,309 +491,536 @@ export const SmartAttendanceRegister = ({
             No active students enrolled in this section for the selected month.
           </div>
         ) : (
-          <div className="overflow-x-auto print:overflow-visible">
-            <table className="w-full text-center text-[11px] border-collapse min-w-[1200px]">
-              {/* Table Header */}
-              <thead>
-                <tr className="bg-slate-100 text-[#102033] border-b border-slate-300 font-bold">
-                  {/* Sticky Pinned Identity Columns */}
-                  <th className="py-2.5 px-2 w-10 border-r border-slate-300 sticky left-0 z-20 bg-slate-100 text-center">
-                    Sr.
-                  </th>
-                  <th className="py-2.5 px-2 w-14 border-r border-slate-300 sticky left-10 z-20 bg-slate-100 text-center">
-                    G.R.
-                  </th>
-                  <th className="py-2.5 px-3 min-w-[170px] max-w-[200px] border-r border-slate-300 sticky left-24 z-20 bg-slate-100 text-left shadow-[2px_0_4px_-1px_rgba(0,0,0,0.06)]">
-                    Student's Name
-                  </th>
+          <>
+            {/* ─── Responsive View 1: Mobile-Optimized Roster Cards View (Active when displayMode === 'CARDS') ─── */}
+            <div className={`p-4 space-y-4 print:hidden ${displayMode === 'CARDS' ? 'block' : 'hidden'}`}>
+              {/* Quick Search & Summary Strip */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
+                <div className="relative flex-1">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search student by name, roll #, or GR #..."
+                    className="w-full pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-xs text-[#102033] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#006AC7] font-medium"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                      title="Clear search"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+                <div className="flex items-center justify-between sm:justify-end gap-2 text-xs text-slate-500 font-medium">
+                  <span>Showing <strong>{filteredStudents.length}</strong> of <strong>{students.length}</strong> students</span>
+                  <button
+                    type="button"
+                    onClick={() => setDisplayMode('TABLE')}
+                    className="text-xs font-bold text-[#006AC7] hover:underline flex items-center gap-1 cursor-pointer"
+                  >
+                    <TableIcon className="w-3.5 h-3.5" /> Switch to Full Ledger
+                  </button>
+                </div>
+              </div>
 
-                  {/* Day Columns 1 to N */}
-                  {calendarDays.map((calDay) => {
-                    const isSunday = calDay.dayOfWeek === 0;
-                    const isSaturday = calDay.dayOfWeek === 6;
-                    const isWeeklyOff = calDay.dayType === 'WEEKLY_OFF' || calDay.isWeeklyOff;
-                    const isHoliday = calDay.dayType === 'HOLIDAY';
-                    const isMissed = calDay.status === 'NOT_TAKEN';
-                    const isToday = calDay.isToday;
+              {/* Cards List */}
+              {filteredStudents.length === 0 ? (
+                <div className="p-8 text-center text-slate-400 text-xs bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                  No students match "{searchQuery}".
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {filteredStudents.map((student) => {
+                    const pct = parseFloat(student.attendancePercentage || 0);
+                    const isGood = pct >= 75;
+                    const isAverage = pct >= 60 && pct < 75;
 
-                    let bgClass = 'bg-slate-50 text-slate-700';
-                    if (isHoliday) {
-                      bgClass = 'bg-rose-100 text-rose-950 border-r border-rose-300';
-                    } else if (isSunday) {
-                      bgClass = 'bg-amber-100 text-amber-950 border-r border-amber-300';
-                    } else if (isWeeklyOff || isSaturday) {
-                      bgClass = 'bg-orange-100 text-orange-950 border-r border-orange-300';
-                    } else if (isMissed) {
-                      bgClass = 'bg-amber-50 text-amber-900 border-amber-300';
-                    } else if (isToday) {
-                      bgClass = 'bg-blue-100 text-[#006AC7] font-black ring-1 ring-[#006AC7]';
-                    }
+                    const badgeClass = isGood
+                      ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                      : isAverage
+                      ? 'bg-amber-50 text-amber-800 border-amber-200'
+                      : 'bg-rose-50 text-rose-800 border-rose-200';
+
+                    const progressColor = isGood ? 'bg-emerald-500' : isAverage ? 'bg-amber-500' : 'bg-rose-500';
+                    const isExpanded = expandedStudentId === student.userId;
 
                     return (
-                      <th
-                        key={calDay.date}
-                        className={`py-1.5 px-0.5 w-8 min-w-8 border-r border-slate-200 transition-colors ${bgClass}`}
-                        title={`${calDay.date} (${calDay.dayNameFull}) — ${calDay.closureLabel || calDay.status}`}
+                      <div
+                        key={String(student.userId)}
+                        className="p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs hover:shadow-xs transition-all space-y-3"
                       >
-                        <div className="text-[12px] font-black leading-tight">{String(calDay.dayNumber).padStart(2, '0')}</div>
-                        <div className="text-[9px] uppercase tracking-tighter opacity-80">{calDay.dayName}</div>
-                        {isMissed && canClearMissed && (
+                        {/* Top: Identity & Attendance % */}
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="w-9 h-9 rounded-full bg-[#F2F8EF] border border-[#C9DFBC] text-[#38662D] font-bold text-xs flex items-center justify-center shrink-0">
+                              {student.srNo}
+                            </div>
+                            <div className="min-w-0">
+                              <h4 className="text-sm font-bold text-[#102033] truncate">
+                                {student.fullName}
+                              </h4>
+                              <p className="text-[11px] font-mono text-slate-500">
+                                G.R. No: <strong className="text-slate-700">{student.grNumber || '—'}</strong>
+                                {student.rollNumber ? ` • Roll #${student.rollNumber}` : ''}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="text-right shrink-0">
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-black border ${badgeClass}`}>
+                              {student.attendancePercentage}
+                            </span>
+                            <span className="block text-[9.5px] font-semibold text-slate-400 mt-0.5 uppercase tracking-wider">
+                              {isGood ? 'Satisfactory' : isAverage ? 'Warning' : 'Critical'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Attendance Progress Bar */}
+                        <div className="space-y-1">
+                          <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all duration-300 ${progressColor}`}
+                              style={{ width: `${Math.min(100, pct)}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* 4 Mini Stat Boxes */}
+                        <div className="grid grid-cols-4 gap-1.5 text-center text-xs">
+                          <div className="p-1.5 rounded-xl bg-emerald-50/80 border border-emerald-100">
+                            <span className="text-[9.5px] font-bold text-emerald-800 uppercase block">Present</span>
+                            <span className="text-sm font-black text-emerald-700">{student.totals?.P ?? 0}</span>
+                          </div>
+                          <div className="p-1.5 rounded-xl bg-rose-50/80 border border-rose-100">
+                            <span className="text-[9.5px] font-bold text-rose-800 uppercase block">Absent</span>
+                            <span className="text-sm font-black text-rose-700">{student.totals?.A ?? 0}</span>
+                          </div>
+                          <div className="p-1.5 rounded-xl bg-amber-50/80 border border-amber-100">
+                            <span className="text-[9.5px] font-bold text-amber-800 uppercase block">Leave</span>
+                            <span className="text-sm font-black text-amber-700">{student.totals?.L ?? 0}</span>
+                          </div>
+                          <div className="p-1.5 rounded-xl bg-slate-50 border border-slate-200">
+                            <span className="text-[9.5px] font-bold text-slate-600 uppercase block">Ratio</span>
+                            <span className="text-xs font-black text-[#102033] leading-tight block mt-0.5">
+                              {student.totals?.P ?? 0}/{student.workingDaysRecorded ?? 0}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Expandable Daily Calendar Chips */}
+                        <div className="pt-1 border-t border-slate-100">
                           <button
                             type="button"
-                            onClick={() => handleOpenMissedClearance(calDay)}
-                            className="mt-0.5 text-[8px] font-black px-1 rounded bg-amber-600 text-white hover:bg-amber-700 cursor-pointer print:hidden block mx-auto shadow-xs"
-                            title="Head Master: Click to clear missed attendance"
+                            onClick={() => setExpandedStudentId(isExpanded ? null : student.userId)}
+                            className="w-full py-1 text-xs font-bold text-[#006AC7] hover:text-blue-800 flex items-center justify-center gap-1 transition cursor-pointer"
                           >
-                            Clear
+                            <span>{isExpanded ? 'Hide Month Breakdown' : 'View Month Days Breakdown'}</span>
+                            {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                           </button>
-                        )}
-                      </th>
+
+                          {isExpanded && (
+                            <div className="pt-2.5 pb-1 animate-in fade-in-50 duration-200">
+                              <p className="text-[10.5px] font-bold text-slate-500 mb-2 uppercase tracking-wide">
+                                Monthly Ledger Breakdown ({calendarDays.length} Days) · Tap Red/Amber for remarks:
+                              </p>
+                              <div className="grid grid-cols-7 sm:grid-cols-10 gap-1">
+                                {calendarDays.map((calDay) => {
+                                  const dateStr = calDay.date;
+                                  const status = student.attendance?.[dateStr];
+                                  const isClosed = calDay.isClosed;
+                                  const isSunday = calDay.dayOfWeek === 0;
+                                  const isSaturday = calDay.dayOfWeek === 6;
+                                  const isHoliday = calDay.dayType === 'HOLIDAY';
+                                  const studentRemark = student.attendanceRemarks?.[dateStr] || student.dailyStatus?.[dateStr]?.remarks || '';
+
+                                  let pillBg = 'bg-slate-50 text-slate-400 border-slate-200';
+                                  let label = '—';
+
+                                  if (status === 'PRESENT') {
+                                    pillBg = 'bg-emerald-100 text-emerald-800 border-emerald-300 font-bold';
+                                    label = 'P';
+                                  } else if (status === 'ABSENT') {
+                                    pillBg = 'bg-rose-100 text-rose-800 border-rose-300 font-bold';
+                                    label = 'A';
+                                  } else if (status === 'LEAVE') {
+                                    pillBg = 'bg-amber-100 text-amber-800 border-amber-300 font-bold';
+                                    label = 'L';
+                                  } else if (isHoliday) {
+                                    pillBg = 'bg-rose-50 text-rose-600 border-rose-200';
+                                    label = 'H';
+                                  } else if (isSunday) {
+                                    pillBg = 'bg-amber-50 text-amber-700 border-amber-200';
+                                    label = 'S';
+                                  } else if (isSaturday) {
+                                    pillBg = 'bg-orange-50 text-orange-700 border-orange-200';
+                                    label = 'Sat';
+                                  }
+
+                                  const isClickable = (status === 'ABSENT' || status === 'LEAVE');
+
+                                  return (
+                                    <button
+                                      key={dateStr}
+                                      type="button"
+                                      disabled={!isClickable}
+                                      onClick={() => {
+                                        if (isClickable) {
+                                          setSelectedRemarkDetail({
+                                            student,
+                                            dateStr,
+                                            dayNameFull: calDay.dayNameFull || calDay.dayNameShort || '',
+                                            status,
+                                            remarks: studentRemark,
+                                          });
+                                        }
+                                      }}
+                                      className={`p-1 text-center rounded-lg border text-[10px] transition ${pillBg} ${
+                                        isClickable ? 'cursor-pointer hover:ring-2 hover:ring-rose-400' : 'cursor-default'
+                                      }`}
+                                      title={`${calDay.date} (${calDay.dayName}): ${status || (isClosed ? 'Holiday / Off' : 'Not Taken')}`}
+                                    >
+                                      <span className="block text-[8px] opacity-70 leading-none">{calDay.dayNumber}</span>
+                                      <span className="block font-black leading-tight">{label}</span>
+                                    </button>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     );
                   })}
+                </div>
+              )}
+            </div>
 
-                  {/* Sticky Right Summary Columns */}
-                  <th className="py-2.5 px-1 w-9 min-w-9 border-r border-slate-300 bg-emerald-100 text-emerald-950 sticky right-[166px] z-20 shadow-[-2px_0_4px_-1px_rgba(0,0,0,0.06)]">
-                    P
-                  </th>
-                  <th className="py-2.5 px-1 w-9 min-w-9 border-r border-slate-300 bg-rose-100 text-rose-950 sticky right-[130px] z-20">
-                    A
-                  </th>
-                  <th className="py-2.5 px-1 w-9 min-w-9 border-r border-slate-300 bg-amber-100 text-amber-950 sticky right-[94px] z-20">
-                    L
-                  </th>
-                  <th className="py-2.5 px-1.5 w-13 min-w-13 border-r border-slate-300 bg-slate-200 text-[#102033] sticky right-[42px] z-20">
-                    Total
-                  </th>
-                  <th className="py-2.5 px-1.5 w-11 min-w-11 bg-indigo-100 text-indigo-950 sticky right-0 z-20">
-                    %
-                  </th>
-                </tr>
-              </thead>
+            {/* ─── Responsive View 2: Official Full Matrix Ledger (Table) (Active when displayMode === 'TABLE' or in Print) ─── */}
+            <div className={`overflow-x-auto print:overflow-visible ${displayMode === 'CARDS' ? 'hidden print:block' : 'block'}`}>
+              {/* Mobile Swipe Hint Banner */}
+              <div className="lg:hidden p-2.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between text-[11px] text-slate-600 font-medium select-none print:hidden">
+                <span className="flex items-center gap-1 font-semibold text-slate-700">
+                  <span>👉 Swipe horizontally to view days 1–31 and totals</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setDisplayMode('CARDS')}
+                  className="font-bold text-[#006AC7] hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <LayoutGrid className="w-3 h-3" /> Switch to Cards
+                </button>
+              </div>
 
-              {/* Table Body: Student Rows */}
-              <tbody className="divide-y divide-slate-200 bg-white">
-                {students.map((student, studentIndex) => {
-                  const isEven = studentIndex % 2 === 0;
-                  const rowBg = isEven ? 'bg-white' : 'bg-slate-50/50';
+              <table className="w-full text-center text-[11px] border-collapse min-w-[1200px]">
+                {/* Table Header */}
+                <thead>
+                  <tr className="bg-slate-100 text-[#102033] border-b border-slate-300 font-bold">
+                    {/* Identity Columns */}
+                    <th className="hidden md:table-cell py-2.5 px-2 w-10 border-r border-slate-300 sticky left-0 z-20 bg-slate-100 text-center">
+                      Sr.
+                    </th>
+                    <th className="hidden md:table-cell py-2.5 px-2 w-14 border-r border-slate-300 sticky left-10 z-20 bg-slate-100 text-center">
+                      G.R.
+                    </th>
+                    <th className="py-2.5 px-2.5 w-36 md:w-auto min-w-[140px] md:min-w-[170px] max-w-[160px] md:max-w-[200px] border-r border-slate-300 sticky left-0 md:left-24 z-20 bg-slate-100 text-left shadow-[2px_0_4px_-1px_rgba(0,0,0,0.06)]">
+                      <span className="md:hidden">Student</span>
+                      <span className="hidden md:inline">Student's Name</span>
+                    </th>
 
-                  return (
-                    <tr key={String(student.userId)} className={`hover:bg-blue-50/40 transition ${rowBg}`}>
-                      {/* Identity: Sr. No */}
-                      <td className={`py-2 px-1 text-center font-bold text-slate-500 border-r border-slate-300 sticky left-0 z-10 ${rowBg}`}>
-                        {student.srNo}
-                      </td>
+                    {/* Day Columns 1 to N */}
+                    {calendarDays.map((calDay) => {
+                      const isSunday = calDay.dayOfWeek === 0;
+                      const isSaturday = calDay.dayOfWeek === 6;
+                      const isWeeklyOff = calDay.dayType === 'WEEKLY_OFF' || calDay.isWeeklyOff;
+                      const isHoliday = calDay.dayType === 'HOLIDAY';
+                      const isMissed = calDay.status === 'NOT_TAKEN';
+                      const isToday = calDay.isToday;
 
-                      {/* Identity: G.R. Number */}
-                      <td className={`py-2 px-1 text-center font-mono font-bold text-slate-700 border-r border-slate-300 sticky left-10 z-10 ${rowBg}`}>
-                        {student.grNumber || '—'}
-                      </td>
+                      let bgClass = 'bg-slate-50 text-slate-700';
+                      if (isHoliday) {
+                        bgClass = 'bg-rose-100 text-rose-950 border-r border-rose-300';
+                      } else if (isSunday) {
+                        bgClass = 'bg-amber-100 text-amber-950 border-r border-amber-300';
+                      } else if (isWeeklyOff || isSaturday) {
+                        bgClass = 'bg-orange-100 text-orange-950 border-r border-orange-300';
+                      } else if (isMissed) {
+                        bgClass = 'bg-amber-50 text-amber-900 border-amber-300';
+                      } else if (isToday) {
+                        bgClass = 'bg-blue-100 text-[#006AC7] font-black ring-1 ring-[#006AC7]';
+                      }
 
-                      {/* Identity: Full Name */}
-                      <td className={`py-2 px-3 text-left font-bold text-[#102033] truncate border-r border-slate-300 sticky left-24 z-10 ${rowBg} shadow-[2px_0_4px_-1px_rgba(0,0,0,0.06)]`}>
-                        {student.fullName}
-                      </td>
+                      return (
+                        <th
+                          key={calDay.date}
+                          className={`py-1.5 px-0.5 w-8 min-w-8 border-r border-slate-200 transition-colors ${bgClass}`}
+                          title={`${calDay.date} (${calDay.dayNameFull}) — ${calDay.closureLabel || calDay.status}`}
+                        >
+                          <div className="text-[12px] font-black leading-tight">{String(calDay.dayNumber).padStart(2, '0')}</div>
+                          <div className="text-[9px] uppercase tracking-tighter opacity-80">{calDay.dayName}</div>
+                          {isMissed && canClearMissed && (
+                            <button
+                              type="button"
+                              onClick={() => handleOpenMissedClearance(calDay)}
+                              className="mt-0.5 text-[8px] font-black px-1 rounded bg-amber-600 text-white hover:bg-amber-700 cursor-pointer print:hidden block mx-auto shadow-xs"
+                              title="Head Master: Click to clear missed attendance"
+                            >
+                              Clear
+                            </button>
+                          )}
+                        </th>
+                      );
+                    })}
 
-                      {/* Daily Attendance Cells */}
-                      {calendarDays.map((calDay) => {
-                        const dateStr = calDay.date;
-                        const status = student.attendance?.[dateStr];
-                        const isClosed = calDay.isClosed;
-                        const hasRecordedAttendance = Boolean(calDay.hasRecordedAttendance || calDay.isAttendanceTaken);
+                    {/* Summary Columns: Sticky ONLY on lg: screens to avoid crushing mobile viewports */}
+                    <th className="py-2.5 px-1 w-9 min-w-9 border-r border-slate-300 bg-emerald-100 text-emerald-950 lg:sticky lg:right-[166px] z-20 lg:shadow-[-2px_0_4px_-1px_rgba(0,0,0,0.06)]">
+                      P
+                    </th>
+                    <th className="py-2.5 px-1 w-9 min-w-9 border-r border-slate-300 bg-rose-100 text-rose-950 lg:sticky lg:right-[130px] z-20">
+                      A
+                    </th>
+                    <th className="py-2.5 px-1 w-9 min-w-9 border-r border-slate-300 bg-amber-100 text-amber-950 lg:sticky lg:right-[94px] z-20">
+                      L
+                    </th>
+                    <th className="py-2.5 px-1.5 w-13 min-w-13 border-r border-slate-300 bg-slate-200 text-[#102033] lg:sticky lg:right-[42px] z-20">
+                      Total
+                    </th>
+                    <th className="py-2.5 px-1.5 w-11 min-w-11 bg-indigo-100 text-indigo-950 lg:sticky lg:right-0 z-20">
+                      %
+                    </th>
+                  </tr>
+                </thead>
 
-                        // If this day is an official non-working closure (Sunday, Saturday weekly off, Gazetted Holiday)
-                        // and has NO recorded attendance, render a continuous vertical column band spanning all student rows!
-                        if (isClosed && !hasRecordedAttendance) {
-                          // Only render the <td> on the first student row (studentIndex === 0) with rowSpan!
-                          if (studentIndex === 0) {
-                            const isHoliday = calDay.dayType === 'HOLIDAY';
-                            const isSunday = calDay.dayOfWeek === 0;
-                            const isSaturday = calDay.dayOfWeek === 6;
+                {/* Table Body: Student Rows */}
+                <tbody className="divide-y divide-slate-200 bg-white">
+                  {students.map((student, studentIndex) => {
+                    const isEven = studentIndex % 2 === 0;
+                    const rowBg = isEven ? 'bg-white' : 'bg-slate-50/50';
 
-                            let bandBg = 'bg-amber-100/90 text-amber-950 border-r border-amber-300';
-                            let bandText = 'SUNDAY';
+                    return (
+                      <tr key={String(student.userId)} className={`hover:bg-blue-50/40 transition ${rowBg}`}>
+                        {/* Identity: Sr. No (Hidden on mobile) */}
+                        <td className={`hidden md:table-cell py-2 px-1 text-center font-bold text-slate-500 border-r border-slate-300 sticky left-0 z-10 ${rowBg}`}>
+                          {student.srNo}
+                        </td>
 
-                            if (isHoliday) {
-                              bandBg = 'bg-rose-100/90 text-rose-950 border-r border-rose-300';
-                              bandText = (calDay.holidayTitle || calDay.closureLabel || 'HOLIDAY').toUpperCase();
-                            } else if (isSunday) {
-                              bandBg = 'bg-amber-100/90 text-amber-950 border-r border-amber-300';
-                              bandText = 'SUNDAY';
-                            } else {
-                              // Saturday or custom weekly off
-                              bandBg = 'bg-orange-100/90 text-orange-950 border-r border-orange-300';
-                              bandText = calDay.closureLabel ? calDay.closureLabel.toUpperCase() : (isSaturday ? 'SATURDAY' : 'OFF DAY');
+                        {/* Identity: G.R. Number (Hidden on mobile) */}
+                        <td className={`hidden md:table-cell py-2 px-1 text-center font-mono font-bold text-slate-700 border-r border-slate-300 sticky left-10 z-10 ${rowBg}`}>
+                          {student.grNumber || '—'}
+                        </td>
+
+                        {/* Identity: Full Name (On mobile, includes GR & Roll # to avoid multi-column freezing) */}
+                        <td className={`py-2 px-2.5 text-left font-bold text-[#102033] border-r border-slate-300 sticky left-0 md:left-24 z-10 ${rowBg} shadow-[2px_0_4px_-1px_rgba(0,0,0,0.06)] w-36 md:w-auto min-w-[140px] md:min-w-[170px] max-w-[160px] md:max-w-[200px]`}>
+                          <div className="font-bold text-xs truncate">{student.fullName}</div>
+                          <div className="md:hidden text-[10px] text-slate-500 font-mono font-normal">GR: {student.grNumber || '—'} • #{student.srNo}</div>
+                        </td>
+
+                        {/* Daily Attendance Cells */}
+                        {calendarDays.map((calDay) => {
+                          const dateStr = calDay.date;
+                          const status = student.attendance?.[dateStr];
+                          const isClosed = calDay.isClosed;
+                          const hasRecordedAttendance = Boolean(calDay.hasRecordedAttendance || calDay.isAttendanceTaken);
+
+                          if (isClosed && !hasRecordedAttendance) {
+                            if (studentIndex === 0) {
+                              const isHoliday = calDay.dayType === 'HOLIDAY';
+                              const isSunday = calDay.dayOfWeek === 0;
+                              const isSaturday = calDay.dayOfWeek === 6;
+
+                              let bandBg = 'bg-amber-100/90 text-amber-950 border-r border-amber-300';
+                              let bandText = 'SUNDAY';
+
+                              if (isHoliday) {
+                                bandBg = 'bg-rose-100/90 text-rose-950 border-r border-rose-300';
+                                bandText = (calDay.holidayTitle || calDay.closureLabel || 'HOLIDAY').toUpperCase();
+                              } else if (isSunday) {
+                                bandBg = 'bg-amber-100/90 text-amber-950 border-r border-amber-300';
+                                bandText = 'SUNDAY';
+                              } else {
+                                bandBg = 'bg-orange-100/90 text-orange-950 border-r border-orange-300';
+                                bandText = calDay.closureLabel ? calDay.closureLabel.toUpperCase() : (isSaturday ? 'SATURDAY' : 'OFF DAY');
+                              }
+
+                              const fontClass = bandText.length > 20
+                                ? 'text-[8.5px] tracking-wider'
+                                : bandText.length > 14
+                                  ? 'text-[9.5px] tracking-wide'
+                                  : 'text-[11px] tracking-widest';
+
+                              return (
+                                <td
+                                  key={dateStr}
+                                  rowSpan={students.length}
+                                  className={`register-closure-band select-none ${bandBg}`}
+                                  title={`${calDay.date} (${calDay.dayNameFull}) — ${calDay.closureLabel || calDay.status}`}
+                                >
+                                  <div className="h-full min-h-[140px] print:min-h-0 print:py-1 flex items-center justify-center py-4 px-0.5">
+                                    <span className={`register-vertical-band font-black ${fontClass}`}>
+                                      {bandText}
+                                    </span>
+                                  </div>
+                                </td>
+                              );
                             }
-
-                            const fontClass = bandText.length > 20
-                              ? 'text-[8.5px] tracking-wider'
-                              : bandText.length > 14
-                                ? 'text-[9.5px] tracking-wide'
-                                : 'text-[11px] tracking-widest';
-
-                            return (
-                              <td
-                                key={dateStr}
-                                rowSpan={students.length}
-                                className={`register-closure-band select-none ${bandBg}`}
-                                title={`${calDay.date} (${calDay.dayNameFull}) — ${calDay.closureLabel || calDay.status}`}
-                              >
-                                <div className="h-full min-h-[140px] print:min-h-0 print:py-1 flex items-center justify-center py-4 px-0.5">
-                                  <span className={`register-vertical-band font-black ${fontClass}`}>
-                                    {bandText}
-                                  </span>
-                                </div>
-                              </td>
-                            );
+                            return null;
                           }
 
-                          // On subsequent student rows (studentIndex > 0), return null because the rowSpan cell covers it!
-                          return null;
-                        }
+                          const isMissed = calDay.status === 'NOT_TAKEN';
+                          const isFuture = calDay.isFutureDate;
 
-                        // Otherwise, render normal individual student cell (working days, or closures with recorded attendance)
-                        const isMissed = calDay.status === 'NOT_TAKEN';
-                        const isFuture = calDay.isFutureDate;
+                          let cellContent = '—';
+                          let cellClass = 'text-slate-300';
+                          const isException = status === 'ABSENT' || status === 'LEAVE';
+                          const studentRemark = student.attendanceRemarks?.[dateStr] || student.dailyStatus?.[dateStr]?.remarks || '';
 
-                        let cellContent = '—';
-                        let cellClass = 'text-slate-300';
-                        const isException = status === 'ABSENT' || status === 'LEAVE';
-                        const studentRemark = student.attendanceRemarks?.[dateStr] || student.dailyStatus?.[dateStr]?.remarks || '';
+                          let cellTitle = `${student.fullName} on ${dateStr}: ${status || calDay.closureLabel || calDay.status}`;
 
-                        let cellTitle = `${student.fullName} on ${dateStr}: ${status || calDay.closureLabel || calDay.status}`;
+                          if (status === 'PRESENT') {
+                            cellContent = 'P';
+                            cellClass = 'text-emerald-700 font-black bg-emerald-50/40';
+                          } else if (status === 'ABSENT') {
+                            cellContent = 'A';
+                            cellClass = 'text-rose-700 font-black bg-rose-50/60';
+                            cellTitle = `${student.fullName} (Roll #${student.rollNumber || '—'}, GR: ${student.grNumber || '—'})\nStatus: ABSENT on ${dateStr} (${calDay.dayNameFull || calDay.dayNameShort})\n` +
+                              (studentRemark
+                                ? `Reason / Remarks: "${studentRemark}"\n(Click to view details)`
+                                : `Reason: No specific remarks recorded by teacher.\n(Click to view details)`);
+                          } else if (status === 'LEAVE') {
+                            cellContent = 'L';
+                            cellClass = 'text-amber-700 font-black bg-amber-50/40';
+                            cellTitle = `${student.fullName} (Roll #${student.rollNumber || '—'}, GR: ${student.grNumber || '—'})\nStatus: LEAVE on ${dateStr} (${calDay.dayNameFull || calDay.dayNameShort})\n` +
+                              (studentRemark
+                                ? `Reason / Remarks: "${studentRemark}"\n(Click to view details)`
+                                : `Reason: Approved leave (no extra remarks recorded).\n(Click to view details)`);
+                          } else if (isMissed) {
+                            cellContent = '—';
+                            cellClass = 'text-amber-600/80 font-bold bg-amber-50/40';
+                          } else if (isFuture) {
+                            cellContent = '·';
+                            cellClass = 'text-slate-200';
+                          }
 
-                        if (status === 'PRESENT') {
-                          cellContent = 'P';
-                          cellClass = 'text-emerald-700 font-black bg-emerald-50/40';
-                        } else if (status === 'ABSENT') {
-                          cellContent = 'A';
-                          cellClass = 'text-rose-700 font-black bg-rose-50/60';
-                          cellTitle = `${student.fullName} (Roll #${student.rollNumber || '—'}, GR: ${student.grNumber || '—'})\nStatus: ABSENT on ${dateStr} (${calDay.dayNameFull || calDay.dayNameShort})\n` +
-                            (studentRemark
-                              ? `Reason / Remarks: "${studentRemark}"\n(Click to view details)`
-                              : `Reason: No specific remarks recorded by teacher.\n(Click to view details)`);
-                        } else if (status === 'LEAVE') {
-                          cellContent = 'L';
-                          cellClass = 'text-amber-700 font-black bg-amber-50/40';
-                          cellTitle = `${student.fullName} (Roll #${student.rollNumber || '—'}, GR: ${student.grNumber || '—'})\nStatus: LEAVE on ${dateStr} (${calDay.dayNameFull || calDay.dayNameShort})\n` +
-                            (studentRemark
-                              ? `Reason / Remarks: "${studentRemark}"\n(Click to view details)`
-                              : `Reason: Approved leave (no extra remarks recorded).\n(Click to view details)`);
-                        } else if (isMissed) {
-                          cellContent = '—';
-                          cellClass = 'text-amber-600/80 font-bold bg-amber-50/40';
-                        } else if (isFuture) {
-                          cellContent = '·';
-                          cellClass = 'text-slate-200';
-                        }
+                          return (
+                            <td
+                              key={dateStr}
+                              className={`py-2 px-0.5 border-r border-slate-200 text-center font-mono ${cellClass}`}
+                              title={cellTitle}
+                            >
+                              {isException ? (
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedRemarkDetail({
+                                    student,
+                                    dateStr,
+                                    dayNameFull: calDay.dayNameFull || calDay.dayNameShort || '',
+                                    status,
+                                    remarks: studentRemark,
+                                  })}
+                                  className={`inline-flex items-center justify-center relative w-full h-full min-h-[22px] cursor-pointer group focus:outline-none transition-all rounded-xs ${
+                                    status === 'ABSENT'
+                                      ? 'hover:bg-rose-100/90 text-rose-700'
+                                      : 'hover:bg-amber-100/90 text-amber-700'
+                                  }`}
+                                >
+                                  <span className="font-black underline decoration-dotted underline-offset-2 group-hover:scale-110 transition-transform">
+                                    {cellContent}
+                                  </span>
+                                  {studentRemark ? (
+                                    <span
+                                      className={`absolute top-0 right-0 w-1.5 h-1.5 rounded-full ring-1 ring-white print:hidden ${
+                                        status === 'ABSENT' ? 'bg-rose-600' : 'bg-amber-600'
+                                      }`}
+                                      title="Teacher remark attached"
+                                    />
+                                  ) : null}
+                                </button>
+                              ) : (
+                                cellContent
+                              )}
+                            </td>
+                          );
+                        })}
 
-                        return (
-                          <td
-                            key={dateStr}
-                            className={`py-2 px-0.5 border-r border-slate-200 text-center font-mono ${cellClass}`}
-                            title={cellTitle}
-                          >
-                            {isException ? (
-                              <button
-                                type="button"
-                                onClick={() => setSelectedRemarkDetail({
-                                  student,
-                                  dateStr,
-                                  dayNameFull: calDay.dayNameFull || calDay.dayNameShort || '',
-                                  status,
-                                  remarks: studentRemark,
-                                })}
-                                className={`inline-flex items-center justify-center relative w-full h-full min-h-[22px] cursor-pointer group focus:outline-none transition-all rounded-xs ${
-                                  status === 'ABSENT'
-                                    ? 'hover:bg-rose-100/90 text-rose-700'
-                                    : 'hover:bg-amber-100/90 text-amber-700'
-                                }`}
-                              >
-                                <span className="font-black underline decoration-dotted underline-offset-2 group-hover:scale-110 transition-transform">
-                                  {cellContent}
-                                </span>
-                                {studentRemark ? (
-                                  <span
-                                    className={`absolute top-0 right-0 w-1.5 h-1.5 rounded-full ring-1 ring-white print:hidden ${
-                                      status === 'ABSENT' ? 'bg-rose-600' : 'bg-amber-600'
-                                    }`}
-                                    title="Teacher remark attached"
-                                  />
-                                ) : null}
-                              </button>
-                            ) : (
-                              cellContent
-                            )}
-                          </td>
-                        );
-                      })}
-
-                      {/* Summary Columns */}
-                      <td className="w-9 min-w-9 py-2 px-1 text-center font-black text-emerald-800 border-r border-slate-300 sticky right-[166px] z-10 bg-emerald-50 shadow-[-2px_0_4px_-1px_rgba(0,0,0,0.06)]">
-                        {student.totals.P}
-                      </td>
-                      <td className="w-9 min-w-9 py-2 px-1 text-center font-black text-rose-800 border-r border-slate-300 sticky right-[130px] z-10 bg-rose-50">
-                        {student.totals.A}
-                      </td>
-                      <td className="w-9 min-w-9 py-2 px-1 text-center font-black text-amber-800 border-r border-slate-300 sticky right-[94px] z-10 bg-amber-50">
-                        {student.totals.L}
-                      </td>
-                      <td className="w-13 min-w-13 py-2 px-1 text-center font-bold text-[#102033] border-r border-slate-300 sticky right-[42px] z-10 bg-slate-100">
-                        {student.totals.P} / {student.workingDaysRecorded}
-                      </td>
-                      <td className="w-11 min-w-11 py-2 px-1 text-center font-black text-indigo-700 sticky right-0 z-10 bg-indigo-50">
-                        {student.attendancePercentage}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-
-              {/* Table Footer: Daily Attendance Totals */}
-              <tfoot>
-                <tr className="bg-slate-100 font-black text-[#102033] border-t-2 border-slate-300">
-                  <td colSpan={3} className="py-2.5 px-3 text-right border-r border-slate-300 sticky left-0 z-20 bg-slate-100">
-                    Total Present Students:
-                  </td>
-                  {calendarDays.map((calDay) => {
-                    const t = dailyTotals[calDay.date];
-                    const isClosed = calDay.isClosed;
-                    return (
-                      <td
-                        key={calDay.date}
-                        className={`py-2.5 px-0.5 border-r border-slate-200 text-center font-mono ${isClosed ? 'text-slate-400 bg-slate-100' : 'text-emerald-700 font-bold bg-emerald-50/30'
-                          }`}
-                      >
-                        {isClosed ? '—' : t?.present ?? 0}
-                      </td>
+                        {/* Summary Columns: Sticky only on lg: screens */}
+                        <td className="w-9 min-w-9 py-2 px-1 text-center font-black text-emerald-800 border-r border-slate-300 lg:sticky lg:right-[166px] z-10 bg-emerald-50 lg:shadow-[-2px_0_4px_-1px_rgba(0,0,0,0.06)]">
+                          {student.totals.P}
+                        </td>
+                        <td className="w-9 min-w-9 py-2 px-1 text-center font-black text-rose-800 border-r border-slate-300 lg:sticky lg:right-[130px] z-10 bg-rose-50">
+                          {student.totals.A}
+                        </td>
+                        <td className="w-9 min-w-9 py-2 px-1 text-center font-black text-amber-800 border-r border-slate-300 lg:sticky lg:right-[94px] z-10 bg-amber-50">
+                          {student.totals.L}
+                        </td>
+                        <td className="w-13 min-w-13 py-2 px-1 text-center font-bold text-[#102033] border-r border-slate-300 lg:sticky lg:right-[42px] z-10 bg-slate-100">
+                          {student.totals.P} / {student.workingDaysRecorded}
+                        </td>
+                        <td className="w-11 min-w-11 py-2 px-1 text-center font-black text-indigo-700 lg:sticky lg:right-0 z-10 bg-indigo-50">
+                          {student.attendancePercentage}
+                        </td>
+                      </tr>
                     );
                   })}
-                  <td colSpan={5} className="py-2.5 px-2 bg-slate-100 sticky right-0 z-20 text-center text-xs">
-                    Class Avg: <strong className="text-indigo-700">{registerData?.classAggregatePct || 'N/A'}</strong>
-                  </td>
-                </tr>
+                </tbody>
 
-                <tr className="bg-slate-50 font-bold text-slate-600 border-t border-slate-200">
-                  <td colSpan={3} className="py-2 px-3 text-right border-r border-slate-300 sticky left-0 z-20 bg-slate-50">
-                    Total Absent Students:
-                  </td>
-                  {calendarDays.map((calDay) => {
-                    const t = dailyTotals[calDay.date];
-                    const isClosed = calDay.isClosed;
-                    return (
-                      <td
-                        key={calDay.date}
-                        className={`py-2 px-0.5 border-r border-slate-200 text-center font-mono ${isClosed ? 'text-slate-300 bg-slate-50' : 'text-rose-700 bg-rose-50/30'
-                          }`}
-                      >
-                        {isClosed ? '—' : t?.absent ?? 0}
-                      </td>
-                    );
-                  })}
-                  <td colSpan={5} className="bg-slate-50 sticky right-0 z-20"></td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
+                {/* Table Footer: Daily Attendance Totals */}
+                <tfoot>
+                  <tr className="bg-slate-100 font-black text-[#102033] border-t-2 border-slate-300">
+                    <td colSpan={1} className="md:hidden py-2.5 px-2 text-right border-r border-slate-300 sticky left-0 z-20 bg-slate-100 text-[10px] font-bold">
+                      Total P:
+                    </td>
+                    <td colSpan={3} className="hidden md:table-cell py-2.5 px-3 text-right border-r border-slate-300 sticky left-0 z-20 bg-slate-100">
+                      Total Present Students:
+                    </td>
+                    {calendarDays.map((calDay) => {
+                      const t = dailyTotals[calDay.date];
+                      const isClosed = calDay.isClosed;
+                      return (
+                        <td
+                          key={calDay.date}
+                          className={`py-2.5 px-0.5 border-r border-slate-200 text-center font-mono ${isClosed ? 'text-slate-400 bg-slate-100' : 'text-emerald-700 font-bold bg-emerald-50/30'
+                            }`}
+                        >
+                          {isClosed ? '—' : t?.present ?? 0}
+                        </td>
+                      );
+                    })}
+                    <td colSpan={5} className="py-2.5 px-2 bg-slate-100 lg:sticky lg:right-0 z-20 text-center text-xs">
+                      Class Avg: <strong className="text-indigo-700">{registerData?.classAggregatePct || 'N/A'}</strong>
+                    </td>
+                  </tr>
+
+                  <tr className="bg-slate-50 font-bold text-slate-600 border-t border-slate-200">
+                    <td colSpan={1} className="md:hidden py-2 px-2 text-right border-r border-slate-300 sticky left-0 z-20 bg-slate-50 text-[10px] font-bold">
+                      Total A:
+                    </td>
+                    <td colSpan={3} className="hidden md:table-cell py-2 px-3 text-right border-r border-slate-300 sticky left-0 z-20 bg-slate-50">
+                      Total Absent Students:
+                    </td>
+                    {calendarDays.map((calDay) => {
+                      const t = dailyTotals[calDay.date];
+                      const isClosed = calDay.isClosed;
+                      return (
+                        <td
+                          key={calDay.date}
+                          className={`py-2 px-0.5 border-r border-slate-200 text-center font-mono ${isClosed ? 'text-slate-300 bg-slate-50' : 'text-rose-700 bg-rose-50/30'
+                            }`}
+                        >
+                          {isClosed ? '—' : t?.absent ?? 0}
+                        </td>
+                      );
+                    })}
+                    <td colSpan={5} className="bg-slate-50 lg:sticky lg:right-0 z-20"></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </>
         )}
 
         {/* ─── Official Physical Register Footer / Statistics Block ──────────── */}
