@@ -62,7 +62,7 @@ export const StaffProfilePage = () => {
   const navigate = useNavigate();
 
   const currentUser = useSelector((state) => state.auth?.user);
-  const canAccessDirectory = ['ROOT_ADMIN', 'SUPER_ADMIN', 'ADMIN', 'SUPERVISOR', 'HM'].includes(currentUser?.role);
+  const canAccessDirectory = ['ROOT_ADMIN', 'SUPER_ADMIN', 'ADMIN', 'SUPERVISOR', 'HM', 'TEACHER'].includes(currentUser?.role);
   const {
     profileData,
     loading,

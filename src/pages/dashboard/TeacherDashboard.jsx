@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   GraduationCap,
   Users,
+  BookUser,
   ClipboardList,
   ClipboardCheck,
   CheckCircle2,
@@ -111,6 +112,7 @@ const getKarachiTodayDateString = () => {
 const DASHBOARD_TABS = [
   { id: 'OVERVIEW', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'CLASSES', label: 'My Classes', icon: GraduationCap },
+  { id: 'DIRECTORY', label: 'School Directory', icon: BookUser, path: '/directory' },
   { id: 'ATTENDANCE', label: 'Daily Attendance', icon: ClipboardCheck },
   { id: 'EXAMS', label: 'Exam Marks', icon: Award },
   { id: 'HOMEWORK', label: 'Homework', icon: BookOpen },

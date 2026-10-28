@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { useSearchParams, Navigate } from 'react-router-dom';
+import { useSearchParams, Navigate, Link } from 'react-router-dom';
 import {
   Users,
   GraduationCap,
@@ -349,7 +349,7 @@ const StudentRecordDetailsModal = ({ studentRecord, onClose }) => {
 // ── View 1: Student Records (Authoritative School Student Roster) ────────────
 
 const StudentRecordsView = ({ municipalSchoolsList, initialSearch = '', authenticatedUser }) => {
-  const isHM = authenticatedUser?.role === 'HM';
+  const isSchoolStaff = ['HM', 'TEACHER'].includes(authenticatedUser?.role);
   const userSchoolId = authenticatedUser?.schoolId?._id || authenticatedUser?.schoolId || '';
 
   const [students, setStudents] = useState([]);
@@ -360,7 +360,7 @@ const StudentRecordsView = ({ municipalSchoolsList, initialSearch = '', authenti
   // Filter States
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [debouncedSearch, setDebouncedSearch] = useState(initialSearch);
-  const [selectedSchoolId, setSelectedSchoolId] = useState(isHM ? String(userSchoolId) : '');
+  const [selectedSchoolId, setSelectedSchoolId] = useState(isSchoolStaff ? String(userSchoolId) : '');
   const [selectedClassId, setSelectedClassId] = useState('');
   const [selectedSectionId, setSelectedSectionId] = useState('');
   const [selectedGender, setSelectedGender] = useState('');
@@ -385,7 +385,7 @@ const StudentRecordsView = ({ municipalSchoolsList, initialSearch = '', authenti
 
   // Load classes for the active school
   useEffect(() => {
-    const effectiveSchoolId = isHM ? String(userSchoolId) : selectedSchoolId;
+    const effectiveSchoolId = isSchoolStaff ? String(userSchoolId) : selectedSchoolId;
     const fetchClasses = async () => {
       try {
         const queryParams = effectiveSchoolId ? `?schoolId=${effectiveSchoolId}` : '';
@@ -398,7 +398,7 @@ const StudentRecordsView = ({ municipalSchoolsList, initialSearch = '', authenti
       }
     };
     fetchClasses();
-  }, [isHM, userSchoolId, selectedSchoolId]);
+  }, [isSchoolStaff, userSchoolId, selectedSchoolId]);
 
   // Load sections when class changes
   useEffect(() => {
@@ -435,8 +435,8 @@ const StudentRecordsView = ({ municipalSchoolsList, initialSearch = '', authenti
       if (selectedGender) queryParameters.append('gender', selectedGender);
       if (selectedStatus) queryParameters.append('lifecycleStatus', selectedStatus);
 
-      // Only pass schoolId if not HM (server strictly scopes HM to their own school)
-      if (!isHM && selectedSchoolId) {
+      // Only pass schoolId if not school staff (server strictly scopes HM and Teacher to their own school)
+      if (!isSchoolStaff && selectedSchoolId) {
         queryParameters.append('schoolId', selectedSchoolId);
       }
 
@@ -459,7 +459,7 @@ const StudentRecordsView = ({ municipalSchoolsList, initialSearch = '', authenti
     } finally {
       setIsLoading(false);
     }
-  }, [debouncedSearch, selectedClassId, selectedSectionId, selectedGender, selectedStatus, currentPage, isHM, selectedSchoolId]);
+  }, [debouncedSearch, selectedClassId, selectedSectionId, selectedGender, selectedStatus, currentPage, isSchoolStaff, selectedSchoolId]);
 
   useEffect(() => {
     fetchStudentRecords();
@@ -471,7 +471,7 @@ const StudentRecordsView = ({ municipalSchoolsList, initialSearch = '', authenti
     setSelectedSectionId('');
     setSelectedGender('');
     setSelectedStatus('');
-    if (!isHM) setSelectedSchoolId('');
+    if (!isSchoolStaff) setSelectedSchoolId('');
     setCurrentPage(1);
   };
 
@@ -481,7 +481,7 @@ const StudentRecordsView = ({ municipalSchoolsList, initialSearch = '', authenti
     selectedSectionId ||
     selectedGender ||
     selectedStatus ||
-    (!isHM && selectedSchoolId)
+    (!isSchoolStaff && selectedSchoolId)
   );
 
   const handleExportStudentsCsv = () => {
@@ -490,7 +490,7 @@ const StudentRecordsView = ({ municipalSchoolsList, initialSearch = '', authenti
     if (selectedClassId) exportParameters.classId = selectedClassId;
     if (selectedSectionId) exportParameters.sectionId = selectedSectionId;
     if (selectedStatus) exportParameters.status = selectedStatus;
-    if (!isHM && selectedSchoolId) exportParameters.schoolId = selectedSchoolId;
+    if (!isSchoolStaff && selectedSchoolId) exportParameters.schoolId = selectedSchoolId;
 
     downloadCsvFile(
       '/exports/students.csv',
@@ -520,7 +520,7 @@ const StudentRecordsView = ({ municipalSchoolsList, initialSearch = '', authenti
           focusBorderColorClass="focus:border-[#006AC7]"
         />
 
-        {!isHM && (
+        {!isSchoolStaff && (
           <FilterDropdownSelect
             value={selectedSchoolId}
             onChange={(val) => {
@@ -774,7 +774,7 @@ const StudentRecordsView = ({ municipalSchoolsList, initialSearch = '', authenti
 // ── View 2: Staff Directory (All Teaching and Non-Teaching School Personnel) ──
 
 const StaffDirectoryView = ({ municipalSchoolsList, initialSearch = '', authenticatedUser }) => {
-  const isHM = authenticatedUser?.role === 'HM';
+  const isSchoolStaff = ['HM', 'TEACHER'].includes(authenticatedUser?.role);
   const userSchoolId = authenticatedUser?.schoolId?._id || authenticatedUser?.schoolId || '';
 
   const [staffRecords, setStaffRecords] = useState([]);
@@ -784,7 +784,7 @@ const StaffDirectoryView = ({ municipalSchoolsList, initialSearch = '', authenti
 
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(initialSearch);
-  const [selectedSchoolId, setSelectedSchoolId] = useState(isHM ? String(userSchoolId) : '');
+  const [selectedSchoolId, setSelectedSchoolId] = useState(isSchoolStaff ? String(userSchoolId) : '');
   const [selectedRole, setSelectedRole] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
 
@@ -800,7 +800,7 @@ const StaffDirectoryView = ({ municipalSchoolsList, initialSearch = '', authenti
     try {
       const queryParameters = new URLSearchParams({ limit: '200' });
       if (debouncedSearchQuery.trim()) queryParameters.append('search', debouncedSearchQuery.trim());
-      const effectiveSchoolId = isHM ? String(userSchoolId) : selectedSchoolId;
+      const effectiveSchoolId = isSchoolStaff ? String(userSchoolId) : selectedSchoolId;
       if (effectiveSchoolId) queryParameters.append('schoolId', effectiveSchoolId);
       if (selectedRole) queryParameters.append('role', selectedRole);
       if (selectedStatus) queryParameters.append('status', selectedStatus);
@@ -823,7 +823,7 @@ const StaffDirectoryView = ({ municipalSchoolsList, initialSearch = '', authenti
     } finally {
       setIsLoading(false);
     }
-  }, [debouncedSearchQuery, selectedSchoolId, selectedRole, selectedStatus, isHM, userSchoolId]);
+  }, [debouncedSearchQuery, selectedSchoolId, selectedRole, selectedStatus, isSchoolStaff, userSchoolId]);
 
   useEffect(() => {
     fetchStaffData();
@@ -833,15 +833,15 @@ const StaffDirectoryView = ({ municipalSchoolsList, initialSearch = '', authenti
     setSearchQuery('');
     setSelectedRole('');
     setSelectedStatus('');
-    if (!isHM) setSelectedSchoolId('');
+    if (!isSchoolStaff) setSelectedSchoolId('');
   };
 
-  const hasActiveFilters = Boolean(searchQuery || selectedRole || selectedStatus || (!isHM && selectedSchoolId));
+  const hasActiveFilters = Boolean(searchQuery || selectedRole || selectedStatus || (!isSchoolStaff && selectedSchoolId));
 
   const handleExportStaffCsv = () => {
     const exportParameters = {};
     if (debouncedSearchQuery.trim()) exportParameters.search = debouncedSearchQuery.trim();
-    const effectiveSchoolId = isHM ? String(userSchoolId) : selectedSchoolId;
+    const effectiveSchoolId = isSchoolStaff ? String(userSchoolId) : selectedSchoolId;
     if (effectiveSchoolId) exportParameters.schoolId = effectiveSchoolId;
     if (selectedRole) exportParameters.role = selectedRole;
     if (selectedStatus) exportParameters.status = selectedStatus;
@@ -873,7 +873,7 @@ const StaffDirectoryView = ({ municipalSchoolsList, initialSearch = '', authenti
           focusBorderColorClass="focus:border-[#006AC7]"
         />
 
-        {!isHM && (
+        {!isSchoolStaff && (
           <FilterDropdownSelect
             value={selectedSchoolId}
             onChange={setSelectedSchoolId}
@@ -931,14 +931,15 @@ const StaffDirectoryView = ({ municipalSchoolsList, initialSearch = '', authenti
                 <th className="px-4 py-3.5">Contact Phone</th>
                 <th className="px-4 py-3.5">Account Status</th>
                 <th className="px-4 py-3.5">Registered On</th>
+                <th className="px-4 py-3.5 text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {isLoading ? (
-                <LoadingSkeletonRow columnsCount={7} message="Loading staff records..." />
+                <LoadingSkeletonRow columnsCount={8} message="Loading staff records..." />
               ) : staffRecords.length === 0 ? (
                 <EmptyStateRow
-                  columnsCount={7}
+                  columnsCount={8}
                   title="No staff members found."
                   description="Try adjusting your search or filters."
                 />
@@ -988,6 +989,17 @@ const StaffDirectoryView = ({ municipalSchoolsList, initialSearch = '', authenti
 
                     <TableCell className="text-[#8094A8] font-mono whitespace-nowrap">
                       {formatDisplayDate(staffMember.createdAt)}
+                    </TableCell>
+
+                    <TableCell className="text-right">
+                      <Link
+                        to={`/staff/${staffMember._id}/profile`}
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 text-[#006AC7] hover:bg-blue-50 hover:border-blue-200 transition text-[11px] font-bold cursor-pointer shadow-2xs"
+                        title="View staff service record profile"
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                        <span>Profile</span>
+                      </Link>
                     </TableCell>
                   </tr>
                 ))
@@ -1162,7 +1174,7 @@ const GuardiansDirectoryView = () => {
 
 export const DirectoryPage = () => {
   const { user: authenticatedUser } = useSelector((state) => state.auth);
-  const canAccessDirectory = ['ROOT_ADMIN', 'SUPER_ADMIN', 'ADMIN', 'SUPERVISOR', 'HM'].includes(
+  const canAccessDirectory = ['ROOT_ADMIN', 'SUPER_ADMIN', 'ADMIN', 'SUPERVISOR', 'HM', 'TEACHER'].includes(
     authenticatedUser?.role
   );
 
@@ -1172,14 +1184,15 @@ export const DirectoryPage = () => {
   }
 
   const isPlatformAdministrator = ['ROOT_ADMIN', 'SUPER_ADMIN', 'ADMIN'].includes(authenticatedUser?.role);
+  const isSchoolStaff = ['HM', 'TEACHER'].includes(authenticatedUser?.role);
   const isHM = authenticatedUser?.role === 'HM';
 
   const [searchParams, setSearchParams] = useSearchParams();
   const searchParamValue = searchParams.get('search') || '';
   const tabParamValue = searchParams.get('tab');
 
-  // Authoritative active tab state: defaults to 'students' for HM, 'staff' for general
-  const defaultTab = isHM ? 'students' : 'staff';
+  // Authoritative active tab state: defaults to 'students' for School Staff (HM / Teacher), 'staff' for general
+  const defaultTab = isSchoolStaff ? 'students' : 'staff';
   const resolvedInitialTab =
     tabParamValue && ['students', 'staff', 'guardians'].includes(tabParamValue)
       ? tabParamValue
@@ -1200,9 +1213,9 @@ export const DirectoryPage = () => {
     }
   }, [tabParamValue, activeTabId, defaultTab, setSearchParams]);
 
-  // Fetch school list for non-HM filters
+  // Fetch school list only for multi-school administrators (Root, Super Admin, Admin, Supervisor)
   useEffect(() => {
-    if (!isHM) {
+    if (!isSchoolStaff) {
       apiClient
         .get('/schools?limit=200')
         .then((response) => {
@@ -1212,7 +1225,7 @@ export const DirectoryPage = () => {
         })
         .catch(() => {});
     }
-  }, [isHM]);
+  }, [isSchoolStaff]);
 
   const handleTabChange = (targetTabId) => {
     setActiveTabId(targetTabId);
@@ -1227,10 +1240,10 @@ export const DirectoryPage = () => {
 
   // Dynamic Page Title & Plain-English Subtitle reflecting the selected category
   const getPageHeaderInfo = () => {
-    if (isHM) {
+    if (isSchoolStaff) {
       return {
         title: 'School Directory',
-        subtitle: 'View and manage student and staff records for your school.',
+        subtitle: `View student, staff, and guardian records for ${schoolName}.`,
       };
     }
     if (activeTabId === 'students') {

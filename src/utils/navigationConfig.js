@@ -49,6 +49,7 @@ export const getNavigationItemsForRole = (userRole) => {
     return [
       { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
       { label: 'My Classes', path: '/my-classes', icon: GraduationCap },
+      { label: 'School Directory', path: '/directory', icon: BookUser },
       { label: 'Daily Attendance', path: '/dashboard?tab=attendance', icon: ClipboardCheck },
       { label: 'Exam Marks', path: '/dashboard?tab=exams', icon: Award },
       { label: 'Homework', path: '/dashboard?tab=homework', icon: BookOpen },
