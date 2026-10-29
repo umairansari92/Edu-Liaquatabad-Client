@@ -4,8 +4,33 @@ import { store } from '../store/index.js';
 import { setAccessToken, logout } from '../store/slices/authSlice.js';
 import { generateIdempotencyKey } from './reliability/idempotencyManager.js';
 
+/**
+ * Resolves the API Base URL with dynamic resilience:
+ * - If running in browser and the host is accessed via a LAN IP or custom domain,
+ *   while the configured URL points to localhost:5000, falls back to relative '/api/v1'
+ *   to leverage Vite's dev server proxy and prevent cross-device connection errors or CORS blocks.
+ * - Otherwise uses import.meta.env.VITE_API_BASE_URL or default '/api/v1'.
+ */
+export const resolveApiBaseUrl = () => {
+  const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL;
+
+  if (typeof window !== 'undefined' && window.location) {
+    const currentHostname = window.location.hostname;
+    const isAccessingViaLanOrRemote = currentHostname !== 'localhost' && currentHostname !== '127.0.0.1';
+    if (
+      isAccessingViaLanOrRemote &&
+      configuredBaseUrl &&
+      /https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i.test(configuredBaseUrl)
+    ) {
+      return '/api/v1';
+    }
+  }
+
+  return configuredBaseUrl || '/api/v1';
+};
+
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api/v1',
+  baseURL: resolveApiBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
   },
@@ -139,7 +164,7 @@ apiClient.interceptors.response.use(
       try {
         // Use raw axios to prevent interceptor loops
         const refreshResponse = await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL || '/api/v1'}/auth/refresh-token`,
+          `${resolveApiBaseUrl()}/auth/refresh-token`,
           {},
           { withCredentials: true }
         );
