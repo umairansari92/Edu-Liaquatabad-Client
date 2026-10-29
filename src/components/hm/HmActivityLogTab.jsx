@@ -20,7 +20,7 @@ export const HmActivityLogTab = ({ notices = [], transfers = [], teacherAttendan
       title: 'Faculty attendance recorded',
       description: `${teacherAttendance.records.length} faculty member attendance statuses submitted for ${teacherAttendance.date || 'today'}.`,
       icon: ClipboardCheck,
-      color: 'text-indigo-600 bg-indigo-50 border-indigo-200',
+      color: 'text-[#38662D] bg-[#F2F8EF] border-[#C9DFBC]',
     });
   }
 
@@ -51,7 +51,7 @@ export const HmActivityLogTab = ({ notices = [], transfers = [], teacherAttendan
       {/* ── Header ── */}
       <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-3 rounded-xl bg-blue-50 text-[#006AC7] border border-blue-200/60">
+          <div className="p-3 rounded-xl bg-[#F2F8EF] text-[#38662D] border border-[#C9DFBC]">
             <History className="w-6 h-6" />
           </div>
           <div>

@@ -1501,7 +1501,7 @@ export const HmDashboard = () => {
           <button
             type="button"
             onClick={handleRefreshAll}
-            className="p-2 rounded-xl bg-white border border-slate-200/80 text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition shadow-2xs cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#006AC7]"
+            className="p-2 rounded-xl bg-white border border-slate-200/80 text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition shadow-2xs cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#4B7F3A]"
             title="Refresh school metrics"
             aria-label="Refresh school metrics"
           >
@@ -1576,7 +1576,7 @@ export const HmDashboard = () => {
           <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-200 text-[#006AC7]">
+                <div className="p-2.5 rounded-xl bg-[#F2F8EF] border border-[#C9DFBC] text-[#38662D]">
                   <GraduationCap className="w-6 h-6" />
                 </div>
                 <div>
@@ -1600,14 +1600,14 @@ export const HmDashboard = () => {
                 className="px-3.5 py-2 rounded-xl text-xs font-bold border border-slate-200/80 bg-slate-50 hover:bg-slate-100 text-[#102033] transition flex items-center gap-1.5 cursor-pointer"
                 title="Configure school code prefix for Global Student IDs"
               >
-                <QrCode className="w-3.5 h-3.5 text-[#006AC7]" />
+                <QrCode className="w-3.5 h-3.5 text-[#4B7F3A]" />
                 <span>Code: <strong>{user?.schoolId?.schoolCode || user?.schoolId?.code || 'Not Set'}</strong></span>
               </button>
 
               {/* Enroll Student Button */}
               <button
                 onClick={() => setAddStudentModalOpen(true)}
-                className="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-[#006AC7] hover:bg-[#005299] text-white transition shadow-sm flex items-center gap-2 cursor-pointer"
+                className="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-[#4B7F3A] hover:bg-[#38662D] text-white transition shadow-sm flex items-center gap-2 cursor-pointer"
               >
                 <UserPlus className="w-4 h-4" />
                 Enroll Student (نئی داخلہ)
@@ -1626,7 +1626,7 @@ export const HmDashboard = () => {
                   value={studentSearchQuery}
                   onChange={(changeEvent) => setStudentSearchQuery(changeEvent.target.value)}
                   placeholder="Search by GR No, Global ID (LMGA-0001), or Name..."
-                  className="w-full pl-10 pr-9 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#006AC7]/20 focus:border-[#006AC7]"
+                  className="w-full pl-10 pr-9 py-2 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#4B7F3A]/20 focus:border-[#4B7F3A]"
                 />
                 {studentSearchQuery && (
                   <button
@@ -1646,7 +1646,7 @@ export const HmDashboard = () => {
                     setStudentClassFilter(changeEvent.target.value);
                     setStudentSectionFilter('');
                   }}
-                  className="w-full py-2 px-3 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#006AC7]/20 focus:border-[#006AC7]"
+                  className="w-full py-2 px-3 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#4B7F3A]/20 focus:border-[#4B7F3A]"
                 >
                   <option value="">All Classes</option>
                   {scopedClasses.map((classItem) => (
@@ -1660,7 +1660,7 @@ export const HmDashboard = () => {
                 <select
                   value={studentSectionFilter}
                   onChange={(changeEvent) => setStudentSectionFilter(changeEvent.target.value)}
-                  className="w-full py-2 px-3 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#006AC7]/20 focus:border-[#006AC7]"
+                  className="w-full py-2 px-3 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#4B7F3A]/20 focus:border-[#4B7F3A]"
                 >
                   <option value="">All Sections</option>
                   {sections
@@ -1676,7 +1676,7 @@ export const HmDashboard = () => {
                 <select
                   value={studentStatusFilter}
                   onChange={(changeEvent) => setStudentStatusFilter(changeEvent.target.value)}
-                  className="w-full py-2 px-3 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#006AC7]/20 focus:border-[#006AC7]"
+                  className="w-full py-2 px-3 rounded-xl border border-slate-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-[#4B7F3A]/20 focus:border-[#4B7F3A]"
                 >
                   <option value="">All Statuses</option>
                   <option value="ACTIVE">Active (فعال)</option>
@@ -1703,7 +1703,7 @@ export const HmDashboard = () => {
                     setStudentGenderFilter('');
                     setStudentStatusFilter('');
                   }}
-                  className="text-[#006AC7] hover:underline font-semibold cursor-pointer"
+                  className="text-[#4B7F3A] hover:underline font-semibold cursor-pointer"
                 >
                   Reset all filters
                 </button>
@@ -1733,7 +1733,7 @@ export const HmDashboard = () => {
                     <tr>
                       <td colSpan={9} className="py-12 text-center text-[#526477]">
                         <div className="flex flex-col items-center justify-center gap-2">
-                          <Loader2 className="w-6 h-6 animate-spin text-[#006AC7]" />
+                          <Loader2 className="w-6 h-6 animate-spin text-[#4B7F3A]" />
                           <span className="text-xs font-semibold">Loading student records...</span>
                         </div>
                       </td>
@@ -1755,11 +1755,11 @@ export const HmDashboard = () => {
                   ) : (
                     students.map((studentItem) => (
                       <tr key={studentItem._id} className="hover:bg-slate-50/60 transition">
-                        <td className="py-3.5 px-4 font-mono font-bold text-[#006AC7]">
+                        <td className="py-3.5 px-4 font-mono font-bold text-[#38662D]">
                           {studentItem.grNumber}
                         </td>
                         <td className="py-3.5 px-4">
-                          <span className="px-2 py-0.5 rounded-md font-mono text-xs font-semibold bg-blue-50 text-[#006AC7] border border-blue-200">
+                          <span className="px-2 py-0.5 rounded-md font-mono text-xs font-semibold bg-[#F2F8EF] text-[#38662D] border border-[#C9DFBC]">
                             {studentItem.globalStudentId}
                           </span>
                         </td>
@@ -1871,21 +1871,21 @@ export const HmDashboard = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
               <div>
                 <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
-                  <ArrowLeftRight className="w-5 h-5 text-[#006AC7]" />
+                  <ArrowLeftRight className="w-5 h-5 text-[#4B7F3A]" />
                   Inter-School Faculty & Staff Transfer Approvals
                 </h3>
                 <p className="text-xs text-[#526477] mt-0.5">
                   Official transfer directives from Town Administration requiring target Head Master review and acceptance.
                 </p>
               </div>
-              <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-[#006AC7] border border-blue-200/60 self-start sm:self-auto">
+              <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#F2F8EF] text-[#38662D] border border-[#C9DFBC]/60 self-start sm:self-auto">
                 {pendingIncomingTransfers.length} Pending
               </span>
             </div>
 
             {transfersLoading ? (
               <div className="flex items-center gap-2 p-6 text-sm text-[#526477]">
-                <Loader2 className="w-4 h-4 animate-spin text-[#006AC7]" /> Loading transfer requests...
+                <Loader2 className="w-4 h-4 animate-spin text-[#4B7F3A]" /> Loading transfer requests...
               </div>
             ) : pendingIncomingTransfers.length === 0 ? (
               <div className="p-6 text-center text-sm text-[#8094A8] bg-slate-50 rounded-xl border border-slate-200/60">
@@ -1966,7 +1966,7 @@ export const HmDashboard = () => {
               Pending Teacher & Support Staff Registrations
             </h3>
             {approvalsLoading ? (
-              <div className="flex items-center gap-2 p-6 text-sm text-[#526477]"><Loader2 className="w-4 h-4 animate-spin text-[#006AC7]" /> Loading applications...</div>
+              <div className="flex items-center gap-2 p-6 text-sm text-[#526477]"><Loader2 className="w-4 h-4 animate-spin text-[#4B7F3A]" /> Loading applications...</div>
             ) : staffApprovals.length === 0 ? (
               <div className="p-6 text-center text-sm text-[#8094A8] bg-slate-50 rounded-xl border border-slate-200/60">No pending staff applications for your school.</div>
             ) : (
@@ -1979,7 +1979,7 @@ export const HmDashboard = () => {
                     </div>
                     <button
                       onClick={() => setApprovalModal({ open: true, user: appItem, type: 'staff' })}
-                      className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white transition cursor-pointer"
+                      className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#4B7F3A] hover:bg-[#38662D] text-white transition cursor-pointer"
                     >
                       Review Application
                     </button>
@@ -1992,7 +1992,7 @@ export const HmDashboard = () => {
           {/* Student Admission Approvals Section */}
           <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-4">
             <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
-              <GraduationCap className="w-5 h-5 text-indigo-600" />
+              <GraduationCap className="w-5 h-5 text-[#4B7F3A]" />
               Student Admission Verification Queue
             </h3>
             {studentApprovals.length === 0 ? (
@@ -2007,7 +2007,7 @@ export const HmDashboard = () => {
                     </div>
                     <button
                       onClick={() => setApprovalModal({ open: true, user: stuItem, type: 'student' })}
-                      className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white transition cursor-pointer"
+                      className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#4B7F3A] hover:bg-[#38662D] text-white transition cursor-pointer"
                     >
                       Verify Admission
                     </button>
@@ -2022,7 +2022,7 @@ export const HmDashboard = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
               <div>
                 <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
-                  <ShieldCheck className="w-5 h-5 text-[#006AC7]" />
+                  <ShieldCheck className="w-5 h-5 text-[#4B7F3A]" />
                   Parent Ward Link Verification Queue
                 </h3>
                 <p className="text-xs text-[#526477] mt-0.5">
@@ -2043,7 +2043,7 @@ export const HmDashboard = () => {
                     onClick={() => setParentClaimsFilter(statusTab.id)}
                     className={`px-3 py-1 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition cursor-pointer ${
                       parentClaimsFilter === statusTab.id
-                        ? 'bg-white text-[#006AC7] shadow-xs font-bold'
+                        ? 'bg-white text-[#4B7F3A] shadow-xs font-bold'
                         : 'text-[#526477] hover:text-[#102033]'
                     }`}
                   >
@@ -2055,7 +2055,7 @@ export const HmDashboard = () => {
 
             {parentClaimsLoading ? (
               <div className="flex items-center gap-2 p-8 text-sm text-[#526477] justify-center">
-                <Loader2 className="w-4 h-4 animate-spin text-[#006AC7]" />
+                <Loader2 className="w-4 h-4 animate-spin text-[#4B7F3A]" />
                 Loading parent verification claims...
               </div>
             ) : parentClaims.length === 0 ? (
@@ -2082,7 +2082,7 @@ export const HmDashboard = () => {
                           <span className="font-bold text-[#102033] text-sm">
                             {parentRecord?.fullName || 'Parent / Guardian'}
                           </span>
-                          <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-50 text-[#006AC7] border border-blue-200/60 uppercase">
+                          <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-[#F2F8EF] text-[#38662D] border border-[#C9DFBC]/60 uppercase">
                             {claimItem.relationship || 'Guardian'}
                           </span>
                           <span
@@ -2152,7 +2152,7 @@ export const HmDashboard = () => {
                             </button>
                             <button
                               onClick={() => handleOpenVerifyModal(claimItem)}
-                              className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white shadow-xs transition cursor-pointer flex items-center gap-1.5"
+                              className="px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#4B7F3A] hover:bg-[#38662D] text-white shadow-xs transition cursor-pointer flex items-center gap-1.5"
                             >
                               <ShieldCheck className="w-3.5 h-3.5" />
                               Verify Claim
@@ -2187,7 +2187,7 @@ export const HmDashboard = () => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
-                <Users className="w-5 h-5 text-[#006AC7]" />
+                <Users className="w-5 h-5 text-[#4B7F3A]" />
                 Institutional Faculty Roster
               </h3>
               <p className="text-xs text-[#526477] mt-0.5">
@@ -2218,7 +2218,7 @@ export const HmDashboard = () => {
                   setDutyData({ teacherId: '', classId: '', sectionId: '', subjectId: '', academicSession: '2025-2026' });
                   setAssignDutyModal(true);
                 }}
-                className="px-4 py-2 rounded-xl text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-[#4B7F3A] hover:bg-[#38662D] text-white flex items-center gap-1.5 shadow-sm transition cursor-pointer"
               >
                 <PlusCircle className="w-4 h-4" /> Allocate Teaching Assignment
               </button>
@@ -2235,7 +2235,7 @@ export const HmDashboard = () => {
                 placeholder="Search faculty by name, employee ID, or email..."
                 value={facultySearchQuery}
                 onChange={(changeEvent) => setFacultySearchQuery(changeEvent.target.value)}
-                className="w-full pl-9 pr-4 py-2 rounded-xl text-xs border border-slate-200/80 bg-slate-50/50 focus:outline-none focus:ring-1 focus:ring-[#006AC7] focus:bg-white transition"
+                className="w-full pl-9 pr-4 py-2 rounded-xl text-xs border border-slate-200/80 bg-slate-50/50 focus:outline-none focus:ring-1 focus:ring-[#4B7F3A] focus:bg-white transition"
               />
             </div>
             <div className="flex gap-2">
@@ -2243,7 +2243,7 @@ export const HmDashboard = () => {
                 id="hm-faculty-status-filter"
                 value={facultyStatusFilter}
                 onChange={(changeEvent) => setFacultyStatusFilter(changeEvent.target.value)}
-                className="px-3 py-2 rounded-xl text-xs border border-slate-200/80 bg-slate-50/50 text-[#102033] focus:outline-none focus:ring-1 focus:ring-[#006AC7] transition"
+                className="px-3 py-2 rounded-xl text-xs border border-slate-200/80 bg-slate-50/50 text-[#102033] focus:outline-none focus:ring-1 focus:ring-[#4B7F3A] transition"
               >
                 <option value="">All Account Statuses</option>
                 <option value="ACTIVE">Active</option>
@@ -2271,7 +2271,7 @@ export const HmDashboard = () => {
                 Assigned Faculty Members ({faculty?.length || 0})
               </h4>
               {facultyLoading && (
-                <div className="flex items-center gap-1.5 text-xs text-[#006AC7]">
+                <div className="flex items-center gap-1.5 text-xs text-[#4B7F3A]">
                   <Loader2 className="w-3.5 h-3.5 animate-spin" /> Updating roster...
                 </div>
               )}
@@ -2279,7 +2279,7 @@ export const HmDashboard = () => {
 
             {facultyLoading && faculty.length === 0 ? (
               <div className="py-12 flex flex-col items-center justify-center gap-2 text-[#8094A8]">
-                <Loader2 className="w-6 h-6 animate-spin text-[#006AC7]" />
+                <Loader2 className="w-6 h-6 animate-spin text-[#4B7F3A]" />
                 <span className="text-xs">Loading faculty service records...</span>
               </div>
             ) : faculty.length === 0 ? (
@@ -2306,7 +2306,7 @@ export const HmDashboard = () => {
                       <tr key={member.userId} className="hover:bg-slate-50/70 transition">
                         <td className="py-3.5 px-3">
                           <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-full bg-blue-100 text-[#006AC7] font-bold text-xs flex items-center justify-center">
+                            <div className="w-8 h-8 rounded-full bg-[#F2F8EF] text-[#38662D] border border-[#C9DFBC] font-bold text-xs flex items-center justify-center">
                               {member.fullName?.charAt(0) || 'T'}
                             </div>
                             <div>
@@ -2330,7 +2330,7 @@ export const HmDashboard = () => {
                         </td>
                         <td className="py-3.5 px-3">
                           <div className="flex flex-col gap-1">
-                            <span className="inline-flex items-center gap-1 font-bold text-[#006AC7]">
+                            <span className="inline-flex items-center gap-1 font-bold text-[#38662D]">
                               <BookOpen className="w-3.5 h-3.5" />
                               {member.activeDutyCount} Active {member.activeDutyCount === 1 ? 'Duty' : 'Duties'}
                             </span>
@@ -2342,7 +2342,7 @@ export const HmDashboard = () => {
                                   </span>
                                 ))}
                                 {member.activeAssignments.length > 2 && (
-                                  <span className="text-[#006AC7] font-medium">
+                                  <span className="text-[#4B7F3A] font-medium">
                                     +{member.activeAssignments.length - 2} more...
                                   </span>
                                 )}
@@ -2367,7 +2367,7 @@ export const HmDashboard = () => {
                           <button
                             id={`assign-duty-btn-${member.userId}`}
                             onClick={() => handleOpenAssignDutyForTeacher(member.userId)}
-                            className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-blue-50 text-[#006AC7] hover:bg-blue-100 border border-blue-200 transition cursor-pointer"
+                            className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-[#F2F8EF] text-[#38662D] hover:bg-[#E3F0DC] border border-[#C9DFBC] transition cursor-pointer"
                           >
                             Assign Duty
                           </button>
@@ -2409,7 +2409,7 @@ export const HmDashboard = () => {
                 {scopedClasses.map((classItem) => (
                   <div key={classItem._id} className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center justify-between text-xs">
                     <span className="font-bold text-[#102033]">{classItem.name}</span>
-                    <span className="font-mono text-[#006AC7]">{classItem.code}</span>
+                    <span className="font-mono text-[#38662D]">{classItem.code}</span>
                   </div>
                 ))}
               </div>
@@ -2424,7 +2424,7 @@ export const HmDashboard = () => {
                     <div>
                       <p className="font-bold text-[#102033]">Section {sectionItem.name}</p>
                       <p className="text-[10px] text-[#8094A8]">Room: {sectionItem.roomNumber || '—'} • Cap: {sectionItem.capacity || 40}</p>
-                      <p className="text-[11px] text-[#006AC7] mt-0.5 font-medium">
+                      <p className="text-[11px] text-[#38662D] mt-0.5 font-medium">
                         Class Teacher: {sectionItem.classTeacherId?.fullName || <span className="text-slate-400 font-normal">Not designated</span>}
                       </p>
                     </div>
@@ -2464,7 +2464,7 @@ export const HmDashboard = () => {
             </div>
             <button
               onClick={() => setAssignDutyModal(true)}
-              className="px-4 py-2 rounded-xl text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-bold bg-[#4B7F3A] hover:bg-[#38662D] text-white flex items-center gap-1.5 shadow-sm transition cursor-pointer"
             >
               <PlusCircle className="w-4 h-4" /> Assign Teacher to Subject
             </button>
@@ -2475,7 +2475,7 @@ export const HmDashboard = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <div>
                 <h4 className="text-sm font-bold text-[#102033] flex items-center gap-2">
-                  <UserCheck className="w-4 h-4 text-[#006AC7]" />
+                  <UserCheck className="w-4 h-4 text-[#4B7F3A]" />
                   Class Teachers
                 </h4>
                 <p className="text-xs text-[#526477] mt-0.5">
@@ -2548,7 +2548,7 @@ export const HmDashboard = () => {
                               className: parentClass?.name || 'Class',
                             })
                           }
-                          className="px-2.5 py-1 text-xs font-semibold rounded-lg border border-slate-300 bg-white text-[#006AC7] hover:bg-blue-50/50 hover:border-[#006AC7] transition cursor-pointer shadow-2xs"
+                          className="px-2.5 py-1 text-xs font-semibold rounded-lg border border-slate-300 bg-white text-[#38662D] hover:bg-[#F2F8EF] hover:border-[#4B7F3A] transition cursor-pointer shadow-2xs"
                         >
                           {isDesignated ? 'Change teacher' : 'Assign teacher'}
                         </button>
@@ -2564,7 +2564,7 @@ export const HmDashboard = () => {
           <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-4">
             <div>
               <h4 className="text-sm font-bold text-[#102033] flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-[#006AC7]" />
+                <BookOpen className="w-4 h-4 text-[#4B7F3A]" />
                 Subject Teaching Assignments ({assignments?.activeAssignments?.length || 0})
               </h4>
               <p className="text-xs text-[#526477] mt-0.5">
@@ -2574,7 +2574,7 @@ export const HmDashboard = () => {
 
             {assignmentsLoading ? (
               <div className="flex items-center gap-2 text-sm text-[#526477]">
-                <Loader2 className="w-4 h-4 animate-spin text-[#006AC7]" /> Loading teaching assignments...
+                <Loader2 className="w-4 h-4 animate-spin text-[#4B7F3A]" /> Loading teaching assignments...
               </div>
             ) : (assignments?.activeAssignments?.length || 0) === 0 ? (
               <div className="p-6 text-center text-sm text-[#8094A8] bg-slate-50 rounded-xl">
@@ -2625,7 +2625,7 @@ export const HmDashboard = () => {
                           <td className="py-3 px-3 text-[#526477]">
                             {assignmentItem.sectionId?.name ? `Section ${assignmentItem.sectionId.name}` : 'Whole Class'}
                           </td>
-                          <td className="py-3 px-3 font-semibold text-[#006AC7]">{assignmentItem.subjectId?.name}</td>
+                          <td className="py-3 px-3 font-semibold text-[#38662D]">{assignmentItem.subjectId?.name}</td>
                           <td className="py-3 px-3 font-mono text-[#526477]">{assignmentItem.academicSession}</td>
                           <td className="py-3 px-3 text-right">
                             <button
@@ -2652,9 +2652,9 @@ export const HmDashboard = () => {
       {activeTab === 'attendance' && (
         <div className="space-y-6">
           {/* HM Daily Self-Attendance Bar */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-blue-50/80 via-slate-50 to-white border border-blue-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-[#F2F8EF]/80 via-slate-50 to-white border border-[#C9DFBC]/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3.5">
-              <div className="w-11 h-11 rounded-2xl bg-[#006AC7] text-white flex items-center justify-center font-black shadow-sm">
+              <div className="w-11 h-11 rounded-2xl bg-[#4B7F3A] text-white flex items-center justify-center font-black shadow-sm">
                 HM
               </div>
               <div>
@@ -2681,7 +2681,7 @@ export const HmDashboard = () => {
                   id="hm-self-attendance-mark-btn"
                   onClick={handleMarkHmSelfToday}
                   disabled={hmSelfMarking}
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white shadow-xs transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#4B7F3A] hover:bg-[#38662D] text-white shadow-xs transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
                 >
                   {hmSelfMarking ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
                   Record My Attendance Today
@@ -2707,7 +2707,7 @@ export const HmDashboard = () => {
                 onClick={() => setAttendanceSubTab('faculty')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition cursor-pointer ${
                   attendanceSubTab === 'faculty'
-                    ? 'bg-white text-[#006AC7] shadow-sm'
+                    ? 'bg-white text-[#4B7F3A] shadow-sm'
                     : 'text-[#526477] hover:text-[#102033]'
                 }`}
               >
@@ -2718,13 +2718,13 @@ export const HmDashboard = () => {
                 onClick={() => setAttendanceSubTab('staff-queue')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition cursor-pointer flex items-center gap-1.5 ${
                   attendanceSubTab === 'staff-queue'
-                    ? 'bg-white text-[#006AC7] shadow-sm'
+                    ? 'bg-white text-[#4B7F3A] shadow-sm'
                     : 'text-[#526477] hover:text-[#102033]'
                 }`}
               >
                 Staff Submissions Queue
                 {pendingStaffAttendance.length > 0 && (
-                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-[#006AC7] text-white">
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-black bg-[#4B7F3A] text-white">
                     {pendingStaffAttendance.length}
                   </span>
                 )}
@@ -2734,7 +2734,7 @@ export const HmDashboard = () => {
                 onClick={() => setAttendanceSubTab('leave-approvals')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition cursor-pointer flex items-center gap-1.5 ${
                   attendanceSubTab === 'leave-approvals'
-                    ? 'bg-white text-[#006AC7] shadow-sm'
+                    ? 'bg-white text-[#4B7F3A] shadow-sm'
                     : 'text-[#526477] hover:text-[#102033]'
                 }`}
               >
@@ -2750,7 +2750,7 @@ export const HmDashboard = () => {
                 onClick={() => setAttendanceSubTab('analytics')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition cursor-pointer ${
                   attendanceSubTab === 'analytics'
-                    ? 'bg-white text-[#006AC7] shadow-sm'
+                    ? 'bg-white text-[#4B7F3A] shadow-sm'
                     : 'text-[#526477] hover:text-[#102033]'
                 }`}
               >
@@ -2761,7 +2761,7 @@ export const HmDashboard = () => {
                 onClick={() => setAttendanceSubTab('student-register')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition cursor-pointer flex items-center gap-1.5 ${
                   attendanceSubTab === 'student-register'
-                    ? 'bg-white text-[#006AC7] shadow-sm'
+                    ? 'bg-white text-[#4B7F3A] shadow-sm'
                     : 'text-[#526477] hover:text-[#102033]'
                 }`}
               >
@@ -2779,7 +2779,7 @@ export const HmDashboard = () => {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
                   <div className="flex items-center gap-3">
                     <label className="text-xs font-bold text-[#102033] flex items-center gap-1.5">
-                      <Calendar className="w-4 h-4 text-[#006AC7]" /> Attendance Date:
+                      <Calendar className="w-4 h-4 text-[#4B7F3A]" /> Attendance Date:
                     </label>
                     <input
                       id="hm-teacher-attendance-date-picker"
@@ -2787,7 +2787,7 @@ export const HmDashboard = () => {
                       value={teacherAttendanceDate}
                       max={new Date().toISOString().split('T')[0]}
                       onChange={(changeEvent) => setTeacherAttendanceDate(changeEvent.target.value)}
-                      className="text-xs font-semibold px-3 py-1.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                      className="text-xs font-semibold px-3 py-1.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#4B7F3A]"
                     />
                     <button
                       onClick={() => setTeacherAttendanceDate(new Date().toISOString().split('T')[0])}
@@ -2808,7 +2808,7 @@ export const HmDashboard = () => {
                       id="hm-teacher-attendance-save-btn"
                       disabled={teacherAttendanceSaving || teacherAttendanceRecords.length === 0}
                       onClick={handleSaveTeacherAttendanceSubmit}
-                      className="px-4 py-1.5 rounded-xl text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white shadow-sm flex items-center gap-1.5 transition disabled:opacity-50 cursor-pointer"
+                      className="px-4 py-1.5 rounded-xl text-xs font-bold bg-[#4B7F3A] hover:bg-[#38662D] text-white shadow-sm flex items-center gap-1.5 transition disabled:opacity-50 cursor-pointer"
                     >
                       {teacherAttendanceSaving ? (
                         <>
@@ -2872,7 +2872,7 @@ export const HmDashboard = () => {
                     Faculty Attendance Roster ({teacherAttendanceRecords.length})
                   </h4>
                   {teacherAttendanceLoading && (
-                    <div className="flex items-center gap-1.5 text-xs text-[#006AC7]">
+                    <div className="flex items-center gap-1.5 text-xs text-[#4B7F3A]">
                       <Loader2 className="w-3.5 h-3.5 animate-spin" /> Loading register...
                     </div>
                   )}
@@ -2880,7 +2880,7 @@ export const HmDashboard = () => {
 
                 {teacherAttendanceLoading && teacherAttendanceRecords.length === 0 ? (
                   <div className="py-12 flex flex-col items-center justify-center gap-2 text-[#8094A8]">
-                    <Loader2 className="w-6 h-6 animate-spin text-[#006AC7]" />
+                    <Loader2 className="w-6 h-6 animate-spin text-[#4B7F3A]" />
                     <span className="text-xs">Loading faculty attendance records...</span>
                   </div>
                 ) : teacherAttendanceRecords.length === 0 ? (
@@ -2962,13 +2962,13 @@ export const HmDashboard = () => {
                                 value={recordItem.remarks}
                                 onChange={(changeEvent) => handleTeacherRemarksChange(recordItem.userId, changeEvent.target.value)}
                                 placeholder={
-                                  recordItem.status === 'LEAVE'
+                                   recordItem.status === 'LEAVE'
                                     ? 'Casual / Medical / Official leave reason...'
                                     : recordItem.status === 'LATE'
                                     ? 'Arrival delay reason / transit...'
                                     : 'Optional administrative remark...'
                                 }
-                                className="w-full max-w-sm px-3 py-1.5 rounded-lg text-xs border border-slate-200/80 bg-slate-50/50 focus:outline-none focus:ring-1 focus:ring-[#006AC7] focus:bg-white transition"
+                                className="w-full max-w-sm px-3 py-1.5 rounded-lg text-xs border border-slate-200/80 bg-slate-50/50 focus:outline-none focus:ring-1 focus:ring-[#4B7F3A] focus:bg-white transition"
                               />
                             </td>
                           </tr>
@@ -2988,21 +2988,21 @@ export const HmDashboard = () => {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
                   <div>
                     <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
-                      <Clock className="w-5 h-5 text-[#006AC7]" />
+                      <Clock className="w-5 h-5 text-[#4B7F3A]" />
                       Staff Attendance Submissions Queue
                     </h3>
                     <p className="text-xs text-[#526477] mt-0.5">
                       Daily self-submitted attendance records from school staff. 5-minute approval relaxation applies: reason optional within 5m, mandatory thereafter.
                     </p>
                   </div>
-                  <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-50 text-[#006AC7] border border-blue-200/60 self-start sm:self-auto">
+                  <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#F2F8EF] text-[#38662D] border border-[#C9DFBC]/60 self-start sm:self-auto">
                     {pendingStaffAttendance.length} Pending
                   </span>
                 </div>
 
                 {staffAttendanceLoading ? (
                   <div className="flex items-center gap-2 p-8 text-sm text-[#526477] justify-center">
-                    <Loader2 className="w-4 h-4 animate-spin text-[#006AC7]" /> Loading pending staff attendance...
+                    <Loader2 className="w-4 h-4 animate-spin text-[#4B7F3A]" /> Loading pending staff attendance...
                   </div>
                 ) : pendingStaffAttendance.length === 0 ? (
                   <div className="p-8 text-center text-sm text-[#8094A8] bg-slate-50 rounded-xl border border-slate-200/60">
@@ -3033,7 +3033,7 @@ export const HmDashboard = () => {
                               <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-[#526477]">
                                 {staffUser?.designation || record.staffRole || 'Faculty'}
                               </span>
-                              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-[#006AC7] border border-blue-200/60 uppercase">
+                              <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#F2F8EF] text-[#38662D] border border-[#C9DFBC]/60 uppercase">
                                 {record.staffCategory || 'SCHOOL_STAFF'}
                               </span>
                               {isLate ? (
@@ -3109,7 +3109,7 @@ export const HmDashboard = () => {
                       submitting: false,
                     });
                   }}
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white shadow-xs transition flex items-center gap-1.5 cursor-pointer shrink-0"
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#4B7F3A] hover:bg-[#38662D] text-white shadow-xs transition flex items-center gap-1.5 cursor-pointer shrink-0"
                 >
                   <PlusCircle className="w-4 h-4" /> Record Teacher CL / Absent
                 </button>
@@ -3161,7 +3161,7 @@ export const HmDashboard = () => {
 
                 {leaveRequestsLoading ? (
                   <div className="flex items-center gap-2 p-8 text-sm text-[#526477] justify-center">
-                    <Loader2 className="w-4 h-4 animate-spin text-[#006AC7]" /> Loading leave applications...
+                    <Loader2 className="w-4 h-4 animate-spin text-[#4B7F3A]" /> Loading leave applications...
                   </div>
                 ) : pendingLeaveRequests.length === 0 ? (
                   <div className="p-8 text-center text-sm text-[#8094A8] bg-slate-50 rounded-xl border border-slate-200/60">
@@ -3194,7 +3194,7 @@ export const HmDashboard = () => {
                                 className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
                                   isEl
                                     ? 'bg-purple-50 text-purple-700 border border-purple-200'
-                                    : 'bg-blue-50 text-[#006AC7] border border-blue-200'
+                                    : 'bg-[#F2F8EF] text-[#38662D] border border-[#C9DFBC]'
                                 }`}
                               >
                                 {isEl ? 'Earned Leave (EL)' : 'Casual Leave (CL)'}
@@ -3266,7 +3266,7 @@ export const HmDashboard = () => {
                                         })
                                       }
                                       disabled={leaveActionLoading}
-                                      className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white shadow-xs transition cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                                      className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#4B7F3A] hover:bg-[#38662D] text-white shadow-xs transition cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
                                     >
                                       <Send className="w-3.5 h-3.5" /> Recommend &amp; Forward
                                     </button>
@@ -3366,13 +3366,13 @@ export const HmDashboard = () => {
               </div>
 
               {attendanceLoading ? (
-                <div className="flex items-center gap-2 text-sm text-[#526477]"><Loader2 className="w-4 h-4 animate-spin text-[#006AC7]" /> Loading attendance analytics...</div>
+                <div className="flex items-center gap-2 text-sm text-[#526477]"><Loader2 className="w-4 h-4 animate-spin text-[#4B7F3A]" /> Loading attendance analytics...</div>
               ) : (
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60">
                       <span className="text-xs text-[#8094A8] font-bold uppercase block">Current Month Aggregate</span>
-                      <span className="text-2xl font-black text-[#006AC7]">{attendanceAnalytics?.aggregates?.currentMonthPct ?? '—'}%</span>
+                      <span className="text-2xl font-black text-[#4B7F3A]">{attendanceAnalytics?.aggregates?.currentMonthPct ?? '—'}%</span>
                     </div>
                     <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/60">
                       <span className="text-xs text-[#8094A8] font-bold uppercase block">Last Month Benchmark</span>
@@ -3430,7 +3430,7 @@ export const HmDashboard = () => {
             </div>
             <button
               onClick={() => setNewExamModal(true)}
-              className="px-4 py-2 rounded-xl text-xs font-bold bg-[#006AC7] text-white flex items-center gap-1.5 shadow-sm cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-bold bg-[#4B7F3A] hover:bg-[#38662D] text-white flex items-center gap-1.5 shadow-sm cursor-pointer transition"
             >
               <PlusCircle className="w-4 h-4" /> Schedule New Exam
             </button>
@@ -3446,12 +3446,12 @@ export const HmDashboard = () => {
                     key={ex._id}
                     onClick={() => handleSelectExam(ex._id)}
                     className={`p-3.5 rounded-xl border transition cursor-pointer ${
-                      selectedExamId === ex._id ? 'border-[#006AC7] bg-blue-50/40 ring-1 ring-[#006AC7]' : 'border-slate-200/60 bg-slate-50 hover:bg-slate-100/60'
+                      selectedExamId === ex._id ? 'border-[#4B7F3A] bg-[#F2F8EF]/60 ring-1 ring-[#4B7F3A]' : 'border-slate-200/60 bg-slate-50 hover:bg-slate-100/60'
                     }`}
                   >
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-bold text-[#102033]">{ex.title}</span>
-                      <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${ex.status === 'PUBLISHED' ? 'bg-emerald-50 text-[#4B7F3A]' : 'bg-blue-50 text-[#006AC7]'}`}>
+                      <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${ex.status === 'PUBLISHED' ? 'bg-emerald-50 text-[#4B7F3A]' : 'bg-[#F2F8EF] text-[#38662D]'}`}>
                         {ex.status}
                       </span>
                     </div>
@@ -3506,7 +3506,7 @@ export const HmDashboard = () => {
                           {unverifiedCount > 0 && (
                             <button
                               onClick={handleBatchVerifyMarks}
-                              className="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white transition cursor-pointer flex items-center gap-1.5 shadow-sm"
+                              className="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#4B7F3A] hover:bg-[#38662D] text-white transition cursor-pointer flex items-center gap-1.5 shadow-sm"
                             >
                               <CheckCircle2 className="w-3.5 h-3.5" /> Batch Verify ({unverifiedCount})
                             </button>
@@ -3514,7 +3514,7 @@ export const HmDashboard = () => {
                           {selectedExamId && (
                             <button
                               onClick={() => handlePublishGazette(selectedExamId)}
-                              className="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#4B7F3A] hover:bg-[#3d682f] text-white transition cursor-pointer flex items-center gap-1.5 shadow-sm"
+                              className="px-3 py-1.5 rounded-lg text-xs font-bold bg-[#4B7F3A] hover:bg-[#38662D] text-white transition cursor-pointer flex items-center gap-1.5 shadow-sm"
                             >
                               <Award className="w-3.5 h-3.5" /> Publish Gazette
                             </button>
@@ -3546,7 +3546,7 @@ export const HmDashboard = () => {
                       </div>
                       <div className="bg-white p-2.5 rounded-lg border border-slate-200/50 shadow-xs">
                         <span className="text-[10px] uppercase font-bold text-[#8094A8] block">Avg Score</span>
-                        <span className="text-sm font-bold text-[#006AC7]">{avgScore}%</span>
+                        <span className="text-sm font-bold text-[#4B7F3A]">{avgScore}%</span>
                       </div>
                     </div>
                   )}
@@ -3585,7 +3585,7 @@ export const HmDashboard = () => {
                         {(examClassFilter || examSectionFilter) && (
                           <button
                             onClick={() => handleExamFilterChange('', '')}
-                            className="text-[11px] text-[#006AC7] font-semibold hover:underline cursor-pointer"
+                            className="text-[11px] text-[#4B7F3A] font-semibold hover:underline cursor-pointer"
                           >
                             Clear Filters
                           </button>
@@ -3598,7 +3598,7 @@ export const HmDashboard = () => {
                           onClick={() => setExamViewMode('list')}
                           className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                             examViewMode === 'list'
-                              ? 'bg-[#006AC7] text-white shadow-xs'
+                              ? 'bg-[#4B7F3A] text-white shadow-xs'
                               : 'text-[#526477] hover:text-[#102033]'
                           }`}
                         >
@@ -3658,12 +3658,12 @@ export const HmDashboard = () => {
                                   ) : null}
                                 </td>
                                 <td className="py-2 px-2 font-mono">{resultRecord.totalObtainedMarks} / {resultRecord.totalMaxMarks}</td>
-                                <td className="py-2 px-2 font-bold text-[#006AC7]">{resultRecord.percentage}%</td>
+                                <td className="py-2 px-2 font-bold text-[#38662D]">{resultRecord.percentage}%</td>
                                 <td className="py-2 px-2 font-mono font-bold">{resultRecord.grade}</td>
                                 <td className="py-2 px-2">
                                   <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${
                                     resultRecord.status === 'PUBLISHED' ? 'bg-emerald-50 text-[#4B7F3A]' :
-                                    resultRecord.status === 'VERIFIED_BY_HM' ? 'bg-blue-50 text-[#006AC7]' :
+                                    resultRecord.status === 'VERIFIED_BY_HM' ? 'bg-[#F2F8EF] text-[#38662D] border border-[#C9DFBC]' :
                                     'bg-amber-50 text-amber-700'
                                   }`}>
                                     {resultRecord.status}
@@ -3684,7 +3684,7 @@ export const HmDashboard = () => {
                                     {resultRecord.status === 'SUBMITTED' && selectedExam?.status !== 'PUBLISHED' && (
                                       <button
                                         onClick={() => handleVerifyMarks(resultRecord._id)}
-                                        className="px-2 py-1 rounded bg-[#006AC7] text-white text-[10px] font-bold hover:bg-[#005299] transition cursor-pointer"
+                                        className="px-2 py-1 rounded bg-[#4B7F3A] text-white text-[10px] font-bold hover:bg-[#38662D] transition cursor-pointer"
                                       >
                                         Verify
                                       </button>
@@ -3701,7 +3701,7 @@ export const HmDashboard = () => {
                     /* ═══ TABULATION SPREADSHEET VIEW (IMAGE 2 REPLICA) ═══ */
                     !examClassFilter ? (
                       <div className="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-300 space-y-2">
-                        <FileSpreadsheet className="w-10 h-10 text-[#006AC7] mx-auto" />
+                        <FileSpreadsheet className="w-10 h-10 text-[#4B7F3A] mx-auto" />
                         <h4 className="text-sm font-bold text-[#102033]">Select a Class to Compile the Elementary Board Tabulation Sheet</h4>
                         <p className="text-xs text-[#526477] max-w-md mx-auto">
                           Centralized Elementary Board Tabulation Sheets are compiled class-wise in <strong>Legal Landscape format (14" × 8.5")</strong> with Islamiat sub-components (Nazra & Written), Drawing letter grade, auto-calculated percentage, Sindh Board grades, class rankings, and municipal statistics.
@@ -3709,14 +3709,14 @@ export const HmDashboard = () => {
                       </div>
                     ) : tabulationLoading ? (
                       <div className="p-12 text-center text-sm text-[#526477] flex items-center justify-center gap-2">
-                        <Loader2 className="w-5 h-5 animate-spin text-[#006AC7]" /> Compiling Elementary Board Tabulation Sheet...
+                        <Loader2 className="w-5 h-5 animate-spin text-[#4B7F3A]" /> Compiling Elementary Board Tabulation Sheet...
                       </div>
                     ) : !tabulationData || (tabulationData.rankedResults || []).length === 0 ? (
                       <div className="p-8 text-center text-sm text-[#8094A8] space-y-2">
                         <p>No student results recorded for this class in this examination.</p>
                         <button
                           onClick={() => loadTabulationSheetData(selectedExamId, examClassFilter, examSectionFilter)}
-                          className="text-xs text-[#006AC7] font-semibold hover:underline cursor-pointer inline-flex items-center gap-1"
+                          className="text-xs text-[#4B7F3A] font-semibold hover:underline cursor-pointer inline-flex items-center gap-1"
                         >
                           <RefreshCw className="w-3.5 h-3.5" /> Retry Loading
                         </button>
@@ -3837,7 +3837,7 @@ export const HmDashboard = () => {
                                     </td>
 
                                     {/* % AGE */}
-                                    <td className="py-2 px-1 border-r border-slate-200 font-bold text-[#006AC7]">
+                                    <td className="py-2 px-1 border-r border-slate-200 font-bold text-[#38662D]">
                                       {row.percentage}%
                                     </td>
 
@@ -3973,7 +3973,7 @@ export const HmDashboard = () => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
-                <ArrowLeftRight className="w-5 h-5 text-[#006AC7]" />
+                <ArrowLeftRight className="w-5 h-5 text-[#4B7F3A]" />
                 Incoming Staff Transfers
               </h3>
               <p className="text-xs text-[#526477] mt-0.5">
@@ -3995,7 +3995,7 @@ export const HmDashboard = () => {
               onClick={() => setTransferViewDirection('incoming')}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-2 ${
                 transferViewDirection === 'incoming'
-                  ? 'bg-white text-[#006AC7] shadow-sm'
+                  ? 'bg-white text-[#4B7F3A] shadow-sm'
                   : 'text-[#526477] hover:text-[#102033]'
               }`}
             >
@@ -4010,7 +4010,7 @@ export const HmDashboard = () => {
               onClick={() => setTransferViewDirection('outgoing')}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-2 ${
                 transferViewDirection === 'outgoing'
-                  ? 'bg-white text-[#006AC7] shadow-sm'
+                  ? 'bg-white text-[#4B7F3A] shadow-sm'
                   : 'text-[#526477] hover:text-[#102033]'
               }`}
             >
@@ -4020,7 +4020,7 @@ export const HmDashboard = () => {
               onClick={() => setTransferViewDirection('history')}
               className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-2 ${
                 transferViewDirection === 'history'
-                  ? 'bg-white text-[#006AC7] shadow-sm'
+                  ? 'bg-white text-[#4B7F3A] shadow-sm'
                   : 'text-[#526477] hover:text-[#102033]'
               }`}
             >
@@ -4032,7 +4032,7 @@ export const HmDashboard = () => {
           <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-4">
             {transfersLoading ? (
               <div className="py-12 text-center text-sm text-[#526477] flex items-center justify-center gap-2">
-                <Loader2 className="w-4 h-4 animate-spin text-[#006AC7]" />
+                <Loader2 className="w-4 h-4 animate-spin text-[#4B7F3A]" />
                 Loading staff transfers...
               </div>
             ) : transfers.length === 0 ? (
@@ -4075,7 +4075,7 @@ export const HmDashboard = () => {
                             </span>
                           )}
                           {tr.officialOrderNumber && (
-                            <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-blue-50 text-[#006AC7] border border-blue-200">
+                            <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-[#F2F8EF] text-[#38662D] border border-[#C9DFBC]">
                               Order #{tr.officialOrderNumber}
                             </span>
                           )}
@@ -4101,7 +4101,7 @@ export const HmDashboard = () => {
                             {tr.fromSchoolId?.name || 'Previous School'}
                           </span>
                           <ArrowLeftRight className="w-3.5 h-3.5 text-slate-400" />
-                          <span className="font-semibold text-[#006AC7]">
+                          <span className="font-semibold text-[#38662D]">
                             {tr.toSchoolId?.name || 'Destination School'}
                           </span>
                         </div>
@@ -4139,7 +4139,7 @@ export const HmDashboard = () => {
                                 clearanceCertified: false,
                               })
                             }
-                            className="px-4 py-2 rounded-xl text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white transition cursor-pointer shadow-sm"
+                            className="px-4 py-2 rounded-xl text-xs font-bold bg-[#4B7F3A] hover:bg-[#38662D] text-white transition cursor-pointer shadow-sm"
                           >
                             Relieve staff
                           </button>
@@ -4203,7 +4203,7 @@ export const HmDashboard = () => {
             </div>
             <button
               onClick={() => setNewNoticeModal(true)}
-              className="px-4 py-2 rounded-xl text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white flex items-center gap-1.5 shadow-sm transition cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-bold bg-[#4B7F3A] hover:bg-[#38662D] text-white flex items-center gap-1.5 shadow-sm transition cursor-pointer"
             >
               <PlusCircle className="w-4 h-4" /> Publish Circular
             </button>
@@ -4217,7 +4217,7 @@ export const HmDashboard = () => {
                 onClick={() => setNoticeCategoryFilter('all')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
                   noticeCategoryFilter === 'all'
-                    ? 'bg-white text-[#006AC7] shadow-sm'
+                    ? 'bg-white text-[#4B7F3A] shadow-sm'
                     : 'text-[#526477] hover:text-[#102033]'
                 }`}
               >
@@ -4252,7 +4252,7 @@ export const HmDashboard = () => {
                 <select
                   value={noticeTypeFilter}
                   onChange={(changeEvent) => setNoticeTypeFilter(changeEvent.target.value)}
-                  className="text-xs p-2 rounded-xl border border-slate-200 bg-white font-medium text-[#102033] focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                  className="text-xs p-2 rounded-xl border border-slate-200 bg-white font-medium text-[#102033] focus:outline-none focus:ring-1 focus:ring-[#4B7F3A]"
                 >
                   <option value="">All Document Types</option>
                   <option value="CIRCULAR">Circulars</option>
@@ -4270,7 +4270,7 @@ export const HmDashboard = () => {
                   onChange={(changeEvent) => setNoticeSearchQuery(changeEvent.target.value)}
                   placeholder="Search notices..."
                   maxLength={100}
-                  className="w-full text-xs pl-8 pr-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                  className="w-full text-xs pl-8 pr-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#4B7F3A]"
                 />
               </div>
             </div>
@@ -4286,7 +4286,7 @@ export const HmDashboard = () => {
 
             {noticesLoading ? (
               <div className="flex items-center justify-center py-12 gap-2 text-sm text-[#526477]">
-                <Loader2 className="w-5 h-5 animate-spin text-[#006AC7]" /> Loading official notice board...
+                <Loader2 className="w-5 h-5 animate-spin text-[#4B7F3A]" /> Loading official notice board...
               </div>
             ) : notices.length === 0 ? (
               <div className="p-12 text-center text-sm text-[#8094A8] bg-slate-50 rounded-2xl border border-dashed border-slate-200">
@@ -4476,7 +4476,7 @@ export const HmDashboard = () => {
                 onChange={(changeEvent) => setApprovalRemarks(changeEvent.target.value)}
                 placeholder="Required when rejecting or requesting correction..."
                 rows={3}
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#4B7F3A]"
               />
             </div>
             <div className="flex justify-end gap-2 pt-2">
@@ -4511,7 +4511,7 @@ export const HmDashboard = () => {
               <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
                 {parentLinkModal.action === 'verify' && (
                   <>
-                    <ShieldCheck className="w-5 h-5 text-[#006AC7]" />
+                    <ShieldCheck className="w-5 h-5 text-[#4B7F3A]" />
                     Verify Parent-Student Relationship
                   </>
                 )}
@@ -4540,7 +4540,7 @@ export const HmDashboard = () => {
             <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 space-y-2 text-xs">
               <div className="flex justify-between items-center">
                 <span className="font-semibold text-[#102033]">Applicant Parent:</span>
-                <span className="font-bold text-[#006AC7]">{parentLinkModal.claim.parentId?.fullName}</span>
+                <span className="font-bold text-[#38662D]">{parentLinkModal.claim.parentId?.fullName}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="font-semibold text-[#102033]">Claimed Relationship:</span>
@@ -4577,7 +4577,7 @@ export const HmDashboard = () => {
                       onChange={(event) =>
                         setParentLinkModal((prev) => ({ ...prev, bFormVerified: event.target.checked }))
                       }
-                      className="mt-0.5 rounded border-slate-300 text-[#006AC7] focus:ring-[#006AC7] cursor-pointer"
+                      className="mt-0.5 rounded border-slate-300 text-[#4B7F3A] focus:ring-[#4B7F3A] cursor-pointer"
                     />
                     <span>
                       <strong className="block text-[#102033]">Physical NADRA B-Form / Birth Record Inspected</strong>
@@ -4594,7 +4594,7 @@ export const HmDashboard = () => {
                       onChange={(event) =>
                         setParentLinkModal((prev) => ({ ...prev, guardianCnicVerified: event.target.checked }))
                       }
-                      className="mt-0.5 rounded border-slate-300 text-[#006AC7] focus:ring-[#006AC7] cursor-pointer"
+                      className="mt-0.5 rounded border-slate-300 text-[#4B7F3A] focus:ring-[#4B7F3A] cursor-pointer"
                     />
                     <span>
                       <strong className="block text-[#102033]">Physical Parent / Guardian CNIC Verified</strong>
@@ -4616,7 +4616,7 @@ export const HmDashboard = () => {
                       setParentLinkModal((prev) => ({ ...prev, remarks: event.target.value }))
                     }
                     placeholder="e.g., Original NADRA B-Form & Father CNIC inspected in office."
-                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#4B7F3A]"
                   />
                 </div>
               </div>
@@ -4645,7 +4645,7 @@ export const HmDashboard = () => {
                       : 'Specify reason for revocation of previously verified relationship.'
                   }
                   rows={3}
-                  className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#4B7F3A]"
                 />
               </div>
             )}
@@ -4734,7 +4734,7 @@ export const HmDashboard = () => {
               </div>
               <div className="flex justify-between">
                 <span className="text-[#8094A8]">GR Number:</span>
-                <span className="font-mono font-bold text-[#006AC7]">{selectedStudentForStrikeOff.grNumber}</span>
+                <span className="font-mono font-bold text-[#38662D]">{selectedStudentForStrikeOff.grNumber}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-[#8094A8]">Global ID:</span>
@@ -4812,11 +4812,11 @@ export const HmDashboard = () => {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 backdrop-blur-sm animate-modal-backdrop">
           <form onSubmit={handleAssignClassTeacherSubmit} className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4 animate-modal-card text-[#102033]">
             <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-              <UserCheck className="w-5 h-5 text-[#006AC7]" />
+              <UserCheck className="w-5 h-5 text-[#4B7F3A]" />
               <h3 className="text-base font-bold text-[#102033]">Designate Class Teacher</h3>
             </div>
 
-            <div className="p-3 bg-blue-50/70 border border-blue-200/80 rounded-xl space-y-1 text-xs">
+            <div className="p-3 bg-[#F2F8EF]/70 border border-[#C9DFBC]/80 rounded-xl space-y-1 text-xs">
               <p className="font-bold text-[#102033]">
                 {classTeacherModal.className} — Section {classTeacherModal.sectionName}
               </p>
@@ -4834,7 +4834,7 @@ export const HmDashboard = () => {
                 onChange={(changeEvent) =>
                   setClassTeacherModal({ ...classTeacherModal, classTeacherId: changeEvent.target.value })
                 }
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#4B7F3A]"
               >
                 <option value="">-- No Class Teacher (Unassigned) --</option>
                 {faculty.map((teacher) => (
@@ -4856,7 +4856,7 @@ export const HmDashboard = () => {
               <button
                 type="submit"
                 disabled={classTeacherSubmitting}
-                className="px-4 py-1.5 rounded-lg text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white cursor-pointer shadow-xs disabled:opacity-50"
+                className="px-4 py-1.5 rounded-lg text-xs font-bold bg-[#4B7F3A] hover:bg-[#38662D] text-white cursor-pointer shadow-xs disabled:opacity-50"
               >
                 {classTeacherSubmitting ? 'Saving...' : 'Save designation'}
               </button>
@@ -4876,7 +4876,7 @@ export const HmDashboard = () => {
                 value={dutyData.classId}
                 onChange={(changeEvent) => setDutyData({ ...dutyData, classId: changeEvent.target.value, sectionId: '', subjectId: '' })}
                 required
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#4B7F3A]"
               >
                 <option value="">-- Choose Class --</option>
                 {scopedClasses.length === 0 ? (
@@ -4894,7 +4894,7 @@ export const HmDashboard = () => {
                 value={dutyData.sectionId}
                 onChange={(changeEvent) => setDutyData({ ...dutyData, sectionId: changeEvent.target.value })}
                 disabled={!dutyData.classId}
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7] disabled:bg-slate-50 disabled:text-slate-400"
+                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#4B7F3A] disabled:bg-slate-50 disabled:text-slate-400"
               >
                 {!dutyData.classId ? (
                   <option value="">-- Select Class First --</option>
@@ -4915,7 +4915,7 @@ export const HmDashboard = () => {
                 onChange={(changeEvent) => setDutyData({ ...dutyData, subjectId: changeEvent.target.value })}
                 required
                 disabled={!dutyData.classId}
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7] disabled:bg-slate-50 disabled:text-slate-400"
+                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#4B7F3A] disabled:bg-slate-50 disabled:text-slate-400"
               >
                 {!dutyData.classId ? (
                   <option value="">-- Select Class First --</option>
@@ -4940,7 +4940,7 @@ export const HmDashboard = () => {
                 value={dutyData.teacherId}
                 onChange={(changeEvent) => setDutyData({ ...dutyData, teacherId: changeEvent.target.value })}
                 required
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#4B7F3A]"
               >
                 <option value="">-- Choose Faculty Teacher --</option>
                 {faculty.map((teacher) => (
@@ -4953,7 +4953,7 @@ export const HmDashboard = () => {
 
             <div className="flex justify-end gap-2 pt-2">
               <button type="button" onClick={() => setAssignDutyModal(false)} className="px-3 py-1.5 rounded-lg text-xs font-semibold text-[#526477]">Cancel</button>
-              <button type="submit" className="px-4 py-1.5 rounded-lg text-xs font-bold bg-[#006AC7] text-white">Confirm Assignment</button>
+              <button type="submit" className="px-4 py-1.5 rounded-lg text-xs font-bold bg-[#4B7F3A] hover:bg-[#38662D] text-white transition cursor-pointer">Confirm Assignment</button>
             </div>
           </form>
         </div>
@@ -5000,7 +5000,7 @@ export const HmDashboard = () => {
                 value={endDutyModal.reason}
                 onChange={(event) => setEndDutyModal((prev) => ({ ...prev, reason: event.target.value }))}
                 placeholder="Enter justification (e.g., Curriculum reassignment, session conclusion)..."
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7] resize-none"
+                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#4B7F3A] resize-none"
                 autoFocus
               />
             </div>
@@ -5096,7 +5096,7 @@ export const HmDashboard = () => {
             </div>
             <div className="flex justify-end gap-2 pt-2">
               <button type="button" onClick={() => setNewExamModal(false)} className="px-3 py-1.5 rounded-lg text-xs font-semibold text-[#526477]">Cancel</button>
-              <button type="submit" className="px-4 py-1.5 rounded-lg text-xs font-bold bg-[#006AC7] text-white">Schedule</button>
+              <button type="submit" className="px-4 py-1.5 rounded-lg text-xs font-bold bg-[#4B7F3A] hover:bg-[#38662D] text-white transition cursor-pointer">Schedule</button>
             </div>
           </form>
         </div>
@@ -5146,7 +5146,7 @@ export const HmDashboard = () => {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4 border border-slate-200">
             <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
-              <ArrowLeftRight className="w-5 h-5 text-[#006AC7]" />
+              <ArrowLeftRight className="w-5 h-5 text-[#4B7F3A]" />
               Relieve Departing Staff Member
             </h3>
             <div className="text-xs text-[#526477] bg-slate-50 p-3 rounded-xl border space-y-1">
@@ -5187,7 +5187,7 @@ export const HmDashboard = () => {
                 value={relieveModal.relievingRemarks}
                 onChange={(changeEvent) => setRelieveModal({ ...relieveModal, relievingRemarks: changeEvent.target.value })}
                 placeholder="Certified all registers, keys, and municipal materials returned in good order."
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#4B7F3A]"
               />
             </div>
 
@@ -5197,7 +5197,7 @@ export const HmDashboard = () => {
                   type="checkbox"
                   checked={relieveModal.clearanceCertified}
                   onChange={(changeEvent) => setRelieveModal({ ...relieveModal, clearanceCertified: changeEvent.target.checked })}
-                  className="mt-0.5 rounded text-[#006AC7] focus:ring-[#006AC7]"
+                  className="mt-0.5 rounded text-[#4B7F3A] focus:ring-[#4B7F3A]"
                 />
                 <span className="text-xs font-semibold text-amber-900 leading-tight">
                   I formally certify that this staff member has completed all institutional clearances and handed over duties.
@@ -5215,7 +5215,7 @@ export const HmDashboard = () => {
               <button
                 onClick={handleConfirmRelieving}
                 disabled={!relieveModal.clearanceCertified}
-                className="px-4 py-1.5 rounded-lg text-xs font-bold bg-[#006AC7] hover:bg-[#005299] disabled:bg-slate-300 text-white transition shadow-sm cursor-pointer"
+                className="px-4 py-1.5 rounded-lg text-xs font-bold bg-[#4B7F3A] hover:bg-[#38662D] disabled:bg-slate-300 text-white transition shadow-sm cursor-pointer"
               >
                 Confirm relieving
               </button>
@@ -5286,7 +5286,7 @@ export const HmDashboard = () => {
                     type="button"
                     onClick={() => setShowNoticePreview(false)}
                     className={`px-2.5 py-1 rounded-md font-bold transition cursor-pointer ${
-                      !showNoticePreview ? 'bg-white text-[#006AC7] shadow-xs' : 'text-slate-500 hover:text-slate-700'
+                      !showNoticePreview ? 'bg-white text-[#4B7F3A] shadow-xs' : 'text-slate-500 hover:text-slate-700'
                     }`}
                   >
                     Form
@@ -5387,7 +5387,7 @@ export const HmDashboard = () => {
                     placeholder="e.g. Annual Sports Day Schedule 2026"
                     required
                     maxLength={200}
-                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#4B7F3A]"
                   />
                 </div>
 
@@ -5400,7 +5400,7 @@ export const HmDashboard = () => {
                       onChange={(changeEvent) => setNoticeData({ ...noticeData, referenceNumber: changeEvent.target.value })}
                       placeholder="e.g. HM/CIR/2026/01"
                       maxLength={50}
-                      className="w-full text-xs p-2.5 rounded-xl border border-slate-200 font-mono focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                      className="w-full text-xs p-2.5 rounded-xl border border-slate-200 font-mono focus:outline-none focus:ring-1 focus:ring-[#4B7F3A]"
                     />
                   </div>
 
@@ -5409,7 +5409,7 @@ export const HmDashboard = () => {
                     <select
                       value={noticeData.documentType}
                       onChange={(changeEvent) => setNoticeData({ ...noticeData, documentType: changeEvent.target.value })}
-                      className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-white font-medium text-[#102033] focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                      className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-white font-medium text-[#102033] focus:outline-none focus:ring-1 focus:ring-[#4B7F3A]"
                     >
                       <option value="CIRCULAR">Circular</option>
                       <option value="NOTIFICATION">Notification</option>
@@ -5425,7 +5425,7 @@ export const HmDashboard = () => {
                     <select
                       value={noticeData.priority}
                       onChange={(changeEvent) => setNoticeData({ ...noticeData, priority: changeEvent.target.value })}
-                      className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-white font-medium text-[#102033] focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                      className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-white font-medium text-[#102033] focus:outline-none focus:ring-1 focus:ring-[#4B7F3A]"
                     >
                       <option value="NORMAL">Normal Priority</option>
                       <option value="URGENT">Urgent (Pins Notice)</option>
@@ -5438,7 +5438,7 @@ export const HmDashboard = () => {
                       type="date"
                       value={noticeData.effectiveDate}
                       onChange={(changeEvent) => setNoticeData({ ...noticeData, effectiveDate: changeEvent.target.value })}
-                      className="w-full text-xs p-2 rounded-xl border border-slate-200 bg-white font-medium text-[#102033] focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                      className="w-full text-xs p-2 rounded-xl border border-slate-200 bg-white font-medium text-[#102033] focus:outline-none focus:ring-1 focus:ring-[#4B7F3A]"
                     />
                   </div>
                 </div>
@@ -5449,7 +5449,7 @@ export const HmDashboard = () => {
                     <select
                       value={noticeData.displayDuration}
                       onChange={(changeEvent) => setNoticeData({ ...noticeData, displayDuration: changeEvent.target.value })}
-                      className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-white font-medium text-[#102033] focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                      className="w-full text-xs p-2.5 rounded-xl border border-slate-200 bg-white font-medium text-[#102033] focus:outline-none focus:ring-1 focus:ring-[#4B7F3A]"
                     >
                       <option value="1_DAY">24 Hours (1 Day)</option>
                       <option value="3_DAYS">3 Days (Urgent)</option>
@@ -5475,7 +5475,7 @@ export const HmDashboard = () => {
                       type="datetime-local"
                       value={noticeData.customExpiresAt}
                       onChange={(changeEvent) => setNoticeData({ ...noticeData, customExpiresAt: changeEvent.target.value })}
-                      className="w-full text-xs p-2 rounded-xl border border-slate-200 bg-white font-medium text-[#102033] focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                      className="w-full text-xs p-2 rounded-xl border border-slate-200 bg-white font-medium text-[#102033] focus:outline-none focus:ring-1 focus:ring-[#4B7F3A]"
                     />
                   </div>
                 )}
@@ -5498,7 +5498,7 @@ export const HmDashboard = () => {
                           type="checkbox"
                           checked={noticeData.targetAudience.includes(roleGroup.roleKey)}
                           onChange={() => handleToggleAudience(roleGroup.roleKey)}
-                          className="rounded text-[#006AC7] focus:ring-[#006AC7]"
+                          className="rounded text-[#4B7F3A] focus:ring-[#4B7F3A]"
                         />
                         <span className="font-semibold text-slate-700">{roleGroup.label}</span>
                       </label>
@@ -5517,7 +5517,7 @@ export const HmDashboard = () => {
                     rows={3}
                     placeholder="Detailed instructions or description..."
                     maxLength={2000}
-                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                    className="w-full text-xs p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-1 focus:ring-[#4B7F3A]"
                   />
                 </div>
 
@@ -5528,7 +5528,7 @@ export const HmDashboard = () => {
                     type="file"
                     accept=".pdf,image/jpeg,image/png,image/webp"
                     onChange={(changeEvent) => setSelectedNoticeFile(changeEvent.target.files?.[0] || null)}
-                    className="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-blue-50 file:text-[#006AC7] hover:file:bg-blue-100 cursor-pointer"
+                    className="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#F2F8EF] file:text-[#38662D] hover:file:bg-[#E4F2DC] cursor-pointer"
                   />
                   <p className="text-[10px] text-[#8094A8] mt-1">
                     Supported: PDF, JPEG, PNG, WebP (Max: 10MB). Magic bytes validation active.
@@ -5552,7 +5552,7 @@ export const HmDashboard = () => {
               <button
                 type="submit"
                 disabled={isPublishingNotice}
-                className="px-5 py-2 rounded-xl text-xs font-bold bg-[#006AC7] hover:bg-[#005299] disabled:opacity-60 text-white shadow-sm transition flex items-center gap-2 cursor-pointer"
+                className="px-5 py-2 rounded-xl text-xs font-bold bg-[#4B7F3A] hover:bg-[#38662D] disabled:opacity-60 text-white shadow-sm transition flex items-center gap-2 cursor-pointer"
               >
                 {isPublishingNotice ? (
                   <>
@@ -5587,7 +5587,7 @@ export const HmDashboard = () => {
           <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
-                <QrCode className="w-5 h-5 text-[#006AC7]" />
+                <QrCode className="w-5 h-5 text-[#4B7F3A]" />
                 Configure School Code
               </h3>
               <button onClick={() => setSchoolCodeModalOpen(false)} className="text-[#8094A8] hover:text-[#102033] cursor-pointer">
@@ -5606,7 +5606,7 @@ export const HmDashboard = () => {
                   onChange={(changeEvent) => setNewSchoolCodeInput(changeEvent.target.value.toUpperCase())}
                   placeholder="e.g. LMGA"
                   maxLength={10}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 font-mono uppercase text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#006AC7]/20 focus:border-[#006AC7]"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 font-mono uppercase text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#4B7F3A]/20 focus:border-[#4B7F3A]"
                   required
                 />
               </div>
@@ -5620,7 +5620,7 @@ export const HmDashboard = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white transition cursor-pointer"
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#4B7F3A] hover:bg-[#38662D] text-white transition cursor-pointer"
                 >
                   Save & Backfill IDs
                 </button>
@@ -5713,7 +5713,7 @@ export const HmDashboard = () => {
                     setStaffLateApprovalModal((previousState) => ({ ...previousState, reason: textEvent.target.value }))
                   }
                   placeholder="e.g. Verified physically on assembly ground, delayed due to morning inspection rounds..."
-                  className="w-full p-3 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#006AC7]/20 focus:border-[#006AC7] transition"
+                  className="w-full p-3 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#4B7F3A]/20 focus:border-[#4B7F3A] transition"
                   required
                   minLength={5}
                 />
@@ -5732,7 +5732,7 @@ export const HmDashboard = () => {
                 <button
                   type="submit"
                   disabled={staffLateApprovalModal.submitting}
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white shadow-xs transition cursor-pointer flex items-center gap-1.5 disabled:opacity-60"
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#4B7F3A] hover:bg-[#38662D] text-white shadow-xs transition cursor-pointer flex items-center gap-1.5 disabled:opacity-60"
                 >
                   {staffLateApprovalModal.submitting ? (
                     <>
@@ -5923,10 +5923,8 @@ export const HmDashboard = () => {
                       : 'e.g. Critical exam duty scheduled; please reschedule...'
                   }
                   className={`w-full p-3 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 transition ${
-                    leaveDecisionModal.action === 'approve'
-                      ? 'focus:ring-[#006AC7]/20 focus:border-[#006AC7]'
-                      : leaveDecisionModal.action === 'forward'
-                      ? 'focus:ring-blue-500/20 focus:border-[#006AC7]'
+                    leaveDecisionModal.action === 'approve' || leaveDecisionModal.action === 'forward'
+                      ? 'focus:ring-[#4B7F3A]/20 focus:border-[#4B7F3A]'
                       : leaveDecisionModal.action === 'correct'
                       ? 'focus:ring-indigo-500/20 focus:border-indigo-500'
                       : 'focus:ring-rose-500/20 focus:border-rose-500'
@@ -5954,10 +5952,8 @@ export const HmDashboard = () => {
                   type="submit"
                   disabled={leaveDecisionModal.submitting}
                   className={`px-4 py-2 rounded-xl text-xs font-bold text-white shadow-xs transition cursor-pointer flex items-center gap-1.5 disabled:opacity-60 ${
-                    leaveDecisionModal.action === 'approve'
-                      ? 'bg-[#4B7F3A] hover:bg-[#3d682f]'
-                      : leaveDecisionModal.action === 'forward'
-                      ? 'bg-[#006AC7] hover:bg-[#005299]'
+                    leaveDecisionModal.action === 'approve' || leaveDecisionModal.action === 'forward'
+                      ? 'bg-[#4B7F3A] hover:bg-[#38662D]'
                       : leaveDecisionModal.action === 'correct'
                       ? 'bg-indigo-600 hover:bg-indigo-700'
                       : 'bg-rose-600 hover:bg-rose-700'
@@ -5990,7 +5986,7 @@ export const HmDashboard = () => {
           <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-200 p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-bold text-[#102033] flex items-center gap-2">
-                <PlusCircle className="w-5 h-5 text-[#006AC7]" />
+                <PlusCircle className="w-5 h-5 text-[#4B7F3A]" />
                 Record Teacher CL / Absent
               </h3>
               <button
@@ -6035,7 +6031,7 @@ export const HmDashboard = () => {
                       targetTeacherUserId: selectEvent.target.value,
                     }))
                   }
-                  className="w-full text-xs p-2.5 rounded-xl border border-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-[#006AC7]/20 focus:border-[#006AC7]"
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-[#4B7F3A]/20 focus:border-[#4B7F3A]"
                   required
                 >
                   <option value="">-- Select Teacher --</option>
@@ -6061,7 +6057,7 @@ export const HmDashboard = () => {
                       attendanceDate: dateChangeEvent.target.value,
                     }))
                   }
-                  className="w-full text-xs p-2.5 rounded-xl border border-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-[#006AC7]/20 focus:border-[#006AC7]"
+                  className="w-full text-xs p-2.5 rounded-xl border border-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-[#4B7F3A]/20 focus:border-[#4B7F3A]"
                   required
                 />
               </div>
@@ -6080,7 +6076,7 @@ export const HmDashboard = () => {
                     }
                     className={`p-3 rounded-xl border text-xs font-bold text-left transition flex items-center gap-2 cursor-pointer ${
                       !hmInitiateModal.hmInitiatedAbsentInstead
-                        ? 'border-[#006AC7] bg-blue-50/70 text-[#006AC7]'
+                        ? 'border-[#4B7F3A] bg-[#F2F8EF] text-[#38662D]'
                         : 'border-slate-200 hover:bg-slate-50 text-[#526477]'
                     }`}
                   >
@@ -6133,7 +6129,7 @@ export const HmDashboard = () => {
                       ? 'e.g. Teacher failed to report for duty without notification or leave approval...'
                       : 'e.g. Verbal emergency leave request received via phone...'
                   }
-                  className="w-full p-2.5 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#006AC7]/20 focus:border-[#006AC7]"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-[#4B7F3A]/20 focus:border-[#4B7F3A]"
                   required
                   minLength={3}
                 />
@@ -6161,7 +6157,7 @@ export const HmDashboard = () => {
                 <button
                   type="submit"
                   disabled={hmInitiateModal.submitting}
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#006AC7] hover:bg-[#005299] text-white shadow-xs transition cursor-pointer flex items-center gap-1.5 disabled:opacity-60"
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-[#4B7F3A] hover:bg-[#38662D] text-white shadow-xs transition cursor-pointer flex items-center gap-1.5 disabled:opacity-60"
                 >
                   {hmInitiateModal.submitting ? (
                     <>

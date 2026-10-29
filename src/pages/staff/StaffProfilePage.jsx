@@ -207,7 +207,7 @@ export const StaffProfilePage = () => {
     return (
       <PageContainer>
         <div className="p-16 text-center text-[#526477]">
-          <Clock className="w-8 h-8 animate-spin mx-auto mb-3 text-[#006AC7]" />
+          <Clock className="w-8 h-8 animate-spin mx-auto mb-3 text-[#4B7F3A]" />
           <p className="text-xs font-semibold">Loading official service record dossier...</p>
         </div>
       </PageContainer>
@@ -227,7 +227,7 @@ export const StaffProfilePage = () => {
           </p>
           <Link
             to={canAccessDirectory ? '/directory' : '/dashboard'}
-            className="inline-block text-xs font-bold text-[#006AC7] hover:underline"
+            className="inline-block text-xs font-bold text-[#38662D] hover:underline"
           >
             &larr; {canAccessDirectory ? 'Return to Staff Directory' : 'Return to Dashboard'}
           </Link>
@@ -294,7 +294,7 @@ export const StaffProfilePage = () => {
                   onClick={() => setIsPrivacyModalOpen(true)}
                   className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-[#102033] text-xs font-semibold transition-colors shadow-xs"
                 >
-                  <Settings className="w-4 h-4 text-[#006AC7]" />
+                  <Settings className="w-4 h-4 text-[#4B7F3A]" />
                   Privacy &amp; ABAC Settings
                 </button>
               )}
@@ -306,7 +306,7 @@ export const StaffProfilePage = () => {
                   onClick={() => setIsSecurityModalOpen(true)}
                   className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-[#102033] text-xs font-semibold transition-colors shadow-xs"
                 >
-                  <Shield className="w-4 h-4 text-[#006AC7]" />
+                  <Shield className="w-4 h-4 text-[#4B7F3A]" />
                   Security &amp; Sessions
                 </button>
               )}
@@ -318,7 +318,7 @@ export const StaffProfilePage = () => {
                   onClick={handleDownloadClick}
                   disabled={isDownloadingPdf}
                   className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white text-xs font-bold transition-all shadow-sm disabled:opacity-50 ${canDirectDownloadPdf
-                      ? 'bg-[#006AC7] hover:bg-[#005299]'
+                      ? 'bg-[#4B7F3A] hover:bg-[#38662D]'
                       : 'bg-amber-600 hover:bg-amber-700'
                     }`}
                 >
@@ -384,14 +384,14 @@ export const StaffProfilePage = () => {
             {isColleagueView ? (
               <div className="space-y-6">
                 {/* Academic Coordination Banner */}
-                <div className="bg-blue-50/70 border border-blue-200/80 rounded-2xl p-4 shadow-sm flex items-center justify-between text-xs text-[#006AC7]">
+                <div className="bg-[#F2F8EF] border border-[#C9DFBC] rounded-2xl p-4 shadow-sm flex items-center justify-between text-xs text-[#38662D]">
                   <div className="flex items-center gap-2">
                     <BookOpen className="w-4 h-4 flex-shrink-0" />
                     <span className="font-semibold">
                       School Directory &bull; Academic Coordination &amp; Teaching Roster
                     </span>
                   </div>
-                  <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-[#005299] text-[10px] font-bold">
+                  <span className="px-2.5 py-0.5 rounded-full bg-[#E4F2DC] text-[#294D22] text-[10px] font-bold">
                     Faculty View
                   </span>
                 </div>
@@ -399,7 +399,7 @@ export const StaffProfilePage = () => {
                 {/* Academic & Faculty Details Card */}
                 <div className="bg-white border border-slate-200/80 rounded-2xl p-5 space-y-4 shadow-sm">
                   <h3 className="text-xs font-bold uppercase tracking-wider text-[#102033] flex items-center gap-2 border-b border-slate-100 pb-2.5">
-                    <GraduationCap className="w-4 h-4 text-[#006AC7]" />
+                    <GraduationCap className="w-4 h-4 text-[#4B7F3A]" />
                     Faculty Academic Details
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
@@ -410,7 +410,7 @@ export const StaffProfilePage = () => {
 
                     <div>
                       <span className="text-[#526477] block text-[11px] font-medium">Official Designation</span>
-                      <span className="font-bold text-[#006AC7]">{user?.designation || 'Teacher'}</span>
+                      <span className="font-bold text-[#38662D]">{user?.designation || 'Teacher'}</span>
                     </div>
 
                     <div>
@@ -441,7 +441,7 @@ export const StaffProfilePage = () => {
                 {/* Sensitive Fields Visibility Toggle Bar */}
                 <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                   <span className="text-[#8094A8] text-[11px] font-medium flex items-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-[#006AC7]" />
+                    <ShieldCheck className="w-3.5 h-3.5 text-[#4B7F3A]" />
                     Education Department Liaquatabad Town Centre &bull; Field-Level ABAC Protection
                   </span>
 
@@ -449,7 +449,7 @@ export const StaffProfilePage = () => {
                     <button
                       type="button"
                       onClick={() => setShowSensitiveFields(!showSensitiveFields)}
-                      className="inline-flex items-center gap-1.5 text-xs text-[#006AC7] hover:underline font-bold self-start sm:self-auto"
+                      className="inline-flex items-center gap-1.5 text-xs text-[#38662D] hover:underline font-bold self-start sm:self-auto"
                     >
                       {showSensitiveFields ? (
                         <EyeOff className="w-3.5 h-3.5" />
@@ -466,7 +466,7 @@ export const StaffProfilePage = () => {
                   {/* Personal Identification (Card 1) */}
                   <div className="bg-white border border-slate-200/80 rounded-2xl p-5 space-y-3.5 shadow-sm">
                     <h3 className="text-xs font-bold uppercase tracking-wider text-[#102033] flex items-center gap-2 border-b border-slate-100 pb-2.5">
-                      <IdCard className="w-4 h-4 text-[#006AC7]" />
+                      <IdCard className="w-4 h-4 text-[#4B7F3A]" />
                       1. Personal Identification
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
@@ -503,7 +503,7 @@ export const StaffProfilePage = () => {
                             onUpdate={handleFieldVisibilityUpdate}
                           />
                         </div>
-                        <span className="font-mono font-bold text-[#006AC7]">
+                        <span className="font-mono font-bold text-[#38662D]">
                           {isStudentProfile
                             ? student?.bFormNumber || 'Masked / Restricted'
                             : profile?.cnic || 'Masked / Restricted'}
@@ -593,7 +593,7 @@ export const StaffProfilePage = () => {
                   {/* Employment / Service Details or Student Academic Details (Card 2) */}
                   <div className="bg-white border border-slate-200/80 rounded-2xl p-5 space-y-3.5 shadow-sm">
                     <h3 className="text-xs font-bold uppercase tracking-wider text-[#102033] flex items-center gap-2 border-b border-slate-100 pb-2.5">
-                      <Briefcase className="w-4 h-4 text-[#006AC7]" />
+                      <Briefcase className="w-4 h-4 text-[#4B7F3A]" />
                       {isStudentProfile ? '2. Academic & Enrollment Details' : '2. Civil Service & Employment'}
                     </h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
@@ -623,7 +623,7 @@ export const StaffProfilePage = () => {
                             />
                           )}
                         </div>
-                        <span className="font-bold text-[#006AC7]">
+                        <span className="font-bold text-[#38662D]">
                           {isStudentProfile
                             ? student?.mediumOfInstruction || 'Not Specified'
                             : user?.designation || 'Staff'}
@@ -696,7 +696,7 @@ export const StaffProfilePage = () => {
                   <div className="bg-white border border-slate-200/80 rounded-2xl p-5 space-y-3.5 shadow-sm">
                     <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
                       <h3 className="text-xs font-bold uppercase tracking-wider text-[#102033] flex items-center gap-2">
-                        <CreditCard className="w-4 h-4 text-[#006AC7]" />
+                        <CreditCard className="w-4 h-4 text-[#4B7F3A]" />
                         3. Bank &amp; Payroll Disbursement Information
                       </h3>
                       <div className="flex items-center gap-1">
@@ -734,7 +734,7 @@ export const StaffProfilePage = () => {
                         <span className="text-[#526477] block text-[11px] font-medium">
                           Account Number / IBAN
                         </span>
-                        <span className="font-mono font-bold text-[#006AC7]">
+                        <span className="font-mono font-bold text-[#38662D]">
                           {profile?.accountNumber || 'Masked / Restricted'}
                         </span>
                       </div>
@@ -751,7 +751,7 @@ export const StaffProfilePage = () => {
           <div className="bg-white border border-slate-200/80 rounded-2xl p-6 space-y-4 shadow-sm">
             <div className="flex justify-between items-center border-b border-slate-100 pb-2.5">
               <h3 className="text-sm font-bold text-[#102033] flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-[#006AC7]" />
+                <BookOpen className="w-4 h-4 text-[#4B7F3A]" />
                 Teaching Subject Assignments
               </h3>
               <span className="text-[11px] text-[#526477] font-medium">
@@ -774,7 +774,7 @@ export const StaffProfilePage = () => {
                     {assignments.active.map((assignmentItem) => (
                       <div
                         key={assignmentItem._id}
-                        className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5 text-xs hover:border-[#006AC7]/40 transition-all"
+                        className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5 text-xs hover:border-[#4B7F3A]/40 transition-all"
                       >
                         <div className="flex justify-between items-center">
                           <span className="font-bold text-[#102033]">
@@ -784,7 +784,7 @@ export const StaffProfilePage = () => {
                             ACTIVE
                           </span>
                         </div>
-                        <div className="text-[#006AC7] font-bold">
+                        <div className="text-[#38662D] font-bold">
                           {assignmentItem.subjectId?.name} [
                           {assignmentItem.subjectId?.code || 'GEN'}]
                         </div>

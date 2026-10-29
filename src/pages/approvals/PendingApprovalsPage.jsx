@@ -179,7 +179,7 @@ export const PendingApprovalsPage = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-[#102033] flex items-center gap-2.5">
-            <ShieldCheck className="w-7 h-7 text-[#006AC7]" />
+            <ShieldCheck className="w-7 h-7 text-[#4B7F3A]" />
             Institutional Approvals Queue
           </h1>
           <p className="text-xs text-[#526477] mt-1">
@@ -196,7 +196,7 @@ export const PendingApprovalsPage = () => {
             }}
             className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 ${
               activeTab === 'staff'
-                ? 'bg-[#006AC7] text-white shadow-sm'
+                ? 'bg-[#4B7F3A] text-white shadow-sm'
                 : 'text-[#526477] hover:text-[#102033]'
             }`}
           >
@@ -210,7 +210,7 @@ export const PendingApprovalsPage = () => {
             }}
             className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
               activeTab === 'student'
-                ? 'bg-[#006AC7] text-white shadow-sm'
+                ? 'bg-[#4B7F3A] text-white shadow-sm'
                 : 'text-[#526477] hover:text-[#102033]'
             }`}
           >
@@ -224,7 +224,7 @@ export const PendingApprovalsPage = () => {
             }}
             className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
               activeTab === 'earned-leave'
-                ? 'bg-[#006AC7] text-white shadow-sm'
+                ? 'bg-[#4B7F3A] text-white shadow-sm'
                 : 'text-[#526477] hover:text-[#102033]'
             }`}
           >
@@ -270,7 +270,7 @@ export const PendingApprovalsPage = () => {
                 {loading ? (
                   <tr>
                     <td colSpan={6} className="py-12 text-center text-[#526477]">
-                      <Clock className="w-6 h-6 animate-spin mx-auto mb-2 text-[#006AC7]" />
+                      <Clock className="w-6 h-6 animate-spin mx-auto mb-2 text-[#4B7F3A]" />
                       Loading pending Earned Leave applications...
                     </td>
                   </tr>
@@ -372,7 +372,7 @@ export const PendingApprovalsPage = () => {
                 {loading ? (
                   <tr>
                     <td colSpan={7} className="py-12 text-center text-[#526477]">
-                      <Clock className="w-6 h-6 animate-spin mx-auto mb-2 text-[#006AC7]" />
+                      <Clock className="w-6 h-6 animate-spin mx-auto mb-2 text-[#4B7F3A]" />
                       Loading pending applications...
                     </td>
                   </tr>
@@ -384,12 +384,12 @@ export const PendingApprovalsPage = () => {
                   </tr>
                 ) : (
                   filteredItems.map((approvalItem) => (
-                    <tr key={approvalItem.userId} className="hover:bg-blue-50/40 transition-colors">
+                    <tr key={approvalItem.userId} className="hover:bg-slate-50/60 transition-colors">
                       <td className="py-3.5 px-4 font-bold text-[#102033]">
                         <div>{approvalItem.fullName}</div>
                         <div className="text-[10px] text-[#526477] font-normal">{approvalItem.email}</div>
                       </td>
-                      <td className="py-3.5 px-4 font-mono font-bold text-[#006AC7]">
+                      <td className="py-3.5 px-4 font-mono font-bold text-[#38662D]">
                         {approvalItem.employeeId || approvalItem.grNumber || 'N/A'}
                       </td>
                       <td className="py-3.5 px-4">
@@ -409,7 +409,7 @@ export const PendingApprovalsPage = () => {
                       <td className="py-3.5 px-4 text-right">
                         <button
                           onClick={() => handleInspect(approvalItem)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#006AC7] border border-blue-200 text-xs font-bold transition-all shadow-sm"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F2F8EF] hover:bg-[#E4F2DC] text-[#38662D] border border-[#C9DFBC] text-xs font-bold transition-all shadow-sm"
                         >
                           <Eye className="w-3.5 h-3.5" />
                           Inspect &amp; Review
@@ -430,7 +430,7 @@ export const PendingApprovalsPage = () => {
           <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl p-6 space-y-6 text-[#102033]">
             <div className="flex items-start justify-between border-b border-slate-100 pb-4">
               <div>
-                <span className="text-[10px] font-bold text-[#006AC7] uppercase tracking-wider">
+                <span className="text-[10px] font-bold text-[#38662D] uppercase tracking-wider">
                   Official Record Verification Dossier
                 </span>
                 <h3 className="text-xl font-bold text-[#102033] mt-0.5">{selectedApplicant.fullName}</h3>
@@ -454,7 +454,7 @@ export const PendingApprovalsPage = () => {
 
             {detailLoading ? (
               <div className="py-12 text-center text-[#526477]">
-                <Clock className="w-6 h-6 animate-spin mx-auto mb-2 text-[#006AC7]" />
+                <Clock className="w-6 h-6 animate-spin mx-auto mb-2 text-[#4B7F3A]" />
                 Retrieving full profile inspection...
               </div>
             ) : applicantDetail ? (
@@ -462,7 +462,7 @@ export const PendingApprovalsPage = () => {
                 {/* 1. Identification & Civil Appointment */}
                 <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-3">
                   <h4 className="font-bold text-[#102033] flex items-center gap-2 text-xs">
-                    <IdCard className="w-4 h-4 text-[#006AC7]" />
+                    <IdCard className="w-4 h-4 text-[#4B7F3A]" />
                     Identification &amp; Civil Service Appointment
                   </h4>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[11px]">
@@ -472,7 +472,7 @@ export const PendingApprovalsPage = () => {
                     </div>
                     <div>
                       <span className="text-[#526477] block">CNIC (Verified View):</span>
-                      <span className="font-mono font-bold text-[#006AC7]">
+                      <span className="font-mono font-bold text-[#38662D]">
                         {applicantDetail.profile?.cnic || 'N/A'}
                       </span>
                     </div>
@@ -522,7 +522,7 @@ export const PendingApprovalsPage = () => {
                 {/* 2. Bank & Payroll */}
                 <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-3">
                   <h4 className="font-bold text-[#102033] flex items-center gap-2 text-xs">
-                    <CreditCard className="w-4 h-4 text-[#006AC7]" />
+                    <CreditCard className="w-4 h-4 text-[#4B7F3A]" />
                     Bank &amp; Payroll Disbursement
                   </h4>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[11px]">
@@ -540,7 +540,7 @@ export const PendingApprovalsPage = () => {
                     </div>
                     <div>
                       <span className="text-[#526477] block">Account Number / IBAN:</span>
-                      <span className="font-mono font-bold text-[#006AC7]">
+                      <span className="font-mono font-bold text-[#38662D]">
                         {applicantDetail.profile?.accountNumber || 'N/A'}
                       </span>
                     </div>
@@ -551,7 +551,7 @@ export const PendingApprovalsPage = () => {
                 {applicantDetail.profile?.isTeachingStaff && (
                   <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-3">
                     <h4 className="font-bold text-[#102033] flex items-center gap-2 text-xs">
-                      <BookOpen className="w-4 h-4 text-[#006AC7]" />
+                      <BookOpen className="w-4 h-4 text-[#4B7F3A]" />
                       Declared Teaching Subject Assignments
                     </h4>
                     {(!applicantDetail.proposedAssignments || applicantDetail.proposedAssignments.length === 0) ? (
@@ -565,7 +565,7 @@ export const PendingApprovalsPage = () => {
                                 {pa.classId?.name} (Section {pa.sectionId?.name})
                               </span>
                               <span className="mx-2 text-slate-300">&bull;</span>
-                              <span className="text-[#006AC7] font-bold">
+                              <span className="text-[#38662D] font-bold">
                                 {pa.subjectId?.name} [{pa.subjectId?.code || 'GEN'}]
                               </span>
                             </div>
@@ -663,7 +663,7 @@ export const PendingApprovalsPage = () => {
                     setDecisionModal((prev) => ({ ...prev, reason: textareaChangeEvent.target.value }))
                   }
                   placeholder="Enter specific discrepancy or reason (minimum 5 characters)..."
-                  className="w-full px-3 py-2 rounded-xl bg-white border border-slate-300 text-[#102033] text-xs outline-none focus:border-[#006AC7] focus:ring-1 focus:ring-[#006AC7]"
+                  className="w-full px-3 py-2 rounded-xl bg-white border border-slate-300 text-[#102033] text-xs outline-none focus:border-[#4B7F3A] focus:ring-1 focus:ring-[#4B7F3A]"
                 />
               </div>
             )}

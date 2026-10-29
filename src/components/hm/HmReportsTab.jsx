@@ -22,7 +22,7 @@ export const HmReportsTab = ({ summary, attendanceAnalytics, exams, onSelectTab 
       {/* ── Header ── */}
       <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-3 rounded-xl bg-blue-50 text-[#006AC7] border border-blue-200/60">
+          <div className="p-3 rounded-xl bg-[#F2F8EF] text-[#38662D] border border-[#C9DFBC]">
             <TrendingUp className="w-6 h-6" />
           </div>
           <div>
@@ -48,8 +48,8 @@ export const HmReportsTab = ({ summary, attendanceAnalytics, exams, onSelectTab 
         {/* Card 1: Attendance Report */}
         <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex flex-col justify-between space-y-4">
           <div className="space-y-2">
-            <div className="flex items-center gap-2 text-indigo-700 font-semibold text-sm">
-              <ClipboardCheck className="w-5 h-5" />
+            <div className="flex items-center gap-2 text-[#38662D] font-semibold text-sm">
+              <ClipboardCheck className="w-5 h-5 text-[#4B7F3A]" />
               <span>Attendance register report</span>
             </div>
             <p className="text-xs text-slate-600 leading-relaxed">
@@ -62,7 +62,7 @@ export const HmReportsTab = ({ summary, attendanceAnalytics, exams, onSelectTab 
           <button
             type="button"
             onClick={() => onSelectTab('attendance')}
-            className="w-full inline-flex items-center justify-center gap-1.5 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-semibold border border-slate-200 transition cursor-pointer"
+            className="w-full inline-flex items-center justify-center gap-1.5 py-2 rounded-xl bg-slate-50 hover:bg-[#F2F8EF] hover:border-[#C9DFBC] text-slate-800 hover:text-[#38662D] text-xs font-semibold border border-slate-200 transition cursor-pointer"
           >
             Open attendance register <ArrowRight className="w-3.5 h-3.5" />
           </button>
@@ -71,8 +71,8 @@ export const HmReportsTab = ({ summary, attendanceAnalytics, exams, onSelectTab 
         {/* Card 2: Student Enrollment Statistics */}
         <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex flex-col justify-between space-y-4">
           <div className="space-y-2">
-            <div className="flex items-center gap-2 text-blue-700 font-semibold text-sm">
-              <GraduationCap className="w-5 h-5" />
+            <div className="flex items-center gap-2 text-[#38662D] font-semibold text-sm">
+              <GraduationCap className="w-5 h-5 text-[#4B7F3A]" />
               <span>Student enrollment report</span>
             </div>
             <p className="text-xs text-slate-600 leading-relaxed">

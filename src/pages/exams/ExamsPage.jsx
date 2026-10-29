@@ -54,7 +54,7 @@ export const ExamsPage = () => {
               onClick={() => setActiveTerm(termItem.id)}
               className={`cursor-pointer rounded-2xl border p-5 transition shadow-sm ${
                 activeTerm === termItem.id
-                  ? 'border-[#006AC7] bg-blue-50/40 ring-1 ring-[#006AC7]'
+                  ? 'border-[#4B7F3A] bg-[#F2F8EF]/40 ring-1 ring-[#4B7F3A]'
                   : 'border-slate-200/80 bg-white hover:bg-slate-50'
               }`}
             >
@@ -62,7 +62,7 @@ export const ExamsPage = () => {
                 <span
                   className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${
                     termItem.status === 'UPCOMING'
-                      ? 'bg-blue-50 text-[#006AC7] border-blue-200'
+                      ? 'bg-[#F2F8EF] text-[#38662D] border-[#C9DFBC]'
                       : 'bg-emerald-50 text-[#4B7F3A] border-emerald-200'
                   }`}
                 >
@@ -79,7 +79,7 @@ export const ExamsPage = () => {
         {/* Grading Structure Matrix */}
         <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm space-y-4">
           <div className="flex items-center gap-2.5">
-            <div className="rounded-xl bg-blue-50 p-2.5 text-[#006AC7]">
+            <div className="rounded-xl bg-[#F2F8EF] p-2.5 text-[#38662D]">
               <Award className="h-5 w-5" />
             </div>
             <div>
@@ -94,7 +94,7 @@ export const ExamsPage = () => {
                 key={band.grade}
                 className="rounded-xl border border-slate-200/80 bg-slate-50/60 p-3 text-center space-y-1"
               >
-                <span className="text-xl font-black text-[#006AC7] font-mono">{band.grade}</span>
+                <span className="text-xl font-black text-[#38662D] font-mono">{band.grade}</span>
                 <p className="text-xs font-bold text-[#102033]">{band.range}</p>
                 <p className="text-[10px] text-[#8094A8] line-clamp-1">{band.remarks}</p>
               </div>
@@ -103,8 +103,8 @@ export const ExamsPage = () => {
         </div>
 
         {/* Action Notice */}
-        <div className="rounded-2xl border border-blue-100 bg-[#F0F8FF]/80 p-5 text-xs text-[#102033] flex items-start gap-3 shadow-sm">
-          <BookOpen className="h-5 w-5 text-[#006AC7] shrink-0 mt-0.5" />
+        <div className="rounded-2xl border border-[#C9DFBC] bg-[#F2F8EF] p-5 text-xs text-[#102033] flex items-start gap-3 shadow-sm">
+          <BookOpen className="h-5 w-5 text-[#38662D] shrink-0 mt-0.5" />
           <div className="space-y-1">
             <p className="font-bold text-[#102033]">Academic Assessment Instructions</p>
             <p className="text-[#526477] leading-relaxed">

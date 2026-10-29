@@ -45,7 +45,7 @@ export const HmSchoolProfileTab = ({ summary, user, onEditSchoolCode }) => {
       {/* ── Header ── */}
       <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-3 rounded-xl bg-blue-50 text-[#006AC7] border border-blue-200/60">
+          <div className="p-3 rounded-xl bg-[#F2F8EF] text-[#38662D] border border-[#C9DFBC]">
             <Building2 className="w-6 h-6" />
           </div>
           <div>
@@ -83,7 +83,7 @@ export const HmSchoolProfileTab = ({ summary, user, onEditSchoolCode }) => {
           <div className="space-y-2 text-sm">
             <div>
               <span className="text-xs text-slate-500 block">SEMIS / School code</span>
-              <span className="font-mono font-bold text-[#006AC7]">{schoolCode}</span>
+              <span className="font-mono font-bold text-[#38662D]">{schoolCode}</span>
             </div>
             <div>
               <span className="text-xs text-slate-500 block">Institution category</span>
@@ -158,7 +158,7 @@ export const HmSchoolProfileTab = ({ summary, user, onEditSchoolCode }) => {
       <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
           <div className="flex items-center gap-2.5">
-            <div className="p-2.5 rounded-xl bg-blue-50 text-[#006AC7] border border-blue-200/60">
+            <div className="p-2.5 rounded-xl bg-[#F2F8EF] text-[#38662D] border border-[#C9DFBC]">
               <Clock className="w-5 h-5" />
             </div>
             <div>
@@ -172,7 +172,7 @@ export const HmSchoolProfileTab = ({ summary, user, onEditSchoolCode }) => {
           <button
             type="button"
             onClick={() => setIsTimingsModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#006AC7] hover:bg-[#005299] text-white text-xs font-semibold shadow-xs transition cursor-pointer self-start sm:self-auto"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#4B7F3A] hover:bg-[#38662D] text-white text-xs font-semibold shadow-xs transition cursor-pointer self-start sm:self-auto"
           >
             <Sliders className="w-3.5 h-3.5" />
             Adjust attendance windows
@@ -184,7 +184,7 @@ export const HmSchoolProfileTab = ({ summary, user, onEditSchoolCode }) => {
           <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-2.5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                <Calendar className="w-4 h-4 text-[#006AC7]" />
+                <Calendar className="w-4 h-4 text-[#4B7F3A]" />
                 Regular days (Mon – Thu, Sat)
               </span>
               <span className="text-[11px] font-semibold text-slate-500">Normal Shift</span>
@@ -205,19 +205,19 @@ export const HmSchoolProfileTab = ({ summary, user, onEditSchoolCode }) => {
           <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/60 space-y-2.5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                <Calendar className="w-4 h-4 text-[#006AC7]" />
+                <Calendar className="w-4 h-4 text-[#4B7F3A]" />
                 Friday special (Jummah)
               </span>
-              <span className="text-[11px] font-semibold text-[#006AC7]">Auto-applied</span>
+              <span className="text-[11px] font-semibold text-[#38662D]">Auto-applied</span>
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs pt-1">
               <div className="p-2.5 rounded-lg bg-white border border-slate-200/80">
                 <span className="text-[11px] text-slate-500 block">School hours</span>
                 <span className="font-mono font-semibold text-slate-900 mt-0.5 block">{fridayGate}</span>
               </div>
-              <div className="p-2.5 rounded-lg bg-white border border-blue-200/80">
-                <span className="text-[11px] text-[#006AC7] block font-medium">Attendance window</span>
-                <span className="font-mono font-bold text-[#006AC7] mt-0.5 block">{fridayWindow}</span>
+              <div className="p-2.5 rounded-lg bg-white border border-[#C9DFBC]">
+                <span className="text-[11px] text-[#38662D] block font-medium">Attendance window</span>
+                <span className="font-mono font-bold text-[#38662D] mt-0.5 block">{fridayWindow}</span>
               </div>
             </div>
           </div>

@@ -107,7 +107,7 @@ const TableCell = ({ children, className = '' }) => (
 const LoadingSkeletonRow = ({ columnsCount, message = 'Loading records...' }) => (
   <tr>
     <td colSpan={columnsCount} className="py-12 text-center text-[#526477]">
-      <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2 text-[#006AC7]" />
+      <RefreshCw className="h-6 w-6 animate-spin mx-auto mb-2 text-[#4B7F3A]" />
       <span className="text-xs font-medium">{message}</span>
     </td>
   </tr>
@@ -219,13 +219,13 @@ const DirectoryFilterToolbar = ({
         className="rounded-xl border border-slate-200 bg-white p-2 text-[#526477] hover:text-[#102033] hover:bg-slate-50 shadow-sm transition cursor-pointer disabled:opacity-50"
         title="Refresh records"
       >
-        <RefreshCw className={`h-3.5 w-3.5 ${isLoadingData ? 'animate-spin text-[#006AC7]' : ''}`} />
+        <RefreshCw className={`h-3.5 w-3.5 ${isLoadingData ? 'animate-spin text-[#4B7F3A]' : ''}`} />
       </button>
       <button
         type="button"
         onClick={onExportTriggered}
         disabled={isExportingData}
-        className="flex items-center gap-1.5 rounded-xl bg-[#006AC7] hover:bg-[#00529B] disabled:opacity-50 px-3.5 py-2 text-xs font-bold text-white shadow-sm transition cursor-pointer"
+        className="flex items-center gap-1.5 rounded-xl bg-[#4B7F3A] hover:bg-[#38662D] disabled:opacity-50 px-3.5 py-2 text-xs font-bold text-white shadow-sm transition cursor-pointer"
       >
         <Download className="h-3.5 w-3.5" />
         {isExportingData ? 'Exporting...' : 'Export CSV'}
@@ -252,7 +252,7 @@ const StudentRecordDetailsModal = ({ studentRecord, onClose }) => {
       <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-4 text-slate-800 animate-in fade-in zoom-in-95 duration-150">
         <div className="flex items-start justify-between border-b border-slate-100 pb-3">
           <div className="flex items-center gap-3">
-            <div className="rounded-xl p-2.5 bg-blue-50 text-[#006AC7] border border-blue-200/70">
+            <div className="rounded-xl p-2.5 bg-[#F2F8EF] text-[#38662D] border border-[#C9DFBC]">
               <GraduationCap className="w-5 h-5" />
             </div>
             <div>
@@ -517,7 +517,7 @@ const StudentRecordsView = ({ municipalSchoolsList, initialSearch = '', authenti
           value={searchQuery}
           onChange={setSearchQuery}
           placeholderText="Search by name or student ID..."
-          focusBorderColorClass="focus:border-[#006AC7]"
+          focusBorderColorClass="focus:border-[#4B7F3A]"
         />
 
         {!isSchoolStaff && (
@@ -527,7 +527,7 @@ const StudentRecordsView = ({ municipalSchoolsList, initialSearch = '', authenti
               setSelectedSchoolId(val);
               setCurrentPage(1);
             }}
-            focusBorderColorClass="focus:border-[#006AC7]"
+            focusBorderColorClass="focus:border-[#4B7F3A]"
             label="School filter"
           >
             <option value="">All Schools</option>
@@ -546,7 +546,7 @@ const StudentRecordsView = ({ municipalSchoolsList, initialSearch = '', authenti
             setSelectedSectionId('');
             setCurrentPage(1);
           }}
-          focusBorderColorClass="focus:border-[#006AC7]"
+          focusBorderColorClass="focus:border-[#4B7F3A]"
           label="Class filter"
         >
           <option value="">All Classes</option>
@@ -564,7 +564,7 @@ const StudentRecordsView = ({ municipalSchoolsList, initialSearch = '', authenti
               setSelectedSectionId(val);
               setCurrentPage(1);
             }}
-            focusBorderColorClass="focus:border-[#006AC7]"
+            focusBorderColorClass="focus:border-[#4B7F3A]"
             label="Section filter"
           >
             <option value="">All Sections</option>
@@ -582,7 +582,7 @@ const StudentRecordsView = ({ municipalSchoolsList, initialSearch = '', authenti
             setSelectedGender(val);
             setCurrentPage(1);
           }}
-          focusBorderColorClass="focus:border-[#006AC7]"
+          focusBorderColorClass="focus:border-[#4B7F3A]"
           label="Gender filter"
         >
           <option value="">All Genders</option>
@@ -597,7 +597,7 @@ const StudentRecordsView = ({ municipalSchoolsList, initialSearch = '', authenti
             setSelectedStatus(val);
             setCurrentPage(1);
           }}
-          focusBorderColorClass="focus:border-[#006AC7]"
+          focusBorderColorClass="focus:border-[#4B7F3A]"
           label="Status filter"
         >
           <option value="">All Statuses</option>
@@ -638,13 +638,13 @@ const StudentRecordsView = ({ municipalSchoolsList, initialSearch = '', authenti
                 />
               ) : (
                 students.map((studentRecord) => (
-                  <tr key={studentRecord._id} className="hover:bg-blue-50/40 transition">
+                  <tr key={studentRecord._id} className="hover:bg-slate-50/60 transition">
                     <TableCell>
                       <div className="font-bold text-[#102033] text-xs">
                         {studentRecord.studentName}
                       </div>
                       <div className="flex items-center gap-1.5 mt-0.5">
-                        <span className="font-mono text-[10px] font-semibold text-[#006AC7] bg-blue-50 border border-blue-200/70 px-1.5 py-0.2 rounded">
+                        <span className="font-mono text-[10px] font-semibold text-[#38662D] bg-[#F2F8EF] border border-[#C9DFBC] px-1.5 py-0.2 rounded">
                           {studentRecord.globalStudentId || `GR-${studentRecord.grNumber}`}
                         </span>
                       </div>
@@ -711,7 +711,7 @@ const StudentRecordsView = ({ municipalSchoolsList, initialSearch = '', authenti
                       <button
                         type="button"
                         onClick={() => setViewingStudent(studentRecord)}
-                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 text-[#006AC7] hover:bg-blue-50 hover:border-blue-200 transition text-[11px] font-bold cursor-pointer"
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-[#C9DFBC] text-[#38662D] hover:bg-[#F2F8EF] hover:border-[#4B7F3A] transition text-[11px] font-bold cursor-pointer"
                         title="View student details"
                       >
                         <Eye className="h-3.5 w-3.5" />
@@ -870,14 +870,14 @@ const StaffDirectoryView = ({ municipalSchoolsList, initialSearch = '', authenti
           value={searchQuery}
           onChange={setSearchQuery}
           placeholderText="Search by name or email..."
-          focusBorderColorClass="focus:border-[#006AC7]"
+          focusBorderColorClass="focus:border-[#4B7F3A]"
         />
 
         {!isSchoolStaff && (
           <FilterDropdownSelect
             value={selectedSchoolId}
             onChange={setSelectedSchoolId}
-            focusBorderColorClass="focus:border-[#006AC7]"
+            focusBorderColorClass="focus:border-[#4B7F3A]"
             label="School filter"
           >
             <option value="">All Schools</option>
@@ -892,7 +892,7 @@ const StaffDirectoryView = ({ municipalSchoolsList, initialSearch = '', authenti
         <FilterDropdownSelect
           value={selectedRole}
           onChange={setSelectedRole}
-          focusBorderColorClass="focus:border-[#006AC7]"
+          focusBorderColorClass="focus:border-[#4B7F3A]"
           label="Role filter"
         >
           <option value="">All Roles</option>
@@ -906,7 +906,7 @@ const StaffDirectoryView = ({ municipalSchoolsList, initialSearch = '', authenti
         <FilterDropdownSelect
           value={selectedStatus}
           onChange={setSelectedStatus}
-          focusBorderColorClass="focus:border-[#006AC7]"
+          focusBorderColorClass="focus:border-[#4B7F3A]"
           label="Status filter"
         >
           <option value="">All Statuses</option>
@@ -994,7 +994,7 @@ const StaffDirectoryView = ({ municipalSchoolsList, initialSearch = '', authenti
                     <TableCell className="text-right">
                       <Link
                         to={`/staff/${staffMember._id}/profile`}
-                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-slate-200 text-[#006AC7] hover:bg-blue-50 hover:border-blue-200 transition text-[11px] font-bold cursor-pointer shadow-2xs"
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-[#C9DFBC] text-[#38662D] hover:bg-[#F2F8EF] hover:border-[#4B7F3A] transition text-[11px] font-bold cursor-pointer shadow-2xs"
                         title="View staff service record profile"
                       >
                         <Eye className="h-3.5 w-3.5" />
@@ -1087,13 +1087,13 @@ const GuardiansDirectoryView = () => {
           value={searchQuery}
           onChange={setSearchQuery}
           placeholderText="Search by name, email, or phone..."
-          focusBorderColorClass="focus:border-[#006AC7]"
+          focusBorderColorClass="focus:border-[#4B7F3A]"
         />
 
         <FilterDropdownSelect
           value={selectedStatus}
           onChange={setSelectedStatus}
-          focusBorderColorClass="focus:border-[#006AC7]"
+          focusBorderColorClass="focus:border-[#4B7F3A]"
           label="Guardian status"
         >
           <option value="">All Statuses</option>
@@ -1150,8 +1150,8 @@ const GuardiansDirectoryView = () => {
                     </TableCell>
                     <TableCell>
                       <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 border border-slate-200 px-2.5 py-0.5 text-[11px] text-[#526477]">
-                        <GraduationCap className="h-3 w-3 text-[#006AC7]" />
-                        <span className="text-[#006AC7] font-bold">{guardianAccount.linkedStudentsCount ?? '?'}</span>
+                        <GraduationCap className="h-3 w-3 text-[#38662D]" />
+                        <span className="text-[#38662D] font-bold">{guardianAccount.linkedStudentsCount ?? '?'}</span>
                         <span>linked</span>
                       </span>
                     </TableCell>
@@ -1277,7 +1277,7 @@ export const DirectoryPage = () => {
               onClick={() => handleTabChange('students')}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 activeTabId === 'students'
-                  ? 'bg-white text-[#006AC7] shadow-sm'
+                  ? 'bg-white text-[#4B7F3A] shadow-sm'
                   : 'text-[#526477] hover:text-[#102033]'
               }`}
             >
@@ -1290,7 +1290,7 @@ export const DirectoryPage = () => {
               onClick={() => handleTabChange('staff')}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                 activeTabId === 'staff'
-                  ? 'bg-white text-[#006AC7] shadow-sm'
+                  ? 'bg-white text-[#4B7F3A] shadow-sm'
                   : 'text-[#526477] hover:text-[#102033]'
               }`}
             >
@@ -1304,7 +1304,7 @@ export const DirectoryPage = () => {
                 onClick={() => handleTabChange('guardians')}
                 className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   activeTabId === 'guardians'
-                    ? 'bg-white text-[#006AC7] shadow-sm'
+                    ? 'bg-white text-[#4B7F3A] shadow-sm'
                     : 'text-[#526477] hover:text-[#102033]'
                 }`}
               >

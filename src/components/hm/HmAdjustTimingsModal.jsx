@@ -113,14 +113,14 @@ export const HmAdjustTimingsModal = ({ isOpen, onClose, school }) => {
         {/* Header */}
         <div className="flex items-start justify-between border-b border-slate-100 pb-4">
           <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-blue-50 p-2.5 text-[#006AC7] border border-blue-200">
+            <div className="rounded-xl bg-[#F2F8EF] p-2.5 text-[#38662D] border border-[#C9DFBC]">
               <Clock className="h-6 w-6" />
             </div>
             <div>
               <h3 className="text-lg font-bold text-slate-900">Adjust School Attendance Windows</h3>
               <p className="text-xs text-slate-500">
                 Official Head Master timing configuration for{' '}
-                <span className="font-semibold text-[#006AC7]">{school.name}</span>
+                <span className="font-semibold text-[#38662D]">{school.name}</span>
               </p>
             </div>
           </div>
@@ -156,7 +156,7 @@ export const HmAdjustTimingsModal = ({ isOpen, onClose, school }) => {
           <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 space-y-3">
             <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
               <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-[#006AC7]" />
+                <Calendar className="h-4 w-4 text-[#4B7F3A]" />
                 <h4 className="font-bold uppercase tracking-wider text-slate-900">
                   Regular Working Days (Mon – Thu, Sat)
                 </h4>
@@ -177,7 +177,7 @@ export const HmAdjustTimingsModal = ({ isOpen, onClose, school }) => {
                       regular: { ...formData.regular, startTime: event.target.value },
                     })
                   }
-                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 font-mono text-slate-900 focus:border-[#006AC7] focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 font-mono text-slate-900 focus:border-[#4B7F3A] focus:outline-none"
                 />
               </div>
 
@@ -193,7 +193,7 @@ export const HmAdjustTimingsModal = ({ isOpen, onClose, school }) => {
                       regular: { ...formData.regular, endTime: event.target.value },
                     })
                   }
-                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 font-mono text-slate-900 focus:border-[#006AC7] focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 font-mono text-slate-900 focus:border-[#4B7F3A] focus:outline-none"
                 />
               </div>
 
@@ -237,12 +237,12 @@ export const HmAdjustTimingsModal = ({ isOpen, onClose, school }) => {
           <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 space-y-3">
             <div className="flex items-center justify-between border-b border-slate-200/80 pb-2">
               <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-[#006AC7]" />
+                <Calendar className="h-4 w-4 text-[#4B7F3A]" />
                 <h4 className="font-bold uppercase tracking-wider text-slate-900">
                   Friday Special Schedule (Jummah Timing)
                 </h4>
               </div>
-              <span className="text-[11px] text-[#006AC7] font-semibold">Automatic Activation</span>
+              <span className="text-[11px] text-[#38662D] font-semibold">Automatic Activation</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -258,7 +258,7 @@ export const HmAdjustTimingsModal = ({ isOpen, onClose, school }) => {
                       friday: { ...formData.friday, startTime: event.target.value },
                     })
                   }
-                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 font-mono text-slate-900 focus:border-[#006AC7] focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 font-mono text-slate-900 focus:border-[#4B7F3A] focus:outline-none"
                 />
               </div>
 
@@ -274,12 +274,12 @@ export const HmAdjustTimingsModal = ({ isOpen, onClose, school }) => {
                       friday: { ...formData.friday, endTime: event.target.value },
                     })
                   }
-                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 font-mono text-slate-900 focus:border-[#006AC7] focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 font-mono text-slate-900 focus:border-[#4B7F3A] focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block font-medium text-[#006AC7]">Friday Window Opens</label>
+                <label className="block font-medium text-[#4B7F3A]">Friday Window Opens</label>
                 <input
                   type="time"
                   required
@@ -290,7 +290,7 @@ export const HmAdjustTimingsModal = ({ isOpen, onClose, school }) => {
                       friday: { ...formData.friday, attendanceWindowStart: event.target.value },
                     })
                   }
-                  className="mt-1 w-full rounded-lg border border-blue-300 bg-white px-3 py-2 font-mono text-slate-900 focus:border-[#006AC7] focus:outline-none"
+                  className="mt-1 w-full rounded-lg border border-emerald-300 bg-white px-3 py-2 font-mono text-slate-900 focus:border-[#4B7F3A] focus:outline-none"
                 />
               </div>
 
@@ -328,7 +328,7 @@ export const HmAdjustTimingsModal = ({ isOpen, onClose, school }) => {
                 if (validationError) setValidationError('');
               }}
               placeholder="e.g. Adjusted school opening and attendance gate forward due to extreme winter fog per town directive."
-              className="w-full rounded-lg border border-slate-300 bg-white p-3 text-xs text-slate-900 placeholder-slate-400 focus:border-[#006AC7] focus:outline-none"
+              className="w-full rounded-lg border border-slate-300 bg-white p-3 text-xs text-slate-900 placeholder-slate-400 focus:border-[#4B7F3A] focus:outline-none"
             />
             <div className="flex items-center justify-between text-[11px] text-slate-500">
               <span>This statement will be permanently recorded in the municipal audit log.</span>

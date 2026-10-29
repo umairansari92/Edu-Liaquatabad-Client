@@ -467,11 +467,11 @@ export const HmOverviewTab = ({
             type="button"
             onClick={handleRefreshClick}
             disabled={isRefreshing}
-            className="p-2 rounded-xl bg-white border border-slate-200/80 text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition shadow-2xs cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#006AC7] disabled:opacity-50"
+            className="p-2 rounded-xl bg-white border border-slate-200/80 text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition shadow-2xs cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#4B7F3A] disabled:opacity-50"
             title="Refresh dashboard metrics"
             aria-label="Refresh dashboard metrics"
           >
-            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-[#006AC7]' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-[#4B7F3A]' : ''}`} />
           </button>
         </div>
       </motion.div>
@@ -495,7 +495,7 @@ export const HmOverviewTab = ({
                 {totalStudents}
               </span>
             </div>
-            <div className="p-2.5 rounded-xl bg-blue-50 text-[#006AC7] border border-blue-200/60">
+            <div className="p-2.5 rounded-xl bg-[#F2F8EF] text-[#38662D] border border-[#C9DFBC]">
               <GraduationCap className="w-5 h-5" />
             </div>
           </div>
@@ -506,7 +506,7 @@ export const HmOverviewTab = ({
             <button
               type="button"
               onClick={() => onSelectTab('students')}
-              className="text-[#006AC7] font-semibold hover:underline flex items-center gap-1 cursor-pointer shrink-0"
+              className="text-[#4B7F3A] hover:text-[#38662D] font-semibold hover:underline flex items-center gap-1 cursor-pointer shrink-0"
             >
               Directory <ArrowRight className="w-3 h-3" />
             </button>
@@ -528,7 +528,7 @@ export const HmOverviewTab = ({
                 {teachingStaffCount}
               </span>
             </div>
-            <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+            <div className="p-2.5 rounded-xl bg-[#F2F8EF] text-[#38662D] border border-[#C9DFBC]">
               <Users className="w-5 h-5" />
             </div>
           </div>
@@ -541,7 +541,7 @@ export const HmOverviewTab = ({
             <button
               type="button"
               onClick={() => onSelectTab('faculty')}
-              className="text-[#006AC7] font-semibold hover:underline flex items-center gap-1 cursor-pointer shrink-0"
+              className="text-[#4B7F3A] hover:text-[#38662D] font-semibold hover:underline flex items-center gap-1 cursor-pointer shrink-0"
             >
               Faculty <ArrowRight className="w-3 h-3" />
             </button>
@@ -563,7 +563,7 @@ export const HmOverviewTab = ({
                 {attendancePercentage != null ? `${attendancePercentage}%` : 'Pending'}
               </span>
             </div>
-            <div className="p-2.5 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200/60">
+            <div className="p-2.5 rounded-xl bg-[#F2F8EF] text-[#38662D] border border-[#C9DFBC]">
               <ClipboardCheck className="w-5 h-5" />
             </div>
           </div>
@@ -576,7 +576,7 @@ export const HmOverviewTab = ({
             <button
               type="button"
               onClick={() => onSelectTab('attendance')}
-              className="text-[#006AC7] font-semibold hover:underline flex items-center gap-1 cursor-pointer shrink-0"
+              className="text-[#4B7F3A] hover:text-[#38662D] font-semibold hover:underline flex items-center gap-1 cursor-pointer shrink-0"
             >
               Register <ArrowRight className="w-3 h-3" />
             </button>
@@ -598,7 +598,7 @@ export const HmOverviewTab = ({
                 {totalSections > 0 ? `${sectionsWithCt}/${totalSections}` : `${sectionsWithCt}`}
               </span>
             </div>
-            <div className="p-2.5 rounded-xl bg-purple-50 text-purple-700 border border-purple-200/60">
+            <div className="p-2.5 rounded-xl bg-[#F2F8EF] text-[#38662D] border border-[#C9DFBC]">
               <UserCheck className="w-5 h-5" />
             </div>
           </div>
@@ -611,7 +611,7 @@ export const HmOverviewTab = ({
             <button
               type="button"
               onClick={() => onSelectTab('assignments')}
-              className="text-[#006AC7] font-semibold hover:underline flex items-center gap-1 cursor-pointer shrink-0"
+              className="text-[#4B7F3A] hover:text-[#38662D] font-semibold hover:underline flex items-center gap-1 cursor-pointer shrink-0"
             >
               Duties <ArrowRight className="w-3 h-3" />
             </button>
@@ -641,7 +641,7 @@ export const HmOverviewTab = ({
               className={`p-2.5 rounded-xl border ${
                 totalPendingActions > 0
                   ? 'bg-amber-50 text-amber-700 border-amber-200/60'
-                  : 'bg-emerald-50 text-emerald-700 border-emerald-200/60'
+                  : 'bg-[#F2F8EF] text-[#38662D] border border-[#C9DFBC]'
               }`}
             >
               {totalPendingActions > 0 ? (
@@ -658,7 +658,7 @@ export const HmOverviewTab = ({
             <button
               type="button"
               onClick={() => onSelectTab('approvals')}
-              className="text-[#006AC7] font-semibold hover:underline flex items-center gap-1 cursor-pointer shrink-0"
+              className="text-[#4B7F3A] hover:text-[#38662D] font-semibold hover:underline flex items-center gap-1 cursor-pointer shrink-0"
             >
               Review <ArrowRight className="w-3 h-3" />
             </button>
@@ -678,7 +678,7 @@ export const HmOverviewTab = ({
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <div>
               <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <ClipboardCheck className="w-4 h-4 text-[#006AC7]" />
+                <ClipboardCheck className="w-4 h-4 text-[#4B7F3A]" />
                 14-Day Attendance Trend
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
@@ -686,7 +686,7 @@ export const HmOverviewTab = ({
               </p>
             </div>
             {calculatedAverageAttendance != null && (
-              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-50 text-[#006AC7] border border-blue-200 font-mono">
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#F2F8EF] text-[#38662D] border border-[#C9DFBC] font-mono">
                 Avg {calculatedAverageAttendance}%
               </span>
             )}
@@ -698,8 +698,8 @@ export const HmOverviewTab = ({
                 <AreaChart data={attendanceTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="attendanceGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#006AC7" stopOpacity={0.25} />
-                      <stop offset="95%" stopColor="#006AC7" stopOpacity={0.0} />
+                      <stop offset="5%" stopColor="#4B7F3A" stopOpacity={0.25} />
+                      <stop offset="95%" stopColor="#4B7F3A" stopOpacity={0.0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
@@ -723,7 +723,7 @@ export const HmOverviewTab = ({
                     type="monotone"
                     dataKey="percentage"
                     name="Attendance Rate"
-                    stroke="#006AC7"
+                    stroke="#4B7F3A"
                     strokeWidth={2.5}
                     fillOpacity={1}
                     fill="url(#attendanceGradient)"
@@ -743,7 +743,7 @@ export const HmOverviewTab = ({
               <button
                 type="button"
                 onClick={() => onSelectTab('attendance')}
-                className="mt-3 px-3.5 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-[#006AC7] hover:bg-blue-50 transition cursor-pointer shadow-2xs"
+                className="mt-3 px-3.5 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-[#38662D] hover:bg-[#F2F8EF] hover:border-[#C9DFBC] transition cursor-pointer shadow-2xs"
               >
                 Record Attendance
               </button>
@@ -759,14 +759,14 @@ export const HmOverviewTab = ({
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <div>
               <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <GraduationCap className="w-4 h-4 text-indigo-600" />
+                <GraduationCap className="w-4 h-4 text-[#4B7F3A]" />
                 Student Enrollment by Grade
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
                 Active student count distributed across registered classes
               </p>
             </div>
-            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 font-mono">
+            <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#F2F8EF] text-[#38662D] border border-[#C9DFBC] font-mono">
               {totalStudents} Total
             </span>
           </div>
@@ -794,7 +794,7 @@ export const HmOverviewTab = ({
                   <Bar
                     dataKey="students"
                     name="Students"
-                    fill="#4F46E5"
+                    fill="#4B7F3A"
                     radius={[6, 6, 0, 0]}
                     maxBarSize={45}
                   />
@@ -813,7 +813,7 @@ export const HmOverviewTab = ({
               <button
                 type="button"
                 onClick={() => onSelectTab('students')}
-                className="mt-3 px-3.5 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-indigo-600 hover:bg-indigo-50 transition cursor-pointer shadow-2xs"
+                className="mt-3 px-3.5 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-[#38662D] hover:bg-[#F2F8EF] hover:border-[#C9DFBC] transition cursor-pointer shadow-2xs"
               >
                 Enroll New Student
               </button>
@@ -833,7 +833,7 @@ export const HmOverviewTab = ({
         >
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <Clock className="w-4 h-4 text-[#006AC7]" />
+              <Clock className="w-4 h-4 text-[#4B7F3A]" />
               Today's Operational Summary
             </h2>
             <span className="text-xs font-semibold text-slate-500">
@@ -853,7 +853,7 @@ export const HmOverviewTab = ({
               {attendancePercentage != null && (
                 <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
                   <div
-                    className="bg-[#006AC7] h-2 rounded-full transition-all duration-500"
+                    className="bg-[#4B7F3A] h-2 rounded-full transition-all duration-500"
                     style={{ width: `${Math.min(100, Math.max(0, attendancePercentage))}%` }}
                   />
                 </div>
@@ -865,7 +865,7 @@ export const HmOverviewTab = ({
                 <button
                   type="button"
                   onClick={() => onSelectTab('attendance')}
-                  className="text-[#006AC7] font-semibold hover:underline cursor-pointer"
+                  className="text-[#4B7F3A] hover:text-[#38662D] font-semibold hover:underline cursor-pointer"
                 >
                   Record attendance →
                 </button>
@@ -909,8 +909,8 @@ export const HmOverviewTab = ({
             </div>
 
             {/* Class Teacher Policy Explanatory Note */}
-            <div className="p-3 rounded-xl bg-blue-50/60 border border-blue-200/70 text-xs text-slate-700 flex items-start gap-2.5">
-              <Info className="w-4 h-4 text-[#006AC7] shrink-0 mt-0.5" />
+            <div className="p-3 rounded-xl bg-[#F2F8EF] border border-[#C9DFBC] text-xs text-slate-700 flex items-start gap-2.5">
+              <Info className="w-4 h-4 text-[#4B7F3A] shrink-0 mt-0.5" />
               <p className="text-xs leading-relaxed text-slate-600 font-medium">
                 Each section has one primary Class Teacher. When a timetable is used, the Period 1 teacher becomes the Class Teacher automatically.
               </p>
@@ -926,7 +926,7 @@ export const HmOverviewTab = ({
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <div>
               <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <CalendarDays className="w-4 h-4 text-[#006AC7]" />
+                <CalendarDays className="w-4 h-4 text-[#4B7F3A]" />
                 Today's Schedule
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
@@ -948,14 +948,14 @@ export const HmOverviewTab = ({
                   className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center justify-between text-xs"
                 >
                   <div className="flex items-center gap-3">
-                    <span className="w-7 h-7 rounded-lg bg-blue-100 text-[#006AC7] font-bold flex items-center justify-center shrink-0 text-xs">
+                    <span className="w-7 h-7 rounded-lg bg-[#F2F8EF] text-[#38662D] border border-[#C9DFBC] font-bold flex items-center justify-center shrink-0 text-xs font-mono">
                       {slot.periodNumber}
                     </span>
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-slate-900">{slot.label || `Period ${slot.periodNumber}`}</span>
                         {slot.subjectName && (
-                          <span className="px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 font-semibold text-xs">
+                          <span className="px-1.5 py-0.5 rounded bg-[#F2F8EF] text-[#38662D] border border-[#C9DFBC]/60 font-semibold text-xs">
                             {slot.subjectName}
                           </span>
                         )}
@@ -985,7 +985,7 @@ export const HmOverviewTab = ({
               <button
                 type="button"
                 onClick={() => onSelectTab('timetable')}
-                className="mt-3 px-3.5 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-[#006AC7] hover:bg-blue-50 transition cursor-pointer shadow-2xs"
+                className="mt-3 px-3.5 py-1.5 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-[#38662D] hover:bg-[#F2F8EF] hover:border-[#C9DFBC] transition cursor-pointer shadow-2xs"
               >
                 Open Timetable
               </button>
@@ -1063,7 +1063,7 @@ export const HmOverviewTab = ({
                         onSelectTab(item.actionTab || 'approvals');
                       }
                     }}
-                    className="px-3.5 py-1.5 rounded-lg bg-[#006AC7] text-white text-xs font-semibold hover:bg-[#005299] transition cursor-pointer shadow-2xs flex items-center gap-1.5"
+                    className="px-3.5 py-1.5 rounded-lg bg-[#4B7F3A] hover:bg-[#38662D] text-white text-xs font-semibold transition cursor-pointer shadow-2xs flex items-center gap-1.5"
                   >
                     <span>{item.actionLabel || 'Review'}</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -1085,7 +1085,7 @@ export const HmOverviewTab = ({
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div>
             <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[#006AC7]" />
+              <Sparkles className="w-4 h-4 text-[#4B7F3A]" />
               Head Master Quick Actions
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
@@ -1101,7 +1101,7 @@ export const HmOverviewTab = ({
               label: 'Student Directory',
               desc: 'Students and records',
               icon: GraduationCap,
-              color: 'text-blue-600 bg-blue-50 border-blue-200/60',
+              color: 'text-[#38662D] bg-[#F2F8EF] border-[#C9DFBC]',
               tab: 'students',
             },
             {
@@ -1109,7 +1109,7 @@ export const HmOverviewTab = ({
               label: 'Teaching Staff',
               desc: 'Staff roster and status',
               icon: Users,
-              color: 'text-emerald-600 bg-emerald-50 border-emerald-200/60',
+              color: 'text-[#38662D] bg-[#F2F8EF] border-[#C9DFBC]',
               tab: 'faculty',
             },
             {
@@ -1117,7 +1117,7 @@ export const HmOverviewTab = ({
               label: 'Record Attendance',
               desc: "Today's student attendance",
               icon: ClipboardCheck,
-              color: 'text-indigo-600 bg-indigo-50 border-indigo-200/60',
+              color: 'text-[#38662D] bg-[#F2F8EF] border-[#C9DFBC]',
               tab: 'attendance',
             },
             {
@@ -1125,7 +1125,7 @@ export const HmOverviewTab = ({
               label: 'Teaching Duties',
               desc: 'Class teachers and subjects',
               icon: UserCheck,
-              color: 'text-purple-600 bg-purple-50 border-purple-200/60',
+              color: 'text-[#38662D] bg-[#F2F8EF] border-[#C9DFBC]',
               tab: 'assignments',
             },
             {
@@ -1133,7 +1133,7 @@ export const HmOverviewTab = ({
               label: 'Incoming Staff',
               desc: 'Joining and relieving reviews',
               icon: ArrowLeftRight,
-              color: 'text-amber-600 bg-amber-50 border-amber-200/60',
+              color: 'text-amber-700 bg-amber-50 border-amber-200/60',
               tab: 'transfers',
             },
             {
@@ -1141,7 +1141,7 @@ export const HmOverviewTab = ({
               label: 'Exams & Results',
               desc: 'School exams and marksheets',
               icon: Award,
-              color: 'text-rose-600 bg-rose-50 border-rose-200/60',
+              color: 'text-amber-700 bg-amber-50 border-amber-200/60',
               tab: 'exams',
             },
             {
@@ -1149,7 +1149,7 @@ export const HmOverviewTab = ({
               label: 'Circulars & Notices',
               desc: 'School notices and orders',
               icon: FileText,
-              color: 'text-teal-600 bg-teal-50 border-teal-200/60',
+              color: 'text-[#006AC7] bg-[#F0F8FF] border-blue-200/60',
               tab: 'notices',
             },
             {
@@ -1157,7 +1157,7 @@ export const HmOverviewTab = ({
               label: 'School Timetable',
               desc: 'Daily period schedule',
               icon: CalendarDays,
-              color: 'text-sky-600 bg-sky-50 border-sky-200/60',
+              color: 'text-[#38662D] bg-[#F2F8EF] border-[#C9DFBC]',
               tab: 'timetable',
             },
           ].map((action) => (
@@ -1174,7 +1174,7 @@ export const HmOverviewTab = ({
                 <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-900 group-hover:translate-x-0.5 transition" />
               </div>
               <div>
-                <span className="font-bold text-xs sm:text-sm text-slate-900 block group-hover:text-[#006AC7] transition">
+                <span className="font-bold text-xs sm:text-sm text-slate-900 block group-hover:text-[#38662D] transition">
                   {action.label}
                 </span>
                 <span className="text-xs text-slate-500 block mt-0.5 truncate">
@@ -1198,7 +1198,7 @@ export const HmOverviewTab = ({
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <div>
               <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <FileText className="w-4 h-4 text-[#006AC7]" />
+                <FileText className="w-4 h-4 text-[#4B7F3A]" />
                 Recent School Activity
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
@@ -1208,7 +1208,7 @@ export const HmOverviewTab = ({
             <button
               type="button"
               onClick={() => onSelectTab('activity')}
-              className="text-xs text-[#006AC7] font-semibold hover:underline flex items-center gap-1 cursor-pointer"
+              className="text-xs text-[#4B7F3A] hover:text-[#38662D] font-semibold hover:underline flex items-center gap-1 cursor-pointer"
             >
               Full log <ArrowRight className="w-3 h-3" />
             </button>
@@ -1261,10 +1261,10 @@ export const HmOverviewTab = ({
           <div>
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <Building className="w-4 h-4 text-[#006AC7]" />
+                <Building className="w-4 h-4 text-[#4B7F3A]" />
                 <h2 className="text-base font-bold text-slate-900">School Profile</h2>
               </div>
-              <span className="text-xs px-2.5 py-1 rounded-full bg-blue-50 text-[#006AC7] border border-blue-200 font-semibold font-mono">
+              <span className="text-xs px-2.5 py-1 rounded-full bg-[#F2F8EF] text-[#38662D] border border-[#C9DFBC] font-semibold font-mono">
                 {schoolCode}
               </span>
             </div>
@@ -1316,7 +1316,7 @@ export const HmOverviewTab = ({
             <button
               type="button"
               onClick={() => onSelectTab('profile')}
-              className="text-[#006AC7] font-semibold hover:underline flex items-center gap-1 cursor-pointer shrink-0"
+              className="text-[#4B7F3A] hover:text-[#38662D] font-semibold hover:underline flex items-center gap-1 cursor-pointer shrink-0"
             >
               View profile <ArrowRight className="w-3 h-3" />
             </button>

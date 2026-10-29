@@ -823,12 +823,12 @@ export const HmTimetableBuilder = ({
     <div className="space-y-6">
       {/* ─── OFFICIAL GOVERNMENT INSTITUTIONAL BANNER ─── */}
       <div className="p-6 md:p-8 rounded-3xl bg-gradient-to-br from-[#0a1829] via-[#102033] to-[#162a42] text-white shadow-xl border border-slate-800/80 relative overflow-hidden space-y-6">
-        <div className="absolute right-0 top-0 bottom-0 w-96 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-blue-500/15 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute right-0 top-0 bottom-0 w-96 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-emerald-500/15 via-transparent to-transparent pointer-events-none" />
 
         {/* Institutional Authority Badges & Real-time Live HUD */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10 border-b border-white/10 pb-4">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase bg-[#006AC7] text-white shadow-xs">
+            <span className="px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase bg-[#4B7F3A] text-white shadow-xs">
               DMC LIAQUATABAD TOWN CENTRE
             </span>
             <span className="px-3 py-1 rounded-full text-[10px] font-mono font-bold bg-white/10 text-white/90 border border-white/10">
@@ -876,10 +876,10 @@ export const HmTimetableBuilder = ({
 
             <button
               onClick={() => setShowPrintPreviewModal(true)}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600/30 hover:bg-blue-600/50 border border-blue-400/40 text-white text-xs font-bold transition cursor-pointer shadow-sm active:scale-98"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600/30 hover:bg-emerald-600/50 border border-emerald-400/40 text-white text-xs font-bold transition cursor-pointer shadow-sm active:scale-98"
               title="Open Official A4 Timetable Preview"
             >
-              <Eye className="w-4 h-4 text-blue-200" />
+              <Eye className="w-4 h-4 text-emerald-200" />
               <span>A4 Preview</span>
             </button>
 
@@ -904,7 +904,7 @@ export const HmTimetableBuilder = ({
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold transition cursor-pointer shadow-sm active:scale-98"
               title="Print Master Timetable"
             >
-              <Printer className="w-4 h-4 text-blue-300" />
+              <Printer className="w-4 h-4 text-slate-300" />
               <span>Print Sheet</span>
             </button>
 
@@ -979,7 +979,7 @@ export const HmTimetableBuilder = ({
               >
                 <span>{day}</span>
                 {isFridayPill && !isDayWeeklyOff && (
-                  <span className={`text-[9px] px-1 py-0.2 rounded font-mono ${isSelected ? 'bg-indigo-400/30 text-indigo-200' : 'bg-indigo-100 text-indigo-800'
+                  <span className={`text-[9px] px-1 py-0.2 rounded font-mono ${isSelected ? 'bg-emerald-400/30 text-emerald-200' : 'bg-[#F2F8EF] text-[#38662D] border border-[#C9DFBC]'
                     }`}>
                     Jummah
                   </span>
@@ -1008,7 +1008,7 @@ export const HmTimetableBuilder = ({
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={handleCopyDayToAllWeekdays}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-blue-200 bg-blue-50/80 hover:bg-blue-100/80 text-[#006AC7] text-xs font-bold transition cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#C9DFBC] bg-[#F2F8EF] hover:bg-[#E3F0DC] text-[#38662D] text-xs font-bold transition cursor-pointer"
             title="Copy current day's routine to all active working days"
           >
             <Copy className="w-3.5 h-3.5" />
@@ -1017,7 +1017,7 @@ export const HmTimetableBuilder = ({
 
           <button
             onClick={() => setSlotManagerOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-indigo-200 bg-indigo-50/80 hover:bg-indigo-100/80 text-indigo-700 text-xs font-bold transition cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-emerald-200 bg-emerald-50/80 hover:bg-emerald-100/80 text-emerald-800 text-xs font-bold transition cursor-pointer"
             title="Manage, add, or adjust custom period slots dynamically"
           >
             <Sliders className="w-3.5 h-3.5" />
@@ -1184,7 +1184,7 @@ export const HmTimetableBuilder = ({
                                 toast.error('No faculty members available to assign.');
                               }
                             }}
-                            className="p-1 sm:p-1.5 rounded-lg border border-blue-200 bg-blue-50 hover:bg-blue-100 text-[#006AC7] text-[9px] sm:text-[10px] font-bold cursor-pointer transition shrink-0 active:scale-95"
+                            className="p-1 sm:p-1.5 rounded-lg border border-[#C9DFBC] bg-[#F2F8EF] hover:bg-[#E3F0DC] text-[#38662D] text-[9px] sm:text-[10px] font-bold cursor-pointer transition shrink-0 active:scale-95"
                             title="Assign Single Teacher to All Subjects"
                           >
                             All
@@ -1230,12 +1230,12 @@ export const HmTimetableBuilder = ({
                         <td
                           key={slot.periodNumber}
                           onClick={() => handleOpenCellEditor(classItem, slot)}
-                          className={`py-2 px-1.5 sm:px-2 border-r border-slate-200 last:border-r-0 cursor-pointer transition group ${isLiveSlot ? 'bg-emerald-500/10' : 'hover:bg-blue-50/40'
+                          className={`py-2 px-1.5 sm:px-2 border-r border-slate-200 last:border-r-0 cursor-pointer transition group ${isLiveSlot ? 'bg-emerald-500/10' : 'hover:bg-[#F2F8EF]/60'
                             }`}
                         >
                           {isAllocated ? (
-                            <div className="p-1.5 sm:p-2 rounded-xl bg-blue-50/90 border border-blue-200/80 group-hover:border-[#006AC7] transition space-y-0.5">
-                              <div className="font-black text-[11px] sm:text-xs text-[#006AC7] uppercase tracking-wide truncate">
+                            <div className="p-1.5 sm:p-2 rounded-xl bg-[#F2F8EF]/90 border border-[#C9DFBC]/80 group-hover:border-[#4B7F3A] transition space-y-0.5">
+                              <div className="font-black text-[11px] sm:text-xs text-[#38662D] uppercase tracking-wide truncate">
                                 {subjectObj?.name || 'ALL SUBJECTS'}
                               </div>
 
@@ -1250,7 +1250,7 @@ export const HmTimetableBuilder = ({
                               )}
                             </div>
                           ) : (
-                            <div className="h-11 sm:h-12 rounded-xl border border-dashed border-slate-200 flex items-center justify-center text-[10px] font-bold text-[#8094A8] group-hover:border-[#006AC7] group-hover:text-[#006AC7] group-hover:bg-white transition">
+                            <div className="h-11 sm:h-12 rounded-xl border border-dashed border-slate-200 flex items-center justify-center text-[10px] font-bold text-[#8094A8] group-hover:border-[#4B7F3A] group-hover:text-[#4B7F3A] group-hover:bg-white transition">
                               + Assign
                             </div>
                           )}
@@ -1271,7 +1271,7 @@ export const HmTimetableBuilder = ({
       <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-blue-50 text-[#006AC7]">
+            <div className="p-2 rounded-xl bg-[#F2F8EF] text-[#38662D]">
               <Users className="w-5 h-5" />
             </div>
             <div>
@@ -1296,7 +1296,7 @@ export const HmTimetableBuilder = ({
           {teacherFreePeriodsSummary.map((teacherSummary, summaryIndex) => (
             <div
               key={teacherSummary.teacherId || `teacher_summary_${summaryIndex}`}
-              className="p-3.5 rounded-2xl border border-slate-200/90 bg-slate-50/60 hover:bg-white hover:border-[#006AC7]/60 hover:shadow-sm transition flex items-center justify-between gap-3"
+              className="p-3.5 rounded-2xl border border-slate-200/90 bg-slate-50/60 hover:bg-white hover:border-[#4B7F3A]/60 hover:shadow-sm transition flex items-center justify-between gap-3"
             >
               <div>
                 <div className="text-xs font-black text-[#102033] uppercase">
@@ -1311,9 +1311,9 @@ export const HmTimetableBuilder = ({
                 <div className="text-[10px] font-bold uppercase tracking-wider text-[#526477]">
                   FREE PERIODS
                 </div>
-                <div className="text-xs font-mono font-black text-[#006AC7] mt-0.5">
+                <div className="text-xs font-mono font-black text-[#38662D] mt-0.5">
                   {teacherSummary.freePeriods.length > 0 ? (
-                    <span className="px-2 py-0.5 rounded-lg bg-blue-100/80 text-blue-900 border border-blue-200">
+                    <span className="px-2 py-0.5 rounded-lg bg-[#F2F8EF] text-[#38662D] border border-[#C9DFBC]">
                       {teacherSummary.formatted}
                     </span>
                   ) : (
@@ -1333,7 +1333,7 @@ export const HmTimetableBuilder = ({
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
                 <h3 className="font-bold text-base text-[#102033] flex items-center gap-2">
-                  <Sliders className="w-4 h-4 text-[#006AC7]" />
+                  <Sliders className="w-4 h-4 text-[#4B7F3A]" />
                   <span>Dynamic Period Slot Manager</span>
                 </h3>
                 <p className="text-xs text-[#526477] mt-0.5">
@@ -1397,7 +1397,7 @@ export const HmTimetableBuilder = ({
                         </td>
                         <td className="py-2 px-3 font-bold">{slot.label}</td>
                         <td className="py-2 px-3">
-                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${slot.slotType === 'RECESS' ? 'bg-amber-100 text-amber-800' : 'bg-blue-100 text-blue-800'
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${slot.slotType === 'RECESS' ? 'bg-amber-100 text-amber-800' : 'bg-[#F2F8EF] text-[#38662D] border border-[#C9DFBC]'
                             }`}>
                             {slot.slotType}
                           </span>
@@ -1424,7 +1424,7 @@ export const HmTimetableBuilder = ({
             {/* Add Custom Slot Form */}
             <form onSubmit={handleAddCustomSlot} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
               <div className="text-xs font-bold text-[#102033] flex items-center gap-1.5">
-                <Plus className="w-3.5 h-3.5 text-[#006AC7]" />
+                <Plus className="w-3.5 h-3.5 text-[#4B7F3A]" />
                 <span>Add Custom Period Slot to {managerTab}</span>
               </div>
 
@@ -1493,7 +1493,7 @@ export const HmTimetableBuilder = ({
               <div className="flex justify-end pt-1">
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-[#006AC7] hover:bg-[#005299] text-white text-xs font-bold transition cursor-pointer shadow-sm flex items-center gap-1.5"
+                  className="px-4 py-2 rounded-xl bg-[#4B7F3A] hover:bg-[#38662D] text-white text-xs font-bold transition cursor-pointer shadow-sm flex items-center gap-1.5"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Insert Slot</span>
@@ -1521,7 +1521,7 @@ export const HmTimetableBuilder = ({
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div>
                 <h3 className="font-bold text-base text-[#102033] flex items-center gap-2">
-                  <BookOpen className="w-4 h-4 text-[#006AC7]" />
+                  <BookOpen className="w-4 h-4 text-[#4B7F3A]" />
                   <span>Period Allocation</span>
                 </h3>
                 <p className="text-xs text-[#526477] mt-0.5">
@@ -1612,7 +1612,7 @@ export const HmTimetableBuilder = ({
                 <button
                   type="button"
                   onClick={handleSaveCellAllocation}
-                  className="px-4 py-2 rounded-xl bg-[#006AC7] hover:bg-[#005299] text-white font-bold text-xs cursor-pointer shadow-sm"
+                  className="px-4 py-2 rounded-xl bg-[#4B7F3A] hover:bg-[#38662D] text-white font-bold text-xs cursor-pointer shadow-sm"
                 >
                   Apply Allocation
                 </button>
