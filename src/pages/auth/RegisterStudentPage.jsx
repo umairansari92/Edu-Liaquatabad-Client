@@ -377,11 +377,11 @@ export const RegisterStudentPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FBFD] py-10 px-4 sm:px-6 lg:px-8 font-sans selection:bg-[#006AC7] selection:text-white">
+    <div className="min-h-screen bg-[#F8FBFD] py-8 sm:py-10 px-3 sm:px-6 lg:px-8 font-sans selection:bg-[#4B7F3A] selection:text-white">
       {/* Brand Header */}
       <div className="sm:mx-auto sm:w-full sm:max-w-3xl text-center mb-6">
         <Link to="/" className="inline-flex items-center justify-center space-x-3 mb-3 group">
-          <div className="w-12 h-12 rounded-2xl bg-[#006AC7] flex items-center justify-center shadow-lg shadow-[#006AC7]/20 group-hover:bg-[#00529B] transition-colors">
+          <div className="w-12 h-12 rounded-2xl bg-[#4B7F3A] flex items-center justify-center shadow-lg shadow-[#4B7F3A]/20 group-hover:bg-[#38662D] transition-colors">
             <School className="w-6 h-6 text-white" />
           </div>
         </Link>
@@ -458,7 +458,7 @@ export const RegisterStudentPage = () => {
       </div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-3xl">
-        <div className="bg-white py-8 px-6 sm:px-10 shadow-xl rounded-2xl border border-slate-200/80">
+        <div className="bg-white py-6 sm:py-8 px-4 sm:px-10 shadow-xl rounded-2xl border border-slate-200/80">
           {/* Error notification */}
           {errorMessage && (
             <div className="mb-6 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2.5">

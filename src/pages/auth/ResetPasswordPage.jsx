@@ -66,10 +66,10 @@ export const ResetPasswordPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FBFD] flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans selection:bg-[#006AC7] selection:text-white">
+    <div className="min-h-screen bg-[#F8FBFD] flex flex-col justify-center py-8 sm:py-12 px-3 sm:px-6 lg:px-8 font-sans selection:bg-[#4B7F3A] selection:text-white">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <Link to="/" className="inline-flex items-center justify-center space-x-3 mb-5 group">
-          <div className="w-12 h-12 rounded-2xl bg-[#006AC7] flex items-center justify-center shadow-md group-hover:bg-[#00529B] transition-colors">
+          <div className="w-12 h-12 rounded-2xl bg-[#4B7F3A] flex items-center justify-center shadow-md group-hover:bg-[#38662D] transition-colors">
             <School className="w-6 h-6 text-white" />
           </div>
         </Link>
@@ -86,8 +86,8 @@ export const ResetPasswordPage = () => {
         </div>
       </div>
 
-      <div className="mt-7 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
-        <div className="bg-white py-8 px-6 sm:px-10 shadow-xl rounded-2xl border border-slate-200/80">
+      <div className="mt-7 sm:mx-auto sm:w-full sm:max-w-md px-3 sm:px-0">
+        <div className="bg-white py-6 sm:py-8 px-4 sm:px-10 shadow-xl rounded-2xl border border-slate-200/80">
           {success ? (
             <div className="text-center py-4">
               <div className="w-16 h-16 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-center mx-auto mb-4 text-[#4B7F3A]">
@@ -99,7 +99,7 @@ export const ResetPasswordPage = () => {
               </p>
               <Link
                 to="/login"
-                className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold text-white bg-[#006AC7] hover:bg-[#00529B] shadow-sm transition-all"
+                className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold text-white bg-[#4B7F3A] hover:bg-[#38662D] shadow-sm transition-all"
               >
                 Sign In With New Password
                 <ArrowRight className="w-4 h-4" />

@@ -311,7 +311,7 @@ export const SmartAttendanceRegister = ({
               <select
                 value={activeSectionId}
                 onChange={(e) => handleSectionSelect(e.target.value)}
-                className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-[#102033] bg-white focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
+                className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-[#102033] bg-white focus:outline-none focus:ring-2 focus:ring-[#4B7F3A]"
               >
                 {sections.map((sec) => (
                   <option key={String(sec._id)} value={String(sec._id)}>
@@ -352,7 +352,7 @@ export const SmartAttendanceRegister = ({
               className="p-2 rounded-xl border border-slate-200 text-slate-600 hover:text-[#102033] hover:bg-slate-50 transition cursor-pointer disabled:opacity-50"
               title="Refresh Register Data"
             >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-[#006AC7]' : ''}`} />
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-[#4B7F3A]' : ''}`} />
             </button>
 
             {/* View Mode Toggle: Cards vs Ledger Table */}
@@ -405,9 +405,9 @@ export const SmartAttendanceRegister = ({
               <span className="text-[10px] font-bold text-[#8094A8] uppercase block">Total Students</span>
               <span className="text-base font-black text-[#102033]">{registerData.totalStudents}</span>
             </div>
-            <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-200 text-center">
-              <span className="text-[10px] font-bold text-[#006AC7] uppercase block">Total Work Days</span>
-              <span className="text-base font-black text-[#006AC7]">{registerData.totalWorkingDays}</span>
+            <div className="p-2.5 rounded-xl bg-[#F2F8EF] border border-[#C9DFBC] text-center">
+              <span className="text-[10px] font-bold text-[#38662D] uppercase block">Total Work Days</span>
+              <span className="text-base font-black text-[#38662D]">{registerData.totalWorkingDays}</span>
             </div>
             <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-center">
               <span className="text-[10px] font-bold text-emerald-800 uppercase block">Recorded Days</span>
@@ -471,7 +471,7 @@ export const SmartAttendanceRegister = ({
         {/* ─── Register Table Container ─────────────────────────────────────── */}
         {loading ? (
           <div className="py-24 flex flex-col items-center justify-center gap-3 text-slate-500">
-            <Loader2 className="w-8 h-8 animate-spin text-[#006AC7]" />
+            <Loader2 className="w-8 h-8 animate-spin text-[#4B7F3A]" />
             <p className="text-xs font-bold">Assembling monthly attendance ledger…</p>
           </div>
         ) : error ? (
@@ -481,7 +481,7 @@ export const SmartAttendanceRegister = ({
             <button
               type="button"
               onClick={fetchRegister}
-              className="px-4 py-2 rounded-xl bg-[#006AC7] text-white text-xs font-bold cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-[#4B7F3A] hover:bg-[#38662D] text-white text-xs font-bold cursor-pointer transition shadow-xs"
             >
               Try Again
             </button>
@@ -503,7 +503,7 @@ export const SmartAttendanceRegister = ({
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search student by name, roll #, or GR #..."
-                    className="w-full pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-xs text-[#102033] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#006AC7] font-medium"
+                    className="w-full pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-xs text-[#102033] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#4B7F3A] font-medium"
                   />
                   {searchQuery && (
                     <button
@@ -521,7 +521,7 @@ export const SmartAttendanceRegister = ({
                   <button
                     type="button"
                     onClick={() => setDisplayMode('TABLE')}
-                    className="text-xs font-bold text-[#006AC7] hover:underline flex items-center gap-1 cursor-pointer"
+                    className="text-xs font-bold text-[#38662D] hover:underline flex items-center gap-1 cursor-pointer"
                   >
                     <TableIcon className="w-3.5 h-3.5" /> Switch to Full Ledger
                   </button>
@@ -618,7 +618,7 @@ export const SmartAttendanceRegister = ({
                           <button
                             type="button"
                             onClick={() => setExpandedStudentId(isExpanded ? null : student.userId)}
-                            className="w-full py-1 text-xs font-bold text-[#006AC7] hover:text-blue-800 flex items-center justify-center gap-1 transition cursor-pointer"
+                            className="w-full py-1 text-xs font-bold text-[#38662D] hover:text-[#294D22] flex items-center justify-center gap-1 transition cursor-pointer"
                           >
                             <span>{isExpanded ? 'Hide Month Breakdown' : 'View Month Days Breakdown'}</span>
                             {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -711,7 +711,7 @@ export const SmartAttendanceRegister = ({
                 <button
                   type="button"
                   onClick={() => setDisplayMode('CARDS')}
-                  className="font-bold text-[#006AC7] hover:underline flex items-center gap-1 cursor-pointer"
+                  className="font-bold text-[#38662D] hover:underline flex items-center gap-1 cursor-pointer"
                 >
                   <LayoutGrid className="w-3 h-3" /> Switch to Cards
                 </button>
@@ -1168,7 +1168,7 @@ export const SmartAttendanceRegister = ({
                   value={clearanceReason}
                   onChange={(e) => setClearanceReason(e.target.value)}
                   placeholder="State official reason for late clearance (e.g., Severe local power outage and internet disruption on 12th Oct prevented timely register submission by class teacher)..."
-                  className="w-full p-2.5 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-[#006AC7]"
+                  className="w-full p-2.5 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-[#4B7F3A]"
                 />
                 <div className="flex justify-between text-[11px] text-slate-500">
                   <span>Must be a formal administrative justification</span>
@@ -1244,7 +1244,7 @@ export const SmartAttendanceRegister = ({
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
+            <div className="p-4 border-t border-slate-200 bg-slate-50 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
               <span className="text-[11px] text-slate-500">
                 Action will be permanently recorded in municipal audit logs.
               </span>

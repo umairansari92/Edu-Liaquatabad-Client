@@ -822,7 +822,7 @@ export const HmTimetableBuilder = ({
   return (
     <div className="space-y-6">
       {/* ─── OFFICIAL GOVERNMENT INSTITUTIONAL BANNER ─── */}
-      <div className="p-6 md:p-8 rounded-3xl bg-gradient-to-br from-[#0a1829] via-[#102033] to-[#162a42] text-white shadow-xl border border-slate-800/80 relative overflow-hidden space-y-6">
+      <div className="p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-[#0a1829] via-[#102033] to-[#162a42] text-white shadow-xl border border-slate-800/80 relative overflow-hidden space-y-6">
         <div className="absolute right-0 top-0 bottom-0 w-96 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-emerald-500/15 via-transparent to-transparent pointer-events-none" />
 
         {/* Institutional Authority Badges & Real-time Live HUD */}

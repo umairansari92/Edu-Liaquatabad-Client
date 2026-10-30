@@ -78,15 +78,15 @@ export const ForgotPasswordPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FBFD] flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans selection:bg-[#006AC7] selection:text-white">
+    <div className="min-h-screen bg-[#F8FBFD] flex flex-col justify-center py-8 sm:py-12 px-3 sm:px-6 lg:px-8 font-sans selection:bg-[#4B7F3A] selection:text-white">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <Link to="/" className="inline-flex items-center justify-center space-x-3 mb-5 group">
-          <div className="w-12 h-12 rounded-2xl bg-[#006AC7] flex items-center justify-center shadow-md group-hover:bg-[#00529B] transition-colors">
+          <div className="w-12 h-12 rounded-2xl bg-[#4B7F3A] flex items-center justify-center shadow-md group-hover:bg-[#38662D] transition-colors">
             <School className="w-6 h-6 text-white" />
           </div>
         </Link>
         <h2 className="text-2xl sm:text-3xl font-bold text-[#102033] tracking-tight flex items-center justify-center gap-2">
-          <KeyRound className="w-6 h-6 text-[#006AC7]" />
+          <KeyRound className="w-6 h-6 text-[#4B7F3A]" />
           Password Recovery
         </h2>
         <div className="mt-1.5 space-y-0.5">
@@ -99,8 +99,8 @@ export const ForgotPasswordPage = () => {
         </div>
       </div>
 
-      <div className="mt-7 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
-        <div className="bg-white py-8 px-6 sm:px-10 shadow-xl rounded-2xl border border-slate-200/80">
+      <div className="mt-7 sm:mx-auto sm:w-full sm:max-w-md px-3 sm:px-0">
+        <div className="bg-white py-6 sm:py-8 px-4 sm:px-10 shadow-xl rounded-2xl border border-slate-200/80">
           <p className="text-xs text-[#526477] mb-5 leading-relaxed font-medium">
             Enter your official registered email address. We will dispatch a 6-digit cryptographic security code to authorize your password reset.
           </p>
@@ -154,21 +154,21 @@ export const ForgotPasswordPage = () => {
                     type="button"
                     onClick={fetchCaptcha}
                     disabled={captchaLoading}
-                    className="text-[11px] text-[#006AC7] hover:underline font-bold flex items-center gap-1 transition-colors"
+                    className="text-[11px] text-[#4B7F3A] hover:underline font-bold flex items-center gap-1 transition-colors"
                   >
                     <RefreshCw className={`w-3 h-3 ${captchaLoading ? 'animate-spin' : ''}`} />
                     Refresh
                   </button>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="px-4 py-2 rounded-xl bg-blue-50 border border-blue-200 text-[#006AC7] font-mono text-xs font-bold tracking-wider select-none shadow-sm">
+                  <div className="px-4 py-2 rounded-xl bg-[#F2F8EF] border border-[#C9DFBC] text-[#38662D] font-mono text-xs font-bold tracking-wider select-none shadow-sm">
                     {captcha.question} = ?
                   </div>
                   <input
                     type="text"
                     {...register('captchaAnswer')}
                     placeholder="Result"
-                    className="block flex-1 px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-xl text-[#102033] placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#006AC7] focus:ring-1 focus:ring-[#006AC7] text-xs text-center font-mono font-bold"
+                    className="block flex-1 px-3 py-2 bg-slate-50/50 border border-slate-300 rounded-xl text-[#102033] placeholder-slate-400 focus:bg-white focus:outline-none focus:border-[#4B7F3A] focus:ring-1 focus:ring-[#4B7F3A] text-xs text-center font-mono font-bold"
                   />
                 </div>
               </div>
@@ -178,7 +178,7 @@ export const ForgotPasswordPage = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center items-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold text-white bg-[#006AC7] hover:bg-[#00529B] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#006AC7] shadow-sm transition-all disabled:opacity-50"
+                className="w-full flex justify-center items-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold text-white bg-[#4B7F3A] hover:bg-[#38662D] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#4B7F3A] shadow-sm transition-all disabled:opacity-50"
               >
                 {loading ? 'Dispatching Reset Code...' : 'Dispatch Verification Code'}
                 {!loading && <ArrowRight className="w-4 h-4" />}
@@ -189,7 +189,7 @@ export const ForgotPasswordPage = () => {
           <div className="mt-6 border-t border-slate-100 pt-5 text-center text-xs text-[#526477]">
             <Link
               to="/login"
-              className="inline-flex items-center gap-1.5 text-[#006AC7] hover:underline font-bold transition-colors"
+              className="inline-flex items-center gap-1.5 text-[#4B7F3A] hover:underline font-bold transition-colors"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               Return to Official Sign In

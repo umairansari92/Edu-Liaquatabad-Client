@@ -376,7 +376,7 @@ export const LoginPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FBFD] flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans selection:bg-[#4B7F3A] selection:text-white">
+    <div className="min-h-screen bg-[#F8FBFD] flex flex-col justify-center py-8 sm:py-12 px-3 sm:px-6 lg:px-8 font-sans selection:bg-[#4B7F3A] selection:text-white">
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <Link to="/" className="inline-flex items-center justify-center space-x-3 mb-5 group">
           <div className="w-12 h-12 rounded-2xl bg-[#4B7F3A] flex items-center justify-center shadow-md group-hover:bg-[#38662D] transition-colors">
@@ -396,8 +396,8 @@ export const LoginPage = () => {
         </div>
       </div>
 
-      <div className="mt-7 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
-        <div className="bg-white py-8 px-6 sm:px-10 shadow-xl rounded-2xl border border-slate-200/80">
+      <div className="mt-7 sm:mx-auto sm:w-full sm:max-w-md px-3 sm:px-0">
+        <div className="bg-white py-6 sm:py-8 px-4 sm:px-10 shadow-xl rounded-2xl border border-slate-200/80">
           {errorMessage && (
             <div
               className={`mb-5 p-3.5 rounded-xl text-xs flex flex-col gap-2.5 ${

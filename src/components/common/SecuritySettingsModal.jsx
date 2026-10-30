@@ -362,11 +362,11 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
       aria-modal="true"
       aria-labelledby="security-modal-title"
     >
-      <div className="relative w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-5 my-8 text-[#102033]">
+      <div className="relative w-full max-w-2xl rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-2xl space-y-5 my-8 text-[#102033]">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div className="flex items-center gap-2.5">
-            <div className="rounded-xl border border-blue-200 bg-blue-50 p-2 text-[#006AC7]">
+            <div className="rounded-xl border border-[#C9DFBC] bg-[#F2F8EF] p-2 text-[#38662D]">
               <ShieldCheck className="h-5 w-5" />
             </div>
             <div>
@@ -777,13 +777,13 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
                       placeholder="Current Account Password"
                       value={rotationPassword}
                       onChange={(changeEvent) => setRotationPassword(changeEvent.target.value)}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#006AC7]"
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#4B7F3A]"
                     />
                     <div className="flex gap-2 pt-1">
                       <button
                         type="submit"
                         disabled={rotateLoading || !rotationPassword}
-                        className="flex-1 py-2 bg-[#006AC7] text-white font-bold rounded-lg hover:bg-[#00529B] disabled:opacity-50 transition flex items-center justify-center gap-2"
+                        className="flex-1 py-2 bg-[#4B7F3A] text-white font-bold rounded-lg hover:bg-[#38662D] disabled:opacity-50 transition flex items-center justify-center gap-2"
                       >
                         {rotateLoading ? (
                           <>
@@ -851,14 +851,14 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
                         placeholder="000000"
                         value={rotationTotpCode}
                         onChange={(changeEvent) => setRotationTotpCode(changeEvent.target.value.replace(/\D/g, ''))}
-                        className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-center font-mono font-bold text-xl tracking-[0.3em] text-[#102033] focus:bg-white focus:outline-none focus:border-[#006AC7]"
+                        className="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-center font-mono font-bold text-xl tracking-[0.3em] text-[#102033] focus:bg-white focus:outline-none focus:border-[#4B7F3A]"
                       />
                     </div>
 
                     <button
                       type="submit"
                       disabled={rotateLoading || rotationTotpCode.length !== 6}
-                      className="w-full py-2.5 bg-[#4B7F3A] hover:bg-[#3D692F] text-white font-bold rounded-lg transition disabled:opacity-50 flex items-center justify-center gap-2 shadow-xs"
+                      className="w-full py-2.5 bg-[#4B7F3A] hover:bg-[#38662D] text-white font-bold rounded-lg transition disabled:opacity-50 flex items-center justify-center gap-2 shadow-xs"
                     >
                       {rotateLoading ? (
                         <>
@@ -932,7 +932,7 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
                   setSetupStep(1);
                   setActionError('');
                 }}
-                className="w-full py-2.5 px-4 bg-[#006AC7] text-white rounded-xl text-xs font-bold hover:bg-[#00529B] transition flex items-center justify-center gap-2 shadow-xs"
+                className="w-full py-2.5 px-4 bg-[#4B7F3A] text-white rounded-xl text-xs font-bold hover:bg-[#38662D] transition flex items-center justify-center gap-2 shadow-xs"
               >
                 <Key className="h-4 w-4" />
                 <span>Configure Two-Factor Authentication</span>
@@ -958,13 +958,13 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
                       placeholder="Current Account Password"
                       value={stepUpPassword}
                       onChange={(changeEvent) => setStepUpPassword(changeEvent.target.value)}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#006AC7]"
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#4B7F3A]"
                     />
                     <div className="flex gap-2">
                       <button
                         type="submit"
                         disabled={loading || !stepUpPassword}
-                        className="flex-1 py-2 bg-[#006AC7] text-white font-bold rounded-lg hover:bg-[#00529B] disabled:opacity-50 transition"
+                        className="flex-1 py-2 bg-[#4B7F3A] text-white font-bold rounded-lg hover:bg-[#38662D] disabled:opacity-50 transition"
                       >
                         {loading ? 'Verifying Password...' : 'Proceed to Authenticator Setup'}
                       </button>
@@ -1040,7 +1040,7 @@ export const SecuritySettingsModal = ({ isOpen, onClose }) => {
                         placeholder="000000"
                         value={confirmTotpCode}
                         onChange={(changeEvent) => setConfirmTotpCode(changeEvent.target.value.replace(/\D/g, ''))}
-                        className="w-full px-3 py-2.5 text-center font-mono text-xl tracking-[0.3em] font-bold border border-slate-300 rounded-lg focus:outline-none focus:border-[#006AC7] bg-white shadow-xs"
+                        className="w-full px-3 py-2.5 text-center font-mono text-xl tracking-[0.3em] font-bold border border-slate-300 rounded-lg focus:outline-none focus:border-[#4B7F3A] bg-white shadow-xs"
                       />
                       <p className="text-[11px] text-[#526477]">
                         Input the current 6-digit verification code from your authenticator app to complete setup.

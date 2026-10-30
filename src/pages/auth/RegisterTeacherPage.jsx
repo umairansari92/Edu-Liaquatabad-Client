@@ -127,10 +127,10 @@ export const RegisterTeacherPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FBFD] flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8 font-sans selection:bg-[#006AC7] selection:text-white">
+    <div className="min-h-screen bg-[#F8FBFD] flex flex-col justify-center py-8 sm:py-10 px-3 sm:px-6 lg:px-8 font-sans selection:bg-[#4B7F3A] selection:text-white">
       <div className="sm:mx-auto sm:w-full sm:max-w-3xl text-center">
         <Link to="/" className="inline-flex items-center justify-center space-x-3 mb-3 group">
-          <div className="w-12 h-12 rounded-2xl bg-[#006AC7] flex items-center justify-center shadow-lg shadow-[#006AC7]/20 group-hover:bg-[#00529B] transition-colors">
+          <div className="w-12 h-12 rounded-2xl bg-[#4B7F3A] flex items-center justify-center shadow-lg shadow-[#4B7F3A]/20 group-hover:bg-[#38662D] transition-colors">
             <School className="w-6 h-6 text-white" />
           </div>
         </Link>
@@ -175,7 +175,7 @@ export const RegisterTeacherPage = () => {
       </div>
 
       <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-3xl">
-        <div className="bg-white py-8 px-6 sm:px-10 shadow-xl rounded-2xl border border-slate-200/80">
+        <div className="bg-white py-6 sm:py-8 px-4 sm:px-10 shadow-xl rounded-2xl border border-slate-200/80">
           {submitted ? (
             <div className="text-center py-8">
               <div className="w-20 h-20 bg-[#4B7F3A]/10 border border-[#4B7F3A]/30 rounded-3xl flex items-center justify-center mx-auto mb-5 text-[#4B7F3A]">
