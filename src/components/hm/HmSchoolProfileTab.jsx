@@ -11,6 +11,8 @@ import {
   Edit3,
   Calendar,
   Sliders,
+  GraduationCap,
+  Users,
 } from 'lucide-react';
 import HmAdjustTimingsModal from './HmAdjustTimingsModal.jsx';
 
@@ -70,6 +72,81 @@ export const HmSchoolProfileTab = ({ summary, user, onEditSchoolCode }) => {
               Configure code
             </button>
           )}
+        </div>
+      </div>
+
+      {/* ── Key Institutional Strength & Enrollment Metrics ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Total Registered Students */}
+        <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-center gap-4">
+          <div className="p-3 rounded-xl bg-[#F2F8EF] text-[#38662D] border border-[#C9DFBC] shrink-0">
+            <GraduationCap className="w-6 h-6" />
+          </div>
+          <div>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+              Registered Students
+            </span>
+            <span className="text-2xl font-black text-[#102033]">
+              {summary?.metrics?.totalStudents ?? 0}
+            </span>
+            <span className="text-[10px] text-slate-500 block font-medium">
+              Active verified enrollments
+            </span>
+          </div>
+        </div>
+
+        {/* Teaching Faculty */}
+        <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-center gap-4">
+          <div className="p-3 rounded-xl bg-emerald-50 text-[#4B7F3A] border border-emerald-200 shrink-0">
+            <Users className="w-6 h-6" />
+          </div>
+          <div>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+              Teaching Faculty
+            </span>
+            <span className="text-2xl font-black text-[#4B7F3A]">
+              {summary?.metrics?.teachingStaff ?? 0}
+            </span>
+            <span className="text-[10px] text-slate-500 block font-medium">
+              Active assigned educators
+            </span>
+          </div>
+        </div>
+
+        {/* Non-Teaching / Support Staff */}
+        <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-center gap-4">
+          <div className="p-3 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 shrink-0">
+            <Building2 className="w-6 h-6" />
+          </div>
+          <div>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+              Support Staff
+            </span>
+            <span className="text-2xl font-black text-slate-800">
+              {summary?.metrics?.nonTeachingStaff ?? 0}
+            </span>
+            <span className="text-[10px] text-slate-500 block font-medium">
+              Administrative &amp; facility staff
+            </span>
+          </div>
+        </div>
+
+        {/* Academic Units */}
+        <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-center gap-4">
+          <div className="p-3 rounded-xl bg-[#F2F8EF] text-[#38662D] border border-[#C9DFBC] shrink-0">
+            <Layers className="w-6 h-6" />
+          </div>
+          <div>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+              Academic Units
+            </span>
+            <span className="text-2xl font-black text-[#38662D]">
+              {summary?.metrics?.totalClasses ?? 0} <span className="text-sm font-semibold text-slate-500">Classes</span>
+            </span>
+            <span className="text-[10px] text-slate-500 block font-medium">
+              {summary?.metrics?.totalSections ?? 0} active sections
+            </span>
+          </div>
         </div>
       </div>
 

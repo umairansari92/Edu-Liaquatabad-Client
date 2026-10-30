@@ -51,6 +51,7 @@ const MONTH_NAMES = [
  * (Sindh Municipal Education Department / DMC Liaquatabad Town standard).
  */
 export const SmartAttendanceRegister = ({
+  classes = [],
   sectionId: initialSectionId = '',
   sections = [],
   user = {},
@@ -97,10 +98,75 @@ export const SmartAttendanceRegister = ({
   useEffect(() => {
     if (initialSectionId) {
       setActiveSectionId(initialSectionId);
-    } else if (sections.length > 0 && !activeSectionId) {
-      setActiveSectionId(String(sections[0]._id));
+    } else if (sections.length > 0) {
+      const exists = sections.some((s) => String(s._id) === String(activeSectionId));
+      if (!activeSectionId || !exists) {
+        setActiveSectionId(String(sections[0]._id));
+      }
     }
   }, [initialSectionId, sections, activeSectionId]);
+
+  // Section switcher handler
+  const handleSectionSelect = (newSectionId) => {
+    setActiveSectionId(newSectionId);
+    if (onSectionChange) {
+      onSectionChange(newSectionId);
+    }
+  };
+
+  // Available classes: provided prop or derived from sections
+  const availableClasses = useMemo(() => {
+    if (classes && classes.length > 0) {
+      return [...classes].sort((a, b) => (Number(a.numericGrade) || 0) - (Number(b.numericGrade) || 0));
+    }
+    const classMap = new Map();
+    for (const sec of sections) {
+      const cls = sec.classId || sec.class;
+      if (cls && typeof cls === 'object' && cls._id) {
+        if (!classMap.has(String(cls._id))) {
+          classMap.set(String(cls._id), cls);
+        }
+      }
+    }
+    return Array.from(classMap.values()).sort((a, b) => (Number(a.numericGrade) || 0) - (Number(b.numericGrade) || 0));
+  }, [classes, sections]);
+
+  // Currently selected section object
+  const currentSection = useMemo(() => {
+    return sections.find((sec) => String(sec._id) === String(activeSectionId)) || (sections.length > 0 ? sections[0] : null);
+  }, [sections, activeSectionId]);
+
+  // Active class ID derived from currently active section or first available class
+  const activeClassId = useMemo(() => {
+    if (currentSection) {
+      const cls = currentSection.classId || currentSection.class;
+      if (cls) return String(cls._id || cls);
+    }
+    if (availableClasses.length > 0) return String(availableClasses[0]._id);
+    return '';
+  }, [currentSection, availableClasses]);
+
+  // Sections filtered for active class
+  const sectionsForActiveClass = useMemo(() => {
+    if (!activeClassId) return sections;
+    const filtered = sections.filter((sec) => {
+      const cls = sec.classId || sec.class;
+      const cId = cls ? String(cls._id || cls) : '';
+      return cId === String(activeClassId);
+    });
+    return filtered.length > 0 ? filtered : sections;
+  }, [sections, activeClassId]);
+
+  // When class changes, switch to the first section of that class
+  const handleClassSelect = (newClassId) => {
+    const matchingSections = sections.filter((sec) => {
+      const cls = sec.classId || sec.class;
+      return String(cls?._id || cls) === String(newClassId);
+    });
+    if (matchingSections.length > 0) {
+      handleSectionSelect(String(matchingSections[0]._id));
+    }
+  };
 
   // Fetch register data through Redux thunk
   const fetchRegister = useCallback(() => {
@@ -115,14 +181,6 @@ export const SmartAttendanceRegister = ({
   useEffect(() => {
     fetchRegister();
   }, [fetchRegister]);
-
-  // Section switcher handler
-  const handleSectionSelect = (newSectionId) => {
-    setActiveSectionId(newSectionId);
-    if (onSectionChange) {
-      onSectionChange(newSectionId);
-    }
-  };
 
   // Month navigation
   const handlePrevMonth = () => {
@@ -258,7 +316,7 @@ export const SmartAttendanceRegister = ({
   const schoolName = registerData?.school?.name || user?.schoolId?.name || 'School';
   const schoolCode = registerData?.school?.schoolCode || user?.schoolId?.schoolCode || 'LT';
   const sectionName = registerData?.section?.name || 'Section';
-  const className = registerData?.section?.class?.name || 'Class';
+  const className = registerData?.section?.classId?.name || registerData?.section?.class?.name || 'Class';
 
   // Compute daily totals for the bottom summary row
   const dailyTotals = useMemo(() => {
@@ -306,19 +364,47 @@ export const SmartAttendanceRegister = ({
 
           {/* Action Buttons & Selectors */}
           <div className="flex flex-wrap items-center gap-2.5">
-            {/* Section Switcher (if multiple available) */}
+            {/* Class & Section Selectors */}
+            {availableClasses.length > 1 && (
+              <div className="flex items-center gap-1.5">
+                <label className="text-[10px] font-bold text-[#526477] uppercase tracking-wider hidden sm:inline">
+                  Class:
+                </label>
+                <select
+                  value={activeClassId}
+                  onChange={(e) => handleClassSelect(e.target.value)}
+                  className="px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-[#102033] bg-white focus:outline-none focus:ring-2 focus:ring-[#4B7F3A] cursor-pointer"
+                  title="Select Class"
+                >
+                  {availableClasses.map((cls) => (
+                    <option key={String(cls._id)} value={String(cls._id)}>
+                      {cls.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             {sections.length > 1 && (
-              <select
-                value={activeSectionId}
-                onChange={(e) => handleSectionSelect(e.target.value)}
-                className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-[#102033] bg-white focus:outline-none focus:ring-2 focus:ring-[#4B7F3A]"
-              >
-                {sections.map((sec) => (
-                  <option key={String(sec._id)} value={String(sec._id)}>
-                    {sec.class?.name} - {sec.name || 'Whole Class'}
-                  </option>
-                ))}
-              </select>
+              <div className="flex items-center gap-1.5">
+                <label className="text-[10px] font-bold text-[#526477] uppercase tracking-wider hidden sm:inline">
+                  Section:
+                </label>
+                <select
+                  value={activeSectionId}
+                  onChange={(e) => handleSectionSelect(e.target.value)}
+                  className="px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-[#102033] bg-white focus:outline-none focus:ring-2 focus:ring-[#4B7F3A] cursor-pointer"
+                  title="Select Section"
+                >
+                  {sectionsForActiveClass.map((sec) => (
+                    <option key={String(sec._id)} value={String(sec._id)}>
+                      {availableClasses.length <= 1
+                        ? `${sec.classId?.name || sec.class?.name || ''} - ${sec.name || 'Section'}`.replace(/^[ -]+/, '')
+                        : sec.name || 'Whole Class'}
+                    </option>
+                  ))}
+                </select>
+              </div>
             )}
 
             {/* Month & Year Navigator */}

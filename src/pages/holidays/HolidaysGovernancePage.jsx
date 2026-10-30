@@ -288,7 +288,7 @@ export const HolidaysGovernancePage = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-5">
           <div>
-            <div className="flex items-center gap-2 text-xs font-bold text-[#006AC7] uppercase tracking-wider">
+            <div className="flex items-center gap-2 text-xs font-bold text-[#4B7F3A] uppercase tracking-wider">
               <Building2 className="h-4 w-4" />
               <span>Municipal Institutional Governance</span>
             </div>
@@ -314,7 +314,7 @@ export const HolidaysGovernancePage = () => {
                 <button
                   type="button"
                   onClick={() => setIsWeeklyOffModalOpen(true)}
-                  className="flex items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-3.5 py-2 text-xs font-bold text-[#006AC7] hover:bg-blue-100 shadow-sm transition"
+                  className="flex items-center gap-1.5 rounded-xl border border-[#C9DFBC] bg-[#F2F8EF] px-3.5 py-2 text-xs font-bold text-[#38662D] hover:bg-[#E4F0DE] shadow-sm transition"
                 >
                   <CalendarDays className="h-3.5 w-3.5" />
                   <span>Weekend Policy</span>
@@ -335,7 +335,7 @@ export const HolidaysGovernancePage = () => {
                     });
                     setIsHolidayModalOpen(true);
                   }}
-                  className="flex items-center gap-1.5 rounded-xl bg-[#006AC7] px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#00529B] transition"
+                  className="flex items-center gap-1.5 rounded-xl bg-[#4B7F3A] px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#38662D] transition"
                 >
                   <Plus className="h-4 w-4" />
                   <span>Declare Custom Break</span>
@@ -402,7 +402,7 @@ export const HolidaysGovernancePage = () => {
           <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm">
             <span className="text-[10px] font-bold uppercase tracking-wider text-[#526477]">Active Weekend Pattern</span>
             <div className="mt-2 flex items-center gap-3">
-              <div className="rounded-xl bg-blue-50 p-2.5 text-[#006AC7] border border-blue-200">
+              <div className="rounded-xl bg-[#F2F8EF] p-2.5 text-[#38662D] border border-[#C9DFBC]">
                 <CalendarDays className="h-6 w-6" />
               </div>
               <div>
@@ -466,14 +466,14 @@ export const HolidaysGovernancePage = () => {
               <button
                 type="button"
                 onClick={() => handleApplyPreset('WINTER_VACATION')}
-                className="flex items-center gap-3 rounded-xl border border-blue-200 bg-blue-50/70 p-3.5 text-left transition hover:border-blue-400 hover:bg-blue-100/60 group shadow-sm"
+                className="flex items-center gap-3 rounded-xl border border-sky-200 bg-sky-50/70 p-3.5 text-left transition hover:border-sky-400 hover:bg-sky-100/60 group shadow-sm"
               >
-                <div className="rounded-lg bg-blue-100 p-2 text-[#006AC7] group-hover:scale-105 transition">
+                <div className="rounded-lg bg-sky-100 p-2 text-sky-700 group-hover:scale-105 transition">
                   <Snowflake className="h-5 w-5" />
                 </div>
                 <div>
-                  <h4 className="text-xs font-bold text-blue-900">Winter Vacation</h4>
-                  <p className="text-[10px] text-blue-700 font-medium">Dec 22 – Dec 31 (Last 10 Days)</p>
+                  <h4 className="text-xs font-bold text-sky-900">Winter Vacation</h4>
+                  <p className="text-[10px] text-sky-700 font-medium">Dec 22 – Dec 31 (Last 10 Days)</p>
                 </div>
               </button>
 
@@ -528,7 +528,7 @@ export const HolidaysGovernancePage = () => {
         <div className="rounded-2xl border border-slate-200/80 bg-white shadow-sm overflow-hidden">
           <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
             <div className="flex items-center gap-3">
-              <Calendar className="h-5 w-5 text-[#006AC7]" />
+              <Calendar className="h-5 w-5 text-[#4B7F3A]" />
               <h3 className="text-base font-bold text-[#102033]">
                 {activeTab === 'WEEKLY_OFF' ? 'Official Weekly-Off Policies' : 'Scheduled Breaks & Official Closures'}
               </h3>
@@ -541,7 +541,7 @@ export const HolidaysGovernancePage = () => {
                   onClick={() => setActiveTab(tab)}
                   className={`rounded-xl px-3 py-1.5 text-xs font-bold transition cursor-pointer ${
                     activeTab === tab
-                      ? 'bg-[#006AC7] text-white shadow-sm'
+                      ? 'bg-[#4B7F3A] text-white shadow-sm'
                       : 'text-[#526477] hover:bg-slate-100 hover:text-[#102033]'
                   }`}
                 >
@@ -578,10 +578,10 @@ export const HolidaysGovernancePage = () => {
                         .join(' & ');
 
                       return (
-                        <tr key={pattern._id} className="hover:bg-blue-50/40 transition">
+                        <tr key={pattern._id} className="hover:bg-[#F2F8EF]/40 transition">
                           <td className="px-6 py-4">
                             <div className="font-bold text-[#102033] flex items-center gap-1.5">
-                              <CalendarDays className="w-4 h-4 text-[#006AC7]" />
+                              <CalendarDays className="w-4 h-4 text-[#4B7F3A]" />
                               <span>{dayLabels || 'Sunday Only'}</span>
                             </div>
                             <div className="text-[10px] text-slate-400 mt-0.5">
@@ -655,7 +655,7 @@ export const HolidaysGovernancePage = () => {
                     holidays
                       .filter((holidayItem) => activeTab === 'ALL' || holidayItem.status === activeTab)
                       .map((holidayRecord) => (
-                        <tr key={holidayRecord._id} className="hover:bg-blue-50/40 transition">
+                        <tr key={holidayRecord._id} className="hover:bg-[#F2F8EF]/40 transition">
                           <td className="px-6 py-4">
                             <div className="font-bold text-[#102033]">{holidayRecord.title}</div>
                             <div className="text-[11px] text-[#526477] line-clamp-1">{holidayRecord.reason}</div>
@@ -672,7 +672,7 @@ export const HolidaysGovernancePage = () => {
                             </span>
                           </td>
                           <td className="px-6 py-4">
-                            <span className="font-mono text-[#006AC7] font-semibold">{holidayRecord.holidayType}</span>
+                            <span className="font-mono text-[#38662D] font-semibold">{holidayRecord.holidayType}</span>
                           </td>
                           <td className="px-6 py-4 font-mono text-[#102033]">
                             {holidayRecord.startDate} {holidayRecord.startDate !== holidayRecord.endDate ? `to ${holidayRecord.endDate}` : ''}
@@ -686,7 +686,7 @@ export const HolidaysGovernancePage = () => {
                                 holidayRecord.status === 'ACTIVE'
                                   ? 'bg-emerald-50 text-[#4B7F3A] border-emerald-200'
                                   : holidayRecord.status === 'SCHEDULED'
-                                  ? 'bg-blue-50 text-[#006AC7] border-blue-200'
+                                  ? 'bg-[#F2F8EF] text-[#38662D] border-[#C9DFBC]'
                                   : holidayRecord.status === 'EXPIRED'
                                   ? 'bg-slate-100 text-slate-600 border-slate-200'
                                   : holidayRecord.status === 'CANCELLED'
@@ -724,7 +724,7 @@ export const HolidaysGovernancePage = () => {
             <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-4 text-[#102033]">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div className="flex items-center gap-2">
-                  <div className="rounded-xl bg-blue-50 p-2.5 text-[#006AC7]">
+                  <div className="rounded-xl bg-[#F2F8EF] p-2.5 text-[#38662D]">
                     <Calendar className="h-5 w-5" />
                   </div>
                   <div>
@@ -756,7 +756,7 @@ export const HolidaysGovernancePage = () => {
                     value={holidayForm.title}
                     onChange={(inputChangeEvent) => setHolidayForm({ ...holidayForm, title: inputChangeEvent.target.value })}
                     placeholder="e.g. Summer Vacation / Monsoon Rain Emergency"
-                    className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:outline-none focus:ring-1 focus:ring-[#006AC7]"
+                    className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-[#102033] placeholder-slate-400 focus:border-[#4B7F3A] focus:outline-none focus:ring-1 focus:ring-[#4B7F3A]"
                   />
                 </div>
 
@@ -769,7 +769,7 @@ export const HolidaysGovernancePage = () => {
                       min={isHm ? todayStr : undefined}
                       value={holidayForm.startDate}
                       onChange={(inputChangeEvent) => setHolidayForm({ ...holidayForm, startDate: inputChangeEvent.target.value })}
-                      className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-mono text-[#102033] focus:border-[#006AC7] focus:outline-none"
+                      className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-mono text-[#102033] focus:border-[#4B7F3A] focus:outline-none"
                     />
                   </div>
                   <div>
@@ -780,7 +780,7 @@ export const HolidaysGovernancePage = () => {
                       min={holidayForm.startDate || todayStr}
                       value={holidayForm.endDate}
                       onChange={(inputChangeEvent) => setHolidayForm({ ...holidayForm, endDate: inputChangeEvent.target.value })}
-                      className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-mono text-[#102033] focus:border-[#006AC7] focus:outline-none"
+                      className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-mono text-[#102033] focus:border-[#4B7F3A] focus:outline-none"
                     />
                   </div>
                 </div>
@@ -791,7 +791,7 @@ export const HolidaysGovernancePage = () => {
                     <select
                       value={holidayForm.holidayType}
                       onChange={(selectChangeEvent) => setHolidayForm({ ...holidayForm, holidayType: selectChangeEvent.target.value })}
-                      className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-[#102033] focus:border-[#006AC7] focus:outline-none"
+                      className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-[#102033] focus:border-[#4B7F3A] focus:outline-none"
                     >
                       <option value="GAZETTED">Gazetted Holiday</option>
                       <option value="SUMMER_BREAK">Summer Break</option>
@@ -823,7 +823,7 @@ export const HolidaysGovernancePage = () => {
                     value={holidayForm.reason}
                     onChange={(textareaChangeEvent) => setHolidayForm({ ...holidayForm, reason: textareaChangeEvent.target.value })}
                     placeholder="Provide specific notification number, weather warning, or infrastructure breakdown details..."
-                    className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:outline-none"
+                    className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-[#102033] placeholder-slate-400 focus:border-[#4B7F3A] focus:outline-none"
                   ></textarea>
                 </div>
 
@@ -839,7 +839,7 @@ export const HolidaysGovernancePage = () => {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="rounded-xl bg-[#006AC7] px-5 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#00529B] disabled:opacity-50"
+                    className="rounded-xl bg-[#4B7F3A] px-5 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#38662D] disabled:opacity-50"
                   >
                     {isSubmitting ? 'Submitting...' : 'Enforce Announcement'}
                   </button>
@@ -855,7 +855,7 @@ export const HolidaysGovernancePage = () => {
             <div className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl space-y-4 text-[#102033]">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div className="flex items-center gap-2">
-                  <div className="rounded-xl bg-blue-50 p-2.5 text-[#006AC7]">
+                  <div className="rounded-xl bg-[#F2F8EF] p-2.5 text-[#38662D]">
                     <CalendarDays className="h-5 w-5" />
                   </div>
                   <div>
@@ -881,7 +881,7 @@ export const HolidaysGovernancePage = () => {
                       onClick={() => setWeeklyOffForm({ ...weeklyOffForm, offDays: [0, 6] })}
                       className={`rounded-2xl border p-3.5 text-left transition cursor-pointer ${
                         weeklyOffForm.offDays.includes(0) && weeklyOffForm.offDays.includes(6) && weeklyOffForm.offDays.length === 2
-                          ? 'border-[#006AC7] bg-blue-50 text-[#006AC7] font-bold shadow-sm'
+                          ? 'border-[#4B7F3A] bg-[#F2F8EF] text-[#38662D] font-bold shadow-sm'
                           : 'border-slate-200 bg-slate-50 text-[#526477] hover:bg-slate-100'
                       }`}
                     >
@@ -894,7 +894,7 @@ export const HolidaysGovernancePage = () => {
                       onClick={() => setWeeklyOffForm({ ...weeklyOffForm, offDays: [0] })}
                       className={`rounded-2xl border p-3.5 text-left transition cursor-pointer ${
                         weeklyOffForm.offDays.includes(0) && weeklyOffForm.offDays.length === 1
-                          ? 'border-[#006AC7] bg-blue-50 text-[#006AC7] font-bold shadow-sm'
+                          ? 'border-[#4B7F3A] bg-[#F2F8EF] text-[#38662D] font-bold shadow-sm'
                           : 'border-slate-200 bg-slate-50 text-[#526477] hover:bg-slate-100'
                       }`}
                     >
@@ -936,7 +936,7 @@ export const HolidaysGovernancePage = () => {
                           }}
                           className={`py-2 px-1 text-center rounded-xl text-xs font-bold transition border cursor-pointer ${
                             isSelected
-                              ? 'bg-[#006AC7] text-white border-[#006AC7] shadow-xs'
+                              ? 'bg-[#4B7F3A] text-white border-[#4B7F3A] shadow-xs'
                               : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
                           }`}
                         >
@@ -954,7 +954,7 @@ export const HolidaysGovernancePage = () => {
                     <select
                       value={weeklyOffForm.scopeType}
                       onChange={(e) => setWeeklyOffForm({ ...weeklyOffForm, scopeType: e.target.value })}
-                      className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-[#102033] focus:border-[#006AC7] focus:outline-none cursor-pointer"
+                      className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-[#102033] focus:border-[#4B7F3A] focus:outline-none cursor-pointer"
                     >
                       <option value="TOWN">Town-Wide (All Schools)</option>
                       <option value="SCHOOL">Single School Override</option>
@@ -968,7 +968,7 @@ export const HolidaysGovernancePage = () => {
                         required
                         value={weeklyOffForm.schoolId}
                         onChange={(e) => setWeeklyOffForm({ ...weeklyOffForm, schoolId: e.target.value })}
-                        className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-[#102033] focus:border-[#006AC7] focus:outline-none cursor-pointer"
+                        className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-[#102033] focus:border-[#4B7F3A] focus:outline-none cursor-pointer"
                       >
                         <option value="">Select a school...</option>
                         {schools.map((school) => (
@@ -998,7 +998,7 @@ export const HolidaysGovernancePage = () => {
                     required
                     value={weeklyOffForm.effectiveFrom}
                     onChange={(inputChangeEvent) => setWeeklyOffForm({ ...weeklyOffForm, effectiveFrom: inputChangeEvent.target.value })}
-                    className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-mono text-[#102033] focus:border-[#006AC7] focus:outline-none cursor-pointer"
+                    className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-mono text-[#102033] focus:border-[#4B7F3A] focus:outline-none cursor-pointer"
                   />
                 </div>
 
@@ -1012,7 +1012,7 @@ export const HolidaysGovernancePage = () => {
                     value={weeklyOffForm.reason}
                     onChange={(textareaChangeEvent) => setWeeklyOffForm({ ...weeklyOffForm, reason: textareaChangeEvent.target.value })}
                     placeholder="Enter government notification reference or administrative justification..."
-                    className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-[#102033] placeholder-slate-400 focus:border-[#006AC7] focus:outline-none"
+                    className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-[#102033] placeholder-slate-400 focus:border-[#4B7F3A] focus:outline-none"
                   ></textarea>
                 </div>
 
@@ -1028,7 +1028,7 @@ export const HolidaysGovernancePage = () => {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="rounded-xl bg-[#006AC7] px-5 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#00529B] disabled:opacity-50"
+                    className="rounded-xl bg-[#4B7F3A] px-5 py-2 text-xs font-bold text-white shadow-sm hover:bg-[#38662D] disabled:opacity-50"
                   >
                     {isSubmitting ? 'Saving...' : 'Apply Weekend Policy'}
                   </button>
@@ -1079,7 +1079,7 @@ export const HolidaysGovernancePage = () => {
                       setCancelModal((prev) => ({ ...prev, reason: event.target.value }))
                     }
                     placeholder="Provide official administrative reason (minimum 5 characters)..."
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-[#006AC7] focus:outline-hidden focus:ring-2 focus:ring-[#006AC7]/20 transition resize-none"
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:border-[#4B7F3A] focus:outline-hidden focus:ring-2 focus:ring-[#4B7F3A]/20 transition resize-none"
                     disabled={cancelModal.isSubmitting}
                     autoFocus
                   />

@@ -51,7 +51,7 @@ const renderRoleBadge = (userRole) => {
   const roleColorStyles = {
     ROOT_ADMIN:  'bg-purple-50 border-purple-200 text-purple-700',
     SUPER_ADMIN: 'bg-indigo-50 border-indigo-200 text-indigo-700',
-    ADMIN:       'bg-blue-50 border-blue-200 text-[#006AC7]',
+    ADMIN:       'bg-[#F2F8EF] border-[#C9DFBC] text-[#38662D]',
     SUPERVISOR:  'bg-teal-50 border-teal-200 text-teal-700',
     HM:          'bg-emerald-50 border-emerald-200 text-[#4B7F3A]',
     TEACHER:     'bg-cyan-50 border-cyan-200 text-cyan-700',
@@ -77,7 +77,7 @@ const renderStatusBadge = (entityStatus) => {
     PENDING_APPROVAL:    { label: 'Pending',        icon: Clock,        color: 'text-amber-700 bg-amber-50 border-amber-200' },
     REQUIRES_CORRECTION: { label: 'Needs Fix',      icon: AlertCircle,  color: 'text-orange-700 bg-orange-50 border-orange-200' },
     SUSPENDED:           { label: 'Suspended',      icon: ShieldAlert,  color: 'text-rose-700 bg-rose-50 border-rose-200' },
-    TRANSFERRED:         { label: 'Transferred',    icon: ArrowRightLeft,color: 'text-[#006AC7] bg-blue-50 border-blue-200' },
+    TRANSFERRED:         { label: 'Transferred',    icon: ArrowRightLeft,color: 'text-amber-800 bg-amber-50 border-amber-200' },
     GRADUATED:           { label: 'Graduated',      icon: GraduationCap,color: 'text-cyan-700 bg-cyan-50 border-cyan-200' },
     WITHDRAWN:           { label: 'Withdrawn',      icon: UserX,        color: 'text-slate-600 bg-slate-100 border-slate-200' },
     DROPPED_OUT:         { label: 'Dropped Out',    icon: UserX,        color: 'text-slate-600 bg-slate-100 border-slate-200' },
@@ -671,7 +671,7 @@ const StudentRecordsView = ({ municipalSchoolsList, initialSearch = '', authenti
                       <span
                         className={`font-bold text-[11px] ${
                           studentRecord.gender === 'MALE'
-                            ? 'text-[#006AC7]'
+                            ? 'text-sky-700'
                             : studentRecord.gender === 'FEMALE'
                             ? 'text-pink-600'
                             : 'text-[#526477]'
@@ -945,7 +945,7 @@ const StaffDirectoryView = ({ municipalSchoolsList, initialSearch = '', authenti
                 />
               ) : (
                 staffRecords.map((staffMember) => (
-                  <tr key={staffMember._id} className="hover:bg-blue-50/40 transition">
+                  <tr key={staffMember._id} className="hover:bg-[#F2F8EF]/40 transition">
                     <TableCell>
                       <div className="font-bold text-[#102033] text-xs">{staffMember.fullName}</div>
                       <div className="flex items-center gap-1 mt-0.5 text-[11px] text-[#526477] font-mono">
@@ -1124,7 +1124,7 @@ const GuardiansDirectoryView = () => {
                 <EmptyStateRow columnsCount={6} title="No guardians found." description="Try adjusting your search or filters." />
               ) : (
                 filteredGuardians.map((guardianAccount) => (
-                  <tr key={guardianAccount._id} className="hover:bg-blue-50/40 transition">
+                  <tr key={guardianAccount._id} className="hover:bg-[#F2F8EF]/40 transition">
                     <TableCell>
                       <div className="font-bold text-[#102033]">{guardianAccount.fullName}</div>
                     </TableCell>

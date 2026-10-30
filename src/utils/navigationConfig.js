@@ -79,7 +79,7 @@ export const getNavigationItemsForRole = (userRole) => {
       { label: 'School timetable', path: '/dashboard?tab=timetable', icon: CalendarDays },
       { label: 'Daily attendance', path: '/dashboard?tab=attendance', icon: ClipboardCheck },
       { label: 'Academic structure', path: '/dashboard?tab=academics', icon: BookMarked },
-      { label: 'Exams & results', path: '/exams', icon: Award },
+      { label: 'Exams & results', path: '/dashboard?tab=exams', icon: Award },
       { label: 'Incoming staff', path: '/transfers', icon: ArrowLeftRight },
       { label: 'Approvals queue', path: '/approvals', icon: ShieldCheck },
       { label: 'Notices & circulars', path: '/dashboard?tab=notices', icon: FileText },

@@ -377,6 +377,7 @@ export const HmDashboard = () => {
   const [classTeacherSubmitting, setClassTeacherSubmitting] = useState(false);
 
   // ─── Staff Attendance & Leave Management Local State ──────────────────────────
+  const [selectedAttendanceSectionId, setSelectedAttendanceSectionId] = useState('');
   const [hmSelfMarkedToday, setHmSelfMarkedToday] = useState(false);
   const [hmSelfMarking, setHmSelfMarking] = useState(false);
   const [staffLateApprovalModal, setStaffLateApprovalModal] = useState({
@@ -531,11 +532,13 @@ export const HmDashboard = () => {
       dispatch(fetchAttendanceAnalytics());
       dispatch(fetchPendingStaffAttendance());
       dispatch(fetchPendingLeaveRequests());
+      dispatch(fetchAcademicClasses({ schoolId: userSchoolId }));
+      dispatch(fetchAcademicSections({ schoolId: userSchoolId }));
       checkHmAttendanceStatus();
     } else if (activeTab === 'exams') {
       dispatch(fetchExamsList());
-      dispatch(fetchAcademicClasses());
-      dispatch(fetchAcademicSections());
+      dispatch(fetchAcademicClasses({ schoolId: userSchoolId }));
+      dispatch(fetchAcademicSections({ schoolId: userSchoolId }));
     } else if (activeTab === 'transfers') {
       dispatch(fetchIncomingTransfers({ direction: transferViewDirection }));
     } else if (activeTab === 'notices') {
@@ -1482,10 +1485,35 @@ export const HmDashboard = () => {
     });
   };
 
+  const pageTitle = React.useMemo(() => {
+    switch (activeTab) {
+      case 'profile':
+        return 'Institutional Profile';
+      case 'academics':
+        return 'Academic Structure';
+      case 'attendance':
+        return 'Daily Attendance & Governance';
+      case 'timetable':
+        return 'School Timetable';
+      case 'assignments':
+        return 'Teaching Duties & Allocations';
+      case 'exams':
+        return 'School Examinations & Results';
+      case 'approvals':
+        return 'Approvals Queue';
+      case 'notices':
+        return 'Notices & Circulars';
+      case 'transfers':
+        return 'Incoming Staff Transfers';
+      default:
+        return 'School overview';
+    }
+  }, [activeTab]);
+
   return (
     <PageContainer
       hideMobileNav={true}
-      title="School overview"
+      title={pageTitle}
       subtitle={`${summary?.school?.name || user?.schoolId?.name || 'School Dashboard'} • Liaquatabad Town Centre`}
       maxWidth={
         activeTab === 'timetable' || (activeTab === 'attendance' && attendanceSubTab === 'student-register')
@@ -2386,64 +2414,253 @@ export const HmDashboard = () => {
       {/* TAB 3: ACADEMIC SETUP                                               */}
       {/* ═══════════════════════════════════════════════════════════════════ */}
       {activeTab === 'academics' && (
-
         <div className="space-y-6">
+          {/* Header */}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h3 className="text-base font-bold text-[#102033]">Academic Structure</h3>
+              <h3 className="text-base font-bold text-[#102033]">Academic Structure &amp; Grade Organization</h3>
               <p className="text-xs text-[#526477] mt-0.5">
-                Classes, sections, and subjects set up by school administration.
+                Hierarchical view of grade levels, active sections, appointed class teachers, and prescribed curriculum.
               </p>
             </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
-              <ShieldCheck className="w-3.5 h-3.5 text-slate-500" />
-              <span>Configured by school administration</span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => navigate('/dashboard?tab=assignments')}
+                className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#4B7F3A] hover:bg-[#38662D] text-white flex items-center gap-1.5 shadow-xs transition cursor-pointer"
+              >
+                <BookOpen className="w-3.5 h-3.5" /> Manage Class Teachers &amp; Duties
+              </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Classes Column */}
-            <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-3">
-              <h4 className="text-xs font-bold uppercase text-[#8094A8] tracking-wider">Classes ({scopedClasses.length})</h4>
-              <div className="space-y-2">
-                {scopedClasses.map((classItem) => (
-                  <div key={classItem._id} className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center justify-between text-xs">
-                    <span className="font-bold text-[#102033]">{classItem.name}</span>
-                    <span className="font-mono text-[#38662D]">{classItem.code}</span>
-                  </div>
-                ))}
+          {/* Academic Overview KPI Stats Bar */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-[#F2F8EF] text-[#38662D] border border-[#C9DFBC] shrink-0">
+                <School className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                  Grade Levels
+                </span>
+                <span className="text-xl font-black text-[#102033]">{scopedClasses.length}</span>
+                <span className="text-[10px] text-slate-500 block">Registered classes</span>
               </div>
             </div>
 
-            {/* Sections Column */}
-            <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-3">
-              <h4 className="text-xs font-bold uppercase text-[#8094A8] tracking-wider">Sections ({sections.length})</h4>
-              <div className="space-y-2">
-                {sections.map((sectionItem) => (
-                  <div key={sectionItem._id} className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center justify-between text-xs">
-                    <div>
-                      <p className="font-bold text-[#102033]">Section {sectionItem.name}</p>
-                      <p className="text-[10px] text-[#8094A8]">Room: {sectionItem.roomNumber || '—'} • Cap: {sectionItem.capacity || 40}</p>
-                      <p className="text-[11px] text-[#38662D] mt-0.5 font-medium">
-                        Class Teacher: {sectionItem.classTeacherId?.fullName || <span className="text-slate-400 font-normal">Not designated</span>}
-                      </p>
+            <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-emerald-50 text-[#4B7F3A] border border-emerald-200 shrink-0">
+                <BookMarked className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                  Active Sections
+                </span>
+                <span className="text-xl font-black text-[#4B7F3A]">{sections.length}</span>
+                <span className="text-[10px] text-slate-500 block">Classroom units</span>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-emerald-50 text-[#38662D] border border-emerald-200 shrink-0">
+                <UserCheck className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                  Class Teacher Coverage
+                </span>
+                <span className="text-xl font-black text-[#38662D]">
+                  {sections.filter((s) => s.classTeacherId).length} / {sections.length}
+                </span>
+                <span className="text-[10px] text-slate-500 block">Primary teachers assigned</span>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-xs flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-[#F2F8EF] text-[#4B7F3A] border border-[#C9DFBC] shrink-0">
+                <BookOpen className="w-5 h-5" />
+              </div>
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                  Curriculum Subjects
+                </span>
+                <span className="text-xl font-black text-[#102033]">{scopedSubjects.length}</span>
+                <span className="text-[10px] text-slate-500 block">Syllabus courses</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Grid: Hierarchical Class Cards (Left 2 cols) + Subjects Directory (Right 1 col) */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Hierarchical Classes & Sections Roster */}
+            <div className="lg:col-span-2 space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold uppercase text-[#8094A8] tracking-wider flex items-center gap-1.5">
+                  <School className="w-4 h-4 text-[#4B7F3A]" /> Class &amp; Section Hierarchy
+                </h4>
+                <span className="text-[11px] text-slate-400 font-medium">
+                  {scopedClasses.length} Classes · {sections.length} Total Sections
+                </span>
+              </div>
+
+              {scopedClasses.length === 0 ? (
+                <div className="p-8 text-center text-sm text-[#8094A8] bg-white rounded-2xl border border-slate-200/80">
+                  No classes configured for this school.
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {scopedClasses.map((classItem) => {
+                    const classSections = sections.filter(
+                      (sec) => String(sec.classId?._id || sec.classId) === String(classItem._id)
+                    );
+                    const gradeDist = (summary?.studentDistribution || []).find(
+                      (d) =>
+                        String(d.grade) === String(classItem.numericGrade) ||
+                        d.className === classItem.name ||
+                        d.name === classItem.name
+                    );
+
+                    return (
+                      <div
+                        key={classItem._id}
+                        className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-4 hover:border-[#C9DFBC] transition"
+                      >
+                        {/* Class Header */}
+                        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                          <div className="flex items-center gap-2.5">
+                            <span className="px-2.5 py-1 rounded-lg bg-[#F2F8EF] text-[#38662D] font-mono font-bold text-xs border border-[#C9DFBC]">
+                              {classItem.code || `CLS-${classItem.numericGrade || 'X'}`}
+                            </span>
+                            <div>
+                              <h5 className="font-bold text-sm text-[#102033]">{classItem.name}</h5>
+                              <span className="text-[11px] text-[#526477]">
+                                Grade Level {classItem.numericGrade ?? '—'}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            {gradeDist && (
+                              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-[#38662D] border border-emerald-200">
+                                {gradeDist.count} Students Enrolled
+                              </span>
+                            )}
+                            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-700">
+                              {classSections.length} {classSections.length === 1 ? 'Section' : 'Sections'}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Sections List for this Class */}
+                        {classSections.length === 0 ? (
+                          <p className="text-xs text-slate-400 italic py-2">
+                            No sections registered under this class.
+                          </p>
+                        ) : (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {classSections.map((sec) => {
+                              const hasTeacher = Boolean(sec.classTeacherId);
+                              return (
+                                <div
+                                  key={sec._id}
+                                  className="p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/70 hover:bg-slate-50 transition flex flex-col justify-between gap-2.5"
+                                >
+                                  <div>
+                                    <div className="flex items-center justify-between">
+                                      <span className="font-bold text-xs text-[#102033]">
+                                        Section {sec.name}
+                                      </span>
+                                      <span className="text-[10px] font-mono text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200/60">
+                                        Room {sec.roomNumber || '—'}
+                                      </span>
+                                    </div>
+                                    <div className="text-[11px] text-[#526477] mt-1 flex items-center gap-2">
+                                      <span>Cap: <strong>{sec.capacity || 40}</strong></span>
+                                    </div>
+                                  </div>
+
+                                  <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs">
+                                    <div className="flex items-center gap-1.5 truncate">
+                                      {hasTeacher ? (
+                                        <>
+                                          <UserCheck className="w-3.5 h-3.5 text-[#4B7F3A] shrink-0" />
+                                          <span className="text-[11px] font-bold text-[#38662D] truncate">
+                                            {sec.classTeacherId?.fullName}
+                                          </span>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                                          <span className="text-[11px] font-medium text-amber-800">
+                                            No Class Teacher
+                                          </span>
+                                        </>
+                                      )}
+                                    </div>
+
+                                    <button
+                                      type="button"
+                                      onClick={() => navigate('/dashboard?tab=assignments')}
+                                      className="text-[10px] font-bold text-[#4B7F3A] hover:text-[#38662D] hover:underline shrink-0 cursor-pointer"
+                                    >
+                                      {hasTeacher ? 'Reassign' : 'Assign'}
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Curriculum Subjects Column */}
+            <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-4 h-fit">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div>
+                  <h4 className="text-xs font-bold uppercase text-[#8094A8] tracking-wider flex items-center gap-1.5">
+                    <BookOpen className="w-4 h-4 text-[#4B7F3A]" /> Curriculum Subjects
+                  </h4>
+                  <p className="text-[11px] text-[#526477] mt-0.5">
+                    Official syllabus courses taught in this school
+                  </p>
+                </div>
+                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#F2F8EF] text-[#38662D] border border-[#C9DFBC]">
+                  {scopedSubjects.length}
+                </span>
+              </div>
+
+              {scopedSubjects.length === 0 ? (
+                <div className="p-6 text-center text-xs text-[#8094A8] bg-slate-50 rounded-xl">
+                  No subjects listed for this school.
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-[640px] overflow-y-auto pr-1">
+                  {scopedSubjects.map((subjectItem) => (
+                    <div
+                      key={subjectItem._id}
+                      className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center justify-between text-xs hover:bg-[#F2F8EF]/50 transition"
+                    >
+                      <div>
+                        <span className="font-bold text-[#102033] block">{subjectItem.name}</span>
+                        {Array.isArray(subjectItem.gradeLevels) && subjectItem.gradeLevels.length > 0 && (
+                          <span className="text-[10px] text-[#526477]">
+                            Grades: {subjectItem.gradeLevels.join(', ')}
+                          </span>
+                        )}
+                      </div>
+                      <span className="font-mono text-[11px] font-bold text-[#38662D] bg-white px-2 py-0.5 rounded border border-slate-200">
+                        {subjectItem.code || 'SUB'}
+                      </span>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Subjects Column */}
-            <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-sm space-y-3">
-              <h4 className="text-xs font-bold uppercase text-[#8094A8] tracking-wider">Curriculum Subjects ({scopedSubjects.length})</h4>
-              <div className="space-y-2">
-                {scopedSubjects.map((subjectItem) => (
-                  <div key={subjectItem._id} className="p-3 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center justify-between text-xs">
-                    <span className="font-bold text-[#102033]">{subjectItem.name}</span>
-                    <span className="font-mono text-[#4B7F3A]">{subjectItem.code || 'SUB'}</span>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -3405,8 +3622,10 @@ export const HmDashboard = () => {
               </div>
 
               <SmartAttendanceRegister
+                classes={scopedClasses}
                 sections={sections}
-                sectionId={sections.length > 0 ? String(sections[0]._id) : ''}
+                sectionId={selectedAttendanceSectionId || (sections.length > 0 ? String(sections[0]._id) : '')}
+                onSectionChange={setSelectedAttendanceSectionId}
                 user={user}
                 canClearMissed={true}
               />
