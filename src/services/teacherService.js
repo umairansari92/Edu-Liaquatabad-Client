@@ -31,11 +31,26 @@ export const teacherService = {
   },
 
   /**
-   * Fetch daily student attendance marking sheet for an assigned section on a specific date.
+   * Fetch daily student attendance marking sheet for an assigned section or authorized proxy section on a specific date.
    */
-  async getAttendanceSheet(sectionId, date) {
+  async getAttendanceSheet(sectionId, date, options = {}) {
+    const params = { sectionId, date };
+    if (options.isProxy) {
+      params.isProxy = true;
+      if (options.proxyReason) params.proxyReason = options.proxyReason;
+    }
     const response = await apiClient.get('/attendance/sheet', {
-      params: { sectionId, date },
+      params,
+    });
+    return response.data?.data;
+  },
+
+  /**
+   * Fetch eligible classes/sections whose assigned teacher is on leave or absent today for proxy coverage.
+   */
+  async getEligibleProxySections(date = '') {
+    const response = await apiClient.get('/attendance/eligible-proxy-sections', {
+      params: date ? { date } : {},
     });
     return response.data?.data;
   },

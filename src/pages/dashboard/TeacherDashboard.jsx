@@ -35,6 +35,8 @@ import {
   CalendarCheck,
   Calendar,
   Clock3,
+  UserCheck,
+  ShieldAlert,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PageContainer from '../../components/layout/PageContainer.jsx';
@@ -51,6 +53,7 @@ import staffAttendanceService from '../../services/staffAttendanceService.js';
 import { TeacherArrivalAttendanceBanner } from '../../components/staff/TeacherArrivalAttendanceBanner.jsx';
 import { MonthlyAttendanceCard } from '../../components/staff/MonthlyAttendanceCard.jsx';
 import { LateAttendanceClearanceModal } from '../../components/attendance/LateAttendanceClearanceModal.jsx';
+import { TeacherProxyAttendanceModal } from '../../components/attendance/TeacherProxyAttendanceModal.jsx';
 import TeacherOverviewTab from '../../components/dashboard/TeacherOverviewTab.jsx';
 import OfficialAnnouncementHero from '../../components/dashboard/OfficialAnnouncementHero.jsx';
 import MyClassesPage from '../classes/MyClassesPage.jsx';
@@ -60,6 +63,7 @@ import {
   fetchAttendanceSheet,
   submitStudentAttendance,
   requestLateAttendanceClearance,
+  fetchEligibleProxySections,
   fetchSchoolExams,
   fetchExamMarksRoster,
   bulkSubmitExamMarks,
@@ -78,6 +82,8 @@ import {
   selectAttendanceSubmitting,
   selectClearanceSubmitting,
   selectClearanceError,
+  selectEligibleProxySections,
+  selectProxySectionsLoading,
   selectSchoolExams,
   selectExamRoster,
   selectExamRosterLoading,
@@ -323,6 +329,12 @@ export const TeacherDashboard = () => {
   const [attendanceStatusFilter, setAttendanceStatusFilter] = useState('ALL'); // ALL, EXCEPTIONS, PRESENT, ABSENT, LEAVE
   const [attendanceViewMode, setAttendanceViewMode] = useState('DAILY'); // 'DAILY' | 'REGISTER'
 
+  // Teacher Proxy Attendance State (Colleague Coverage on Leave/Absence)
+  const [proxyModalOpen, setProxyModalOpen] = useState(false);
+  const [activeProxyContext, setActiveProxyContext] = useState(null);
+  const eligibleProxySections = useSelector(selectEligibleProxySections);
+  const proxySectionsLoading = useSelector(selectProxySectionsLoading);
+
   // Examination Form Local State
   const [selectedExamId, setSelectedExamId] = useState('');
   const [selectedExamSectionId, setSelectedExamSectionId] = useState('');
@@ -492,6 +504,27 @@ export const TeacherDashboard = () => {
     }
   };
 
+  const handleConfirmProxy = ({ sectionId, section, reason }) => {
+    const className = section?.class?.name || 'Class';
+    const sectionName = section?.name && section.name !== 'null' ? `Section ${section.name}` : 'Whole Class';
+    const teacherId = section?.classTeacher?._id || section?.classTeacherId?._id || section?.classTeacherId || null;
+    const teacherName = section?.classTeacher?.fullName || 'Assigned Teacher';
+    const absenceReason = section?.proxyReasonInfo || 'Colleague Absent / On Leave';
+
+    setActiveProxyContext({
+      sectionId,
+      className,
+      sectionName,
+      teacherId,
+      teacherName,
+      absenceReason,
+      proxyReason: reason,
+    });
+    setSelectedAttendanceSectionId(sectionId);
+    setProxyModalOpen(false);
+    toast.success(`Proxy mode activated for ${className} - ${sectionName}.`);
+  };
+
   // Pre-select first section when summary loads
   useEffect(() => {
     if (assignedSections.length > 0 && !selectedAttendanceSectionId) {
@@ -499,12 +532,23 @@ export const TeacherDashboard = () => {
     }
   }, [assignedSections, selectedAttendanceSectionId]);
 
-  // Load Attendance Sheet on Section/Date Change
+  // Load Attendance Sheet on Section/Date Change (supports active Proxy context)
   useEffect(() => {
     if (selectedAttendanceSectionId && attendanceDate) {
-      dispatch(fetchAttendanceSheet({ sectionId: selectedAttendanceSectionId, date: attendanceDate }));
+      if (activeProxyContext && String(activeProxyContext.sectionId) === String(selectedAttendanceSectionId)) {
+        dispatch(
+          fetchAttendanceSheet({
+            sectionId: selectedAttendanceSectionId,
+            date: attendanceDate,
+            isProxy: true,
+            proxyReason: activeProxyContext.proxyReason,
+          })
+        );
+      } else {
+        dispatch(fetchAttendanceSheet({ sectionId: selectedAttendanceSectionId, date: attendanceDate }));
+      }
     }
-  }, [dispatch, selectedAttendanceSectionId, attendanceDate]);
+  }, [dispatch, selectedAttendanceSectionId, attendanceDate, activeProxyContext]);
 
   // Sync Local Attendance Roster from Redux
   useEffect(() => {
@@ -621,6 +665,10 @@ export const TeacherDashboard = () => {
           remarks: attendanceRecord.remarks.trim(),
         }));
 
+      const isProxySubmission = Boolean(
+        activeProxyContext && String(activeProxyContext.sectionId) === String(selectedAttendanceSectionId)
+      );
+
       // Lightweight exception payload: server derives PRESENT for all other active students
       const payload = {
         sectionId: selectedAttendanceSectionId,
@@ -628,6 +676,9 @@ export const TeacherDashboard = () => {
         absentStudentProfileIds,
         leaveStudentProfileIds,
         records: recordsWithRemarks,
+        isProxy: isProxySubmission,
+        proxyTeacherId: isProxySubmission ? activeProxyContext.teacherId : null,
+        proxyReason: isProxySubmission ? activeProxyContext.proxyReason : '',
       };
       await dispatch(submitStudentAttendance(payload)).unwrap();
       try {
@@ -637,7 +688,17 @@ export const TeacherDashboard = () => {
       } catch (draftCleanupError) {
         console.warn('[TeacherDashboard] Non-blocking draft cleanup warning after attendance submission:', draftCleanupError);
       }
-      toast.success(`Attendance submitted: ${presentStudentsCount} Present, ${absentStudentsCount} Absent, ${leaveStudentsCount} Leave.`);
+      if (isProxySubmission) {
+        toast.success(
+          `Proxy attendance submitted for ${activeProxyContext.className} - ${activeProxyContext.sectionName}. Logged to municipal audit trail.`
+        );
+        setActiveProxyContext(null);
+        if (assignedSections.length > 0) {
+          setSelectedAttendanceSectionId(String(assignedSections[0]._id));
+        }
+      } else {
+        toast.success(`Attendance submitted: ${presentStudentsCount} Present, ${absentStudentsCount} Absent, ${leaveStudentsCount} Leave.`);
+      }
       dispatch(fetchTeacherSummary());
     } catch (errorObject) {
       toast.error(getErrorMessage(errorObject, 'Failed to submit attendance.'));
@@ -981,15 +1042,23 @@ export const TeacherDashboard = () => {
                   </p>
                 </div>
 
-                {/* Controls: Section & Date */}
+                {/* Controls: Section, Date & Proxy Action */}
                 <div className="flex flex-wrap items-center gap-3">
                   <div>
-                    <label className="block text-xs font-bold text-[#526477] mb-1">Class & Section</label>
+                    <label className="block text-xs font-bold text-[#526477] mb-1">
+                      {activeProxyContext ? 'Active Classroom (Proxy)' : 'Class & Section'}
+                    </label>
                     <select
                       value={selectedAttendanceSectionId}
+                      disabled={Boolean(activeProxyContext)}
                       onChange={(changeEvent) => setSelectedAttendanceSectionId(changeEvent.target.value)}
-                      className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-[#102033] focus:outline-none focus:ring-2 focus:ring-[#4B7F3A]"
+                      className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-[#102033] focus:outline-none focus:ring-2 focus:ring-[#4B7F3A] disabled:bg-amber-50/60 disabled:border-amber-300 disabled:text-amber-950 font-bold"
                     >
+                      {activeProxyContext && (
+                        <option value={activeProxyContext.sectionId}>
+                          📋 {activeProxyContext.className} - {activeProxyContext.sectionName} (Proxy Mode)
+                        </option>
+                      )}
                       {assignedSections.map((sectionItem) => {
                         const sectionLabel = sectionItem.name && sectionItem.name !== 'null' && sectionItem.name.toLowerCase() !== 'default'
                           ? `Section ${sectionItem.name}`
@@ -1008,12 +1077,69 @@ export const TeacherDashboard = () => {
                       type="date"
                       value={attendanceDate}
                       max={todayPkt}
+                      disabled={Boolean(activeProxyContext)}
                       onChange={(changeEvent) => setAttendanceDate(changeEvent.target.value)}
-                      className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-[#102033] focus:outline-none focus:ring-2 focus:ring-[#4B7F3A]"
+                      className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-semibold text-[#102033] focus:outline-none focus:ring-2 focus:ring-[#4B7F3A] disabled:bg-slate-50 disabled:text-slate-500"
                     />
                   </div>
+
+                  {/* Take Proxy Attendance Trigger */}
+                  {!activeProxyContext && (
+                    <div className="self-end">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setProxyModalOpen(true);
+                          dispatch(fetchEligibleProxySections(attendanceDate));
+                        }}
+                        className="px-3.5 py-2 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-bold flex items-center gap-1.5 transition shadow-xs cursor-pointer"
+                        title="Take Proxy Attendance for an Absent Colleague (Municipal Rule)"
+                      >
+                        <UserCheck className="w-4 h-4 text-amber-700" />
+                        <span>Take Proxy Attendance</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
+
+              {/* Active Proxy Mode Banner */}
+              {activeProxyContext && (
+                <div className="p-4 my-3 rounded-2xl bg-amber-50 border border-amber-300/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-amber-950 shadow-xs">
+                  <div className="flex items-start sm:items-center gap-3">
+                    <div className="p-2 rounded-xl bg-amber-100 text-amber-800 flex-shrink-0">
+                      <ShieldAlert className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <div className="font-bold text-sm text-amber-950 flex items-center gap-2 flex-wrap">
+                        <span>Proxy Attendance Active: {activeProxyContext.className} - {activeProxyContext.sectionName}</span>
+                        <span className="px-2 py-0.5 rounded-full bg-amber-200 text-amber-900 font-extrabold text-[10px] uppercase tracking-wider">
+                          Proxy Mode
+                        </span>
+                      </div>
+                      <p className="text-amber-900 text-[11px] mt-0.5">
+                        Covering for colleague <strong>{activeProxyContext.teacherName}</strong> ({activeProxyContext.absenceReason}).
+                        <span className="block sm:inline sm:ml-1 font-semibold text-amber-900">
+                          Justification: "{activeProxyContext.proxyReason}"
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveProxyContext(null);
+                      if (assignedSections.length > 0) {
+                        setSelectedAttendanceSectionId(String(assignedSections[0]._id));
+                      }
+                      toast('Exited proxy mode. Returned to your assigned section.', { icon: 'ℹ️' });
+                    }}
+                    className="px-3 py-1.5 rounded-xl bg-white border border-amber-300 hover:bg-amber-100 text-amber-900 text-xs font-bold transition flex-shrink-0 cursor-pointer shadow-2xs"
+                  >
+                    Exit Proxy Mode
+                  </button>
+                </div>
+              )}
 
               {/* School Closed: Holiday or Weekly Off Alert */}
               {attendanceSheetData?.windowStatus?.isClosed && (
@@ -2238,6 +2364,15 @@ export const TeacherDashboard = () => {
         onSubmit={handleRequestLateClearance}
         isSubmitting={clearanceSubmitting}
         error={clearanceError}
+      />
+      {/* Teacher Proxy Attendance Modal (Absent Colleague Coverage) */}
+      <TeacherProxyAttendanceModal
+        isOpen={proxyModalOpen}
+        onClose={() => setProxyModalOpen(false)}
+        eligibleSections={eligibleProxySections}
+        loading={proxySectionsLoading}
+        attendanceDate={attendanceDate}
+        onConfirmProxy={handleConfirmProxy}
       />
     </PageContainer>
   );

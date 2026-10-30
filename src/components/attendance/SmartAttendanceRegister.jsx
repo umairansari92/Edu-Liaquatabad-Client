@@ -341,11 +341,15 @@ export const SmartAttendanceRegister = ({
     return totals;
   }, [calendarDays, students]);
 
+  const isHmOrAdmin = ['HM', 'SUPER_ADMIN', 'ADMIN', 'ROOT_ADMIN'].includes(user?.role);
+  const isTeacher = user?.role === 'TEACHER';
+
   return (
     <div className="space-y-6 smart-register-root">
       {/* ─── Top Controls & Header ─────────────────────────────────────────── */}
       <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-xs space-y-4 print:hidden">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        {/* Row 1: Title & Info on Left, Month Navigator + Refresh + Print on Right */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
               <span className="p-2 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200">
@@ -362,51 +366,8 @@ export const SmartAttendanceRegister = ({
             </div>
           </div>
 
-          {/* Action Buttons & Selectors */}
-          <div className="flex flex-wrap items-center gap-2.5">
-            {/* Class & Section Selectors */}
-            {availableClasses.length > 1 && (
-              <div className="flex items-center gap-1.5">
-                <label className="text-[10px] font-bold text-[#526477] uppercase tracking-wider hidden sm:inline">
-                  Class:
-                </label>
-                <select
-                  value={activeClassId}
-                  onChange={(e) => handleClassSelect(e.target.value)}
-                  className="px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-[#102033] bg-white focus:outline-none focus:ring-2 focus:ring-[#4B7F3A] cursor-pointer"
-                  title="Select Class"
-                >
-                  {availableClasses.map((cls) => (
-                    <option key={String(cls._id)} value={String(cls._id)}>
-                      {cls.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {sections.length > 1 && (
-              <div className="flex items-center gap-1.5">
-                <label className="text-[10px] font-bold text-[#526477] uppercase tracking-wider hidden sm:inline">
-                  Section:
-                </label>
-                <select
-                  value={activeSectionId}
-                  onChange={(e) => handleSectionSelect(e.target.value)}
-                  className="px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-[#102033] bg-white focus:outline-none focus:ring-2 focus:ring-[#4B7F3A] cursor-pointer"
-                  title="Select Section"
-                >
-                  {sectionsForActiveClass.map((sec) => (
-                    <option key={String(sec._id)} value={String(sec._id)}>
-                      {availableClasses.length <= 1
-                        ? `${sec.classId?.name || sec.class?.name || ''} - ${sec.name || 'Section'}`.replace(/^[ -]+/, '')
-                        : sec.name || 'Whole Class'}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
+          {/* Primary Action Buttons: Month & Year Navigator, Refresh, Print */}
+          <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
             {/* Month & Year Navigator */}
             <div className="flex items-center gap-1 bg-slate-50 p-1 rounded-xl border border-slate-200">
               <button
@@ -417,7 +378,7 @@ export const SmartAttendanceRegister = ({
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
-              <span className="px-2 text-xs font-black text-[#102033]">
+              <span className="px-2 text-xs font-black text-[#102033] whitespace-nowrap">
                 {MONTH_NAMES[selectedMonth - 1]} {selectedYear}
               </span>
               <button
@@ -441,45 +402,133 @@ export const SmartAttendanceRegister = ({
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-[#4B7F3A]' : ''}`} />
             </button>
 
-            {/* View Mode Toggle: Cards vs Ledger Table */}
-            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 print:hidden">
-              <button
-                type="button"
-                onClick={() => setDisplayMode('CARDS')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
-                  displayMode === 'CARDS'
-                    ? 'bg-white text-[#38662D] shadow-xs border border-[#C9DFBC]'
-                    : 'text-[#526477] hover:text-[#102033]'
-                }`}
-                title="Student Roster Card View (Best for Mobile)"
-              >
-                <LayoutGrid className="w-3.5 h-3.5" />
-                <span>Cards</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setDisplayMode('TABLE')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
-                  displayMode === 'TABLE'
-                    ? 'bg-white text-[#38662D] shadow-xs border border-[#C9DFBC]'
-                    : 'text-[#526477] hover:text-[#102033]'
-                }`}
-                title="Full Matrix Attendance Ledger (Official Table)"
-              >
-                <TableIcon className="w-3.5 h-3.5" />
-                <span>Ledger</span>
-              </button>
-            </div>
-
             {/* Print Button */}
             <button
               type="button"
               onClick={handlePrint}
-              className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold flex items-center gap-1.5 transition shadow-xs cursor-pointer"
+              className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold flex items-center gap-1.5 transition shadow-xs cursor-pointer whitespace-nowrap"
               title="Print Physical-Register Format"
             >
               <Printer className="w-4 h-4" />
               Print Register
+            </button>
+          </div>
+        </div>
+
+        {/* Row 2: Role-Aware Class/Section Filter on Left, Cards vs Ledger on Right */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* HM / Admin: Full school Grade & Section Selectors */}
+            {isHmOrAdmin && (
+              <>
+                {availableClasses.length > 1 && (
+                  <div className="flex items-center gap-1.5">
+                    <label className="text-[10px] font-bold text-[#526477] uppercase tracking-wider hidden sm:inline">
+                      Class:
+                    </label>
+                    <select
+                      value={activeClassId}
+                      onChange={(e) => handleClassSelect(e.target.value)}
+                      className="px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-[#102033] bg-white focus:outline-none focus:ring-2 focus:ring-[#4B7F3A] cursor-pointer"
+                      title="Select Class"
+                    >
+                      {availableClasses.map((cls) => (
+                        <option key={String(cls._id)} value={String(cls._id)}>
+                          {cls.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {sections.length > 1 && (
+                  <div className="flex items-center gap-1.5">
+                    <label className="text-[10px] font-bold text-[#526477] uppercase tracking-wider hidden sm:inline">
+                      Section:
+                    </label>
+                    <select
+                      value={activeSectionId}
+                      onChange={(e) => handleSectionSelect(e.target.value)}
+                      className="px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-[#102033] bg-white focus:outline-none focus:ring-2 focus:ring-[#4B7F3A] cursor-pointer"
+                      title="Select Section"
+                    >
+                      {sectionsForActiveClass.map((sec) => (
+                        <option key={String(sec._id)} value={String(sec._id)}>
+                          {availableClasses.length <= 1
+                            ? `${sec.classId?.name || sec.class?.name || ''} - ${sec.name || 'Section'}`.replace(/^[ -]+/, '')
+                            : sec.name || 'Whole Class'}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Teacher: Isolated to their own assigned class/sections only */}
+            {isTeacher && (
+              <>
+                {sections.length > 1 ? (
+                  <div className="flex items-center gap-1.5">
+                    <label className="text-[10px] font-bold text-[#526477] uppercase tracking-wider">
+                      My Section:
+                    </label>
+                    <select
+                      value={activeSectionId}
+                      onChange={(e) => handleSectionSelect(e.target.value)}
+                      className="px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs font-bold text-[#102033] bg-white focus:outline-none focus:ring-2 focus:ring-[#4B7F3A] cursor-pointer"
+                      title="Select My Assigned Section"
+                    >
+                      {sections.map((sec) => {
+                        const classTitle = sec.class?.name || sec.classId?.name || 'Class';
+                        const secTitle = sec.name && sec.name !== 'null' && sec.name.toLowerCase() !== 'default'
+                          ? `Section ${sec.name}`
+                          : 'Whole Class';
+                        return (
+                          <option key={String(sec._id)} value={String(sec._id)}>
+                            {classTitle} - {secTitle}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+                ) : (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold text-slate-700">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                    <span>Assigned Section: {className} - {sectionName}</span>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* View Mode Toggle: Cards vs Ledger Table */}
+          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200 print:hidden ml-auto">
+            <button
+              type="button"
+              onClick={() => setDisplayMode('CARDS')}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                displayMode === 'CARDS'
+                  ? 'bg-white text-[#38662D] shadow-xs border border-[#C9DFBC]'
+                  : 'text-[#526477] hover:text-[#102033]'
+              }`}
+              title="Student Roster Card View (Best for Mobile)"
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span>Cards</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setDisplayMode('TABLE')}
+              className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                displayMode === 'TABLE'
+                  ? 'bg-white text-[#38662D] shadow-xs border border-[#C9DFBC]'
+                  : 'text-[#526477] hover:text-[#102033]'
+              }`}
+              title="Full Matrix Attendance Ledger (Official Table)"
+            >
+              <TableIcon className="w-3.5 h-3.5" />
+              <span>Ledger</span>
             </button>
           </div>
         </div>

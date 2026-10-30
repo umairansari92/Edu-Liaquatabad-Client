@@ -38,11 +38,22 @@ export const fetchSectionRoster = createAsyncThunk(
 
 export const fetchAttendanceSheet = createAsyncThunk(
   'teacher/fetchAttendanceSheet',
-  async ({ sectionId, date }, { rejectWithValue }) => {
+  async ({ sectionId, date, isProxy, proxyReason }, { rejectWithValue }) => {
     try {
-      return await teacherService.getAttendanceSheet(sectionId, date);
+      return await teacherService.getAttendanceSheet(sectionId, date, { isProxy, proxyReason });
     } catch (apiRequestError) {
       return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch attendance sheet');
+    }
+  }
+);
+
+export const fetchEligibleProxySections = createAsyncThunk(
+  'teacher/fetchEligibleProxySections',
+  async (date, { rejectWithValue }) => {
+    try {
+      return await teacherService.getEligibleProxySections(date);
+    } catch (apiRequestError) {
+      return rejectWithValue(apiRequestError.response?.data?.message || 'Failed to fetch proxy sections');
     }
   }
 );
@@ -295,6 +306,11 @@ const initialState = {
   leaveRequestsLoading: false,
   leaveSubmitting: false,
   leaveError: null,
+
+  // Teacher Proxy Attendance Coverage
+  eligibleProxySections: [],
+  proxySectionsLoading: false,
+  proxySectionsError: null,
 };
 
 // ─── Slice Definition ─────────────────────────────────────────────────────────
@@ -411,6 +427,20 @@ const teacherSlice = createSlice({
       .addCase(clearMissedAttendance.rejected, (state, action) => {
         state.clearMissedSubmitting = false;
         state.clearMissedError = action.payload;
+      })
+
+      // Eligible Proxy Sections
+      .addCase(fetchEligibleProxySections.pending, (state) => {
+        state.proxySectionsLoading = true;
+        state.proxySectionsError = null;
+      })
+      .addCase(fetchEligibleProxySections.fulfilled, (state, action) => {
+        state.proxySectionsLoading = false;
+        state.eligibleProxySections = action.payload?.eligibleSections || [];
+      })
+      .addCase(fetchEligibleProxySections.rejected, (state, action) => {
+        state.proxySectionsLoading = false;
+        state.proxySectionsError = action.payload;
       })
 
       // Request Late Attendance Clearance
@@ -604,5 +634,7 @@ export const selectTeacherLeaveRequests = (state) => state.teacher.myLeaveReques
 export const selectTeacherLeaveLoading = (state) => state.teacher.leaveRequestsLoading;
 export const selectTeacherLeaveSubmitting = (state) => state.teacher.leaveSubmitting;
 export const selectTeacherLeaveError = (state) => state.teacher.leaveError;
+export const selectEligibleProxySections = (state) => state.teacher.eligibleProxySections;
+export const selectProxySectionsLoading = (state) => state.teacher.proxySectionsLoading;
 
 export default teacherSlice.reducer;
